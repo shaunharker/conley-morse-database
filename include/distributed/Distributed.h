@@ -7,72 +7,73 @@
 
 #include "distributed/Message.h"
 #include "distributed/Communicator.h"
- 
-/** Coordinator_Base */
-template < class Communicator >
-class Coordinator_Base {
 
-private:
-    Communicator & my_communicator;
-	static const int JOB = 0;
-	static const int RETIRE = 1;
-	static const int READY = 0;
-	static const int RESULTS = 1;
-
-public:
-    /** Constructors */
-    Coordinator_Base ( Communicator & my_communicator );
-    virtual ~Coordinator_Base ( void );
-
-    /** run(). */
-    int run ( void ); 
- 
-    /* Pure Virtual Functions to be supplied by derived class */
- 
-    /** Prepare a job to send. 
-      * Return value is 0 if job is prepared.
-      * Return value is 1 if a retirement job is prepared (no work left.)
-      * Return value is 2 if no job prepared because none available until 
-      *              more results are processed.
-      */
-    virtual int prepare ( Message * job ) = 0;
- 
-    /** Process the results of a job. */
-    virtual void process ( const Message & results ) = 0;
-};
- 
-/** Worker_Base */
-template < class Communicator >
-class Worker_Base {
-private:
-    Communicator & my_communicator;
-    typename Communicator::Entity coordinator;
-	static const int JOB = 0;
-	static const int RETIRE = 1;
-	static const int READY = 0;
-	static const int RESULTS = 1;
-
-public:
-    /** Constructor */
- 	Worker_Base ( Communicator & my_communicator );
-	virtual ~Worker_Base ( void );
-	
-    /** run(). */
-    int run ( void ); 
- 
-    /* Pure Virtual Functions to be supplied by derived class */
- 
-    /** Work the job. */
-    virtual void work ( Message * results, const Message & job ) = 0;
+/** Base class of coordinator. A coordinator prepares works for
+ *  each (distrubuted computation) node and gather the computation
+ *  results.
+ *
+ *  This class has only abstract member functions and users must be
+ *  override these functions.
+ *  Constructor prototype of derived class must be
+ *  Coordinator(int argc, char **argv) because coordinator_worker_scheme::Run
+ *  requires such a prototype.
+ */
+class CoordinatorBase {
+ public:
+  enum State {
+    kOK, /* A new job is prepared */
+    kFinish, /* All jobs are finished and stop computation */
+    kPending, /* Wait for some jobs to be completed */
+  };
+  /** Users prepare a new job and set the job to "job".
+   * 
+   *  If you can prepare the new job, you must return kOK.
+   *  If you want to wait some jobs which aren't finished yet,
+   *  you must return kPending.
+   *  If all jobs are completed, you must return kFinish.
+   *  If all jobs are requested but not all jobs are finished,
+   *  you must return kPending, don't return kFinish.
+   */
+  virtual State Prepare(Message *job) = 0;
+  /** Users process a result of a job of "Prepare" function.
+   */
+  virtual void Process(const Message &result) = 0;
 };
 
+/** Base class of worker. A worker receive works from
+ *  a coordinator, compute the result, and send
+ *  the result to the coordinator.
+ *
+ *  This class has only abstract member functions and users must be
+ *  override these functions.
+ *  Constructor prototype of derived class must be
+ *  Worker(int argc, char **argv) because coordinator_worker_scheme::Run
+ *  requires such a prototype.
+ */
+class WorkerBase {
+ public:
+  /** Users execute a computation work prepared by "Prepare" function
+   * in coordinator class, and set the result to "result".
+   */
+  virtual void Work(Message * result, const Message &job) = 0;
+};
 
-/** Coordinator_Worker_Scheme */
-template < template < class > class Coordinator, template < class > class Worker, class Communicator >
-int Coordinator_Worker_Scheme ( int argc, char * argv [] );
+namespace coordinator_worker_scheme {
+/** Initialize communication channels, start a coordinator or a worker,
+ *  compute, gather results, and finalize these channels.
+ */
+template<class Communicator, class Coordinator, class Worker>
+int Run(int argc, char **argv);
+};
 
 #ifndef _DO_NOT_INCLUDE_HPP_
 #include "distributed/Distributed.hpp"
 #endif
 
 #endif
+
+/* 
+ * Local Variables:
+ * mode: C++
+ * End:
+ */
