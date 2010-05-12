@@ -2,7 +2,8 @@
 
 CXX := mpicxx
 LIBS = -L/home/sharker/boost_1_42_0/stage/lib/ -lboost_serialization
-CXXFLAGS := -O3 -m64 -Wall -I./include/ -I/home/sharker/boost_1_42_0/
+CXXFLAGS := -O3 -m64 -Wall -I./include/ -I/home/sharker/boost_1_42_0/ -Wno-deprecated
+
 
 # The last part is because the conley2 boost library is not up to date and I have
 # a new one installed TEMPORARILY.                                                
@@ -17,12 +18,12 @@ VPATH = ./source/data_structures:./source/program:./source/program/jobs:./source
 
 all: Conley_Morse_Database
 
-DATABASE_OBJECTS = Conley_Morse_Database.o Message.o Communicator.o
+DATABASE_OBJECTS = Conley_Morse_Database.o Message.o Communicator.o Worker.o Coordinator.o
 
 Conley_Morse_Database: $(DATABASE_OBJECTS)
 	$(CXX_STANDALONE) $(DATABASE_OBJECTS) -o Conley_Morse_Database
 
-Conley_Morse_Database.o: Message.o Communicator.o
+# Conley_Morse_Database.o: Message.o Communicator.o 
 
 Message.o: Message.h
 
