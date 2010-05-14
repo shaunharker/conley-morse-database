@@ -7,6 +7,7 @@
 #define _CMDP_COMMUNICATOR_
 
 #include "distributed/Message.h"
+#include <vector>
 
 class SimpleMPICommunicator {
  public:
@@ -14,10 +15,6 @@ class SimpleMPICommunicator {
    *  In MPI, this is the type of ranks.
    */
   typedef int Channel;
-  /** Maximum byte size of message string.
-   *  Current maximum is 64kbyte.
-   */
-  static const int kBufferSize = 64*1024;
   /** Initialize MPI and open all communication channels */
   SimpleMPICommunicator(int *argc, char ***argv);
   /** Close all communication channels and finalize MPI */
@@ -42,7 +39,13 @@ class SimpleMPICommunicator {
    */
   void Broadcast(const Message &message);
  private:
-  char buffer_[kBufferSize];
+  /** Default buffer byte size of message string.
+   *  Current size is 64kbyte. If larger size is requested,
+   *  buffer becomes larger.
+   */
+  static const int kBufferSize = 64*1024;
+  /** Buffer memory used for receiving a message */
+  std::vector<char> buffer_;
 };
 
 #ifndef _DO_NOT_INCLUDE_HPP_

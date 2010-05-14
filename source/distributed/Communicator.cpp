@@ -6,11 +6,13 @@
 #include "mpi.h"
 #include "distributed/Communicator.h"
 #include <string>
+#include <cassert>
 
 
 typedef SimpleMPICommunicator::Channel Channel;
 
-SimpleMPICommunicator::SimpleMPICommunicator(int *argc, char ***argv) {
+SimpleMPICommunicator::SimpleMPICommunicator(int *argc, char ***argv)
+    : buffer_(kBufferSize) {
   MPI_Init(argc, argv);
 }
 
@@ -26,30 +28,32 @@ bool SimpleMPICommunicator::Coordinating(void) {
 }
 
 Channel SimpleMPICommunicator::CoordinatorChannel(void) {
-  if (Coordinating()) {
-    throw "Critical Program Error: Coordinator cannot access coordinator channel";
-  } else {
-    return 0;
-  }
+  assert(!Coordinating());
+  return 0;
 }
 
 void SimpleMPICommunicator::Send(const Message &message,
                                  Channel destination) {
   int size = message.str().size();
-  MPI_Send(const_cast<char*>(message.str().c_str()), size, MPI_BYTE,
+  MPI_Send(const_cast<char*>(message.str().data()), size, MPI_BYTE,
            destination, message.tag, MPI_COMM_WORLD);
 }
 
+/* TODO: direcly pass stringbuf buffer to MPI_Recv.
+ */
 void SimpleMPICommunicator::Receive(Message *message,
                                     Channel source) {
   MPI_Status status;
-  MPI_Recv(buffer_, sizeof(buffer_), MPI_BYTE, source,
-           MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-  int tag = status.MPI_TAG;
+  /* Get data size to determine buffer size before real communication */
+  MPI_Probe(source, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
   int count;
   MPI_Get_count(&status, MPI_BYTE, &count);
-  message->tag = tag;
-  message->str(std::string(buffer_, count));
+  buffer_.resize(count);
+  
+  MPI_Recv(&buffer_[0], count, MPI_BYTE, source,
+           MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+  message->tag = status.MPI_TAG;
+  message->str(std::string(&buffer_[0], count));
 }
 
 Channel SimpleMPICommunicator::Probe(void) {
