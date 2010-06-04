@@ -85,19 +85,9 @@ class ConleyMorseGraph {
   /** Return true if there is a path from the "from" vertex
    *  to the "to" vertex.
    *
-   *  Simple DFS is used.
-   *  TODO: mark reached vertices.
    */
-  bool PathExist(Vertex from, Vertex to) {
-    if (from == to)
-      return true;
-    BOOST_FOREACH (Edge edge, boost::out_edges(from, graph_)) {
-      Vertex next = boost::target(edge, graph_);
-      if (PathExist(next, to))
-        return true;
-    }
-    return false;
-  }
+  bool PathExist(Vertex from, Vertex to);
+  
   /** Get a cubeset of the vertex. */
   CubeSet* GetCubeSet(Vertex vertex) const {
     return component_accessor_[vertex].cube_set_;
@@ -120,28 +110,10 @@ class ConleyMorseGraph {
   }
 
   /** return a iterator pair to all out-edges */
-  OutEdgeIteratorPair OutEdges(Vertex vertex) {
-    typedef typename boost::graph_traits<Graph>::out_edge_iterator Iter;
-    boost::function<Vertex (Edge)> f =
-        boost::bind(&ConleyMorseGraph::Target, boost::ref(*this), _1);
-    Iter b, e;
-    tie(b, e) = boost::out_edges(vertex, graph_);
-
-    return OutEdgeIteratorPair(boost::make_transform_iterator(b, f),
-                               boost::make_transform_iterator(e, f));
-  }
+  OutEdgeIteratorPair OutEdges(Vertex vertex);
+  
   /** return a iterator pair to all verteces of in-edges */
-  InEdgeIteratorPair InEdges(Vertex vertex) {
-    typedef typename boost::graph_traits<Graph>::in_edge_iterator Iter;
-    boost::function<Vertex (Edge)> f =
-        boost::bind(&ConleyMorseGraph::Source, boost::ref(*this), _1);
-    Iter b, e;
-    tie(b, e) = boost::in_edges(vertex, graph_);
-
-    return InEdgeIteratorPair(boost::make_transform_iterator(b, f),
-                              boost::make_transform_iterator(e, f));
-  }
-
+  InEdgeIteratorPair InEdges(Vertex vertex);
   
  private:
   Graph graph_;
