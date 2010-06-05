@@ -8,7 +8,6 @@
 #include "distributed/Messaging.h"
 
 /// Constructs the Conley-Morse decomposition for a single parameter box.
-
 /// Runs a complete single box job as one of the worker's tasks.
 /// Reads the computation parameters from the job message.
 /// Saves the results of the computation in the result message.
