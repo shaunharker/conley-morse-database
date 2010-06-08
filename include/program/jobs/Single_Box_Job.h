@@ -7,6 +7,22 @@
 
 #include "distributed/Messaging.h"
 
+/// Computes the Conley-Morse decomposition with respect to the given map
+/// on the given phase space. The toplex representation of the phase space
+/// is subdivided the given number of times.
+/// The Conley-Morse graph is stored in the data structure provided
+/// (which must be initially empty).
+/// Morse sets are inserted into the provided array by means of "push_back",
+/// as if it was an empty std::vector.
+template < class Toplex_Template , class Parameter_Toplex_Template , class Map_Template , class Morse_Sets_Template >
+void Compute_Conley_Morse_Graph (
+  ConleyMorseGraph < typename Toplex_Template::Toplex_Subset, Conley_Index > * conley_morse_graph ,
+  Morse_Sets_Template * morse_sets ,
+  Toplex_Template * phase_space ,
+  const typename Toplex_Template::Geometric_Description & phase_space_box ,
+  int subdivisions
+);
+
 /// Constructs the Conley-Morse decomposition for a single parameter box.
 /// Runs a complete single box job as one of the worker's tasks.
 /// Reads the computation parameters from the job message.

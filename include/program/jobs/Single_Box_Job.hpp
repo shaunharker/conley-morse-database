@@ -22,11 +22,6 @@ void Compute_Morse_Decomposition (
 } /* Compute_Morse_Decomposition */
 
 
-/// Computes the Conley-Morse decomposition with respect to the given map
-/// on the given phase space. The toplex representation of the phase space
-/// is subdivided the given number of times.
-/// The Conley-Morse graph is stored in the data structure provided
-/// (which must be initially empty).
 template < class Toplex_Template , class Parameter_Toplex_Template , class Map_Template , class Morse_Sets_Template >
 void Compute_Conley_Morse_Graph (
   ConleyMorseGraph < typename Toplex_Template::Toplex_Subset, Conley_Index > * conley_morse_graph ,
@@ -37,10 +32,10 @@ void Compute_Conley_Morse_Graph (
 )
 {
   // short names for the types used in this function
-  typedef Extendible_Array < typename Toplex_Template::Toplex_Subset > Morse_Sets;
+  typedef std::vector < typename Toplex_Template::Toplex_Subset > Morse_Sets;
   typedef typename Toplex_Template::Toplex_Subset Toplex_Subset;
   typedef ConleyMorseGraph < typename Toplex_Template::Toplex_Subset, Conley_Index > Conley_Morse_Graph;
-  typedef Extendible_Array < Conley_Morse_Graph > Conley_Morse_Graphs;
+  typedef std::vector < Conley_Morse_Graph > Conley_Morse_Graphs;
 
   // create the objects of the maps
   Map_Template interval_map ( parameter_box );
@@ -106,7 +101,7 @@ void Compute_Conley_Morse_Graph (
 template < class Toplex_Template, class Parameter_Toplex_Template , class Map_Template >
 void Single_Box_Job ( Message * result, const Message & job ) {
   // short names for the types used in this function
-  typedef Extendible_Array < typename Toplex_Template::Toplex_Subset > Morse_Sets;
+  typedef std::vector < typename Toplex_Template::Toplex_Subset > Morse_Sets;
   typedef typename Toplex_Template::Geometric_Description Geometric_Description;
   typedef typename Parameter_Toplex_Template::Geometric_Description Parameter_Geometric_Description;
   typedef ConleyMorseGraph < typename Toplex_Template::Toplex_Subset, Conley_Index > Conley_Morse_Graph;
@@ -126,8 +121,8 @@ void Single_Box_Job ( Message * result, const Message & job ) {
   // create the object of the toplex for the given phase space box
   Toplex_Template phase_space ( phase_space_box );
 
-  // a collection of Morse sets will be stored in an extendible array
-  // in order to avoid copying of large objects
+  // a collection of Morse sets will be stored in an std::vector;
+  // note that this might be inefficient because of copying large objects
   Morse_Sets morse_sets;
 
   // compute the Conley-Morse graph
