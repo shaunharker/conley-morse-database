@@ -9,12 +9,11 @@
 
 /// Computes the Morse decomposition of a given set
 /// using the SCC algorithm.
-template < class Toplex_Template , class Morse_Sets_Template , class Combinatorial_Map >
+template < class Toplex_Template , class Conley_Morse_Graph , class Combinatorial_Map >
 void Compute_Morse_Decomposition (
-  typename Toplex_Template::Toplex_Subset * main_set ,
-  Morse_Sets_Template * finer_morse_sets ,
-  const typename Toplex_Template::Toplex_Subset & subdivided_morse_set ,
-  const Toplex_Template & phase_space , const Combinatorial_Map & combinatorial_map
+  Conley_Morse_Graph * conley_morse_graph ,
+  const typename Toplex_Template::Toplex_Subset & morse_set ,
+  const Combinatorial_Map & combinatorial_map
 )
 {
   // not yet implemented
@@ -22,17 +21,15 @@ void Compute_Morse_Decomposition (
 } /* Compute_Morse_Decomposition */
 
 
-template < class Toplex_Template , class Parameter_Toplex_Template , class Map_Template , class Morse_Sets_Template >
+template < class Toplex_Template , class Parameter_Toplex_Template , class Map_Template , class Conley_Index >
 void Compute_Conley_Morse_Graph (
   ConleyMorseGraph < typename Toplex_Template::Toplex_Subset, Conley_Index > * conley_morse_graph ,
-  Morse_Sets_Template * morse_sets ,
   Toplex_Template * phase_space ,
   const typename Toplex_Template::Geometric_Description & phase_space_box ,
   int subdivisions
 )
 {
   // short names for the types used in this function
-  typedef std::vector < typename Toplex_Template::Toplex_Subset > Morse_Sets;
   typedef typename Toplex_Template::Toplex_Subset Toplex_Subset;
   typedef ConleyMorseGraph < typename Toplex_Template::Toplex_Subset, Conley_Index > Conley_Morse_Graph;
   typedef std::vector < Conley_Morse_Graph > Conley_Morse_Graphs;
@@ -42,40 +39,30 @@ void Compute_Conley_Morse_Graph (
   Combinatorial_Map < Toplex_Template , Map_Template > combinatorial_map ( phase_space , interval_map );
 
   // create the initial (trivial) Morse decomposition of the entire phase space
-  Toplex_Subset empty_set;
-  morse_sets. push_back ( empty_set );
-  morse_sets [ 0 ] = phase_space. cover ( phase_space_box );
-  conley_morse_graph. AddVertex ();
-  conley_morse_graph. SetCubeSet ( 0 , & morse_sets [ 0 ] );
+  conley_morse_graph -> AddVertex ();
+  conley_morse_graph -> SetCubeSet ( new Toplex_Subset );
+  conley_morse_graph -> GetCubeSet ( * ( conley_morse_graph -> Vertices () ) . first () ) -> cover ( phase_space_box );
 
   // refine the Morse decomposition a few times
   for ( int subdiv = 0 ; subdiv < subdivisions ; ++ subdiv ) {
-    // prepare an array for storing finer Morse sets
-    Morse_Sets finer_morse_sets;
-
     // prepare an array for decompositions of the Morse sets
     Conley_Morse_Graphs finer_cmgraphs;
 
     // process all the individual Morse sets
-    for ( Morse_Sets::iterator morse_set_iterator = morse_sets . begin () ;
-    morse_set_iterator != morse_sets. end () ; ++ morse_set_iterator ) {
+    typename Conley_Morse_Graph::VertexIteratorPair vertices = conley_morse_graph -> Vertices ();
+    for ( Conley_Morse_Graph::VertexIterator morse_set_iterator = vertices . first () ;
+    morse_set_iterator != vertices . second () ; ++ morse_set_iterator ) {
       // subdivide the Morse set in the coarser Morse decomposition
-      const Toplex_Subset & morse_set ( * morse_set_iterator );
-      Toplex_Subset subdivided_morse_set;
-      for ( Toplex_Subset::const_iterator box_iterator = morse_set . begin () ;
-      box_iterator != morse_set . end () ; ++ box_iterator ) {
-        Toplex_Subset subdivided = phase_space . subdivide ( phase_space . find ( * box_iterator ) );
-        for ( Toplex_Subset::const_iterator sub_iterator = subdivided . begin () ;
-        sub_iterator != subdivided . end () ; ++ sub_iterator ) {
-          subdivided_morse_set . insert ( * sub_iterator );
-        }
-      }
+      Toplex_Subset * morse_set ( conley_morse_graph -> GetCubeSet ( * morse_set_iterator ) );
+      phase_space . subdivide ( morse_set );
 
       // compute its Morse decomposition as SCCs of the graph of the map
       Conley_Morse_Graph finer_cmgraph;
+      Compute_Morse_Decomposition ( & finer_cmgraph , * morse_set , combinatorial_map );
       finer_cmgraphs . push_back ( finer_cmgraph );
-      Compute_Morse_Decomposition ( & finer_cmgraphs . back () , & finer_morse_sets ,
-        subdivided_morse_set , phase_space , combinatorial_map );
+
+      // compute the Conley indices (?) and simplify the Morse decomposition (?)
+      // ...
     }
 
     // create a refined Morse decomposition of the entire phase space
@@ -91,8 +78,7 @@ void Compute_Conley_Morse_Graph (
     // (not yet implemented)
 
     // swap the objects for the next iteration
-    finer_morse_sets. swap ( morse_sets );
-    finer_morse_graph. swap ( conley_morse_graph );
+    finer_morse_graph . swap ( * conley_morse_graph );
   }
   return;
 } /* Compute_Conley_Morse_Graph */
@@ -127,7 +113,7 @@ void Single_Box_Job ( Message * result, const Message & job ) {
 
   // compute the Conley-Morse graph
   Conley_Morse_Graph conley_morse_graph;
-  Compute_Conley_Morse_Graph ( & conley_morse_graph , & morse_sets , & phase_space , phase_space_box , subdivisions );
+  Compute_Conley_Morse_Graph ( & conley_morse_graph , & phase_space , phase_space_box , subdivisions );
 
   // prepare the message with the result of the computations
   result -> open_for_writing ();

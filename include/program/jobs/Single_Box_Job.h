@@ -14,10 +14,9 @@
 /// (which must be initially empty).
 /// Morse sets are inserted into the provided array by means of "push_back",
 /// as if it was an empty std::vector.
-template < class Toplex_Template , class Parameter_Toplex_Template , class Map_Template , class Morse_Sets_Template >
+template < class Toplex_Template , class Parameter_Toplex_Template , class Map_Template , class Conley_Index >
 void Compute_Conley_Morse_Graph (
   ConleyMorseGraph < typename Toplex_Template::Toplex_Subset, Conley_Index > * conley_morse_graph ,
-  Morse_Sets_Template * morse_sets ,
   Toplex_Template * phase_space ,
   const typename Toplex_Template::Geometric_Description & phase_space_box ,
   int subdivisions
