@@ -10,11 +10,12 @@
 #include <set>
 #include <iostream>
 
-template < class Topcell, class Toplex_Subset >
-class DirectedGraph : public std::map < Topcell, Toplex_Subset > 
+template < class Toplex >
+class DirectedGraph : public std::map < typename Toplex::Top_Cell, 
+                                        typename Toplex::Subset > 
 {
 public:
-  typedef Toplex_Subset Component;
+  typedef typename Toplex::Subset Component;
   typedef std::vector<Component> Components;
   typedef typename Components::size_type comp_index_t;
 
@@ -40,7 +41,6 @@ public:
 private:
 
 };
-
 
 #ifndef _DO_NOT_INCLUDE_HPP_
 #include "data_structures/Directed_Graph.hpp"
