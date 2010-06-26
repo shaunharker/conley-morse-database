@@ -42,6 +42,11 @@ private:
 
 };
 
+
+template < class Toplex, class Map >
+DirectedGraph<Toplex> compute_directed_graph (const Toplex & my_toplex, 
+                                              const Map & f);
+
 #ifndef _DO_NOT_INCLUDE_HPP_
 #include "data_structures/Directed_Graph.hpp"
 #endif
