@@ -50,7 +50,10 @@ class ConleyMorseGraph {
     boost::function<Vertex (Edge)>,
     typename boost::graph_traits<Graph>::in_edge_iterator> InEdgeIterator;
   typedef std::pair<InEdgeIterator, InEdgeIterator> InEdgeIteratorPair;
-
+  /* size types */
+  typedef typename boost::graph_traits<Graph>::vertices_size_type
+      VerticesSizeType;
+  
   /** Create an empty graph */
   ConleyMorseGraph() {
     component_accessor_ = boost::get(ComponentProperty(), graph_);
@@ -105,10 +108,15 @@ class ConleyMorseGraph {
     component_accessor_[vertex].conley_index_ = conley_index;
   }
   /** return a iterator pair to all vertices */
-  VertexIteratorPair Vertices() {
+  VertexIteratorPair Vertices() const {
     return boost::vertices(graph_);
   }
-
+  
+  /** return a number of vertices */
+  VerticesSizeType NumVertices() const {
+    return boost::num_vertices(graph_);
+  }
+  
   /** return a iterator pair to all out-edges */
   OutEdgeIteratorPair OutEdges(Vertex vertex);
   
