@@ -64,6 +64,11 @@ namespace coordinator_worker_scheme {
  */
 template<class Communicator, class Coordinator, class Worker>
 int Run(int argc, char **argv);
+
+/** Computation in single process
+ */
+template<class Coordinator, class Worker>
+int RunSingleProcess(int argc, char **argv);
 };
 
 #ifndef _DO_NOT_INCLUDE_HPP_

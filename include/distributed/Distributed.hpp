@@ -125,5 +125,32 @@ int Run(int argc, char **argv) {
   }
 }
 
+template<class Coordinator, class Worker>
+int RunSingleProcess(int argc, char **argv) {
+  Coordinator coordinator(argc, argv);
+  Worker worker(argc, argv);
+  typename CoordinatorBase::State state;
+  
+  for (;;) {
+    Message job, result;
+    state = coordinator.Prepare(&job);
+    switch (state) {
+      case CoordinatorBase::kOK:
+        worker.Work(&result, job);
+        coordinator.Process(result);
+        break;
+      case CoordinatorBase::kPending:
+        /* maybe bug */
+        assert(false);
+        break;
+      case CoordinatorBase::kFinish:
+        return 0;
+        break;
+    }
+  }
+    
+  return 0;
+}
+
 } /* namespace coordinator_worker_scheme */
 
