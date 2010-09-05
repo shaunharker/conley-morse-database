@@ -2,14 +2,18 @@
 #include <set>
 #include <iostream>
 
+struct Toplex 
+{
+  typedef int Top_Cell;
+  typedef std::set<Top_Cell> Subset;
+};
+
 int main ( int argc, char * argv [] ) 
 {
-  typedef int Topcell;
-  typedef std::set<Topcell> Toplex_Subset;
-  typedef DirectedGraph <Topcell, Toplex_Subset> MyGraph;
+  typedef DirectedGraph <Toplex> MyGraph;
 
   int nVertices = 3;
-  Toplex_Subset E[nVertices];
+  Toplex::Subset E[nVertices];
 
   /*
     The sample graph G has 3 vertices with edges defined by
@@ -30,7 +34,7 @@ int main ( int argc, char * argv [] )
   }
   std::cout << "The size of the Graph: " << G.size() << std::endl; 
 
-  std::vector< Toplex_Subset > Components;
+  std::vector< Toplex::Subset > Components;
 
   G.getStronglyConnectedComponents(Components);
   G.getConnectingPathLength(0, 0);
