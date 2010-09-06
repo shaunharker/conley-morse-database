@@ -2,6 +2,9 @@
  *  Single_Box_Job.hpp
  */
 
+#ifndef _CMDP_SINGLE_BOX_JOB_HPP_
+#define _CMDP_SINGLE_BOX_JOB_HPP_
+
 #include "data_structures/Directed_Graph.h"
 #include "data_structures/Conley_Morse_Graph.h"
 #include "algorithms/Conley_Index.h"
@@ -21,13 +24,14 @@ void Compute_Morse_Decomposition (
 } /* Compute_Morse_Decomposition */
 
 
-template < class Toplex_Template , class Parameter_Toplex_Template , class Map_Template , class Conley_Index >
+template < class Toplex_Template , class Parameter_Toplex_Template , class Map_Template , class Conley_Index , class Cached_Box_Information >
 void Compute_Conley_Morse_Graph (
   ConleyMorseGraph < typename Toplex_Template::Toplex_Subset, Conley_Index > * conley_morse_graph ,
   const typename Parameter_Toplex_Template::Geometric_Description & parameter_box ,
   Toplex_Template * phase_space ,
   const typename Toplex_Template::Geometric_Description & phase_space_box ,
-  int subdivisions
+  int subdivisions ,
+  Cached_Box_Informatin * cached_box_information
 )
 {
   // short names for the types used in this function
@@ -124,3 +128,5 @@ void Single_Box_Job ( Message * result, const Message & job ) {
   return;
 } /* Single_Box_Job */
 
+
+#endif

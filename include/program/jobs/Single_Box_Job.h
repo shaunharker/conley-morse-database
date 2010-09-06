@@ -13,12 +13,13 @@
 /// The Conley-Morse graph is stored in the data structure provided
 /// (which must be initially empty), together with Morse sets
 /// for which memory is dynamically allocated.
-template < class Toplex_Template , class Parameter_Toplex_Template , class Map_Template , class Conley_Index >
+template < class Toplex_Template , class Parameter_Toplex_Template , class Map_Template , class Conley_Index , class Cached_Box_Information >
 void Compute_Conley_Morse_Graph (
   ConleyMorseGraph < typename Toplex_Template::Toplex_Subset, Conley_Index > * conley_morse_graph ,
   Toplex_Template * phase_space ,
   const typename Toplex_Template::Geometric_Description & phase_space_box ,
-  int subdivisions
+  int subdivisions ,
+  Cached_Box_Informatin * cached_box_information
 );
 
 /// Constructs the Conley-Morse decomposition for a single parameter box.
@@ -29,7 +30,7 @@ template < class Toplex_Template, class Parameter_Toplex_Template , class Map_Te
 void Single_Box_Job ( Message * result, const Message & job ); 
 
 #ifndef _DO_NOT_INCLUDE_HPP_
-#include "distributed/Single_Box_Job.hpp"
+#include "program/jobs/Single_Box_Job.hpp"
 #endif
 
 #endif
