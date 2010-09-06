@@ -109,10 +109,10 @@ namespace boost {
   std::pair< typename graph_traits< DirectedGraph<Toplex> >::adjacency_iterator, 
   typename graph_traits< DirectedGraph<Toplex> >::adjacency_iterator > 
   adjacent_vertices ( typename graph_traits< DirectedGraph<Toplex> >::vertex_descriptor v, 
-                     DirectedGraph<Toplex> & g ) {
+                     const DirectedGraph<Toplex> & g ) {
     return std::pair< typename graph_traits< DirectedGraph<Toplex> >::adjacency_iterator, 
     typename graph_traits< DirectedGraph<Toplex> >::adjacency_iterator > 
-    ( g [ v ] . begin (), g [ v ] . end () );
+    ( g . find ( v ) -> second . begin (), g . find ( v ) -> second . end () );
   } /* boost::adjacent_vertices<> */
   
   /* For some reason the BGL has already implemented these and we get ambiguity.
@@ -217,8 +217,7 @@ template < class Toplex, class Map >
 DirectedGraph<Toplex> compute_directed_graph (const Toplex & my_toplex, 
                                               const Map & f) {
   DirectedGraph<Toplex> directed_graph;
-  for (typename 
-       Toplex::const_iterator cell_iterator = my_toplex . begin ();
+  for (typename Toplex::const_iterator cell_iterator = my_toplex . begin ();
        cell_iterator != my_toplex . end (); ++ cell_iterator ) {
     directed_graph[*cell_iterator] = my_toplex.cover(f(my_toplex.geometry(cell_iterator)));
   } /* for_each */
