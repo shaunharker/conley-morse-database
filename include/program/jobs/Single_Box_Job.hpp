@@ -24,6 +24,7 @@ void Compute_Morse_Decomposition (
 template < class Toplex_Template , class Parameter_Toplex_Template , class Map_Template , class Conley_Index >
 void Compute_Conley_Morse_Graph (
   ConleyMorseGraph < typename Toplex_Template::Toplex_Subset, Conley_Index > * conley_morse_graph ,
+  const typename Parameter_Toplex_Template::Geometric_Description & parameter_box ,
   Toplex_Template * phase_space ,
   const typename Toplex_Template::Geometric_Description & phase_space_box ,
   int subdivisions
@@ -113,7 +114,7 @@ void Single_Box_Job ( Message * result, const Message & job ) {
 
   // compute the Conley-Morse graph
   Conley_Morse_Graph conley_morse_graph;
-  Compute_Conley_Morse_Graph ( & conley_morse_graph , & phase_space , phase_space_box , subdivisions );
+  Compute_Conley_Morse_Graph ( & conley_morse_graph , parameter_box , & phase_space , phase_space_box , subdivisions );
 
   // prepare the message with the result of the computations
   result -> open_for_writing ();
