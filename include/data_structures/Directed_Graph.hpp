@@ -171,25 +171,77 @@ namespace boost {
   
 } /* namespace boost */
 
+/* A wrapper for the boost's strongly connected components algorithm */
+#include <boost/graph/strong_components.hpp>
 template < class Toplex >
 typename DirectedGraph<Toplex>::comp_index_t 
 DirectedGraph< Toplex >::getStronglyConnectedComponents(
   DirectedGraph< Toplex >::Components & C)
 {
-  // dummy: Pretend SCC has only one component (G itself).
+  using namespace boost;
 
-  typename Toplex::Subset E;
+  typedef DirectedGraph<Toplex> Graph;
+  typedef typename graph_traits<Graph>::vertex_descriptor Vertex;
 
-  typename std::map < typename Toplex::Top_Cell, typename Toplex::Subset >::iterator i;
-  i = std::map < typename Toplex::Top_Cell, typename Toplex::Subset >::begin();
-  do {
-    E.insert(i->first);
-    i++;
-  } while (i != std::map < typename Toplex::Top_Cell, 
-           typename Toplex::Subset >::end());
+  /* Pair Associative Container -- Vertex to Vertex or Integer or Color */
+  typedef std::map< Vertex, Vertex > PAC_VV_t; 
+  typedef std::map< Vertex, int > PAC_VI_t; 
+  typedef std::map< Vertex, default_color_type > PAC_VC_t; 
+  /* Associative Property Map -- Vertex to Integer or Color */
+  typedef boost::associative_property_map< PAC_VV_t > APM_VV_t;
+  typedef boost::associative_property_map< PAC_VI_t > APM_VI_t;
+  typedef boost::associative_property_map< PAC_VC_t > APM_VC_t;
 
-  C.push_back(E);
+  PAC_VI_t pac_component;
+  PAC_VI_t pac_discover_time;
+  PAC_VV_t pac_root;
+  PAC_VC_t pac_color;
+  
+  APM_VI_t component_number ( pac_component );
+  APM_VI_t discover_time ( pac_discover_time );
+  APM_VV_t root ( pac_root );
+  APM_VC_t color ( pac_color );
+  
+  int num_scc = strong_components(*this, component_number, 
+                                  root_map(root).
+                                  color_map(color).
+                                  discover_time_map(discover_time));
 
+  std::vector < std::vector < Vertex > > components;
+  build_component_lists(*this, num_scc, component_number, components);
+
+  /* Erase top cells not in attractor sets */
+  Vertex v;
+  typename std::vector < std::vector < Vertex > >::iterator it = components.begin();
+  while (it != components.end ()) {
+    if ((*it).size() == 1) {
+        v = (*it)[0];
+        if ((*this)[v].count(v) == 0) {
+            components.erase(it);
+            --it;
+        }
+    }
+    ++it;
+  }
+
+  /* Convert 'components (std::vec)' into C (Toplex::Components) */
+  typename DirectedGraph< Toplex >::Component comp;
+  typename std::vector < Vertex >::iterator vect_it;
+  it = components.begin();
+  while (it != components.end()) {
+      // std::cout << "comp" << std::endl;
+      vect_it = (*it).begin();
+      comp.clear();
+      while(vect_it != (*it).end()) {
+          // std::cout << *vect_it << std::endl;
+          comp.insert(*vect_it);
+          ++vect_it;
+      }
+      components.erase(it);
+      C.push_back(comp);
+  }
+
+  /* Exit the function */
   return C.size();
 }
 
