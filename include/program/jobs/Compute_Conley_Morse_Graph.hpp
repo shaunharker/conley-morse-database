@@ -6,7 +6,12 @@
 #define _CMDP_COMPUTE_CONLEY_MORSE_GRAPH_HPP_
 
 #include <map>
+#include <utility>
 #include <vector>
+
+#include "program/Configuration.h"
+#include "program/jobs/Compute_Path_Bounds.h"
+#include "program/jobs/Compute_Morse_Decomposition.h"
 
 
 template < class Toplex , class Parameter_Toplex ,
@@ -26,6 +31,10 @@ void Compute_Conley_Morse_Graph ( ConleyMorseGraph < typename Toplex::Toplex_Sub
   // create the objects of the maps
   Map interval_map ( parameter_box );
   Combinatorial_Map < Toplex , Map > combinatorial_map ( phase_space , interval_map );
+
+  // prepare maps for pointing the final Morse sets to where they came from
+  std::map < typename Conley_Morse_Graph::Vertex , Conley_Morse_Graph const * > original_cmg;
+  std::map < typename Conley_Morse_Graph::Vertex , typename Conley_Morse_Graph::Vertex > original_set;
 
   // prepare a map for pointing Morse sets to their subdivisions
   std::map < std::pair < Conley_Morse_Graph const * , typename Conley_Morse_Graph::Vertex > , Conley_Morse_Graph const * > finer_cmg;
@@ -48,7 +57,8 @@ void Compute_Conley_Morse_Graph ( ConleyMorseGraph < typename Toplex::Toplex_Sub
   conley_morse_graphs . push_back ( new Conley_Morse_Graph );
   conley_morse_graphs [ 0 ] -> AddVertex ();
   conley_morse_graphs [ 0 ] -> SetCubeSet ( new Toplex_Subset );
-  conley_morse_graphs [ 0 ] -> GetCubeSet ( * ( conley_morse_graph -> Vertices () ) . first () ) -> cover ( phase_space_box );
+  conley_morse_graphs [ 0 ] -> GetCubeSet ( * ( conley_morse_graphs [ 0 ] -> Vertices () ) . first () ) ->
+    cover ( phase_space_box );
 
   // prepare vectors for storing the number of the first Conley-Morse
   // decomposition and the one-after-the-last one at each subdivision level
@@ -74,56 +84,84 @@ void Compute_Conley_Morse_Graph ( ConleyMorseGraph < typename Toplex::Toplex_Sub
     // go through all the CMGs and consider subdividing their Morse sets
     for ( size_t cmg_number = cmg_begin ; cmg_number != cmg_end ; ++ cmg_number ) {
       // extract the Conley-Morse graph
-      Conley_Morse_Graph * conley_morse_graph = conley_morse_graphs [ cmg_number ];
+      Conley_Morse_Graph * current_cmg = conley_morse_graphs [ cmg_number ];
 
       // process all the individual Morse sets
-      typename Conley_Morse_Graph::VertexIteratorPair vertices = conley_morse_graph -> Vertices ();
+      typename Conley_Morse_Graph::VertexIteratorPair vertices = current_cmg -> Vertices ();
       for ( Conley_Morse_Graph::VertexIterator morse_set_iterator = vertices . first () ;
         morse_set_iterator != vertices . second () ; ++ morse_set_iterator )
       {
-        // check if the Morse set should be subdivided
-        
-        // subdivide the Morse set if decided to
-        Toplex_Subset * morse_set ( conley_morse_graph -> GetCubeSet ( * morse_set_iterator ) );
-        phase_space . subdivide ( morse_set );
+        // determine the Morse set
+        typename Conley_Morse_Graph::Vertex current_vertex = * morse_set_iterator;
+        Toplex_Subset * morse_set ( current_cmg -> GetCubeSet ( current_vertex ) );
+
+        // if the Morse set should not be subdivided anymore
+        if ( ! subdiv_decide ( subdiv , morse_set ) ) {
+          // add the Morse set to the final decomposition and set up the right links
+          typename Conley_Morse_Graph::Vertex new_vertex = conley_morse_graph . AddVertex ();
+          original_cmg [ new_vertex ] = current_cmg;
+          original_set [ new_vertex ] = current_vertex;
+
+          // move or compute its Conley index
+          Conley_Index * conley_index ( current_cmg . GetConleyIndex ( current_vertex ) );
+          if ( ( conley_index == 0 ) && compute_Conley_index ( morse_set ) ) {
+            // TODO: Compute the Conley index of the Morse set
+          }
+          conley_morse_graph -> SetConleyIndex ( new_vertex , conley_index );
+          current_cmg -> SetConleyIndex ( current_vertex , 0 );
+
+          // move the cubical representation of the Morse set
+          conley_morse_graph -> SetCubeSet ( new_vertex , morse_set );
+          current_cmg -> SetCubeSet ( current_vertex , 0 );
+          continue;
+        }
+
+        // subdivide the Morse set and compute its Morse decomposition
+        phase_space -> subdivide ( morse_set );
+        Conley_Morse_Graph * new_cmg = new Conley_Morse_Graph;
+        conley_morse_graphs -> push_back ( new_cmg );
+        Compute_Morse_Decomposition < Toplex, Conley_Morse_Graph , Combinatorial_Map > ( new_cmg ,
+          & ( exit_path_bounds [ new_cmg ] ) , & ( entrance_path_bounds [ new_cmg ] ) ,
+          & ( path_bounds [ new_cmg ] ) , & ( through_path_bound [ new_cmg ] ) ,
+          morse_set , combinatorial_map );
+
+        // compute the Conley indices of the constructed Morse sets
+        typename Conley_Morse_Graph::VertexIteratorPair new_vertices = new_cmg -> Vertices ();
+        for ( Conley_Morse_Graph::VertexIterator morse_set_iterator = new_vertices . first () ;
+          morse_set_iterator != new_vertices . second () ; ++ morse_set_iterator )
+        {
+          if ( ! compute_Conley_index_after_subdivision ( subdiv , morse_set ) )
+            continue;
+          // TODO:  Compute the Conley index of the Morse set (note: copy if known and only one Morse set)
+        }
+
+        // mark the links between the coarser and finer decompositions
+        finer_cmg [ std::make_pair ( current_cmg , current_vertex ) ] = new_cmg;
+        coarser_cmg [ new_cmg ] = current_cmg;
+        coarser_set [ new_cmg ] = current_vertex;
+
+        // forget the Conley index and cubical representation of the subdivided set
+        current_cmg -> SetConleyIndex ( current_vertex , 0 );
+        current_cmg -> SetCubeSet ( current_vertex , 0 );
       }
     }
-
-    // = = =   U N D E R   C O N S T R U C T I O N   = = =
-
-    // process all the individual Morse sets
-    typename Conley_Morse_Graph::VertexIteratorPair vertices = conley_morse_graph -> Vertices ();
-    for ( Conley_Morse_Graph::VertexIterator morse_set_iterator = vertices . first () ;
-    morse_set_iterator != vertices . second () ; ++ morse_set_iterator ) {
-      // subdivide the Morse set in the coarser Morse decomposition
-      Toplex_Subset * morse_set ( conley_morse_graph -> GetCubeSet ( * morse_set_iterator ) );
-      phase_space . subdivide ( morse_set );
-
-      // compute its Morse decomposition as SCCs of the graph of the map
-      Conley_Morse_Graph finer_cmgraph;
-      Compute_Morse_Decomposition ( & finer_cmgraph , * morse_set , combinatorial_map );
-      finer_cmgraphs . push_back ( finer_cmgraph );
-
-      // compute the Conley indices (?) and simplify the Morse decomposition (?)
-      // ...
-    }
-
-    // create a refined Morse decomposition of the entire phase space
-    // from the Morse decompositions of single Morse sets
-    Conley_Morse_Graph finer_morse_graph;
-    for ( size_t n = finer_morse_sets . size (); n > 0; -- n)
-    {
-      finer_morse_graph . AddVertex ()
-    }
-
   }
 
+  // determine connections between the Morse sets in the final graph,
+  // based on the coarser Morse sets on the way
+  // TODO: a recursive procedure
 
+  // compute the upper bounds for connection lengths between the Morse sets
+  std::map < typename Conley_Morse_Graph::Edge , long > path_bounds;
+  Compute_Path_Bounds ( & path_bounds , conley_morse_graph ,
+    original_cmg , original_set , finger_cmg , coarser_cmg , coarser_set ,
+    exit_path_bounds , entrance_path_bounds , path_bounds , through_path_bound );
 
   // determine which connections between Morse sets are suprious
   // and remove them from the final Conley-Morse graph
-  // TODO
+  // TODO: iterate the geometric descriptions - maybe call another function for this
 
+/*
   // free up the dynamically allocated memory
   // for the intermediate Morse decompositions
   for ( Conley_Morse_Graphs::iterator cmg_iterator = conley_morse_graphs . begin ();
@@ -135,12 +173,15 @@ void Compute_Conley_Morse_Graph ( ConleyMorseGraph < typename Toplex::Toplex_Sub
       morse_set_iterator != vertices . second () ; ++ morse_set_iterator )
     {
       Toplex_Subset * morse_set = cmg -> GetCubeSet ( * morse_set_iterator );
-      delete morse_set;
+      if ( morse_set )
+        delete morse_set;
       Conley_Index * conley_index = cmg -> GetConleyIndex ( * morse_set_iterator );
-      delete conley_index;
+      if ( conley_index )
+        delete conley_index;
     }
     delete cmg;
   }
+*/
   return;
 } /* Compute_Conley_Morse_Graph */
 

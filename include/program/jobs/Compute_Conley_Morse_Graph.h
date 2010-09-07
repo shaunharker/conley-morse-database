@@ -16,26 +16,26 @@ class Subdiv_Decide_Level_Size
 {
 public:
   /// The constructor.
-  Subdiv_Decide_Level_Size ( int max_subdiv_level, typename Toplex::size_type max_set_size ):
-    _max_subdiv_level ( max_subdiv_level ), _max_set_size ( max_set_size ) { }
+  Subdiv_Decide_Level_Size ( size_t max_subdiv_level, typename Toplex::size_type max_set_size ):
+    max_subdiv_level_ ( max_subdiv_level ), max_set_size_ ( max_set_size ) { }
 
   /// The decision making operator.
   /// It receives the following arguments:
-  /// the current subdivision level (0 for the phase space
+  /// the current subdivision level (0 stands for the entire phase space
   /// represented as a single Morse set),
   /// the Morse set to subdivide,
-  /// and there will be more arguments added here in the future.
-  bool operator () ( int subdiv_level, const typename Toplex::Toplex_Subset & morse_set ) const {
-    return ( ( subdiv_level < _max_subdiv_level ) && ( morse_set . size () < _max_set_size ) );
+  /// and more arguments that will be added in the future.
+  bool operator () ( size_t subdiv_level, const typename Toplex::Toplex_Subset & morse_set ) const {
+    return ( ( subdiv_level < max_subdiv_level_ ) && ( morse_set . size () < max_set_size_ ) );
   }
 
 private:
   /// The strict upper bound for subdivision levels allowed.
-  int _max_subdiv_level;
+  size_t max_subdiv_level_;
 
   /// The strict upper bound for the size of a Morse set
   /// which one is allowed to subdivide.
-  typename Toplex::size_type _max_set_size;
+  typename Toplex::size_type max_set_size_;
 
 }; /* class Subdiv_Decide_Level_Size */
 
