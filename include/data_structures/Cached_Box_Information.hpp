@@ -7,8 +7,4 @@
 
 // (empty)
 
-#ifndef _DO_NOT_INCLUDE_HPP_
-#include "program/jobs/Cached_Box_Information.hpp"
-#endif
-
 #endif

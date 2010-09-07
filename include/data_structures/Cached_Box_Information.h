@@ -19,7 +19,7 @@ class Cached_Box_Information
 public:
 
 private:
-  /// Some dummy information, unused for the moment.
+  /// Some dummy information, unused at the moment.
   int info;
 
   friend class boost::serialization::access;
@@ -33,7 +33,7 @@ private:
 
 
 #ifndef _DO_NOT_INCLUDE_HPP_
-#include "program/jobs/Cached_Box_Information.hpp"
+#include "data_structures/Cached_Box_Information.hpp"
 #endif
 
 #endif
