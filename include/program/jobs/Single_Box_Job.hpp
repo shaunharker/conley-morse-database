@@ -17,6 +17,7 @@
 template < class Toplex, class Parameter_Toplex ,
   class Map , class Conley_Index , class Cached_Box_Information >
 void Single_Box_Job ( Message * result, const Message & job ) {
+
   // short names for the types used in this function
   typedef std::vector < typename Toplex::Toplex_Subset > Morse_Sets;
   typedef typename Toplex::Geometric_Description Geometric_Description;
