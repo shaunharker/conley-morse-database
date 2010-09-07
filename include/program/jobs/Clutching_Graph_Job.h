@@ -8,7 +8,7 @@
 #include "distributed/Messaging.h"
 
 template < class Toplex_Template >
-const Message Clutching_Graph_Job ( const Message & job ); 
+void Clutching_Graph_Job ( Message * result , const Message & job ); 
 
 #ifndef _DO_NOT_INCLUDE_HPP_
 #include "distributed/Clutching_Graph_Job.hpp"
