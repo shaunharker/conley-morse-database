@@ -5,6 +5,10 @@
 #ifndef _CMDP_COMPUTE_MORSE_DECOMPOSITION_
 #define _CMDP_COMPUTE_MORSE_DECOMPOSITION_
 
+
+#include <map>
+
+
 /// Computes the Morse decomposition of a given set using the SCC algorithm.
 /// The Conley Morse graph object given in the input must be empty.
 /// For each Morse set, computes the least strict upper bound for the length

@@ -14,15 +14,17 @@ void Compute_Morse_Decomposition ( Conley_Morse_Graph * conley_morse_graph ,
   long * through_path_bound ,
   const typename Toplex::Toplex_Subset & domain ,
   const Combinatorial_Map & combinatorial_map ) {
+
   // --- not yet implemented ---
+
   // suggested outline:
   // 1) create a subgraph of the combinatorial map
   //    restricted to the given domain
-  // 2) mark those points in the domain which have edges coming in from outside
-  // 3) mark those points in the domain which have edges going out to outside
+  // 2) mark those vertices in the domain which have edges coming in from outside
+  // 3) mark those vertices in the domain which have edges going out to outside
   // 4) call Zin's function for computing SCCs
   //    and the strict upper bounds for the path lengths
-  // 5) copy and adjust the data returned by Zin's function
+  // 5) copy and adjust the Morse sets returned by Zin's function
   //    to the Conley-Morse graph object
   return;
 } /* Compute_Morse_Decomposition */
