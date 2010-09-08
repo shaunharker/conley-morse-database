@@ -19,7 +19,7 @@
 /// based on the hierarchy of Morse decompositions at all the levels.
 /// Also checks whether each set is a full repeller (no incoming edges)
 /// or a full attractor (no outgoing edges) to make better decisions.
-template < class Conley_Morse_Graph , class Combinatorial_Map >
+template < class Toples , class Conley_Morse_Graph , class Combinatorial_Map >
 void Determine_All_Connections ( Conley_Morse_Graph * conley_morse_graph ,
   std::map < typename Conley_Morse_Graph::Edge , typename Toplex::Subset > * connecting_orbits ,
   const Combinatorial_Map & combinatorial_map ,
@@ -110,9 +110,9 @@ void Rule_Out_Connections ( Conley_Morse_Graph * conley_morse_graph ,
 
 // --------------------------------------------------
 
-template < class Toplex , class Parameter_Toplex , class Map ,
+template < class Conley_Morse_Graph, class Toplex , class Parameter_Toplex , class Map ,
   class Decide_Subdiv , class Decide_Conley_Index , class Cached_Box_Information >
-void Compute_Conley_Morse_Graph ( ConleyMorseGraph < typename Toplex::Subset, Conley_Index_t > * conley_morse_graph ,
+void Compute_Conley_Morse_Graph ( Conley_Morse_Graph * conley_morse_graph ,
   Toplex * phase_space ,
   const typename Parameter_Toplex::Geometric_Description & parameter_box ,
   const Decide_Subdiv & decide_subdiv ,
@@ -120,7 +120,6 @@ void Compute_Conley_Morse_Graph ( ConleyMorseGraph < typename Toplex::Subset, Co
   Cached_Box_Information * cached_box_information ) {
 
   // short names for the types used in this function
-  typedef ConleyMorseGraph < typename Toplex::Subset, Conley_Index_t > Conley_Morse_Graph;
   typedef std::vector < Conley_Morse_Graph * > Conley_Morse_Graphs;
 
   // create the objects of the maps
@@ -273,7 +272,8 @@ void Compute_Conley_Morse_Graph ( ConleyMorseGraph < typename Toplex::Subset, Co
 
   // determine connections between the Morse sets in the final graph,
   // based on the coarser Morse sets on the way
-  Determine_All_Connections ( & conley_morse_graph , & connecting_orbits , combinatorial_map ,
+  Determine_All_Connections < Toplex , Conley_Morse_Graph , Combinatorial_Map > (
+    & conley_morse_graph , & connecting_orbits , combinatorial_map ,
     original_cmg , original_set , finger_cmg , coarser_cmg , coarser_set );
 
   // compute the upper bounds for connection lengths between the Morse sets

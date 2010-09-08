@@ -5,7 +5,9 @@
 #ifndef _CMDP_COMPUTE_CONLEY_MORSE_GRAPH_
 #define _CMDP_COMPUTE_CONLEY_MORSE_GRAPH_
 
-#include "algorithms/Homology.h"
+#include <cstddef>
+
+//#include "algorithms/Homology.h"
 
 
 /// A class for function objects that make decisions on whether
@@ -66,13 +68,15 @@ public:
     bool final_set , size_t max_size_final_set ) :
     after_subdiv_ ( after_subdiv ) ,
     max_size_after_subdiv_ ( max_size_after_subdiv ) ,
-    max_size_final_set_ ( max_size_final_set ) ,
-    final_set_ ( final_set ) { }
+    final_set_ ( final_set ) ,
+    max_size_final_set_ ( max_size_final_set ) {
+    return;
+  }
 
   /// Makes a decision on whether the Conley index of a given Morse set
   /// should be computed at the moment the Morse set appeared
   /// right after the subdivision of a coarser Morse set.
-  inline bool compute_after_subdivision ( size_t subdiv_level ,
+  bool compute_after_subdivision ( size_t subdiv_level ,
     const typename Toplex::Subset & morse_set ) {
     return ( ( subdiv_level >= after_subdiv_ ) && ( morse_set . size () < max_size_after_subdiv_ ) );
   }
@@ -80,7 +84,7 @@ public:
   /// Makes a decision on whether the Conley index of a given Morse set
   /// should be computed at the moment the Morse set becomes a member
   /// of the final Morse decomposition (no more subdivisions for it).
-  inline bool compute_final ( const typename Toplex::Subset & morse_set ) {
+  bool compute_final ( const typename Toplex::Subset & morse_set ) {
     return ( final_set_ && ( morse_set . size () < max_size_final_set_ ) );
   }
 
@@ -132,14 +136,14 @@ private:
 /// (which must be initially empty), together with Morse sets
 /// and Conley indices, for which memory is dynamically allocated
 /// (remember to release this memory later on to avoid memory leaks).
-template < class Toplex , class Parameter_Toplex , class Map ,
+template < class Conley_Morse_Graph, class Toplex , class Parameter_Toplex , class Map ,
   class Decide_Subdiv , class Decide_Conley_Index , class Cached_Box_Information >
-void Compute_Conley_Morse_Graph ( ConleyMorseGraph < typename Toplex::Subset, Conley_Index_t > * conley_morse_graph ,
+void Compute_Conley_Morse_Graph ( Conley_Morse_Graph * conley_morse_graph ,
   Toplex * phase_space ,
   const typename Parameter_Toplex::Geometric_Description & parameter_box ,
   const Decide_Subdiv & decide_subdiv ,
   const Decide_Conley_Index & decide_conley_index ,
-  Cached_Box_Informatin * cached_box_information ) { return; }
+  Cached_Box_Information * cached_box_information );
 
 
 #ifndef _DO_NOT_INCLUDE_HPP_
