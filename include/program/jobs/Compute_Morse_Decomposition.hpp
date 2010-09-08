@@ -52,16 +52,16 @@ void Compute_Morse_Decomposition ( Conley_Morse_Graph * conley_morse_graph ,
   std::vector<size_t> ConnectingPathBounds;
   std::vector<size_t> EntrancePathBounds;
   std::vector<size_t> ExitPathBounds;
-  size_t ThruPathBounds;
   
   computePathBounds( subgraph, SCC, Entrance, Exit, /* inputs */
                      ConnectingPathBounds,
                      EntrancePathBounds,
                      ExitPathBounds,
-                     ThruPathBounds /* outputs */);
+                     *through_path_bound /* outputs */);
                     
   // 5) copy and adjust the Morse sets returned by Zin's function
   //    to the Conley-Morse graph object
+  
   
   
   return;
