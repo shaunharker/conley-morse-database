@@ -9,10 +9,10 @@
 
 template < class Toplex , class Conley_Morse_Graph , class Combinatorial_Map >
 void Compute_Morse_Decomposition ( Conley_Morse_Graph * conley_morse_graph ,
-  std::map < typename Conley_Morse_Graph::Vertex , long > * exit_path_bounds ,
-  std::map < typename Conley_Morse_Graph::Vertex , long > * entrance_path_bounds ,
+  std::map < typename Conley_Morse_Graph::Vertex , size_t > * exit_path_bounds ,
+  std::map < typename Conley_Morse_Graph::Vertex , size_t > * entrance_path_bounds ,
   std::map < typename Conley_Morse_Graph::Edge , typename Toplex::Toplex_Subset > * connecting_orbits ,
-  std::map < typename Conley_Morse_Graph::Edge , long > * path_bounds ,
+  std::map < typename Conley_Morse_Graph::Edge , size_t > * path_bounds ,
   long * through_path_bound ,
   const typename Toplex::Toplex_Subset & domain ,
   const Combinatorial_Map & combinatorial_map ) {
@@ -49,10 +49,10 @@ void Compute_Morse_Decomposition ( Conley_Morse_Graph * conley_morse_graph ,
   
   typename DirectedGraph<Toplex>::Components SCC = computeSCC ( subgraph );
   
-  std::vector<long> ConnectingPathBounds;
-  std::vector<long> EntrancePathBounds;
-  std::vector<long> ExitPathBounds;
-  long ThruPathBounds;
+  std::vector<size_t> ConnectingPathBounds;
+  std::vector<size_t> EntrancePathBounds;
+  std::vector<size_t> ExitPathBounds;
+  size_t ThruPathBounds;
   
   computePathBounds( subgraph, SCC, Entrance, Exit, /* inputs */
                      ConnectingPathBounds,
@@ -62,6 +62,8 @@ void Compute_Morse_Decomposition ( Conley_Morse_Graph * conley_morse_graph ,
                     
   // 5) copy and adjust the Morse sets returned by Zin's function
   //    to the Conley-Morse graph object
+  
+  
   return;
 } /* Compute_Morse_Decomposition */
 
