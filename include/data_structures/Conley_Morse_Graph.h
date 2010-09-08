@@ -42,14 +42,22 @@ class ConleyMorseGraph {
   /* iterator types */
   typedef typename boost::graph_traits<Graph>::vertex_iterator VertexIterator;
   typedef std::pair<VertexIterator, VertexIterator> VertexIteratorPair;
+  
   typedef boost::transform_iterator<
     boost::function<Vertex (Edge)>,
     typename boost::graph_traits<Graph>::out_edge_iterator> OutEdgeIterator;
   typedef std::pair<OutEdgeIterator, OutEdgeIterator> OutEdgeIteratorPair;
+  
   typedef boost::transform_iterator<
     boost::function<Vertex (Edge)>,
     typename boost::graph_traits<Graph>::in_edge_iterator> InEdgeIterator;
   typedef std::pair<InEdgeIterator, InEdgeIterator> InEdgeIteratorPair;
+  
+  typedef boost::transform_iterator<
+    boost::function<std::pair<Vertex, Vertex> (Edge)>,
+    typename boost::graph_traits<Graph>::edge_iterator> EdgeIterator;
+  typedef std::pair<EdgeIterator, EdgeIterator> EdgeIteratorPair;
+  
   /* size types */
   typedef typename boost::graph_traits<Graph>::vertices_size_type
       VerticesSizeType;
@@ -85,6 +93,15 @@ class ConleyMorseGraph {
   void AddEdge(Vertex from, Vertex to) {
     boost::add_edge(from, to, graph_);
   }
+
+  /** Remove a "from"-"to" edge
+   *
+   *  NOTE: some edge iterators become invalid when you call this function 
+   */
+  void RemoveEdge(Vertex from, Vertex to) {
+    boost::remove_edge(from , to, graph_);
+  }
+  
   /** Return true if there is a path from the "from" vertex
    *  to the "to" vertex.
    *
@@ -123,11 +140,23 @@ class ConleyMorseGraph {
   /** return a iterator pair to all verteces of in-edges */
   InEdgeIteratorPair InEdges(Vertex vertex);
   
+  /** return a iterator pair to all edges */
+  EdgeIteratorPair Edges() {
+    typedef typename boost::graph_traits<Graph>::edge_iterator Iter;
+    boost::function<std::pair<Vertex, Vertex> (Edge)> f =
+        boost::bind(&ConleyMorseGraph::EdgePair, boost::ref(*this), _1);
+    Iter b, e;
+    tie(b, e) = boost::edges(graph_);
+    return EdgeIteratorPair(boost::make_transform_iterator(b, f),
+                            boost::make_transform_iterator(e, f));
+  }
+  
  private:
   Graph graph_;
   typename boost::property_map<Graph, ComponentProperty>::type component_accessor_;
 
   /** Return a target of given edge.
+   *
    *  This function is used in OutEdges() to avoid a compilation error
    *  of imcomplete type inference.
    */
@@ -135,12 +164,18 @@ class ConleyMorseGraph {
     return boost::target(e, graph_);
   }
   /** Return a source of given edge.
+   *
    *  This function is used in InEdges() for the same reason of Target().
    */
   Vertex Source(Edge e) {
     return boost::source(e, graph_);
   }
-
+  /** Return Source and Target pair of edge;
+   */
+  std::pair<Vertex, Vertex> EdgePair(Edge e) {
+    return std::pair<Vertex, Vertex>(Source(e), Target(e));
+  }
+  
   /** struct of each component, which has a pointer to cubeset and conley index.
    *  there exist this struct because of serialization problem.
    */
