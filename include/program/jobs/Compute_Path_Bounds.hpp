@@ -80,7 +80,7 @@ void Compute_Path_Bounds ( std::map < typename Conley_Morse_Graph::Edge , size_t
           
           // Calculate the exit path bounds
           size_t exitPathBounds( Extract_Exit_Path_Bounds( exit_path_bounds, originalCMGSourceVertex, original_set[ sourceVertex ] ) );
-          for ( typename std::vector< Conley_Morse_Graph const * >::iterator itrCMGSourceVertex( coarserCMGVertex.begin() );
+          for ( typename std::vector< Conley_Morse_Graph const * >::iterator itrCMGSourceVertex( coarserCMGSourceVertex.begin() );
                 itrCMGSourceVertex != itrCommonFinestCMGSourceVertex - 1;
                 ++itrCMGSourceVertex ) {
             exitPathBounds += Extract_Exit_Path_Bounds( exit_path_bounds, *( itrCMGSourceVertex + 1 ), coarser_set[ *itrCMGSourceVertex ] );
@@ -88,7 +88,7 @@ void Compute_Path_Bounds ( std::map < typename Conley_Morse_Graph::Edge , size_t
           
           // Calculate the entrance path bounds
           size_t entrancePathBounds( Extract_Entrance_Path_Bounds( entrance_path_bounds, originalCMGTargetVertex, original_set[ targetVertex ] ) );
-          for ( typename std::vector< Conley_Morse_Graph const * >::iterator itrCMGTargetVertex( coarseCMGTargetVertex.begin() );
+          for ( typename std::vector< Conley_Morse_Graph const * >::iterator itrCMGTargetVertex( coarserCMGTargetVertex.begin() );
                 itrCMGTargetVertex != itrCommonFinestCMGTargetVertex - 1;
                 ++itrCMGTargetVertex ) {
             entrancePathBounds += Extract_Entrance_Path_Bounds( entrance_path_bounds, *( itrCMGTargetVertex + 1 ), coarser_set[ *itrCMGTargetVertex ] );
