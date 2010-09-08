@@ -31,7 +31,7 @@ void Compute_Morse_Decomposition ( Conley_Morse_Graph * conley_morse_graph ,
   std::map < typename Conley_Morse_Graph::Vertex , size_t > * entrance_path_bounds ,
   std::map < typename Conley_Morse_Graph::Edge , typename Toplex::Toplex_Subset > * connecting_orbits ,
   std::map < typename Conley_Morse_Graph::Edge , size_t > * path_bounds ,
-  long * through_path_bound ,
+  size_t * through_path_bound ,
   const typename Toplex::Toplex_Subset & domain ,
   const Combinatorial_Map & combinatorial_map );
 

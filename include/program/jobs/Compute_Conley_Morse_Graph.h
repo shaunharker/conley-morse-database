@@ -77,14 +77,14 @@ public:
   /// should be computed at the moment the Morse set appeared
   /// right after the subdivision of a coarser Morse set.
   bool compute_after_subdivision ( size_t subdiv_level ,
-    const typename Toplex::Subset & morse_set ) {
+    const typename Toplex::Subset & morse_set ) const {
     return ( ( subdiv_level >= after_subdiv_ ) && ( morse_set . size () < max_size_after_subdiv_ ) );
   }
 
   /// Makes a decision on whether the Conley index of a given Morse set
   /// should be computed at the moment the Morse set becomes a member
   /// of the final Morse decomposition (no more subdivisions for it).
-  bool compute_final ( const typename Toplex::Subset & morse_set ) {
+  bool compute_final ( const typename Toplex::Subset & morse_set ) const {
     return ( final_set_ && ( morse_set . size () < max_size_final_set_ ) );
   }
 

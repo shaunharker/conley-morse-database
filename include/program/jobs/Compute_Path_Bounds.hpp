@@ -35,13 +35,13 @@ void Compute_Path_Bounds ( std::map < typename Conley_Morse_Graph::Edge , size_t
     
     // Determine whether the vertices belong to the same conley morse graph.
     // Get the original conley morse graphs.
-    const Conley_Morse_Graph const *originalCMGSourceVertex( original_cmg[ sourceVertex ] );
-    const Conley_Morse_Graph const *originalCMGTargetVertex( original_cmg[ targetVertex ] );
+    Conley_Morse_Graph const *originalCMGSourceVertex( original_cmg[ sourceVertex ] );
+    Conley_Morse_Graph const *originalCMGTargetVertex( original_cmg[ targetVertex ] );
 
     // If the vertices belong to the same conley morse graph, I simply copy the path length between them from path_bounds.
     if ( originalCMGSourceVertex == originalCMGTargetVertex ) {
       // They belong to the same conley morse graph, so I simply copy the path_bounds.
-      return_path_bound->insert( *( path_bounds[ originalCMGTargetVertex ].find( edge ) ) );
+      return_path_bounds->insert( *( path_bounds[ originalCMGTargetVertex ].find( edge ) ) );
     } else {
       // They belong to the different conley morse graphs.
       // First, examine whether they belong to the same conley morse graph in a coaser scale.
@@ -93,8 +93,8 @@ void Compute_Path_Bounds ( std::map < typename Conley_Morse_Graph::Edge , size_t
                 ++itrCMGTargetVertex ) {
             entrancePathBounds += Extract_Entrance_Path_Bounds( entrance_path_bounds, *( itrCMGTargetVertex + 1 ), coarser_set[ *itrCMGTargetVertex ] );
           }
+          return_path_bounds->insert( std::pair< typename Conley_Morse_Graph::Edge, size_t >( edge, pathBoundsAtCommonLevel + exitPathBounds + entrancePathBounds ) );
         }
-        return_path_bound->insert( std::pair< typename Conley_Morse_Graph::Edge, size_t >( edge, pathBoundsAtCommonLevel + exitPathBounds + entrancePathBounds ) );
       }
     }
   }
@@ -104,10 +104,10 @@ void Compute_Path_Bounds ( std::map < typename Conley_Morse_Graph::Edge , size_t
 template< class Conley_Morse_Graph >
 void Search_Coarser_Conley_Morse_Graph( std::vector< Conley_Morse_Graph const * > &searched_conley_morse_graph,
                                         std::map< Conley_Morse_Graph const *, Conley_Morse_Graph const * > &coarser_cmg,
-                                        const Conley_Morse_Graph const *conley_morse_graph ) {
+                                        Conley_Morse_Graph const *conley_morse_graph ) {
   // Looking for a coaser conley morse graph
   typename std::map< Conley_Morse_Graph const *, Conley_Morse_Graph const * >::iterator itrCoarserCMG( coarser_cmg.find( conley_morse_graph ) );
-  if ( itrCoaserCMG != coarser_cmg.end() ) {
+  if ( itrCoarserCMG != coarser_cmg.end() ) {
     // A coarser conley morse graph is founded.
     searched_conley_morse_graph.insert( ( *itrCoarserCMG ).second );
 
@@ -119,7 +119,7 @@ void Search_Coarser_Conley_Morse_Graph( std::vector< Conley_Morse_Graph const * 
 // this function returns the exit_path_bounds for given morse set and conley morse graph
 template< class Conley_Morse_Graph >
 size_t Extract_Exit_Path_Bounds( std::map< Conley_Morse_Graph const *, std::map< typename Conley_Morse_Graph::Vertex, size_t > > &exit_path_bounds,
-                                 const Conley_Morse_Graph const *conley_morse_graph,
+                                 Conley_Morse_Graph const *conley_morse_graph,
                                  const typename Conley_Morse_Graph::Vertex vertex ) {
   return exit_path_bounds[ conley_morse_graph ][ vertex ];
 } /* Extract_Exit_Path_Bounds */
@@ -127,7 +127,7 @@ size_t Extract_Exit_Path_Bounds( std::map< Conley_Morse_Graph const *, std::map<
 // this function returns the entrance_path_bound for given morse set and conley morse graph
 template< class Conley_Morse_Graph >
 size_t Extract_Entrance_Path_Bounds( std::map< Conley_Morse_Graph const *, std::map< typename Conley_Morse_Graph::Vertex, size_t > > &entrance_path_bounds,
-                                     const Conley_Morse_Graph const *conley_morse_graph,
+                                     Conley_Morse_Graph const *conley_morse_graph,
                                      const typename Conley_Morse_Graph::Vertex vertex ) {
   return entrance_path_bounds[ conley_morse_graph ][ vertex ];
 } /* Extract_Entrance_Path_Bounds */

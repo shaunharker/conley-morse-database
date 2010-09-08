@@ -3,6 +3,10 @@
 #ifndef CMDP_LESLIEMAP_H
 #define CMDP_LESLIEMAP_H
 
+#include <boost/numeric/interval.hpp>
+#include "toplexes/Adaptive_Cubical_Toplex.h"
+
+
 struct LeslieMap {
 
   //using namespace boost;
@@ -23,8 +27,15 @@ struct LeslieMap {
       "\n and P2 = " << parameter2 . lower () << ", " << parameter2 . upper () << 
       "\n";
   }
-  
-  Geometric_Description operator () ( const Geometric_Description & rectangle ) const {    
+  LeslieMap ( const Adaptive_Cubical::Geometric_Description & rectangle ) {
+    parameter1 = interval (rectangle . lower_bounds [ 0 ], 
+			    rectangle . upper_bounds [ 0 ]);
+    parameter2 = interval (rectangle . lower_bounds [ 1 ], 
+                            rectangle . upper_bounds [ 1 ]);
+    return;
+  }
+  Adaptive_Cubical::Geometric_Description operator () (
+    const Adaptive_Cubical::Geometric_Description & rectangle ) const {    
     /* Read input */
     interval x0 = interval (rectangle . lower_bounds [ 0 ], 
 			    rectangle . upper_bounds [ 0 ]);
@@ -37,7 +48,7 @@ struct LeslieMap {
     interval y1 = (double) 0.7 * x0;
     
     /* Write output */
-    Geometric_Description return_value ( 2 );
+    Adaptive_Cubical::Geometric_Description return_value ( 2 );
     return_value . lower_bounds [ 0 ] = y0 . lower ();
     return_value . upper_bounds [ 0 ] = y0 . upper ();
     return_value . lower_bounds [ 1 ] = y1 . lower ();

@@ -13,7 +13,7 @@ void Compute_Morse_Decomposition ( Conley_Morse_Graph * conley_morse_graph ,
   std::map < typename Conley_Morse_Graph::Vertex , size_t > * entrance_path_bounds ,
   std::map < typename Conley_Morse_Graph::Edge , typename Toplex::Toplex_Subset > * connecting_orbits ,
   std::map < typename Conley_Morse_Graph::Edge , size_t > * path_bounds ,
-  long * through_path_bound ,
+  size_t * through_path_bound ,
   const typename Toplex::Toplex_Subset & domain ,
   const Combinatorial_Map & combinatorial_map ) {
 
@@ -34,7 +34,7 @@ void Compute_Morse_Decomposition ( Conley_Morse_Graph * conley_morse_graph ,
   
   BOOST_FOREACH ( typename Toplex::Top_Cell cell, domain ) {
     /* intersect should be defined along with Toplex */
-    Toplex::Subset image = combinatorial_map ( cell );
+    typename Toplex::Subset image = combinatorial_map ( cell );
     BOOST_FOREACH ( typename Toplex::Top_Cell image_cell, image ) {
       if ( domain . find ( image_cell ) == domain . end () ) {
         Exit . insert ( cell );
