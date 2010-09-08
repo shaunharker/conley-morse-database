@@ -29,7 +29,7 @@
 /// of some other Morse set.
 /// The maximal path lengths, computed with graph algorithms, are also provided.
 template < class Conley_Morse_Graph >
-void Compute_Path_Bounds ( std::map < typename Conley_Morse_Graph::Edge , size_t > * path_bounds ,
+void Compute_Path_Bounds ( std::map < typename Conley_Morse_Graph::Edge , size_t > * return_path_bounds ,
   const Conley_Morse_Graph & conley_morse_graph ,
   std::map < typename Conley_Morse_Graph::Vertex , Conley_Morse_Graph const * > & original_cmg ,
   std::map < typename Conley_Morse_Graph::Vertex , typename Conley_Morse_Graph::Vertex > & original_set ,

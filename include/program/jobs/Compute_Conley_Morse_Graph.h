@@ -35,7 +35,7 @@ public:
   }
 
   /// The maximal value to be used for no-limit or beyond-the-limit vaues.
-  const size_t MaxValue = ~ static_cast < size_t > ( 0 );
+  static const size_t MaxValue = ~ static_cast < size_t > ( 0 );
 
 private:
   /// The strict upper bound for subdivision levels allowed.
@@ -85,7 +85,7 @@ public:
   }
 
   /// The maximal value to be used for no-limit or beyond-the-limit vaues.
-  const size_t MaxValue = ~ static_cast < size_t > ( 0 );
+  static const size_t MaxValue = ~ static_cast < size_t > ( 0 );
 
 private:
   /// The first subdivision level after which the Conley index
@@ -139,7 +139,7 @@ void Compute_Conley_Morse_Graph ( ConleyMorseGraph < typename Toplex::Subset, Co
   const typename Parameter_Toplex::Geometric_Description & parameter_box ,
   const Decide_Subdiv & decide_subdiv ,
   const Decide_Conley_Index & decide_conley_index ,
-  Cached_Box_Informatin * cached_box_information );
+  Cached_Box_Informatin * cached_box_information ) { return; }
 
 
 #ifndef _DO_NOT_INCLUDE_HPP_

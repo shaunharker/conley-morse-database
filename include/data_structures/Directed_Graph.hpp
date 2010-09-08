@@ -239,6 +239,7 @@ typename Toplex::Subset DirectedGraph<Toplex>::operator () ( const typename Topl
   return operator [] ( cell );
 } /* DirectedGraph<Toplex>::operator () for Top Cells */
 
+template < class Toplex >
 typename Toplex::Subset DirectedGraph<Toplex>::operator () ( const typename Toplex::Subset & subset ) {
   typename Toplex::Subset return_value;
   /* Loop through subset */
