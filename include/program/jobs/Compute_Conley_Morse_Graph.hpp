@@ -48,12 +48,12 @@ void Determine_All_Connections ( Conley_Morse_Graph * conley_morse_graph ,
 template < class Conley_Morse_Graph , class Map , class Toplex >
 void Rule_Out_Connections ( Conley_Morse_Graph * conley_morse_graph ,
   std::map < typename Conley_Morse_Graph::Edge , typename Toplex::Subset > & connecting_orbits ,
-  std::map < typename Conley_Morse_Graph::Edge , long > & path_bounds ,
+  std::map < typename Conley_Morse_Graph::Edge , size_t > & path_bounds ,
   const Map & interval_map , const Toplex & phase_space ) {
 
   // prepare shortcuts for data types used in this function
   typedef std::map < typename Conley_Morse_Graph::Edge , typename Toplex::Subset > Connecting_Orbits;
-  typedef std::map < typename Conley_Morse_Graph::Edge , long > Path_Bounds;
+  typedef std::map < typename Conley_Morse_Graph::Edge , size_t > Path_Bounds;
   typedef typename Conley_Morse_Graph::Edge Edge;
   typedef typename Conley_Morse_Graph::Vertex Vertex;
   typedef typename Toplex::Subset Toplex_Subset;
@@ -68,7 +68,7 @@ void Rule_Out_Connections ( Conley_Morse_Graph * conley_morse_graph ,
 
     // retrieve the edge, the path length bound, and the corresponding Morse sets
     const Edge & edge = path_iter -> first ;
-    long bound = path_iter -> second ;
+    size_t bound = path_iter -> second ;
     Vertex source = conley_morse_graph -> Source ( edge );
     Vertex target = conley_morse_graph -> Target ( edge );
     Toplex_Subset * source_set = conley_morse_graph -> GetCubeSet ( source );
@@ -80,7 +80,7 @@ void Rule_Out_Connections ( Conley_Morse_Graph * conley_morse_graph ,
     for ( typename Toplex_Subset::iterator cell_iter = source_set -> begin () ;
       disjoint && ( cell_iter != source_set -> end () ) ; ++ cell_iter ) {
       typename Toplex::Geometric_Description box = phase_space . geometry ( *cell_iter );
-      for ( long i = 0 ; disjoint && ( j < bound ) ; ++ j ) {
+      for ( size_t i = 0 ; disjoint && ( j < bound ) ; ++ j ) {
         box = interval_map ( box );
         Toplex_Subset cover = phase_space . cover ( box );
         // --- one version: ---
@@ -113,12 +113,11 @@ void Rule_Out_Connections ( Conley_Morse_Graph * conley_morse_graph ,
 template < class Toplex , class Parameter_Toplex , class Map ,
   class Decide_Subdiv , class Decide_Conley_Index , class Cached_Box_Information >
 void Compute_Conley_Morse_Graph ( ConleyMorseGraph < typename Toplex::Subset, Conley_Index_t > * conley_morse_graph ,
-  const typename Parameter_Toplex::Geometric_Description & parameter_box ,
   Toplex * phase_space ,
-  const typename Toplex::Geometric_Description & phase_space_box ,
+  const typename Parameter_Toplex::Geometric_Description & parameter_box ,
   const Decide_Subdiv & decide_subdiv ,
   const Decide_Conley_Index & decide_conley_index ,
-  Cached_Box_Informatin * cached_box_information ) {
+  Cached_Box_Information * cached_box_information ) {
 
   // short names for the types used in this function
   typedef ConleyMorseGraph < typename Toplex::Subset, Conley_Index_t > Conley_Morse_Graph;
@@ -144,10 +143,10 @@ void Compute_Conley_Morse_Graph ( ConleyMorseGraph < typename Toplex::Subset, Co
   std::map < Conley_Morse_Graph const * , std::map < typename Conley_Morse_Graph::Edge , typename Toplex::Subset > > all_connecting_orbits;
 
   // prepare maps for pointing CMGs to the path length bounds computed for them
-  std::map < Conley_Morse_Graph const * , std::map < typename Conley_Morse_Graph::Vertex , long > > exit_path_bounds;
-  std::map < Conley_Morse_Graph const * , std::map < typename Conley_Morse_Graph::Vertex , long > > entrance_path_bounds;
-  std::map < Conley_Morse_Graph const * , std::map < typename Conley_Morse_Graph::Edge , long > > path_bounds;
-  std::map < Conley_Morse_Graph const * , long > through_path_bound;
+  std::map < Conley_Morse_Graph const * , std::map < typename Conley_Morse_Graph::Vertex , size_t > > exit_path_bounds;
+  std::map < Conley_Morse_Graph const * , std::map < typename Conley_Morse_Graph::Vertex , size_t > > entrance_path_bounds;
+  std::map < Conley_Morse_Graph const * , std::map < typename Conley_Morse_Graph::Edge , size_t > > path_bounds;
+  std::map < Conley_Morse_Graph const * , size_t > through_path_bound;
 
   // create an array to store all the computed Morse decompositions
   Conley_Morse_Graphs conley_morse_graphs;
@@ -157,7 +156,7 @@ void Compute_Conley_Morse_Graph ( ConleyMorseGraph < typename Toplex::Subset, Co
   conley_morse_graphs [ 0 ] -> AddVertex ();
   conley_morse_graphs [ 0 ] -> SetCubeSet ( new typename Toplex::Subset );
   conley_morse_graphs [ 0 ] -> GetCubeSet ( * ( conley_morse_graphs [ 0 ] -> Vertices () ) . first () ) ->
-    cover ( phase_space_box );
+    cover ( phase_space -> bounds () );
 
   // prepare vectors for storing the number of the first Conley-Morse
   // decomposition and the one-after-the-last one at each subdivision level
@@ -278,7 +277,7 @@ void Compute_Conley_Morse_Graph ( ConleyMorseGraph < typename Toplex::Subset, Co
     original_cmg , original_set , finger_cmg , coarser_cmg , coarser_set );
 
   // compute the upper bounds for connection lengths between the Morse sets
-  std::map < typename Conley_Morse_Graph::Edge , long > path_bounds;
+  std::map < typename Conley_Morse_Graph::Edge , size_t > path_bounds;
   Compute_Path_Bounds ( & path_bounds , conley_morse_graph ,
     original_cmg , original_set , finger_cmg , coarser_cmg , coarser_set ,
     exit_path_bounds , entrance_path_bounds , path_bounds , through_path_bound );

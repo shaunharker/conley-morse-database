@@ -30,6 +30,9 @@ Conley_Morse_Database: $(DATABASE_OBJECTS)
 Test_Morse_Graph: Test_Morse_Graph.o 
 	$(CXX_STANDALONE) Test_Morse_Graph.o -o $@
 
+Test_Single_Box_Job: Test_Single_Box_Job.o 
+	$(CXX_STANDALONE) Test_Single_Box_Job.o -o $@
+
 Test_Clutching_Graph: Test_Clutching_Graph.o
 	$(CXX_STANDALONE) Test_Clutching_Graph.o -o $@
 # Conley_Morse_Database.o: Message.o Communicator.o 

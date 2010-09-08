@@ -27,11 +27,15 @@ public:
   /// It receives the following arguments:
   /// the current subdivision level (0 stands for the entire phase space
   /// represented as a single Morse set),
-  /// the Morse set to subdivide,
+  /// the Morse set to subdivide (0 for none, some large value,
+  /// e.g. this_class::MaxValue, for no limit),
   /// and more arguments that will be added in the future.
-  bool operator () ( size_t subdiv_level , const typename Toplex::Toplex_Subset & morse_set ) const {
+  bool operator () ( size_t subdiv_level , const typename Toplex::Subset & morse_set ) const {
     return ( ( subdiv_level < max_subdiv_level_ ) && ( morse_set . size () < max_set_size_ ) );
   }
+
+  /// The maximal value to be used for no-limit or beyond-the-limit vaues.
+  const size_t MaxValue = ~ static_cast < size_t > ( 0 );
 
 private:
   /// The strict upper bound for subdivision levels allowed.
@@ -69,19 +73,19 @@ public:
   /// should be computed at the moment the Morse set appeared
   /// right after the subdivision of a coarser Morse set.
   inline bool compute_after_subdivision ( size_t subdiv_level ,
-    const typename Toplex::Toplex_Subset & morse_set ) {
+    const typename Toplex::Subset & morse_set ) {
     return ( ( subdiv_level >= after_subdiv_ ) && ( morse_set . size () < max_size_after_subdiv_ ) );
   }
 
   /// Makes a decision on whether the Conley index of a given Morse set
   /// should be computed at the moment the Morse set becomes a member
   /// of the final Morse decomposition (no more subdivisions for it).
-  inline bool compute_final ( const typename Toplex::Toplex_Subset & morse_set ) {
+  inline bool compute_final ( const typename Toplex::Subset & morse_set ) {
     return ( final_set_ && ( morse_set . size () < max_size_final_set_ ) );
   }
 
   /// The maximal value to be used for no-limit or beyond-the-limit vaues.
-  const size_t MaxValue = ~0;
+  const size_t MaxValue = ~ static_cast < size_t > ( 0 );
 
 private:
   /// The first subdivision level after which the Conley index
@@ -130,10 +134,9 @@ private:
 /// (remember to release this memory later on to avoid memory leaks).
 template < class Toplex , class Parameter_Toplex , class Map ,
   class Decide_Subdiv , class Decide_Conley_Index , class Cached_Box_Information >
-void Compute_Conley_Morse_Graph ( ConleyMorseGraph < typename Toplex::Toplex_Subset, Conley_Index_t > * conley_morse_graph ,
-  const typename Parameter_Toplex::Geometric_Description & parameter_box ,
+void Compute_Conley_Morse_Graph ( ConleyMorseGraph < typename Toplex::Subset, Conley_Index_t > * conley_morse_graph ,
   Toplex * phase_space ,
-  const typename Toplex::Geometric_Description & phase_space_box ,
+  const typename Parameter_Toplex::Geometric_Description & parameter_box ,
   const Decide_Subdiv & decide_subdiv ,
   const Decide_Conley_Index & decide_conley_index ,
   Cached_Box_Informatin * cached_box_information );
