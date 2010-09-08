@@ -38,6 +38,9 @@ class CoordinatorBase {
   /** Users process a result of a job of "Prepare" function.
    */
   virtual void Process(const Message &result) = 0;
+  /** Virtual destructor.
+   */
+  virtual ~CoordinatorBase () {}
 };
 
 /** Base class of worker. A worker receive works from
@@ -56,6 +59,9 @@ class WorkerBase {
    * in coordinator class, and set the result to "result".
    */
   virtual void Work(Message * result, const Message &job) = 0;
+  /** Virtual destructor.
+   */
+  virtual ~WorkerBase () {}
 };
 
 namespace coordinator_worker_scheme {
