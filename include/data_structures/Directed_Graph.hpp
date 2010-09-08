@@ -172,6 +172,19 @@ num_vertices(const DirectedGraph<Toplex> & g)	{
 } /* namespace boost */
 
 template < class Toplex >
+void DirectedGraph<Toplex>::removeVertex (typename Toplex::Top_Cell v)
+{
+  (*this).erase(v);
+  typename DirectedGraph<Toplex>::iterator graph_it;
+
+  graph_it = (*this).begin();
+  while (graph_it != (*this).end()) {
+    ((*graph_it).second).erase(v);
+    ++graph_it;
+  }
+}
+
+template < class Toplex >
 DirectedGraph<Toplex> collapseComponents (
     DirectedGraph<Toplex> & G,
     typename DirectedGraph<Toplex>::Components & Components,
@@ -202,7 +215,12 @@ DirectedGraph<Toplex> collapseComponents (
     compRep = (*vert_it);
     ++vert_it;
     while (vert_it != (*comp_it).end()) {
-      G[compRep].insert(G[*(vert_it)].begin(), G[*(vert_it)].end());
+      edge_it = G[*(vert_it)].begin();
+      while (edge_it != G[*(vert_it)].end()) {
+        result[compRep].insert(*edge_it);
+        ++edge_it;
+      }
+      //result[compRep].insert(G[*(vert_it)].begin(), G[*(vert_it)].end());
       result.erase(*vert_it);
       table.insert(typename std::map< Vertex, Vertex >::value_type((*vert_it), compRep));
       ++vert_it;
@@ -212,21 +230,26 @@ DirectedGraph<Toplex> collapseComponents (
   }
 
   // Replace the destinations of edges according to 'table' 
+  std::vector<Vertex> toBeRemoved;
   graph_it = result.begin();
   while (graph_it != result.end()) {
     edge_it = ((*graph_it).second).begin();
+    toBeRemoved.clear();
     while (edge_it != ((*graph_it).second).end()) {
       if (table.count(*edge_it)) {
-        ((*graph_it).second).erase(*edge_it);
         ((*graph_it).second).insert(table[*edge_it]);
+        toBeRemoved.push_back(*edge_it);
       }
       ++edge_it;
+    }
+    for (size_t i = 0; i < toBeRemoved.size(); i++) {
+      ((*graph_it).second).erase(toBeRemoved[i]);
     }
     ++graph_it;
   }
   
   // Remove self loops at the representative of components
-  for (long i = 0; i < Representatives.size(); i++) {
+  for (size_t i = 0; i < Representatives.size(); i++) {
     result[Representatives[i]].erase(Representatives[i]);
   }
 
@@ -239,20 +262,19 @@ typename Toplex::Subset DirectedGraph<Toplex>::operator () ( const typename Topl
   return operator [] ( cell );
 } /* DirectedGraph<Toplex>::operator () for Top Cells */
 
-template < class Toplex >
-typename Toplex::Subset DirectedGraph<Toplex>::operator () ( const typename Toplex::Subset & subset ) {
-  typename Toplex::Subset return_value;
-  /* Loop through subset */
-  for ( typename Toplex::Subset::const_iterator it = subset . begin ();
-        it != subset . end (); ++ it ) {
-    const typename Toplex::Subset & value = operator [] ( * it );
-    for ( typename Toplex::Subset::const_iterator range_it = value . begin ();
-         range_it != value . end (); ++ range_it ) {
-      return_value . insert ( * range_it );
-    } /* for */
-  } /* for */
-  return return_value;
-} /* DirectedGraph<Toplex>::operator () for Subsets */
+// typename Toplex::Subset DirectedGraph<Toplex>::operator () ( const typename Toplex::Subset & subset ) {
+//   typename Toplex::Subset return_value;
+//   /* Loop through subset */
+//   for ( typename Toplex::Subset::const_iterator it = subset . begin ();
+//         it != subset . end (); ++ it ) {
+//     const typename Toplex::Subset & value = operator [] ( * it );
+//     for ( typename Toplex::Subset::const_iterator range_it = value . begin ();
+//          range_it != value . end (); ++ range_it ) {
+//       return_value . insert ( * range_it );
+//     } /* for */
+//   } /* for */
+//   return return_value;
+// } /* DirectedGraph<Toplex>::operator () for Subsets */
 
 /* Global functions */
 
@@ -350,3 +372,204 @@ void subdivide_toplex_and_directed_graph (Toplex * my_toplex,
   /* TO BE IMPLEMENTED */
 } /* subdivide_toplex_and_directed_graph */
 
+// Compute the length of the longest path from v to w
+// assuming the graph is acyclic
+template < class Toplex >
+size_t computeLongestPathLength(
+    DirectedGraph<Toplex> & G,
+    typename DirectedGraph<Toplex>::Vertex v,
+    typename DirectedGraph<Toplex>::Vertex w)
+{
+
+  typedef DirectedGraph<Toplex> Graph;
+  typedef typename DirectedGraph<Toplex>::Vertex Vertex;
+  std::map <Vertex, size_t> distance;
+
+  // Iterators
+  typename Graph::iterator graph_it;
+  typename Graph::Components::iterator comp_it;
+  typename Graph::Component::iterator vert_it;
+  typename Toplex::Subset::iterator edge_it;
+
+  // Initialize 'distance'
+  graph_it = G.begin();
+  while (graph_it != G.end()) {
+    distance[(*graph_it).first] = 0;
+    ++graph_it;
+  }
+  distance[v] = 1;
+
+  // Main loop
+  for (size_t i = 0; i < G.size() - 1; i++) {
+    graph_it = G.begin();
+    while (graph_it != G.end()) {
+      if (distance[(*graph_it).first] >= 0) {
+        edge_it = ((*graph_it).second).begin();
+        while (edge_it != ((*graph_it).second).end()) {
+          if (distance[(*graph_it).first] + 1 > distance[*edge_it]) {
+            distance[*edge_it] = distance[(*graph_it).first] + 1;
+          }
+          ++edge_it;
+        }
+      }
+      ++graph_it;
+    }
+  }
+
+  if (distance[w] > 0) {
+    return distance[w] - 1;
+  } else {
+    return 0;
+  }
+}
+
+// The main loop of 
+template < class Toplex >
+void BFLoop(DirectedGraph<Toplex> & G,
+            std::map <typename DirectedGraph<Toplex>::Vertex, size_t> & distance)
+{
+  typedef DirectedGraph<Toplex> Graph;
+  typedef typename DirectedGraph<Toplex>::Vertex Vertex;
+
+  // Iterators
+  typename Graph::iterator graph_it;
+  typename Graph::Components::iterator comp_it;
+  typename Graph::Component::iterator vert_it;
+  typename Toplex::Subset::iterator edge_it;
+
+  // Main loop
+  for (size_t i = 0; i < G.size() - 1; i++) {
+    graph_it = G.begin();
+    while (graph_it != G.end()) {
+      if (distance[(*graph_it).first] >= 0) {
+        edge_it = ((*graph_it).second).begin();
+        while (edge_it != ((*graph_it).second).end()) {
+          if (distance[(*graph_it).first] + 1 > distance[*edge_it]) {
+            distance[*edge_it] = distance[(*graph_it).first] + 1;
+          }
+          ++edge_it;
+        }
+      }
+      ++graph_it;
+    }
+  }
+  return;
+}
+
+template < class Toplex >
+void computePathBounds(DirectedGraph<Toplex> G,
+                       typename DirectedGraph<Toplex>::Components SCC,
+                       typename Toplex::Subset Entrance,
+                       typename Toplex::Subset Exit,
+                       std::vector<size_t> & ConnectingPathBounds,
+                       std::vector<size_t> & EntrancePathBounds,
+                       std::vector<size_t> & ExitPathBounds,
+                       size_t & ThruPathBound)
+{
+
+  typedef DirectedGraph<Toplex> Graph;
+  typedef typename DirectedGraph<Toplex>::Vertex Vertex;
+  typedef typename DirectedGraph<Toplex>::Components Components;
+  size_t n = G.size();
+  size_t nComponents = SCC.size();
+  typename Graph::iterator graph_it;
+  typename Toplex::Subset::iterator comp_it;
+
+  Graph H;
+  //std::vector<typename DirectedGraph<Toplex>::Vertex> V;
+  std::vector<Vertex> V;
+
+  // Compute the collapsed graph
+  // V is a vector containing vertices of the collapsed graph
+  // corresponding to strongly connected components
+  H = collapseComponents(G, SCC, V);
+  
+  // Components to Components
+  ConnectingPathBounds.clear();
+  for (size_t i = 0; i < nComponents; i++) {
+    for (size_t j = 0; j < nComponents; j++) {
+      if (i == j) {
+        ConnectingPathBounds.push_back(0);
+      } else {
+        Graph K(H);
+        for (size_t k = 0; k < nComponents; k++) {
+          if ((k != i) & (k != j)) {
+            K.removeVertex(V[k]);
+          }
+        }
+        ConnectingPathBounds.push_back(computeLongestPathLength(K, V[i], V[j]));
+      }
+    }
+  }
+  
+  std::map <Vertex, size_t> distance;
+
+  // Entrance to Components
+  EntrancePathBounds.clear();
+  for (size_t i = 0; i < nComponents; i++) {
+    Graph K(H);
+    for (size_t j = 0; j < nComponents; j++) {
+      if (j != i) {
+        K.removeVertex(V[j]);
+      }
+    }
+    distance.clear();
+    graph_it = K.begin();
+    while(graph_it != K.end()) {
+      if (Entrance.count((*graph_it).first)) {
+        distance[(*graph_it).first] = 1;
+      } else {
+        distance[(*graph_it).first] = 0;
+      }
+      ++graph_it;
+    }
+    BFLoop(K, distance);
+    EntrancePathBounds.push_back(distance[V[i]]);
+  }
+
+  // Components to Exit
+  ExitPathBounds.clear();
+  for (size_t i = 0; i < nComponents; i++) {
+    distance.clear();
+    graph_it = H.begin();
+    while(graph_it != H.end()) {
+      distance[(*graph_it).first] = 0;
+      ++graph_it;
+    }
+    distance[V[i]] = 1;
+    BFLoop(H, distance);
+    size_t maxLength = 0;
+    comp_it = Exit.begin();
+    while (comp_it != Exit.end()) {
+      if (maxLength < distance[*comp_it]) {
+        maxLength = distance[*comp_it];
+      }
+      ++comp_it;
+    }
+    ExitPathBounds.push_back(maxLength);
+  }
+
+  // Entrance to Exit
+  distance.clear();
+  graph_it = H.begin();
+  while(graph_it != H.end()) {
+    if (Entrance.count((*graph_it).first)) {
+      distance[(*graph_it).first] = 1;
+    } else {
+      distance[(*graph_it).first] = 0;
+    }
+    ++graph_it;
+  }
+  BFLoop(H, distance);
+  size_t maxLength = 0;
+  comp_it = Exit.begin();
+  while (comp_it != Exit.end()) {
+    if (maxLength < distance[*comp_it]) {
+      maxLength = distance[*comp_it];
+    }
+    ++comp_it;
+  }
+  ThruPathBound = maxLength;
+  
+  return;
+}

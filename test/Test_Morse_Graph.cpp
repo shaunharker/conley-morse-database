@@ -33,8 +33,5 @@ int main ( int argc, char * argv [] ) {
   std::cout << cmgraph.PathExist(v[0], v[3]) << std::endl;
   std::cout << cmgraph.PathExist(v[3], v[0]) << std::endl;
 
-  std::cout << cmgraph.GetEdge(v[0], v[1]).second << std::endl;
-  std::cout << cmgraph.GetEdge(v[1], v[0]).second << std::endl;
-  
   return 0;
 }
