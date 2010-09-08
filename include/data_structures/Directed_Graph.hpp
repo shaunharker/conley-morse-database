@@ -115,7 +115,7 @@ adjacent_vertices ( typename graph_traits< DirectedGraph<Toplex> >::vertex_descr
       ( g . find ( v ) -> second . begin (), g . find ( v ) -> second . end () );
 } /* boost::adjacent_vertices<> */
   
-/* For some reason the BGL has already implemented these and we get ambiguity.
+/* For some reason the BGL has already implemented the following and we get ambiguity.
    The problem is that these are overloads and not specialization. 
    Luckily, the defaults are precisely what we want. 
 */
@@ -170,6 +170,25 @@ num_vertices(const DirectedGraph<Toplex> & g)	{
 } /* num_vertices */
   
 } /* namespace boost */
+
+template < class Toplex >
+typename Toplex::Subset DirectedGraph<Toplex>::operator () ( typename Toplex::Top_Cell cell ) {
+  return operator [] ( cell );
+} /* DirectedGraph<Toplex>::operator () for Top Cells */
+
+typename Toplex::Subset DirectedGraph<Toplex>::operator () ( typename Toplex::Subset subset ) {
+  typename Toplex::Subset return_value;
+  /* Loop through subset */
+  for ( typename Toplex::Subset::const_iterator it = subset . begin ();
+        it != subset . end (); ++ it ) {
+    const typename Toplex::Subset & value = operator [] ( * it );
+    for ( typename Toplex::Subset::const_iterator range_it = value . begin ();
+         range_it != value . end (); ++ range_it ) {
+      return_value . insert ( * range_it );
+    } /* for */
+  } /* for */
+  return return_value;
+} /* DirectedGraph<Toplex>::operator () for Subsets */
 
 /* A wrapper for the boost's strongly connected components algorithm */
 #include <boost/graph/strong_components.hpp>
@@ -302,6 +321,13 @@ DirectedGraph<Toplex> compute_directed_graph (const Toplex & my_toplex,
   return directed_graph;
 } /* compute_directed_graph */
 
+template < class Toplex, class Map >
+void subdivide_toplex_and_directed_graph (Toplex * my_toplex, 
+                                          DirectedGraph<Toplex> * my_directed_graph,
+                                          const typename Toplex::Subset & subdivide_me,
+                                          const Map & f) {
+  /* TO BE IMPLEMENTED */
+} /* subdivide_toplex_and_directed_graph */
 
 template < class Toplex >
 DirectedGraph<Toplex> collapseVertices (

@@ -21,12 +21,19 @@ public:
   typedef typename Component::size_type vert_index_t;
   typedef typename Components::size_type comp_index_t;
 
+  
+
+  
   // Constructor
   DirectedGraph() { };
 
   // Destructor
   ~DirectedGraph() { };
 
+  // Functional Notation when Directed Graph is considered as a Combinatorial Map
+  typename Toplex::Subset operator () ( typename Toplex::Top_Cell );
+  typename Toplex::Subset operator () ( typename Toplex::Subset );
+  
   // Return the number of SCC and store the components to C
   comp_index_t computeStronglyConnectedComponents(Components & C);
 
@@ -73,6 +80,12 @@ template < class Toplex, class Map >
 DirectedGraph<Toplex> compute_directed_graph (const Toplex & my_toplex, 
                                               const Map & f);
 
+
+template < class Toplex, class Map >
+void subdivide_toplex_and_directed_graph (Toplex * my_toplex, 
+                                          DirectedGraph<Toplex> * my_directed_graph,
+                                          const typename Toplex::Subset & subdivide_me,
+                                          const Map & f);
 
 template < class Toplex >
 DirectedGraph<Toplex> collapseVertices (
