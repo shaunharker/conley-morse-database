@@ -35,9 +35,14 @@ class UnionFind {
    *  this function causes no effect.
    */
   void Add(T x);
-  
+
+  /** Add new element from iterator */
   template<class Iterator>
   void Add(Iterator begin, Iterator end);
+
+  /* Copy all data to vector */
+  void FillToVector(std::vector<std::vector<T> > *ret);
+  
  private:
   struct Entry {
     T parent;
@@ -107,6 +112,34 @@ void UnionFind<T>::Merge(const UnionFind<T> &other) {
   }
 }
 
+template<class T>
+void UnionFind<T>::FillToVector(std::vector<std::vector<T> > *ret) {
+  Entry entry;
+  T key;
+
+  std::map<T, size_t> roots;
+  typename std::map<T, size_t>::iterator it;
+  bool inserted;
+  typedef typename std::map<T, size_t>::value_type vtype;
+  size_t n = 0;
+  
+  BOOST_FOREACH (boost::tie(key, entry), tree_) {
+    T rep = Representative(key);
+    boost::tie(it, inserted) = roots.insert(vtype(rep, n));
+    size_t k;
+    if (inserted) {
+      ret->push_back(std::vector<T>(1, rep));
+      k = n;
+      n++;
+    } else {
+      k = it->second;
+    }
+    if (key != rep)
+      ret->at(k).push_back(key);
+  }
+}
+
+    
 template<class CMGraph>
 class VertexPairs {
  public:
@@ -139,10 +172,13 @@ class VertexPairs {
 
 /** Compute a relation between two C-M graph
  *
- *  Return true if given two graphs has a same structure
+ *  Return true if given two graphs has a "same" structure
  *  on the level of C-M graph.
  *
- *  NOTE: now graph connection structures are not used
+ *  All pairs of intersected components of two graphs
+ *  are added to pairs.
+ * 
+ *  NOTE: now infromation of edges is not used
  */
 template<class CMGraph>
 bool ClutchingTwoGraphs(
@@ -188,8 +224,39 @@ bool ClutchingTwoGraphs(
   }
   return result;
 }
-    
-template < class Toplex_Template >
+
+/** Compute an equivalent classes and fill the result to "ret".
+ *
+ *  NOTE: *ret must be empty
+ */
+template<class CMGraph, class Patch>
+void ClutchingGraph(
+    const Patch &patch,
+    std::vector<std::vector<typename Patch::ParamBoxDescriptor> > *ret) {
+  typename Patch::ParamBoxIteratorPair param_boxes_iters;
+  typedef typename Patch::ParamBoxDescriptor ParamBoxDescriptor;
+  
+  param_boxes_iters = patch.ParamBoxes();
+  
+  UnionFind<ParamBoxDescriptor> quotient_set(param_boxes_iters.first,
+                                             param_boxes_iters.second);
+  
+  ParamBoxDescriptor p1, p2;
+  BOOST_FOREACH (boost::tie(p1, p2), patch.AdjecentBoxPairs()) {
+    if (!quotient_set.Find(p1, p2)) {
+      const CMGraph *graph1 = patch.GetCMGraph(p1);
+      const CMGraph *graph2 = patch.GetCMGraph(p2);
+      if (ClutchingTwoGraphs<CMGraph>(*graph1, *graph2, NULL))
+        quotient_set.Union(p1, p2);
+    }
+  }
+
+  quotient_set.FillToVector(ret);
+  return;
+}
+
+template <class Toplex, class ParameterToplex, class ConleyIndex >
 void Clutching_Graph_Job ( Message * result , const Message & job ) {
-	/* Not implemented */
+  
+  
 }

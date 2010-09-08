@@ -5,6 +5,63 @@ bool Check_If_Intersect(int x, int y)
 }
 
 #include "program/jobs/Clutching_Graph_Job.hpp"
+#include <boost/iterator_adaptors.hpp>
+
+/** A dummy Patch class for testing */
+template<class CMGraph>
+class DummyPatch {
+ public:
+  /* identifier of a parameter box, should be comparable */
+  typedef int ParamBoxDescriptor;
+  /* parameter box */
+  typedef int ParameterBox;
+
+  typedef boost::counting_iterator<size_t> ParamBoxIterator;
+  typedef std::pair<ParamBoxIterator, ParamBoxIterator> ParamBoxIteratorPair;
+
+  struct AdjParamBoxIterator:
+      boost::iterator_adaptor<AdjParamBoxIterator,
+                              int, std::pair<int, int>, 
+                              boost::forward_traversal_tag, 
+                              std::pair<int, int>,
+                              int> {
+    AdjParamBoxIterator(int n) 
+        : boost::iterator_adaptor<AdjParamBoxIterator,
+                                  int, std::pair<int, int>, 
+                                  boost::forward_traversal_tag, 
+                                  std::pair<int, int>, int>(n){};
+    void increment(){ this->base_reference() += 1; }
+    std::pair<int, int> dereference() const {
+      return std::pair<int,int>(this->base(), this->base()+1);
+    }
+  };
+  
+  typedef std::pair<AdjParamBoxIterator, AdjParamBoxIterator> AdjParamBoxIteratorPair;
+
+  template<class Iterator>
+  DummyPatch(Iterator begin, Iterator end) : graphs_(begin, end) {}
+  
+  /** Return a pointer to C-M Graph related to that paramter */
+  CMGraph* GetCMGraph(ParamBoxDescriptor d) const {
+    return graphs_[d];
+  }
+  
+  /** Return a pair of iterators for all parameter boxes */
+  ParamBoxIteratorPair ParamBoxes() const {
+    return ParamBoxIteratorPair(boost::make_counting_iterator((size_t)0),
+                                boost::make_counting_iterator(graphs_.size()));
+  }
+
+  /** Return a pair of iterators for all pairs of adjacent parameter boxes */
+  AdjParamBoxIteratorPair AdjecentBoxPairs() const {
+    return AdjParamBoxIteratorPair(AdjParamBoxIterator((size_t)0),
+                                   AdjParamBoxIterator(graphs_.size()-1));
+  }
+
+ private:
+  std::vector<CMGraph*> graphs_;
+};
+
 typedef ConleyMorseGraph<int, int> CMGraph;
 
 void SetupCMGraph(CMGraph *graph, std::vector<CMGraph::Vertex> *vertices,
@@ -32,6 +89,7 @@ void ShowVertexPairs(const CMGraph &graph1, const int *ptr1,
 
 int main(int argc, char *argv[])
 {
+  /* test for ClutchingTwoGraphs */
   CMGraph cmgraph1;
   typedef VertexPairs<CMGraph> Pairs;
   
@@ -74,7 +132,7 @@ int main(int argc, char *argv[])
   std::cout << ClutchingTwoGraphs(cmgraph1, cmgraph3, &pairs13) << std::endl;
   ShowVertexPairs(cmgraph1, toplexes1, cmgraph3, toplexes3, pairs13);
 
-  /* true is assumed, because cmgraph4 is shuffle of  cmgraph1 */
+  /* true is assumed, because cmgraph4 has shuffled data of cmgraph1 */
   VertexPairs<CMGraph> pairs14;
   std::cout << ClutchingTwoGraphs(cmgraph1, cmgraph4, &pairs14) << std::endl;
   ShowVertexPairs(cmgraph1, toplexes1, cmgraph4, toplexes4, pairs14);
@@ -83,13 +141,15 @@ int main(int argc, char *argv[])
   VertexPairs<CMGraph> pairs24;
   std::cout << ClutchingTwoGraphs(cmgraph2, cmgraph4, &pairs24) << std::endl;
   ShowVertexPairs(cmgraph2, toplexes2, cmgraph4, toplexes4, pairs24);
-  
+
+  /* test for Union-Find */
   std::cout << "--" << std::endl;
   
-  int data[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-  UnionFind<int> u(data, data+10);
+  int data[12] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 11};
+  UnionFind<int> u(data, data+12);
   int data2[6] = {1, 8, 12, 13, 14, 15};
   UnionFind<int> v(data2, data2+6);
+  std::vector<std::vector<int> > vect;
   
   u.Union(1, 2);
   u.Union(3, 4);
@@ -100,12 +160,41 @@ int main(int argc, char *argv[])
   std::cout << u.Find(5, 6) << std::endl;
 
   v.Union(1, 8);
-  v.Union(12, 15);
+  v.Union(15, 12);
 
   u.Merge(v);
   std::cout << u.Find(2, 8) << std::endl;
   std::cout << u.Find(12, 15) << std::endl;
   std::cout << u.Find(12, 14) << std::endl;
+  u.FillToVector(&vect);
+  
+  BOOST_FOREACH (std::vector<int> &t, vect) {
+    std::cout << "(";
+    BOOST_FOREACH (int& s, t) {
+      std::cout << s << ",";
+    }
+    std::cout << ")";
+  }
+  std::cout << std::endl;
+  
+  /* test for ClutchingGraphs */
+  std::cout << "--" << std::endl;
+  CMGraph *graphs[8] = {
+    &cmgraph1, &cmgraph1, &cmgraph4, &cmgraph2,
+    &cmgraph2, &cmgraph1, &cmgraph3, &cmgraph3,
+  };
+  DummyPatch<CMGraph> patch(graphs, graphs+8);
+  std::vector<std::vector<int> > ret;
+  ClutchingGraph<CMGraph, DummyPatch<CMGraph> >(patch, &ret);
+
+  BOOST_FOREACH (std::vector<int> &t, ret) {
+    std::cout << "(";
+    BOOST_FOREACH (int& s, t) {
+      std::cout << s << ",";
+    }
+    std::cout << ")";
+  }
+  std::cout << std::endl;
   
   return 0;
 }
