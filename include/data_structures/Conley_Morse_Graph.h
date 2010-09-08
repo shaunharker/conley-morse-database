@@ -143,6 +143,11 @@ class ConleyMorseGraph {
     return boost::edges(graph_);
   }
 
+  /** Return a edge descriptor */
+  std::pair<Edge, bool> GetEdge(Vertex u, Vertex v) {
+    return boost::edge(u, v, graph_);
+  }
+
   /** Return a target of given edge.
    *
    *  This function is used in OutEdges() to avoid a compilation error
