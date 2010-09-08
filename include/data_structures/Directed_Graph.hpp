@@ -172,6 +172,69 @@ num_vertices(const DirectedGraph<Toplex> & g)	{
 } /* namespace boost */
 
 template < class Toplex >
+DirectedGraph<Toplex> collapseComponents (
+    DirectedGraph<Toplex> & G,
+    typename DirectedGraph<Toplex>::Components & Components,
+    std::vector<typename DirectedGraph<Toplex>::Vertex> & Representatives)
+{
+  typedef DirectedGraph <Toplex> Graph;
+  typedef typename DirectedGraph<Toplex>::Vertex Vertex;
+  std::map < Vertex, Vertex > table;
+
+  Graph result(G);
+  Vertex compRep; // The representative of a component
+
+  // Iterators
+  typename Graph::iterator graph_it;
+  typename Graph::Components::iterator comp_it;
+  typename Graph::Component::iterator vert_it;
+  typename Toplex::Subset::iterator edge_it;
+  
+  // For each component, remove the vertices of the component
+  // except the first one, which will be the representative.
+  // The representative collects edges of removed vertices.
+  // The 'table' variable, which will be used to replace the
+  // destinations of edges, is constructed at the same time.
+  Representatives.clear();
+  comp_it = Components.begin();
+  while (comp_it != Components.end()) {
+    vert_it = (*comp_it).begin();
+    compRep = (*vert_it);
+    ++vert_it;
+    while (vert_it != (*comp_it).end()) {
+      G[compRep].insert(G[*(vert_it)].begin(), G[*(vert_it)].end());
+      result.erase(*vert_it);
+      table.insert(typename std::map< Vertex, Vertex >::value_type((*vert_it), compRep));
+      ++vert_it;
+    }
+    ++comp_it;
+    Representatives.push_back(compRep);
+  }
+
+  // Replace the destinations of edges according to 'table' 
+  graph_it = result.begin();
+  while (graph_it != result.end()) {
+    edge_it = ((*graph_it).second).begin();
+    while (edge_it != ((*graph_it).second).end()) {
+      if (table.count(*edge_it)) {
+        ((*graph_it).second).erase(*edge_it);
+        ((*graph_it).second).insert(table[*edge_it]);
+      }
+      ++edge_it;
+    }
+    ++graph_it;
+  }
+  
+  // Remove self loops at the representative of components
+  for (long i = 0; i < Representatives.size(); i++) {
+    result[Representatives[i]].erase(Representatives[i]);
+  }
+
+  // Return 
+  return result;
+}
+
+template < class Toplex >
 typename Toplex::Subset DirectedGraph<Toplex>::operator () ( const typename Toplex::Top_Cell & cell ) {
   return operator [] ( cell );
 } /* DirectedGraph<Toplex>::operator () for Top Cells */
@@ -190,18 +253,20 @@ typename Toplex::Subset DirectedGraph<Toplex>::operator () ( const typename Topl
   return return_value;
 } /* DirectedGraph<Toplex>::operator () for Subsets */
 
+/* Global functions */
+
 /* A wrapper for the boost's strongly connected components algorithm */
 #include <boost/graph/strong_components.hpp>
 template < class Toplex >
-typename DirectedGraph<Toplex>::comp_index_t 
-DirectedGraph< Toplex >::computeStronglyConnectedComponents(
-    DirectedGraph< Toplex >::Components & C)
+typename DirectedGraph<Toplex>::Components computeSCC(DirectedGraph<Toplex> & G)
 {
   using namespace boost;
 
   typedef DirectedGraph<Toplex> Graph;
   typedef typename graph_traits<Graph>::vertex_descriptor Vertex;
 
+  typename Graph::Components result;
+  
   /* Pair Associative Container -- Vertex to Vertex or Integer or Color */
   typedef std::map< Vertex, Vertex > PAC_VV_t; 
   typedef std::map< Vertex, int > PAC_VI_t; 
@@ -221,13 +286,13 @@ DirectedGraph< Toplex >::computeStronglyConnectedComponents(
   APM_VV_t root ( pac_root );
   APM_VC_t color ( pac_color );
   
-  int num_scc = strong_components(*this, component_number, 
+  int num_scc = strong_components(G, component_number, 
                                   root_map(root).
                                   color_map(color).
                                   discover_time_map(discover_time));
 
   std::vector < std::vector < Vertex > > components;
-  build_component_lists(*this, num_scc, component_number, components);
+  build_component_lists(G, num_scc, component_number, components);
 
   /* Erase top cells not in attractor sets */
   Vertex v;
@@ -235,7 +300,7 @@ DirectedGraph< Toplex >::computeStronglyConnectedComponents(
   while (it != components.end ()) {
     if ((*it).size() == 1) {
       v = (*it)[0];
-      if ((*this)[v].count(v) == 0) {
+      if (G[v].count(v) == 0) {
         components.erase(it);
         --it;
       }
@@ -257,58 +322,13 @@ DirectedGraph< Toplex >::computeStronglyConnectedComponents(
       ++vect_it;
     }
     components.erase(it);
-    C.push_back(comp);
+    result.push_back(comp);
   }
 
   /* Exit the function */
-  return C.size();
+  return result;
 }
 
-template < class Toplex >
-typename DirectedGraph< Toplex >::vert_index_t 
-DirectedGraph< Toplex >::computeLongestPathLength(const Vertex v, const Vertex w)
-{
-  // dummy
-  return 0;
-}
-
-template < class Toplex >
-typename DirectedGraph< Toplex >::vert_index_t 
-DirectedGraph< Toplex >::computeConnectingPathBound(const comp_index_t c1, 
-                                                    const comp_index_t c2)
-{
-  // dummy
-  return 0;
-}
-
-template < class Toplex >
-typename DirectedGraph< Toplex >::vert_index_t 
-DirectedGraph< Toplex >::computeEntrancePathBound(const comp_index_t c, 
-                                                  const Component Entrance)
-{
-  // dummy
-  return 0;
-}
-
-template < class Toplex >
-typename DirectedGraph< Toplex >::vert_index_t 
-DirectedGraph< Toplex >::computeExitPathBound(const comp_index_t c, 
-                                              const Component Entrance)
-{
-  // dummy
-  return 0;
-}
-
-template < class Toplex >
-typename DirectedGraph< Toplex >::vert_index_t 
-DirectedGraph< Toplex >::computeThroughPathBound(const Component Entrance, 
-                                                 const Component Exit)
-{
-  // dummy
-  return 0;
-}
-
-/* Global functions */
 template < class Toplex, class Map >
 DirectedGraph<Toplex> compute_directed_graph (const Toplex & my_toplex, 
                                               const Map & f) {
@@ -329,43 +349,3 @@ void subdivide_toplex_and_directed_graph (Toplex * my_toplex,
   /* TO BE IMPLEMENTED */
 } /* subdivide_toplex_and_directed_graph */
 
-template < class Toplex >
-DirectedGraph<Toplex> collapseVertices (
-    DirectedGraph<Toplex> & G,
-    typename DirectedGraph<Toplex>::Components & oldComponents,
-    typename DirectedGraph<Toplex>::Components & newComponents)
-{
-  typedef DirectedGraph <Toplex> Graph;
-  typedef typename DirectedGraph<Toplex>::Vertex Vertex;
-  std::map < Vertex, Vertex > table;
-
-  Graph result(G);
-  Vertex componentRepresentative;
-  
-  // Initialize the table
-  typename Graph::iterator graph_it = G.begin();
-  while (graph_it != G.end()) {
-    table.insert(typename std::map< Vertex, Vertex >::value_type((*graph_it).first,
-                                                                 (*graph_it).first));
-    ++graph_it;
-  }
-  
-  // The first vertex of a component will be the representative
-  // of the component
-  typename DirectedGraph<Toplex>::Components::iterator comp_it = oldComponents.begin();
-  while (comp_it != oldComponents.end()) {
-    typename DirectedGraph<Toplex>::Component::iterator vert_it = (*comp_it).begin();
-    componentRepresentative = (*vert_it);
-    ++vert_it;
-    while (vert_it != (*comp_it).end()) {
-      result.erase(*vert_it);
-      ++vert_it;
-    }
-    ++comp_it;
-  }
-
-  // Apply the table
-  
-  // dummy
-  return result;
-}

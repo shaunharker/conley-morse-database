@@ -50,8 +50,8 @@ int main ( int argc, char * argv [] )
   }
   std::cout << "The size of the Graph: " << G.size() << std::endl; 
 
-  std::vector< Toplex::Subset > Components;
-  G.computeStronglyConnectedComponents(Components);
+  Graph::Components Components;
+  Components = computeSCC(G);
   std::cout << "The number of SCCs: " << Components.size() << std::endl;
 
   std::vector< Toplex::Subset >::iterator it = Components.begin();
@@ -67,17 +67,32 @@ int main ( int argc, char * argv [] )
   }
 
   Graph H;
-  DirectedGraph<Toplex>::Components I;
-  DirectedGraph<Toplex>::Components J;
-  DirectedGraph<Toplex>::Component F;
-  F.insert(5);
-  I.push_back(F);
-  H = collapseVertices(G, I, J);
+  std::vector< Graph::Vertex > V;
+  H = collapseComponents(G, Components, V);
+  std::cout << "The representatives: ";
+  for (int i = 0; i < V.size(); i++) {
+    std::cout << V[i] << " ";
+  }
+  std::cout << std::endl;
 
+  Graph::iterator graph_it;
+  Graph::Component::iterator edge_it;
+  graph_it = H.begin();
+  while (graph_it != H.end()) {
+    std::cout << (*graph_it).first << " --> ";
+    edge_it = ((*graph_it).second).begin();
+    while (edge_it != ((*graph_it).second).end()) {
+      std::cout << *edge_it << " ";
+          ++edge_it;
+    }
+    ++graph_it;
+    std::cout << std::endl;
+  }
+  
   Components.clear();
   std::cout << "The size of the Graph: " << H.size() << std::endl; 
 
-  H.computeStronglyConnectedComponents(Components);
+  Components = computeSCC(H);
   std::cout << "The number of SCCs: " << Components.size() << std::endl;
   
   it = Components.begin();
@@ -92,6 +107,7 @@ int main ( int argc, char * argv [] )
     ++it;
   }
 
-
+  std::cout << computeLongestPathLength(H, V[1], V[0]) << std::endl; 
+  
   return 0;
 }
