@@ -64,8 +64,8 @@ Coordinator::Coordinator(int argc, char **argv) {
 
 CoordinatorBase::State Coordinator::Prepare(Message *job) {
   /// typedefs
-  typedef std::map <size_type, Cached_Box_Informatin> Cached_Box_Map;
-  typedef std::pair <size_type, Cached_Box_Informatin> Cached_Box_Pair;
+  typedef std::map <size_type, Cached_Box_Information> Cached_Box_Map;
+  typedef std::pair <size_type, Cached_Box_Information> Cached_Box_Pair;
 
   /// All jobs have finished
   if (num_jobs_received_ == num_jobs_)
