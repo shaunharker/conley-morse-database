@@ -21,9 +21,6 @@ public:
   typedef typename Component::size_type vert_index_t;
   typedef typename Components::size_type comp_index_t;
 
-  
-
-  
   // Constructor
   DirectedGraph() { };
 
@@ -33,46 +30,6 @@ public:
   // Functional Notation when Directed Graph is considered as a Combinatorial Map
   typename Toplex::Subset operator () ( const typename Toplex::Top_Cell & );
   typename Toplex::Subset operator () ( const typename Toplex::Subset & );
-  
-  // Return the number of SCC and store the components to C
-  comp_index_t computeStronglyConnectedComponents(Components & C);
-
-  // Return the length (number of edges inside the Graph) of
-  // the longest path connecting v to w
-  // The result is 0 iff there is no such path
-  // The result is 1 iff there is a shortest possible path
-  vert_index_t computeLongestPathLength(const Vertex v,
-                                        const Vertex w);
-
-  // Return the length (number of edges inside the Graph) of 
-  // the longest path connecting components c1 and c2
-  // The result is 0 iff there is no such path
-  // The result is 1 iff there is a shortest possible path
-  vert_index_t computeConnectingPathBound(comp_index_t c1, comp_index_t c2);
-
-  // Compute the length of the longest path
-  // connecting 'Entrance' to the component c
-  // The result is 0 iff there is no such path
-  // The result is 1 iff there is a shortest possible path
-  vert_index_t computeEntrancePathBound(comp_index_t c,
-                                        const Component Entrance);
-
-  // Compute the length of the longest path
-  // connecting the component c to 'Exit'
-  // The result is 0 iff there is no such path
-  // The result is 1 iff there is a shortest possible path
-  vert_index_t computeExitPathBound(comp_index_t c,
-                                    const Component Exit);
-
-  // Compute the length of the longest path
-  // connecting 'Entrance' to 'Exit'
-  // The result is 0 iff there is no such path
-  // The result is 1 iff there is a shortest possible path
-  vert_index_t computeThroughPathBound(const Component Entrance,
-                                       const Component Exit);
-
-private:
-
 };
 
 
