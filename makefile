@@ -1,12 +1,13 @@
 # makefile for CMDP project                                                                       
 
 CXX := mpicxx
-HOMEDIR := /home/sharker
+HOMEDIR := ../
 CAPDDIR := $(HOMEDIR)/capd
 CHOMPDIR := $(HOMEDIR)/chomp-rutgers
 BOOSTDIR := $(HOMEDIR)/boost_1_42_0
-LIBS = -L$(BOOSTDIR)/stage/lib/ -lboost_serialization
-CXXFLAGS := -O3 -m64 -Wall -I./include/ -I$(CAPDDIR)/include -I$(BOOSTDIR) -I$(CHOMPDIR)/include -Wno-deprecated
+LIBDIR = -L$(BOOSTDIR)/stage/lib/ -L$(CHOMPDIR)/lib/
+LIBS = $(LIBDIR) -lboost_serialization -lchomp-rutgers
+CXXFLAGS := -O3 -m64 -Wall -I./include/ -I$(CAPDDIR)/include -I$(CHOMPDIR)/include -Wno-deprecated #-I$(BOOSTDIR) 
 
 
 # The last part is because the conley2 boost library is not up to date and I have

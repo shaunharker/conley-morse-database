@@ -30,6 +30,8 @@ class Coordinator : public CoordinatorBase {
   size_type num_jobs_sent_;
   size_type num_jobs_received_;
   std::vector < Toplex_Subset > patches_;
+  Toplex parameter_toplex;
+  std::map < Toplex::Top_Cell, Cached_Box_Information > toplex_cached_info;
 };
 
 #ifndef _DO_NOT_INCLUDE_HPP_
