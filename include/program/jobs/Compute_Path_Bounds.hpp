@@ -5,21 +5,21 @@
 #ifndef _CMDP_COMPUTE_PATH_BOUNDS_HPP_
 #define _CMDP_COMPUTE_PATH_BOUNDS_HPP_
 
-
+// In this version, I consider only the direct path between morse sets. This MUST be modified.
 template < class Conley_Morse_Graph >
-void Compute_Path_Bounds ( std::map < typename Conley_Morse_Graph::Edge , size_t > * return_path_bounds ,
-  const Conley_Morse_Graph & conley_morse_graph ,
-  std::map < typename Conley_Morse_Graph::Vertex , Conley_Morse_Graph const * > & original_cmg ,
-  std::map < typename Conley_Morse_Graph::Vertex , typename Conley_Morse_Graph::Vertex > & original_set ,
-  std::map < std::pair < Conley_Morse_Graph const * , typename Conley_Morse_Graph::Vertex > , Conley_Morse_Graph const * > & finer_cmg ,
-  std::map < Conley_Morse_Graph const * , Conley_Morse_Graph const * > & coarser_cmg ,
-  std::map < Conley_Morse_Graph const * , typename Conley_Morse_Graph::Vertex > & coarser_set ,
-  std::map < Conley_Morse_Graph const * , std::map < typename Conley_Morse_Graph::Vertex , size_t > > & exit_path_bounds ,
-  std::map < Conley_Morse_Graph const * , std::map < typename Conley_Morse_Graph::Vertex , size_t > > & entrance_path_bounds ,
-  std::map < Conley_Morse_Graph const * , std::map < typename Conley_Morse_Graph::Edge , size_t > > & path_bounds ,
-  std::map < Conley_Morse_Graph const * , size_t > & through_path_bound ) {
-
-    // Now I get an iterator pair of all edges.
+void Compute_Path_Bounds ( std::map < typename Conley_Morse_Graph::Edge , size_t > *return_path_bounds ,
+                           const Conley_Morse_Graph & conley_morse_graph ,
+                           std::map < typename Conley_Morse_Graph::Vertex , Conley_Morse_Graph const * > & original_cmg ,
+                           std::map < typename Conley_Morse_Graph::Vertex , typename Conley_Morse_Graph::Vertex > & original_set ,
+                           std::map < std::pair < Conley_Morse_Graph const * , typename Conley_Morse_Graph::Vertex > , Conley_Morse_Graph const * > & finer_cmg ,
+                           std::map < Conley_Morse_Graph const * , Conley_Morse_Graph const * > & coarser_cmg ,
+                           std::map < Conley_Morse_Graph const * , typename Conley_Morse_Graph::Vertex > & coarser_set ,
+                           std::map < Conley_Morse_Graph const * , std::map < typename Conley_Morse_Graph::Vertex , size_t > > & exit_path_bounds ,
+                           std::map < Conley_Morse_Graph const * , std::map < typename Conley_Morse_Graph::Vertex , size_t > > & entrance_path_bounds ,
+                           std::map < Conley_Morse_Graph const * , std::map < typename Conley_Morse_Graph::Edge , size_t > > & path_bounds ,
+                           std::map < Conley_Morse_Graph const * , size_t > & through_path_bound ) {
+  
+  // Now I get an iterator pair of all edges.
   typename Conley_Morse_Graph::EdgeIteratorPair itrPairEdgesCMG( conley_morse_graph.Edges() );
   
   // Check all the edges in the final conley morse graph iterately.
@@ -70,7 +70,7 @@ void Compute_Path_Bounds ( std::map < typename Conley_Morse_Graph::Edge , size_t
         // This considers only the direct connection, and MUST be modified later.
         // Get a edge between vertices;
         std::pair< typename Conley_Morse_Graph::Edge, bool > coarserEdge( ( *itrCommonFinestCMGTargetVertex )->GetEdge( coarser_set[ *( itrCommonFinestCMGSourceVertex - 1 ) ], coarser_set[ *( itrCommonFinestCMGTargetVertex - 1 ) ] ) );
-        if ( coarserEdge.second ) {
+        if ( !coarserEdge.second ) {
           // There are no direct edges.
           // I simply return 0. Is it right?
           return_path_bounds->insert( std::pair< typename Conley_Morse_Graph::Edge, size_t >( edge, 0 ) );

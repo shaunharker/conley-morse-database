@@ -31,34 +31,16 @@
 /// The maximal path lengths, computed with graph algorithms, are also provided.
 template < class Conley_Morse_Graph >
 void Compute_Path_Bounds ( std::map < typename Conley_Morse_Graph::Edge , size_t > * return_path_bounds ,
-  const Conley_Morse_Graph & conley_morse_graph ,
-  std::map < typename Conley_Morse_Graph::Vertex , Conley_Morse_Graph const * > & original_cmg ,
-  std::map < typename Conley_Morse_Graph::Vertex , typename Conley_Morse_Graph::Vertex > & original_set ,
-  std::map < std::pair < Conley_Morse_Graph const * , typename Conley_Morse_Graph::Vertex > , Conley_Morse_Graph const * > & finer_cmg ,
-  std::map < Conley_Morse_Graph const * , Conley_Morse_Graph const * > & coarser_cmg ,
-  std::map < Conley_Morse_Graph const * , typename Conley_Morse_Graph::Vertex > & coarser_set ,
-  std::map < Conley_Morse_Graph const * , std::map < typename Conley_Morse_Graph::Vertex , size_t > > & exit_path_bounds ,
-  std::map < Conley_Morse_Graph const * , std::map < typename Conley_Morse_Graph::Vertex , size_t > > & entrance_path_bounds ,
-  std::map < Conley_Morse_Graph const * , std::map < typename Conley_Morse_Graph::Edge , size_t > > & path_bounds ,
-  std::map < Conley_Morse_Graph const * , size_t > & through_path_bound );
-
-// this function returns a vector of pointers to conley morse graphs to which a morse set besize_ts
-template< class Conley_Morse_Graph >
-void Search_Coarser_Conley_Morse_Graph( std::vector< Conley_Morse_Graph const * > &searched_conley_morse_graph,
-                                        std::map< Conley_Morse_Graph const *, Conley_Morse_Graph const * > &coarser_cmg,
-                                        const Conley_Morse_Graph const *conley_morse_graph );
-
-// this function returns the exit_path_bounds for given morse set and conley morse graph
-template< class Conley_Morse_Graph >
-size_t Extract_Exit_Path_Bounds( std::map< Conley_Morse_Graph const *, std::map< typename Conley_Morse_Graph::Vertex, size_t > > &exit_path_bounds,
-                                 const Conley_Morse_Graph const *conley_morse_graph,
-                                 const typename Conley_Morse_Graph::Vertex vertex );
-
-// this function returns the entrance_path_bound for given morse set and conley morse graph
-template< class Conley_Morse_Graph >
-size_t Extract_Entrance_Path_Bounds( std::map< Conley_Morse_Graph const *, std::map< typename Conley_Morse_Graph::Vertex, size_t > > &entrance_path_bounds,
-                                     const Conley_Morse_Graph const *conley_morse_graph,
-                                     const typename Conley_Morse_Graph::Vertex vertex );
+                           const Conley_Morse_Graph & conley_morse_graph ,
+                           std::map < typename Conley_Morse_Graph::Vertex , Conley_Morse_Graph const * > & original_cmg ,
+                           std::map < typename Conley_Morse_Graph::Vertex , typename Conley_Morse_Graph::Vertex > & original_set ,
+                           std::map < std::pair < Conley_Morse_Graph const * , typename Conley_Morse_Graph::Vertex > , Conley_Morse_Graph const * > & finer_cmg ,
+                           std::map < Conley_Morse_Graph const * , Conley_Morse_Graph const * > & coarser_cmg ,
+                           std::map < Conley_Morse_Graph const * , typename Conley_Morse_Graph::Vertex > & coarser_set ,
+                           std::map < Conley_Morse_Graph const * , std::map < typename Conley_Morse_Graph::Vertex , size_t > > & exit_path_bounds ,
+                           std::map < Conley_Morse_Graph const * , std::map < typename Conley_Morse_Graph::Vertex , size_t > > & entrance_path_bounds ,
+                           std::map < Conley_Morse_Graph const * , std::map < typename Conley_Morse_Graph::Edge , size_t > > & path_bounds ,
+                           std::map < Conley_Morse_Graph const * , size_t > & through_path_bound );
 
 #ifndef _DO_NOT_INCLUDE_HPP_
 #include "program/jobs/Compute_Path_Bounds.hpp"
