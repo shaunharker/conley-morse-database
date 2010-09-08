@@ -19,10 +19,10 @@ typedef std::pair <Toplex::Top_Cell, Cached_Box_Information> Cached_Box_Pair;
 typedef unsigned int size_type;
 
 /// Coordinator class
-class Coordinator : CoordinatorBase {
+class Coordinator : public CoordinatorBase {
  public:
   Coordinator(int argc, char **argv);
-  virtual State Prepare(Message *job);
+  virtual CoordinatorBase::State Prepare(Message *job);
   virtual void Process(const Message &result);
  private:
   typedef unsigned int size_type;

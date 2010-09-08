@@ -32,7 +32,7 @@ Coordinator::Coordinator(int argc, char **argv) {
     side_lengths . push_back ((parameter_bounds . upper_bounds [i] -
 								  parameter_bounds . lower_bounds [i]) / 2); // <- modify this
 
-  for (int i = 0; i < num_patches; ++i) {
+  for (unsigned int i = 0; i < num_patches; ++i) {
     std::vector < Real > patch_lower_bounds;
     std::vector < Real > patch_upper_bounds;
 	
@@ -62,7 +62,7 @@ Coordinator::Coordinator(int argc, char **argv) {
 }
 
 
-State Coordinator::Prepare(Message *job) {
+CoordinatorBase::State Coordinator::Prepare(Message *job) {
   /// typedefs
   typedef std::map <size_type, Cached_Box_Informatin> Cached_Box_Map;
   typedef std::pair <size_type, Cached_Box_Informatin> Cached_Box_Pair;
