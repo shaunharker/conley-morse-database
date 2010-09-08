@@ -7,7 +7,7 @@ CHOMPDIR := $(HOMEDIR)/chomp-rutgers
 BOOSTDIR := $(HOMEDIR)/boost_1_42_0
 LIBDIR = -L$(BOOSTDIR)/stage/lib/ -L$(CHOMPDIR)/lib/
 LIBS = $(LIBDIR) -lboost_serialization -lchomp-rutgers
-CXXFLAGS := -O3 -m64 -Wall -I./include/ -I$(CAPDDIR)/include -I$(CHOMPDIR)/include -Wno-deprecated #-I$(BOOSTDIR) 
+CXXFLAGS := -O3 -m64 -Wall -I./include/ -I$(CAPDDIR)/include -I$(CHOMPDIR)/include -Wno-deprecated -I$(BOOSTDIR) 
 
 
 # The last part is because the conley2 boost library is not up to date and I have
