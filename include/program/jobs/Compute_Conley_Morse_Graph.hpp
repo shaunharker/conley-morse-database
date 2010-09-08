@@ -71,10 +71,9 @@ void Rule_Out_Connections ( Conley_Morse_Graph * conley_morse_graph ,
 
 // --------------------------------------------------
 
-template < class Toplex , class Parameter_Toplex ,
-  class Map , class Conley_Index ,
+template < class Toplex , class Parameter_Toplex , class Map ,
   class Decide_Subdiv , class Decide_Conley_Index , class Cached_Box_Information >
-void Compute_Conley_Morse_Graph ( ConleyMorseGraph < typename Toplex::Subset, Conley_Index > * conley_morse_graph ,
+void Compute_Conley_Morse_Graph ( ConleyMorseGraph < typename Toplex::Subset, Conley_Index_t > * conley_morse_graph ,
   const typename Parameter_Toplex::Geometric_Description & parameter_box ,
   Toplex * phase_space ,
   const typename Toplex::Geometric_Description & phase_space_box ,
@@ -83,7 +82,7 @@ void Compute_Conley_Morse_Graph ( ConleyMorseGraph < typename Toplex::Subset, Co
   Cached_Box_Informatin * cached_box_information ) {
 
   // short names for the types used in this function
-  typedef ConleyMorseGraph < typename Toplex::Subset, Conley_Index > Conley_Morse_Graph;
+  typedef ConleyMorseGraph < typename Toplex::Subset, Conley_Index_t > Conley_Morse_Graph;
   typedef std::vector < Conley_Morse_Graph * > Conley_Morse_Graphs;
 
   // create the objects of the maps
@@ -167,9 +166,11 @@ void Compute_Conley_Morse_Graph ( ConleyMorseGraph < typename Toplex::Subset, Co
           original_set [ new_vertex ] = current_vertex;
 
           // move or compute its Conley index
-          Conley_Index * conley_index ( current_cmg . GetConleyIndex ( current_vertex ) );
+          Conley_Index_t * conley_index ( current_cmg -> GetConleyIndex ( current_vertex ) );
           if ( ( conley_index == 0 ) && decide_conley_index . compute_final ( morse_set ) ) {
-            // TODO: Compute the Conley index of the Morse set
+            conley_index = new Conley_Index_t;
+            Conley_Index ( conley_index , * phase_space , * morse_set , combinatorial_map );
+            current_cmg -> SetConleyIndex ( conley_index );
           }
           conley_morse_graph -> SetConleyIndex ( new_vertex , conley_index );
           current_cmg -> SetConleyIndex ( current_vertex , 0 );
@@ -194,16 +195,22 @@ void Compute_Conley_Morse_Graph ( ConleyMorseGraph < typename Toplex::Subset, Co
 
         // compute the Conley indices of the constructed Morse sets
         typename Conley_Morse_Graph::VertexIteratorPair new_vertices = new_cmg -> Vertices ();
-        for ( Conley_Morse_Graph::VertexIterator morse_set_iterator = new_vertices . first () ;
-          morse_set_iterator != new_vertices . second () ; ++ morse_set_iterator )
+        for ( Conley_Morse_Graph::VertexIterator new_set_iterator = new_vertices . first () ;
+          new_set_iterator != new_vertices . second () ; ++ new_set_iterator )
         {
           if ( ( new_cmg -> NumVertices () == 1 ) && ( current_cmg -> GetConleyIndex ( current_vertex ) ) ) {
             ConleyIndex * new_index = new ConleyIndex;
             * new_index = * ( current_cmg -> GetConleyIndex ( current_vertex ) );
-            new_cmg -> SetConleyIndex ( new_index );
-          }
-          if ( ! decide_conley_index . compute_after_subdivision ( subdiv , morse_set ) )
+            new_cmg -> SetConleyIndex ( * new_set_iterator , new_index );
             continue;
+          }
+          typename Toplex::Subset * new_morse_set ( current_cmg -> GetCubeSet ( current_vertex ) );
+          
+          if ( ! decide_conley_index . compute_after_subdivision ( subdiv , new_morse_set ) )
+            continue;
+          Conley_Index_t * conley_index = new Conley_Index_t;
+          Conley_Index ( conley_index , * phase_space , * morse_set , combinatorial_map );
+            current_cmg -> SetConleyIndex ( conley_index );
           // TODO:  Compute the Conley index of the Morse set
         }
 
@@ -248,7 +255,7 @@ void Compute_Conley_Morse_Graph ( ConleyMorseGraph < typename Toplex::Subset, Co
       typename Toplex::Subset * morse_set = cmg -> GetCubeSet ( * morse_set_iterator );
       if ( morse_set )
         delete morse_set;
-      Conley_Index * conley_index = cmg -> GetConleyIndex ( * morse_set_iterator );
+      Conley_Index_t * conley_index = cmg -> GetConleyIndex ( * morse_set_iterator );
       if ( conley_index )
         delete conley_index;
     }

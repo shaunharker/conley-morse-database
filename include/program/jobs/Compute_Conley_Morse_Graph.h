@@ -5,6 +5,8 @@
 #ifndef _CMDP_COMPUTE_CONLEY_MORSE_GRAPH_
 #define _CMDP_COMPUTE_CONLEY_MORSE_GRAPH_
 
+#include "algorithms/Homology.h"
+
 
 /// A class for function objects that make decisions on whether
 /// one should subdivide a Morse set further or not,
@@ -126,10 +128,9 @@ private:
 /// (which must be initially empty), together with Morse sets
 /// and Conley indices, for which memory is dynamically allocated
 /// (remember to release this memory later on to avoid memory leaks).
-template < class Toplex , class Parameter_Toplex ,
-  class Map , class Conley_Index ,
+template < class Toplex , class Parameter_Toplex , class Map ,
   class Decide_Subdiv , class Decide_Conley_Index , class Cached_Box_Information >
-void Compute_Conley_Morse_Graph ( ConleyMorseGraph < typename Toplex::Toplex_Subset, Conley_Index > * conley_morse_graph ,
+void Compute_Conley_Morse_Graph ( ConleyMorseGraph < typename Toplex::Toplex_Subset, Conley_Index_t > * conley_morse_graph ,
   const typename Parameter_Toplex::Geometric_Description & parameter_box ,
   Toplex * phase_space ,
   const typename Toplex::Geometric_Description & phase_space_box ,
