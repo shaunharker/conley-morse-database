@@ -22,10 +22,9 @@ int main ( int argc, char * argv [] ) {
   BOOST_FOREACH (CMGraph::Vertex x, cmgraph.InEdges(v[2])) {
     std::cout << *cmgraph.GetCubeSet(x) << std::endl;
   }
-  CMGraph::Vertex s, t;
-  BOOST_FOREACH (boost::tie(s, t), cmgraph.Edges()) {
-    std::cout << "(" << *cmgraph.GetCubeSet(s) << " "
-              << *cmgraph.GetCubeSet(t) << ") " ;
+  BOOST_FOREACH (CMGraph::Edge e, cmgraph.Edges()) {
+    std::cout << "(" << *cmgraph.GetCubeSet(cmgraph.Source(e)) << " "
+              << *cmgraph.GetCubeSet(cmgraph.Target(e)) << ") " ;
   }
   std::cout << std::endl;
   

@@ -53,9 +53,7 @@ class ConleyMorseGraph {
     typename boost::graph_traits<Graph>::in_edge_iterator> InEdgeIterator;
   typedef std::pair<InEdgeIterator, InEdgeIterator> InEdgeIteratorPair;
   
-  typedef boost::transform_iterator<
-    boost::function<std::pair<Vertex, Vertex> (Edge)>,
-    typename boost::graph_traits<Graph>::edge_iterator> EdgeIterator;
+  typedef typename boost::graph_traits<Graph>::edge_iterator EdgeIterator;
   typedef std::pair<EdgeIterator, EdgeIterator> EdgeIteratorPair;
   
   /* size types */
@@ -142,18 +140,8 @@ class ConleyMorseGraph {
   
   /** return a iterator pair to all edges */
   EdgeIteratorPair Edges() {
-    typedef typename boost::graph_traits<Graph>::edge_iterator Iter;
-    boost::function<std::pair<Vertex, Vertex> (Edge)> f =
-        boost::bind(&ConleyMorseGraph::EdgePair, boost::ref(*this), _1);
-    Iter b, e;
-    tie(b, e) = boost::edges(graph_);
-    return EdgeIteratorPair(boost::make_transform_iterator(b, f),
-                            boost::make_transform_iterator(e, f));
+    return boost::edges(graph_);
   }
-  
- private:
-  Graph graph_;
-  typename boost::property_map<Graph, ComponentProperty>::type component_accessor_;
 
   /** Return a target of given edge.
    *
@@ -176,6 +164,10 @@ class ConleyMorseGraph {
     return std::pair<Vertex, Vertex>(Source(e), Target(e));
   }
   
+ private:
+  Graph graph_;
+  typename boost::property_map<Graph, ComponentProperty>::type component_accessor_;
+
   /** struct of each component, which has a pointer to cubeset and conley index.
    *  there exist this struct because of serialization problem.
    */
