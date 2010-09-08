@@ -172,11 +172,11 @@ num_vertices(const DirectedGraph<Toplex> & g)	{
 } /* namespace boost */
 
 template < class Toplex >
-typename Toplex::Subset DirectedGraph<Toplex>::operator () ( typename Toplex::Top_Cell cell ) {
+typename Toplex::Subset DirectedGraph<Toplex>::operator () ( const typename Toplex::Top_Cell & cell ) {
   return operator [] ( cell );
 } /* DirectedGraph<Toplex>::operator () for Top Cells */
 
-typename Toplex::Subset DirectedGraph<Toplex>::operator () ( typename Toplex::Subset subset ) {
+typename Toplex::Subset DirectedGraph<Toplex>::operator () ( const typename Toplex::Subset & subset ) {
   typename Toplex::Subset return_value;
   /* Loop through subset */
   for ( typename Toplex::Subset::const_iterator it = subset . begin ();

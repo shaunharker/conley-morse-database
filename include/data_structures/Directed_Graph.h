@@ -31,8 +31,8 @@ public:
   ~DirectedGraph() { };
 
   // Functional Notation when Directed Graph is considered as a Combinatorial Map
-  typename Toplex::Subset operator () ( typename Toplex::Top_Cell );
-  typename Toplex::Subset operator () ( typename Toplex::Subset );
+  typename Toplex::Subset operator () ( const typename Toplex::Top_Cell & );
+  typename Toplex::Subset operator () ( const typename Toplex::Subset & );
   
   // Return the number of SCC and store the components to C
   comp_index_t computeStronglyConnectedComponents(Components & C);
