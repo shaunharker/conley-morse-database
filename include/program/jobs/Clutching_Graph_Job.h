@@ -7,7 +7,7 @@
 
 #include "distributed/Messaging.h"
 
-template < class Toplex_Template >
+template <class Toplex, class ParameterToplex, class ConleyIndex>
 void Clutching_Graph_Job ( Message * result , const Message & job ); 
 
 #ifndef _DO_NOT_INCLUDE_HPP_

@@ -7,6 +7,7 @@
 #include <boost/foreach.hpp>
 #include <algorithm>
 #include <vector>
+#include "data_structures/Cached_Box_Information.h"
 
 
 /** Quotient Set class.
@@ -255,8 +256,43 @@ void ClutchingGraph(
   return;
 }
 
+/** Main function for clutching graph job.
+ *
+ *  This function is callled from worker, and compare graph structure
+ *  for each two adjacent boxes.
+ */
 template <class Toplex, class ParameterToplex, class ConleyIndex >
 void Clutching_Graph_Job ( Message * result , const Message & job ) {
+  size_t job_number;
+  std::vector<typename ParameterToplex::Geometric_Description> geometric_descriptions;
+  std::map<size_t, Cached_Box_Information> cache_info;
+  const size_t N = geometric_descriptions.size();
   
+  typedef ConleyMorseGraph<typename Toplex::Toplex_Subset, ConleyIndex> CMGraph;
   
+  job.open_for_reading();
+  job >> job_number;
+  job >> geometric_descriptions;
+  job >> cache_info;
+  job.close();
+
+  std::vector<CMGraph> conley_morse_graphs(geometric_descriptions.size());
+  std::vector<std::vector<size_t> > equivalent_classes;
+
+  for (size_t n=0; n<N; n++) {
+#if 0
+    Compute_Conley_Morse_Graph(&conley_morse_graphs[n],
+                               geometric_descriptions[n],
+                               ....);
+#endif
+  }
+#if 0
+  ClutchingGraph(..., &equivalent_classes);
+#endif
+  result->open_for_writing();
+  *result << job_number;
+  *result << cache_info;
+  *result << conley_morse_graphs;
+  *result << equivalent_classes;
+  result->close();
 }
