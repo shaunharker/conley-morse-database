@@ -550,9 +550,13 @@ void computePathBounds(DirectedGraph<Toplex> G,
   }
 
   // Entrance to Exit
+  Graph K(H);
+  for (size_t i = 0; i < nComponents; i++) {
+    K.removeVertex(V[i]);
+  }
   distance.clear();
-  graph_it = H.begin();
-  while(graph_it != H.end()) {
+  graph_it = K.begin();
+  while(graph_it != K.end()) {
     if (Entrance.count((*graph_it).first)) {
       distance[(*graph_it).first] = 1;
     } else {
@@ -560,7 +564,7 @@ void computePathBounds(DirectedGraph<Toplex> G,
     }
     ++graph_it;
   }
-  BFLoop(H, distance);
+  BFLoop(K, distance);
   size_t maxLength = 0;
   comp_it = Exit.begin();
   while (comp_it != Exit.end()) {
