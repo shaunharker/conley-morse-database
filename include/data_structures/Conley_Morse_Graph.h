@@ -126,7 +126,7 @@ class ConleyMorseGraph {
     return component_accessor_[vertex].cube_set_;
   }
   /** Set(copy) a cubeset to the vertex */
-  void SetCubeSet(Vertex vertex, const CubeSet * Cubeset) {
+  void SetCubeSet(Vertex vertex, CubeSet * Cubeset) {
     component_accessor_[vertex].cube_set_ = cubeset;
   }
   /** Get a Conley-Index of the vertex. */
@@ -134,7 +134,7 @@ class ConleyMorseGraph {
     return component_accessor_[vertex].conley_index_;
   }
   /** Set(copy) a Conley-Index to the vertex */
-  void SetConleyIndex(Vertex vertex, const ConleyIndex * conley_index) {
+  void SetConleyIndex(Vertex vertex, ConleyIndex * conley_index) {
     component_accessor_[vertex].conley_index_ = conley_index;
   }
 

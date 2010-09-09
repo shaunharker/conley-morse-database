@@ -73,10 +73,10 @@ void Compute_Morse_Decomposition ( Conley_Morse_Graph * conley_morse_graph ,
           or else b) that one cannot get from vertex i to vertex j */
       if ( ConnectingPathBounds [ index ] > 0 ) {
         /* TODO BUG: are i and j reversed? 50/50 chance this is right ;) */
-        typename Conley_Morse_Graph::Vertex new_edge = conley_morse_graph -> 
+        typename Conley_Morse_Graph::Edge new_edge = conley_morse_graph -> 
           AddEdge (vertex_indexing [ i ], 
                    vertex_indexing [ j ] );
-        path_bounds [ new_edge ] = ConnectingPathBounds [ index ];
+        path_bounds -> operator [] ( new_edge ) = ConnectingPathBounds [ index ];
         // if ( connecting_orbits != NULL ) connecting_orbits -> [ new_edge ] = /* ??? */;
       } /* if */
       ++ index;

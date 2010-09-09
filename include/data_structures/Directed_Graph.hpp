@@ -188,7 +188,7 @@ template < class Toplex >
 DirectedGraph<Toplex> collapseComponents (
     const DirectedGraph<Toplex> & G,
     const typename DirectedGraph<Toplex>::Components & Components,
-    const std::vector<typename DirectedGraph<Toplex>::Vertex> & Representatives)
+    std::vector<typename DirectedGraph<Toplex>::Vertex> & Representatives)
 {
   typedef DirectedGraph <Toplex> Graph;
   typedef typename DirectedGraph<Toplex>::Vertex Vertex;
@@ -199,9 +199,9 @@ DirectedGraph<Toplex> collapseComponents (
 
   // Iterators
   typename Graph::iterator graph_it;
-  typename Graph::Components::iterator comp_it;
+  typename Graph::Components::const_iterator comp_it;
   typename Graph::Component::iterator vert_it;
-  typename Toplex::Subset::iterator edge_it;
+  typename Toplex::Subset::const_iterator edge_it;
   
   // For each component, remove the vertices of the component
   // except the first one, which will be the representative.
@@ -215,8 +215,8 @@ DirectedGraph<Toplex> collapseComponents (
     compRep = (*vert_it);
     ++vert_it;
     while (vert_it != (*comp_it)->end()) {
-      edge_it = G[*(vert_it)].begin();
-      while (edge_it != G[*(vert_it)].end()) {
+      edge_it = G . find ( *(vert_it) ) -> second .begin();
+      while (edge_it != G . find ( *(vert_it) ) -> second . end()) {
         result[compRep].insert(*edge_it);
         ++edge_it;
       }
@@ -312,10 +312,10 @@ void computeSCC
   APM_VV_t root ( pac_root );
   APM_VC_t color ( pac_color );
   
-  int num_scc = strong_components(G, component_number, 
-                                  root_map(root).
-                                  color_map(color).
-                                  discover_time_map(discover_time));
+  unsigned int num_scc = strong_components(G, component_number, 
+                                           root_map(root).
+                                           color_map(color).
+                                           discover_time_map(discover_time));
 
   std::vector < std::vector < Vertex > > components;
   build_component_lists(G, num_scc, component_number, components);
@@ -336,7 +336,8 @@ void computeSCC
   for ( unsigned int index = 0; index < num_scc; ++ index ) {
     if ( components [ index ] . size () == 1) {
       Vertex v = components [ index ] [ 0 ];
-      if ( G [v] . find ( v ) == G [ v ] . end () ) {
+      if ( G . find (v) -> second . find ( v ) == 
+           G . find (v) -> second . end () ) {
         spurious_components [ index ] = true;
       } else {
         ++ number_of_path_components;
@@ -366,9 +367,9 @@ void computeSCC
     typename DirectedGraph< Toplex >::Component & morse_set = 
       * ( * morse_sets ) [ comp_index ];
     typename DirectedGraph< Toplex >::Component & entrance_set = 
-      * ( * entrance_sets ) [ comp_index ];
+      ( * entrance_sets ) [ comp_index ];
     typename DirectedGraph< Toplex >::Component & exit_set = 
-      * ( * exit_sets ) [ comp_index ];
+      ( * exit_sets ) [ comp_index ];
     ++ comp_index;
     BOOST_FOREACH ( typename Toplex::Top_Cell cell, vertices ) {
       morse_set . insert ( cell );
@@ -537,7 +538,7 @@ void computePathBounds(std::vector<size_t> * ConnectingPathBounds,
   size_t n = G.size();
   size_t nComponents = SCC.size();
   typename Graph::iterator graph_it;
-  typename Toplex::Subset::iterator comp_it;
+  typename Toplex::Subset::const_iterator comp_it;
 
   Graph H;
   std::vector<Vertex> V;
