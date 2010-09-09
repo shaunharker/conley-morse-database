@@ -10,13 +10,65 @@
 #include <vector>
 #include <cstddef>
 #include <memory>
-#include <stack>
+#include <set>
 
 #include "program/Configuration.h"
 #include "program/jobs/Compute_Path_Bounds.h"
 #include "program/jobs/Compute_Morse_Decomposition.h"
 #include "algorithms/Homology.h"
 
+
+/// Computes the union of all the final sets that arise from the given
+/// Conley-Morse graph. Uses recursion to take into consideration
+/// all the successive subdivisions of each Morse set.
+/// This is a helper recursive procedure
+/// for the function "Determine_All_Connections".
+template < class Conley_Morse_Graph >
+void Compute_Final_Sets ( std::set < typename Conley_Morse_Graph::Vertex > * all_of_them ,
+  std::map < std::pair < Conley_Morse_Graph const * , typename Conley_Morse_Graph::Vertex > ,
+    std::set < typename Conley_Morse_Graph::Vertex > > * final_sets ,
+  Conley_Morse_Graph const * current_cmg ,
+  std::map < std::pair < Conley_Morse_Graph const * , typename Conley_Morse_Graph::Vertex > ,
+    typename Conley_Morse_Graph::Vertex > & final_set ,
+  std::map < std::pair < Conley_Morse_Graph const * , typename Conley_Morse_Graph::Vertex > ,
+    Conley_Morse_Graph const * > & finer_cmg ) {
+
+  // go through all the vertices in the given Conley-Morse graph
+  typename Conley_Morse_Graph::Vertices vertices = current_cmg -> Vertices ();
+  for ( typename Conley_Morse_Graph::VertexIterator vertex_iter = vertices . first ;
+    vertex_iter != vertices . second ; ++ vertices )
+  {
+    // prepare a pair consisting of the current C-M graph and the vertex
+    std::pair < Conley_Morse_Graph const * ,
+      typename Conley_Morse_Graph::Vertex >
+      current_vertex_pair = std::make_pair ( current_cmg , * vertex_iter );
+
+    // find this pair in the domain of the final set mapping
+    typedef std::map < std::pair < Conley_Morse_Graph const * ,
+      typename Conley_Morse_Graph::Vertex > ,
+      typename Conley_Morse_Graph::Vertex > Final_Set_Type;
+    typename Final_Set_Type::iterator final_set_iter =
+      final_set . find ( current_vertex_pair );
+
+    // determine the set corresponding to this pair
+    std::set < typename Conley_Morse_Graph::Vertex > & new_set =
+      final_sets [ current_vertex_pair ];
+
+    // if the vertex corresponds to a final Morse set then set the value
+    if ( final_set_iter != final_set . end () ) {
+      new_set . insert ( final_set_iter -> second );
+    }
+
+    // otherwise use recursion to construct the set
+    else {
+      Conley_Morse_Graph * new_cmg = finer_cmg [ current_vertex_pair ];
+      Compute_Final_Sets ( & new_set , final_sets , new_cmg , final_set, finer_cmg );
+    }
+  }
+  return;
+} /* Compute_Final_Sets */
+
+// --------------------------------------------------
 
 /// Determines possible connections in the final Morse decomposition
 /// and computes the combinatorial outer bounds for the connecting orbits,
@@ -26,6 +78,7 @@
 template < class Toplex , class Conley_Morse_Graph , class Combinatorial_Map >
 void Determine_All_Connections ( Conley_Morse_Graph * conley_morse_graph ,
   std::map < typename Conley_Morse_Graph::Edge , typename Toplex::Subset > * connecting_orbits ,
+  const std::vector < Conley_Morse_Graph * > & conley_morse_graphs ,
   std::map < Conley_Morse_Graph const * , std::map < typename Conley_Morse_Graph::Edge , typename Toplex::Subset > > & all_connecting_orbits ,
   std::map < Conley_Morse_Graph const * , std::map < typename Conley_Morse_Graph::Vertex , typename Toplex::Subset > > & exit_subsets ,
   std::map < Conley_Morse_Graph const * , std::map < typename Conley_Morse_Graph::Vertex , typename Toplex::Subset > > & entrance_subsets ,
@@ -36,13 +89,49 @@ void Determine_All_Connections ( Conley_Morse_Graph * conley_morse_graph ,
   std::map < Conley_Morse_Graph const * , Conley_Morse_Graph const * > & coarser_cmg ,
   std::map < Conley_Morse_Graph const * , typename Conley_Morse_Graph::Vertex > & coarser_set ) {
 
-  std::stack < Conley_Morse_Graph const * > stack_cmg;
-  std::stack < typename Conley_Morse_Graph::EdgeIterator > stack_edge;
-  std::stack < typename Conley_Morse_Graph::EdgeIteratorPair > stack_edge_pair;
-  
-  // TODO: Implement this procedure.
+  // some typedefs to simplify the definitions
+  typedef std::set < typename Conley_Morse_Graph::Vertex > Set_Of_Vertices;
+  typedef std::pair < Conley_Morse_Graph const * , typename Conley_Morse_Graph::Vertex > CMG_Vertex_Pair;
+      
+  // create a mapping that assigns to each vertex of each CMG
+  // the set of final vertices that come from that vertex
+  // (as Morse subsets appearing in finer subdivisions)
+  std::map < CMG_Vertex_Pair , Set_Of_Vertices > final_sets;
+  Set_Of_Vertices all_of_them;
+  Compute_Final_Sets < Conley_Morse_Graph > ( & all_of_them ,
+    & final_sets , conley_morse_graphs [ 0 ] , final_set , finer_cmg );
+
+  // for every Conley-Morse graph in the list of Conley-Morse graphs
+  for ( std::vector < Conley_Morse_Graph * >::const_iterator cmg_iter =
+    conley_morse_graphs . begin () ; cmg_iter != conley_morse_graphs . end () ; ++ cmg_iter ) {
+
+    // for every edge in the Conley-Morse graph
+    typename Conley_Morse_Graph::EdgeIteratorPair edges = cmg_iter -> GetEdges ();
+    for ( typename Conley_Morse_Graph::EdgeIterator edge_iter = edges . first ;
+      edge_iter != edges . second ; ++ edge_iter ) {
+
+      // determine the source set and the target set
+      Set_Of_Vertices & source_set = final_sets [ std::make_pair ( * cmg_iter , edge_iter -> Source () ) ];
+      Set_Of_Vertices & target_set = final_sets [ std::make_pair ( * cmg_iter , edge_iter -> Target () ) ];
+
+      // for every element of the final set for the source vertex
+      for ( typename Set_Of_Vertices::iterator source_iter = source_set . begin () ;
+        source_iter != sorce_set . end () ; ++ source_iter ) {
+
+        // for every element of the final set for the target vertex
+        for ( typename Set_Of_Vertices::iterator target_iter = target_set . begin () ;
+          target_iter != target_set . end () ; ++ target_iter ) {
+
+          // add the corresponding edge in the final Conley-Morse graph
+          conley_morse_graph -> AddEdge ( * source_iter , * target_iter );
+        }
+      }
+    }
+  }
   return;
 } /* Determine_All_Connections */
+
+// --------------------------------------------------
 
 /// Tries to rule out connections between Morse sets, based on iterations
 /// of the map that acts on geometric descriptions (an interval map,
@@ -309,7 +398,7 @@ void Compute_Conley_Morse_Graph ( Conley_Morse_Graph * conley_morse_graph ,
   // based on the coarser Morse sets on the way
   std::map < typename Conley_Morse_Graph::Edge , typename Toplex::Subset > connecting_orbits;
   Determine_All_Connections < Toplex , Conley_Morse_Graph , Combinatorial_Map > (
-    conley_morse_graph , & connecting_orbits , all_connecting_orbits ,
+    conley_morse_graph , & connecting_orbits , conley_morse_graphs , all_connecting_orbits ,
     exit_subsets , entrance_subsets ,
     original_cmg , original_set , finer_cmg , final_set , coarser_cmg , coarser_set );
 
@@ -328,22 +417,9 @@ void Compute_Conley_Morse_Graph ( Conley_Morse_Graph * conley_morse_graph ,
   // free up the dynamically allocated memory
   // for the intermediate Morse decompositions
   for ( typename Conley_Morse_Graphs::iterator cmg_iterator = conley_morse_graphs . begin ();
-    cmg_iterator != conley_morse_graphs . end (); ++ cmg_iterator )
-  {
-    Conley_Morse_Graph * cmg = * cmg_iterator;
-/*  typename Conley_Morse_Graph::VertexIteratorPair vertices = cmg -> Vertices ();
-    for ( Conley_Morse_Graph::VertexIterator morse_set_iterator = vertices . first ;
-      morse_set_iterator != vertices . second ; ++ morse_set_iterator )
-    {
-      typename Toplex::Subset * morse_set = cmg -> GetCubeSet ( * morse_set_iterator );
-      if ( morse_set )
-        delete morse_set;
-      Conley_Index_t * conley_index = cmg -> GetConleyIndex ( * morse_set_iterator );
-      if ( conley_index )
-        delete conley_index;
-    }
-*/
-    delete cmg;
+    cmg_iterator != conley_morse_graphs . end (); ++ cmg_iterator ) {
+
+    delete * cmg_iterator;
   }
 
   return;
