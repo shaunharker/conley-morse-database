@@ -69,8 +69,8 @@ void SetupCMGraph(CMGraph *graph, std::vector<CMGraph::Vertex> *vertices,
   for (int i=0; i<num_vertices; i++) {
     CMGraph::Vertex v = graph->AddVertex();
     vertices->push_back(v);
-    graph->SetCubeSet(v, toplexes+i);
-    graph->SetConleyIndex(v, indices+i);
+    graph->SetCubeSet(v, toplexes[i]);
+    graph->SetConleyIndex(v, indices[i]);
   }
 }
 
@@ -80,8 +80,8 @@ void ShowVertexPairs(const CMGraph &graph1, const int *ptr1,
                      const VertexPairs<CMGraph> &pairs)
 {
   BOOST_FOREACH(VertexPairs<CMGraph>::Pair pair, pairs.Pairs()) {
-    std::cout << "(" << graph1.GetCubeSet(pair.first) - ptr1
-              << "," << graph2.GetCubeSet(pair.second) - ptr2
+    std::cout << "(" << graph1.GetVertexIndex(pair.first) 
+              << "," << graph2.GetVertexIndex(pair.second)
               << ")" << " ";
   }
   std::cout << std::endl;

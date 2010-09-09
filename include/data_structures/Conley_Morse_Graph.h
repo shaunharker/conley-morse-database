@@ -19,7 +19,8 @@
  *  Cubeset and a ConleyIndex.
  *
  *  NOTE: this class doesn't validate acyclic condition.
- *  NOTE: Cubeset and Graph should be default-constructable.
+ *  NOTE: Cubeset and Graph must be default-constructable.
+ *  NOTE: ConleyIndex must be serializable.
  */
 template<class CubeSet, class ConleyIndex>
 class ConleyMorseGraph {
@@ -119,12 +120,27 @@ class ConleyMorseGraph {
   }
   /** Get a Conley-Index of the vertex. */
   ConleyIndex* GetConleyIndex(Vertex vertex) const {
-    return component_accessor_[vertex].conley_index_;
+    return &component_accessor_[vertex].conley_index_;
   }
   /** Set(copy) a Conley-Index to the vertex */
   void SetConleyIndex(Vertex vertex, const ConleyIndex &conley_index) {
     component_accessor_[vertex].conley_index_ = conley_index;
   }
+
+  /** Return a index of the vertex.
+   *  The index will be changed if a vertex is removed.
+   *  This function is used only for debug. The Implementation is not efficient;
+   */
+  size_t GetVertexIndex(Vertex v) const {
+    size_t n = 0;
+    BOOST_FOREACH (Vertex w, Vertices()) {
+      if (v == w)
+        return n;
+      n++;
+    }
+    return (size_t)-1;
+  }
+  
   /** return a iterator pair to all vertices */
   VertexIteratorPair Vertices() const {
     return boost::vertices(graph_);
@@ -171,6 +187,11 @@ class ConleyMorseGraph {
   std::pair<Vertex, Vertex> EdgePair(Edge e) const {
     return std::pair<Vertex, Vertex>(Source(e), Target(e));
   }
+  /** Purge all ConleyIndex data in this ConleyMorseGraph.
+   *  This function is used to avoid the serialization of ConleyIndex.
+   *  This function is not implemented yet.
+   */
+  void PurgeConleyIndex();
   
  private:
   Graph graph_;

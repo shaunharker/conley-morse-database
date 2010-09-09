@@ -266,6 +266,7 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   size_t job_number;
   std::vector<typename ParameterToplex::Geometric_Description> geometric_descriptions;
   std::map<size_t, Cached_Box_Information> cache_info;
+  std::vector<std::vector<size_t> > neighbour;
   const size_t N = geometric_descriptions.size();
   
   typedef ConleyMorseGraph<typename Toplex::Toplex_Subset, ConleyIndex> CMGraph;
@@ -274,6 +275,7 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   job >> job_number;
   job >> geometric_descriptions;
   job >> cache_info;
+  job >> neighbour;
   job.close();
 
   std::vector<CMGraph> conley_morse_graphs(geometric_descriptions.size());
@@ -281,9 +283,13 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
 
   for (size_t n=0; n<N; n++) {
 #if 0
+    std::map<size_t, Cached_Box_Information> it = cache_info.find(n);
+    Cached_Box_Information* info = (it == cache_info.end()) ? NULL : &(*it);
     Compute_Conley_Morse_Graph(&conley_morse_graphs[n],
                                geometric_descriptions[n],
-                               ....);
+                               ....,
+                               ....,
+                               info);
 #endif
   }
 #if 0
