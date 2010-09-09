@@ -18,15 +18,7 @@ struct LeslieMap {
     boost::numeric::interval_lib::checking_base<double> > > interval;
   
   interval parameter1, parameter2;
-  LeslieMap ( int b1, int b2 ) {
-    parameter1 = interval (8.0 + ( 37.0 - 8.0 ) / 50.0 * (double) b1,
-                           8.0 + ( 37.0 - 8.0 ) / 50.0 * (double) ( b1 + 1 ) );
-    parameter2 = interval (3.0 + ( 50.0 - 3.0 ) / 50.0 * (double) b2,
-                           3.0 + ( 50.0 - 3.0 ) / 50.0 * (double) ( b2 + 1 ) ); 
-    std::cout << "P1 = " << parameter1 . lower () << ", " << parameter1 . upper () << 
-      "\n and P2 = " << parameter2 . lower () << ", " << parameter2 . upper () << 
-      "\n";
-  }
+
   LeslieMap ( const Adaptive_Cubical::Geometric_Description & rectangle ) {
     parameter1 = interval (rectangle . lower_bounds [ 0 ], 
 			    rectangle . upper_bounds [ 0 ]);
