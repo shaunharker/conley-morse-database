@@ -12,6 +12,7 @@ void Compute_Path_Bounds ( std::map < typename Conley_Morse_Graph::Edge , size_t
                            std::map < typename Conley_Morse_Graph::Vertex , Conley_Morse_Graph const * > & original_cmg ,
                            std::map < typename Conley_Morse_Graph::Vertex , typename Conley_Morse_Graph::Vertex > & original_set ,
                            std::map < std::pair < Conley_Morse_Graph const * , typename Conley_Morse_Graph::Vertex > , Conley_Morse_Graph const * > & finer_cmg ,
+                           std::map < std::pair < Conley_Morse_Graph const * , typename Conley_Morse_Graph::Vertex > , typename Conley_Morse_Graph::Vertex > & final_set ,
                            std::map < Conley_Morse_Graph const * , Conley_Morse_Graph const * > & coarser_cmg ,
                            std::map < Conley_Morse_Graph const * , typename Conley_Morse_Graph::Vertex > & coarser_set ,
                            std::map < Conley_Morse_Graph const * , std::map < typename Conley_Morse_Graph::Vertex , size_t > > & exit_path_bounds ,

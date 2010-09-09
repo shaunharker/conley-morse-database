@@ -32,6 +32,7 @@ void Determine_All_Connections ( Conley_Morse_Graph * conley_morse_graph ,
   std::map < typename Conley_Morse_Graph::Vertex , Conley_Morse_Graph const * > & original_cmg ,
   std::map < typename Conley_Morse_Graph::Vertex , typename Conley_Morse_Graph::Vertex > & original_set ,
   std::map < std::pair < Conley_Morse_Graph const * , typename Conley_Morse_Graph::Vertex > , Conley_Morse_Graph const * > & finer_cmg ,
+  std::map < std::pair < Conley_Morse_Graph const * , typename Conley_Morse_Graph::Vertex > , typename Conley_Morse_Graph::Vertex > & final_set ,
   std::map < Conley_Morse_Graph const * , Conley_Morse_Graph const * > & coarser_cmg ,
   std::map < Conley_Morse_Graph const * , typename Conley_Morse_Graph::Vertex > & coarser_set ) {
 
@@ -142,6 +143,9 @@ void Compute_Conley_Morse_Graph ( Conley_Morse_Graph * conley_morse_graph ,
   // prepare a map for pointing Morse sets to their subdivisions
   std::map < std::pair < Conley_Morse_Graph const * , typename Conley_Morse_Graph::Vertex > , Conley_Morse_Graph const * > finer_cmg;
 
+  // prepare a map for pointing Morse sets to the corresponding vertices in the final CMG
+  std::map < std::pair < Conley_Morse_Graph const * , typename Conley_Morse_Graph::Vertex > , typename Conley_Morse_Graph::Vertex > final_set;
+
   // prepare maps for pointing a Morse decomposition to the Morse set
   // in the coarser Morse decomposition
   std::map < Conley_Morse_Graph const * , Conley_Morse_Graph const * > coarser_cmg;
@@ -228,6 +232,9 @@ void Compute_Conley_Morse_Graph ( Conley_Morse_Graph * conley_morse_graph ,
           // move the cubical representation of the Morse set
           conley_morse_graph -> SetCubeSet ( new_vertex , current_set );
           current_cmg -> SetCubeSet ( current_vertex , 0 );
+
+          // mark the connection between the original Morse set and the final one
+          final_set [ std::make_pair ( current_cmg , current_vertex ) ] = new_vertex;
           continue;
         }
 
@@ -300,12 +307,12 @@ void Compute_Conley_Morse_Graph ( Conley_Morse_Graph * conley_morse_graph ,
   Determine_All_Connections < Toplex , Conley_Morse_Graph , Combinatorial_Map > (
     conley_morse_graph , & connecting_orbits , all_connecting_orbits ,
     exit_subsets , entrance_subsets ,
-    original_cmg , original_set , finer_cmg , coarser_cmg , coarser_set );
+    original_cmg , original_set , finer_cmg , final_set , coarser_cmg , coarser_set );
 
   // compute the upper bounds for connection lengths between the Morse sets
   std::map < typename Conley_Morse_Graph::Edge , size_t > final_path_bounds;
   Compute_Path_Bounds < Conley_Morse_Graph > ( & final_path_bounds , * conley_morse_graph ,
-    original_cmg , original_set , finer_cmg , coarser_cmg , coarser_set ,
+    original_cmg , original_set , finer_cmg , final_set , coarser_cmg , coarser_set ,
     exit_path_bounds , entrance_path_bounds , path_bounds , through_path_bound );
 
   // determine which connections between Morse sets are suprious
