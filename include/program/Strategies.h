@@ -27,9 +27,9 @@ public:
   /// It receives the following arguments:
   /// the current subdivision level (0 stands for the entire phase space
   /// represented as a single Morse set),
-  /// the Morse set to subdivide (0 for none, some large value,
-  /// e.g. this_class::MaxValue, for no limit),
-  /// and more arguments that will be added in the future.
+  /// and the Morse set to subdivide (0 for none, some large value,
+  /// e.g. this_class::MaxValue, for no limit).
+  /// TODO: Add more arguments that might help making better decisions.
   bool operator () ( size_t subdiv_level , const typename Toplex::Subset & morse_set ) const {
     return ( ( subdiv_level < max_subdiv_level_ ) && ( morse_set . size () < max_set_size_ ) );
   }
@@ -74,6 +74,7 @@ public:
   /// Makes a decision on whether the Conley index of a given Morse set
   /// should be computed at the moment the Morse set appeared
   /// right after the subdivision of a coarser Morse set.
+  /// TODO: Add more arguments that might help making better decisions.
   bool compute_after_subdivision ( size_t subdiv_level ,
     const typename Toplex::Subset & morse_set ) const {
     return ( ( subdiv_level >= after_subdiv_ ) && ( morse_set . size () < max_size_after_subdiv_ ) );
@@ -82,6 +83,7 @@ public:
   /// Makes a decision on whether the Conley index of a given Morse set
   /// should be computed at the moment the Morse set becomes a member
   /// of the final Morse decomposition (no more subdivisions for it).
+  /// TODO: Add more arguments that might help making better decisions.
   bool compute_final ( const typename Toplex::Subset & morse_set ) const {
     return ( final_set_ && ( morse_set . size () < max_size_final_set_ ) );
   }

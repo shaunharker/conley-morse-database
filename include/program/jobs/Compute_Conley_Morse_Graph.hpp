@@ -10,6 +10,7 @@
 #include <vector>
 #include <cstddef>
 #include <memory>
+#include <stack>
 
 #include "program/Configuration.h"
 #include "program/jobs/Compute_Path_Bounds.h"
@@ -25,14 +26,16 @@
 template < class Toplex , class Conley_Morse_Graph , class Combinatorial_Map >
 void Determine_All_Connections ( Conley_Morse_Graph * conley_morse_graph ,
   std::map < typename Conley_Morse_Graph::Edge , typename Toplex::Subset > * connecting_orbits ,
-  const Combinatorial_Map & combinatorial_map ,
+  std::map < Conley_Morse_Graph const * , std::map < typename Conley_Morse_Graph::Edge , typename Toplex::Subset > > & all_connecting_orbits ,
+  std::map < Conley_Morse_Graph const * , std::map < typename Conley_Morse_Graph::Vertex , typename Toplex::Subset > > exit_subsets;
+  std::map < Conley_Morse_Graph const * , std::map < typename Conley_Morse_Graph::Vertex , typename Toplex::Subset > > entrance_subsets;
   std::map < typename Conley_Morse_Graph::Vertex , Conley_Morse_Graph const * > & original_cmg ,
   std::map < typename Conley_Morse_Graph::Vertex , typename Conley_Morse_Graph::Vertex > & original_set ,
   std::map < std::pair < Conley_Morse_Graph const * , typename Conley_Morse_Graph::Vertex > , Conley_Morse_Graph const * > & finer_cmg ,
   std::map < Conley_Morse_Graph const * , Conley_Morse_Graph const * > & coarser_cmg ,
   std::map < Conley_Morse_Graph const * , typename Conley_Morse_Graph::Vertex > & coarser_set ) {
 
-  // --- not yet implemented ---
+  // TODO: Implement this procedure.
   return;
 } /* Determine_All_Connections */
 
@@ -42,12 +45,14 @@ void Determine_All_Connections ( Conley_Morse_Graph * conley_morse_graph ,
 /// Removes those edges from the graph for which it can prove that
 /// all the iterations of one set (up to the given path length bound)
 /// are disjoint from the other set.
-/// Note: No optimization of any kind implemented, yet. All the connections
-/// are verified. In the future, one can use the transitivity to rule out
+/// TODO: Implement some optimization and smart reasoning.
+/// In the current version, simply ALL the connections are verified.
+/// In the future, one can use the transitivity to rule out
 /// some connections or to determine which connections to check first.
 /// Also it may be wise to check the shortest connecting orbits first
 /// in order to gather some data quickly and then use it to speed up
 /// the remaining computations.
+/// This procedure should also make use of the connecting orbit bounds.
 template < class Conley_Morse_Graph , class Map , class Toplex >
 void Rule_Out_Connections ( Conley_Morse_Graph * conley_morse_graph ,
   std::map < typename Conley_Morse_Graph::Edge , typename Toplex::Subset > & connecting_orbits ,
@@ -172,9 +177,6 @@ void Compute_Conley_Morse_Graph ( Conley_Morse_Graph * conley_morse_graph ,
   std::vector < size_t > cmg_subdiv_begin;
   std::vector < size_t > cmg_subdiv_end;
 
-  // prepare a mapping for storing connecting orbits in the final Morse decomposition
-  std::map < typename Conley_Morse_Graph::Edge , typename Toplex::Subset > connecting_orbits;
-
   // prepare the current subdivision level (subdividing the entire
   // phase space corresponds to the subdivision level 0);
   // after the loop, this number stores the strict upper bound
@@ -229,10 +231,11 @@ void Compute_Conley_Morse_Graph ( Conley_Morse_Graph * conley_morse_graph ,
           continue;
         }
 
-        // subdivide the current Morse set;
-        // note: in the future one should consider the option of subdividing
+        // subdivide the current Morse set
+        // TODO: Consider subdividing parts of the Morse set if necessary.
+        // In the future, one might want to consider the option of subdividing
         // a subset of the Morse set only, e.g., to subdivide the top cells
-        // located along the boundary while leaving the interior intact
+        // located along the boundary while leaving the interior intact.
         typename Toplex::Subset * subdivided_set = new typename Toplex::Subset;
         * subdivided_set = phase_space -> subdivide ( * current_set );
         delete current_set;
@@ -293,8 +296,10 @@ void Compute_Conley_Morse_Graph ( Conley_Morse_Graph * conley_morse_graph ,
 
   // determine connections between the Morse sets in the final graph,
   // based on the coarser Morse sets on the way
+  std::map < typename Conley_Morse_Graph::Edge , typename Toplex::Subset > connecting_orbits;
   Determine_All_Connections < Toplex , Conley_Morse_Graph , Combinatorial_Map > (
-    conley_morse_graph , & connecting_orbits , combinatorial_map ,
+    conley_morse_graph , & connecting_orbits , all_connecting_orbits ,
+    exit_subsets , entrance_subsets ,
     original_cmg , original_set , finer_cmg , coarser_cmg , coarser_set );
 
   // compute the upper bounds for connection lengths between the Morse sets
