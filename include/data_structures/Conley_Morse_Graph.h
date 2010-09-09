@@ -92,8 +92,8 @@ class ConleyMorseGraph {
   }
   /** Add a edge from the "from" vertex to the "to" vertex.
    */
-  void AddEdge(Vertex from, Vertex to) {
-    boost::add_edge(from, to, graph_);
+  Edge AddEdge(Vertex from, Vertex to) {
+    return boost::add_edge(from, to, graph_) . first;
   }
 
   /** Remove a "from"-"to" edge

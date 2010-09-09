@@ -53,7 +53,7 @@ DirectedGraph<Toplex> collapseComponents (
 // Compute SCC using boost
 template < class Toplex >
 void computeSCC 
-(std::vector < typename Toplex::Subset > * morse_sets,
+(std::vector < typename Toplex::Subset * > * morse_sets,
  std::vector < typename Toplex::Subset > * entrance_sets,
  std::vector < typename Toplex::Subset > * exit_sets,
  const typename Toplex::Subset & entrance,

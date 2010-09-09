@@ -186,9 +186,9 @@ void DirectedGraph<Toplex>::removeVertex (typename Toplex::Top_Cell v)
 
 template < class Toplex >
 DirectedGraph<Toplex> collapseComponents (
-    DirectedGraph<Toplex> & G,
-    typename DirectedGraph<Toplex>::Components & Components,
-    std::vector<typename DirectedGraph<Toplex>::Vertex> & Representatives)
+    const DirectedGraph<Toplex> & G,
+    const typename DirectedGraph<Toplex>::Components & Components,
+    const std::vector<typename DirectedGraph<Toplex>::Vertex> & Representatives)
 {
   typedef DirectedGraph <Toplex> Graph;
   typedef typename DirectedGraph<Toplex>::Vertex Vertex;
@@ -282,7 +282,7 @@ typename Toplex::Subset DirectedGraph<Toplex>::operator () ( const typename Topl
 #include <boost/graph/strong_components.hpp>
 template < class Toplex >
 void computeSCC 
-(std::vector < typename Toplex::Subset > * morse_sets,
+(std::vector < typename Toplex::Subset * > * morse_sets,
  std::vector < typename Toplex::Subset > * entrance_sets,
  std::vector < typename Toplex::Subset > * exit_sets,
  const typename Toplex::Subset & entrance,
