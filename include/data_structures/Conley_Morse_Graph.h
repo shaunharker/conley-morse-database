@@ -104,7 +104,7 @@ class ConleyMorseGraph {
    *  to the "to" vertex.
    *
    */
-  bool PathExist(Vertex from, Vertex to);
+  bool PathExist(Vertex from, Vertex to) const;
   
   /** Get a cubeset of the vertex. */
   CubeSet* GetCubeSet(Vertex vertex) const {
@@ -133,18 +133,18 @@ class ConleyMorseGraph {
   }
   
   /** return a iterator pair to all out-edges */
-  OutEdgeIteratorPair OutEdges(Vertex vertex);
+  OutEdgeIteratorPair OutEdges(Vertex vertex) const;
   
   /** return a iterator pair to all verteces of in-edges */
-  InEdgeIteratorPair InEdges(Vertex vertex);
+  InEdgeIteratorPair InEdges(Vertex vertex) const;
   
   /** return a iterator pair to all edges */
-  EdgeIteratorPair Edges() {
+  EdgeIteratorPair Edges() const {
     return boost::edges(graph_);
   }
 
   /** Return a edge descriptor */
-  std::pair<Edge, bool> GetEdge(Vertex u, Vertex v) {
+  std::pair<Edge, bool> GetEdge(Vertex u, Vertex v) const {
     return boost::edge(u, v, graph_);
   }
 
@@ -153,19 +153,19 @@ class ConleyMorseGraph {
    *  This function is used in OutEdges() to avoid a compilation error
    *  of imcomplete type inference.
    */
-  Vertex Target(Edge e) {
+  Vertex Target(Edge e) const {
     return boost::target(e, graph_);
   }
   /** Return a source of given edge.
    *
    *  This function is used in InEdges() for the same reason of Target().
    */
-  Vertex Source(Edge e) {
+  Vertex Source(Edge e) const {
     return boost::source(e, graph_);
   }
   /** Return Source and Target pair of edge;
    */
-  std::pair<Vertex, Vertex> EdgePair(Edge e) {
+  std::pair<Vertex, Vertex> EdgePair(Edge e) const {
     return std::pair<Vertex, Vertex>(Source(e), Target(e));
   }
   
