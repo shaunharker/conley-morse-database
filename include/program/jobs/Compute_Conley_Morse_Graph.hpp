@@ -27,8 +27,8 @@ template < class Toplex , class Conley_Morse_Graph , class Combinatorial_Map >
 void Determine_All_Connections ( Conley_Morse_Graph * conley_morse_graph ,
   std::map < typename Conley_Morse_Graph::Edge , typename Toplex::Subset > * connecting_orbits ,
   std::map < Conley_Morse_Graph const * , std::map < typename Conley_Morse_Graph::Edge , typename Toplex::Subset > > & all_connecting_orbits ,
-  std::map < Conley_Morse_Graph const * , std::map < typename Conley_Morse_Graph::Vertex , typename Toplex::Subset > > exit_subsets;
-  std::map < Conley_Morse_Graph const * , std::map < typename Conley_Morse_Graph::Vertex , typename Toplex::Subset > > entrance_subsets;
+  std::map < Conley_Morse_Graph const * , std::map < typename Conley_Morse_Graph::Vertex , typename Toplex::Subset > > & exit_subsets ,
+  std::map < Conley_Morse_Graph const * , std::map < typename Conley_Morse_Graph::Vertex , typename Toplex::Subset > > & entrance_subsets ,
   std::map < typename Conley_Morse_Graph::Vertex , Conley_Morse_Graph const * > & original_cmg ,
   std::map < typename Conley_Morse_Graph::Vertex , typename Conley_Morse_Graph::Vertex > & original_set ,
   std::map < std::pair < Conley_Morse_Graph const * , typename Conley_Morse_Graph::Vertex > , Conley_Morse_Graph const * > & finer_cmg ,
@@ -323,7 +323,7 @@ void Compute_Conley_Morse_Graph ( Conley_Morse_Graph * conley_morse_graph ,
 
   // free up the dynamically allocated memory
   // for the intermediate Morse decompositions
-  for ( Conley_Morse_Graphs::iterator cmg_iterator = conley_morse_graphs . begin ();
+  for ( typename Conley_Morse_Graphs::iterator cmg_iterator = conley_morse_graphs . begin ();
     cmg_iterator != conley_morse_graphs . end (); ++ cmg_iterator )
   {
     Conley_Morse_Graph * cmg = * cmg_iterator;
