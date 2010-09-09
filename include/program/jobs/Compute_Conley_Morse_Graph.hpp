@@ -145,6 +145,10 @@ void Compute_Conley_Morse_Graph ( Conley_Morse_Graph * conley_morse_graph ,
   // prepare maps for pointing CMGs to the connecting orbits computed for them
   std::map < Conley_Morse_Graph const * , std::map < typename Conley_Morse_Graph::Edge , typename Toplex::Subset > > all_connecting_orbits;
 
+  // prepare maps for pointing CMGs to the exit/entrance subsets or Morse sets
+  std::map < Conley_Morse_Graph const * , std::map < typename Conley_Morse_Graph::Vertex , typename Toplex::Subset > > exit_subsets;
+  std::map < Conley_Morse_Graph const * , std::map < typename Conley_Morse_Graph::Vertex , typename Toplex::Subset > > entrance_subsets;
+
   // prepare maps for pointing CMGs to the path length bounds computed for them
   std::map < Conley_Morse_Graph const * , std::map < typename Conley_Morse_Graph::Vertex , size_t > > exit_path_bounds;
   std::map < Conley_Morse_Graph const * , std::map < typename Conley_Morse_Graph::Vertex , size_t > > entrance_path_bounds;
@@ -225,17 +229,28 @@ void Compute_Conley_Morse_Graph ( Conley_Morse_Graph * conley_morse_graph ,
           continue;
         }
 
-        // subdivide the Morse set and compute its Morse decomposition;
+        // subdivide the current Morse set;
         // note: in the future one should consider the option of subdividing
         // a subset of the Morse set only, e.g., to subdivide the top cells
         // located along the boundary while leaving the interior intact
-        subdivide_toplex_and_directed_graph ( phase_space , & combinatorial_map , * current_set , interval_map );
+        typename Toplex::Subset * subdivided_set = new typename Toplex::Subset;
+        * subdivided_set = phase_space -> subdivide ( * current_set );
+        delete current_set;
+        current_set = subdivided_set;
+
+        // compute the combinatorial map on this Morse set
+        combinatorial_map = compue_directed_graph ( * current_set , * phase_space , interval_map );
+
+        // compute the Morse decomposition of this Morse set
         Conley_Morse_Graph * new_cmg = new Conley_Morse_Graph;
         conley_morse_graphs . push_back ( new_cmg );
         Compute_Morse_Decomposition < Toplex , Conley_Morse_Graph , Combinatorial_Map > ( new_cmg ,
-          & ( exit_path_bounds [ new_cmg ] ) , & ( entrance_path_bounds [ new_cmg ] ) ,
+          & ( exit_subsets [ new_cmg ] ), & ( exit_path_bounds [ new_cmg ] ) ,
+          & ( entrance_subsets [ new_cmg ] ) , & ( entrance_path_bounds [ new_cmg ] ) ,
           & ( all_connecting_orbits [ new_cmg ] ) , & ( path_bounds [ new_cmg ] ) ,
-          & ( through_path_bound [ new_cmg ] ) , * phase_space , * current_set , combinatorial_map );
+          & ( through_path_bound [ new_cmg ] ) , * phase_space , * current_set ,
+          exit_subsets [ current_cmg ] [ current_vertex ] ,
+          entrance_subsets [ current_cmg ] [ current_vertex ] , combinatorial_map );
 
         // compute the Conley indices of the constructed Morse sets
         typename Conley_Morse_Graph::VertexIteratorPair new_vertices = new_cmg -> Vertices ();

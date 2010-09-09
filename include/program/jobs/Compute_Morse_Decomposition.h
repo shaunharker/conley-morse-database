@@ -27,13 +27,17 @@
 /// path possible."
 template < class Toplex , class Conley_Morse_Graph , class Combinatorial_Map >
 void Compute_Morse_Decomposition ( Conley_Morse_Graph * conley_morse_graph ,
+  std::map < typename Conley_Morse_Graph::Vertex , typename Toplex::Subset > * exit_subsets ,
   std::map < typename Conley_Morse_Graph::Vertex , size_t > * exit_path_bounds ,
+  std::map < typename Conley_Morse_Graph::Vertex , typename Toplex::Subset > * entrance_subsets ,
   std::map < typename Conley_Morse_Graph::Vertex , size_t > * entrance_path_bounds ,
   std::map < typename Conley_Morse_Graph::Edge , typename Toplex::Subset > * connecting_orbits ,
   std::map < typename Conley_Morse_Graph::Edge , size_t > * path_bounds ,
   size_t * through_path_bound ,
   const Toplex & phase_space ,
   const typename Toplex::Subset & set_to_decompose ,
+  const typename Toplex::Subset & exit_subset ,
+  const typename Toplex::Subset & entrance_subset ,
   const Combinatorial_Map & combinatorial_map );
 
 
