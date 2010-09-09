@@ -17,43 +17,62 @@ Coordinator::Coordinator(int argc, char **argv) {
   
   if (maxPatchSize < 2)
     maxPatchSize = 2;
-  
-  // Number of parameter cells
-  size_type num_param_cells = parameter_toplex . size ();
-  // Number of parameter patches
-  size_type num_patches = static_cast <size_type> (num_param_cells / maxPatchSize) + 1;
-  
-  Geometric_Description parameter_bounds = parameter_toplex . bounds ();
-  
-  std::vector < Real > side_lengths;
-  for (int i = 0; i < param_dim; ++i)
-    side_lengths . push_back ((parameter_bounds . upper_bounds [i] -
-                               parameter_bounds . lower_bounds [i]) / 2); // <- modify this
-  
-  for (unsigned int i = 0; i < num_patches; ++i) {
-    std::vector < Real > patch_lower_bounds;
-    std::vector < Real > patch_upper_bounds;
-    
-    for (int j = 0; j < param_dim; ++j) {
-      patch_lower_bounds . push_back (parameter_bounds . lower_bounds [j]);
-      patch_upper_bounds . push_back (parameter_bounds . upper_bounds [j]);
+
+  /// Minimum number of parameter patches
+  size_t min_num_patches = static_cast <size_t> (PS_Toplex . size () / maxPatchSize) + 1;
+  /// Number of subdivisons per side
+  size_t subdivisions_per_side = std::ceil (std::exp (std::log (min_num_patches) / param_dim));
+
+  /// Lenghts of the sides of the patch
+  std::vector < Real > patch_sides_length (param_dim);
+
+  for (size_t i = 0; i < param_dim; ++i) {
+    patch_sides_length [i] = (PS_Bounds . upper_bounds [i] - PS_Bounds . lower_bounds [i]) / subdivisions_per_side;
+  }
+
+  /// Factor of the size of patch side that intersect next patch
+  Real intersect_factor = 0.05;
+
+  /// Bounds for the patch bounding box
+  std::vector < Real > patch_lower_bounds (param_dim);
+  std::vector < Real > patch_upper_bounds (param_dim);
+
+  /// Create all the patches
+  for (size_t k = 0; k < subdivisions_per_side; ++k) {
+    for (size_t i = 0; i < param_dim; ++i) {
+      for (size_t n = 0; n < subdivisions_per_side; ++n) {
+        for (size_t j = 0; j < param_dim; ++j) {   /// k + i * n
+	      /// Compute bounding box for the patch
+          patch_lower_bounds [j] = PS_Bounds . lower_bounds [j] + n * patch_sides_length [j];
+	      patch_upper_bounds [j] = patch_lower_bounds [j] + intersect_factor * patch_sides_length [j];
+
+	      /// Construct the patch toplex
+	      Geometric_Description patch_bounds (param_dim, patch_lower_bounds, patch_upper_bounds);
+          Toplex_Subset patch_subset = PS_Toplex . cover ( patch_bounds );
+
+          /// Add  patch to the vector of patches
+          PS_patches . push_back (patch_subset);
+		}
+	  }
     }
-    
-    Geometric_Description patch_bounds (param_dim, patch_lower_bounds, patch_upper_bounds);
-    Toplex_Subset patch_subset = parameter_toplex . cover ( patch_bounds );
-    
-    patches_ . push_back (patch_subset);
   }
-  
-  // Find intersecting boxes  <- to do
-  
-  Cached_Box_Map toplex_cached_info;
-  
-  for (Toplex::const_iterator it = parameter_toplex . begin (); it != parameter_toplex . end (); ++it) {
-    Cached_Box_Information cached_box_information;
-    toplex_cached_info . insert (Cached_Box_Pair (*it, cached_box_information));
+
+  /// Number of patches
+  size_t num_patches = PS_patches . size();
+
+  /// Create a map with Cached_Box_Information for the intersecting boxes
+  for (size_t i = 0; i < num_patches; ++i) {
+    for (Toplex_Subset::const_iterator it = PS_patches [i] . begin (); it != PS_patches [i] . end (); ++it) {
+	  for (size_t j = i + 1; j < num_patches; ++j) {
+	    if (PS_patches [j] .find (*it)) {  /// Top cell is in the intersection of PS_patches [i] and PS_patches [j]
+		  /// Add an entry to the map of Cached_Box_Information
+		  Cached_Box_Information cached_box_info;
+          PS_Toplex_Cached_Info . insert (Toplex_Cached_Box_Pair (*it, cached_box_info));
+		}
+	  }
+    }
   }
-  
+
   num_jobs_ = num_patches;
   num_jobs_sent_ = 0;
   num_jobs_received_ = 0;
@@ -61,10 +80,6 @@ Coordinator::Coordinator(int argc, char **argv) {
 
 
 CoordinatorBase::State Coordinator::Prepare(Message *job) {
-  /// typedefs
-  typedef std::map <size_t, Cached_Box_Information> Cached_Box_Map;
-  typedef std::pair <size_t, Cached_Box_Information> Cached_Box_Pair;
-
   /// All jobs have finished
   if (num_jobs_received_ == num_jobs_)
     return kFinish;
@@ -81,24 +96,26 @@ CoordinatorBase::State Coordinator::Prepare(Message *job) {
   size_t job_number = num_jobs_sent_;
 
   /// Toplex with the patch to be sent
-  Toplex_Subset patch_subset = patches_ [job_number];
+  Toplex_Subset patch_subset = PS_patches [job_number];
 
   std::vector < Geometric_Description > geometric_descriptions (patch_subset . size ());
-  Cached_Box_Map patch_cached_info;
+  Patch_Cached_Box_Map patch_cached_info;
   
   size_t key = 0;
   for (Toplex_Subset::const_iterator it = patch_subset . begin (); it != patch_subset . end (); ++it, ++key) {
-    geometric_descriptions . push_back (parameter_toplex . geometry (parameter_toplex . find (*it)));
-    patch_cached_info . insert (Cached_Box_Pair (key, toplex_cached_info .find (*it) -> second ));
+    geometric_descriptions . push_back (PS_Toplex . geometry (PS_Toplex . find (*it)));
+    /// Insert cached box info into the map if there is any
+	if (PS_Toplex_Cached_Info . find (*it))
+      patch_cached_info . insert (Patch_Cached_Box_Pair (key, PS_Toplex_Cached_Info . find (*it) -> second ));
   }
 
   /// Increment the jobs_sent counter
   ++num_jobs_sent_;
 
-  // prepare the message with the result of the computations
+  // prepare the message with the job to be sent
   *job << job_number;
-//  *job << geometric_descriptions [ 0 ];
-//  *job << patch_cached_info;
+  *job << geometric_descriptions;
+  *job << patch_cached_info;
 
   /// Increment the jobs_sent counter
   ++num_jobs_sent_;
@@ -107,21 +124,20 @@ CoordinatorBase::State Coordinator::Prepare(Message *job) {
   return kOK;
 }
 
-void Coordinator::Process(const Message &result) {
-  /// typedefs
-  typedef std::map <size_t, Cached_Box_Information> Cached_Box_Map;
-  typedef std::pair <size_t, Cached_Box_Information> Cached_Box_Pair;
-//  typedef ConleyMorseGraph <Toplex_Subset, Conley_Index> Conley_Morse_Graph;
 
+void Coordinator::Process(const Message &result) {
   /// Read the results from the input message
   size_t job_number;
   result >> job_number;
-//  Cached_Box_Map patch_cached_info;
-//  result >> patch_cached_info;
-//  std::vector <Conley_Morse_Graph> conley_morse_graphs;
-//  result >> conley_morse_graphs;
+  Patch_Cached_Box_Map patch_cached_info;
+  result >> patch_cached_info;
+  std::vector <Conley_Morse_Graph> conley_morse_graphs;
+  result >> conley_morse_graphs;
   std::vector <std::vector <size_t> > equivalence_classes;
   result >> equivalence_classes;
+
+  /// Increment jobs received counter
+  ++num_jobs_received_;
 
   return;
 }
