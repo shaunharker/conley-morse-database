@@ -34,9 +34,9 @@ void Compute_Final_Sets ( std::set < typename Conley_Morse_Graph::Vertex > * all
     Conley_Morse_Graph const * > & finer_cmg ) {
 
   // go through all the vertices in the given Conley-Morse graph
-  typename Conley_Morse_Graph::Vertices vertices = current_cmg -> Vertices ();
+  typename Conley_Morse_Graph::VertexIteratorPair vertices = current_cmg -> Vertices ();
   for ( typename Conley_Morse_Graph::VertexIterator vertex_iter = vertices . first ;
-    vertex_iter != vertices . second ; ++ vertices )
+    vertex_iter != vertices . second ; ++ vertex_iter )
   {
     // prepare a pair consisting of the current C-M graph and the vertex
     std::pair < Conley_Morse_Graph const * ,
@@ -106,13 +106,15 @@ void Determine_All_Connections ( Conley_Morse_Graph * conley_morse_graph ,
     conley_morse_graphs . begin () ; cmg_iter != conley_morse_graphs . end () ; ++ cmg_iter ) {
 
     // for every edge in the Conley-Morse graph
-    typename Conley_Morse_Graph::EdgeIteratorPair edges = cmg_iter -> GetEdges ();
+    typename Conley_Morse_Graph::EdgeIteratorPair edges = ( * cmg_iter ) -> Edges ();
     for ( typename Conley_Morse_Graph::EdgeIterator edge_iter = edges . first ;
       edge_iter != edges . second ; ++ edge_iter ) {
 
       // determine the source set and the target set
-      Set_Of_Vertices & source_set = final_sets [ std::make_pair ( * cmg_iter , edge_iter -> Source () ) ];
-      Set_Of_Vertices & target_set = final_sets [ std::make_pair ( * cmg_iter , edge_iter -> Target () ) ];
+      Set_Of_Vertices & source_set = 
+        final_sets [ std::make_pair ( * cmg_iter , ( * cmg_iter ) -> Source ( * edge_iter ) ) ];
+      Set_Of_Vertices & target_set = 
+        final_sets [ std::make_pair ( * cmg_iter , ( * cmg_iter ) -> Target ( * edge_iter ) ) ];
 
       // for every element of the final set for the source vertex
       for ( typename Set_Of_Vertices::iterator source_iter = source_set . begin () ;
