@@ -4,19 +4,15 @@
 
 #include "program/Coordinator.h"
 
-#include <iostream>
-#include <map>
-
 Coordinator::Coordinator(int argc, char **argv) {
-  size_type maxPatchSize = 10;
-  
-  int param_dim = 2;
-  Geometric_Description bounding_box (param_dim, Real (0), Real (1));
-  parameter_toplex . initialize (bounding_box);
-  
-  for (int i = 0; i < 4; ++i) {
-    for (Toplex::const_iterator it = parameter_toplex . begin (); it != parameter_toplex . end (); ++it)
-      parameter_toplex . subdivide (it);
+  size_t maxPatchSize = MAX_PATCH_SIZE; /// Maximum size of a patch in parameter space
+  size_t param_dim = PS_DIMENSION;      /// Parameter space dimension
+  PS_Toplex . initialize (PS_Bounds);   /// Parameter space toplex
+
+  /// Subdivide parameter space toplex
+  for (int i = 0; i < PS_SUBDIVISIONS; ++i) {
+    for (Toplex::const_iterator it = PS_Toplex . begin (); it != PS_Toplex . end (); ++it)
+      PS_Toplex . subdivide (it);
   }
   
   if (maxPatchSize < 2)
@@ -66,41 +62,44 @@ Coordinator::Coordinator(int argc, char **argv) {
 
 CoordinatorBase::State Coordinator::Prepare(Message *job) {
   /// typedefs
-  typedef std::map <size_type, Cached_Box_Information> Cached_Box_Map;
-  typedef std::pair <size_type, Cached_Box_Information> Cached_Box_Pair;
-  
+  typedef std::map <size_t, Cached_Box_Information> Cached_Box_Map;
+  typedef std::pair <size_t, Cached_Box_Information> Cached_Box_Pair;
+
   /// All jobs have finished
   if (num_jobs_received_ == num_jobs_)
     return kFinish;
-  
+
   /// All jabs have been sent
   /// Still waiting for some jobs to finish
   if (num_jobs_sent_ == num_jobs_)
     return kPending;
-  
-  /// job number (job id) of job to be sent
+
+  /// There are jobs to be processed
+  // Prepare a new job and send it to process
+
+  /// Job number (job id) of job to be sent
   size_t job_number = num_jobs_sent_;
-  
+
   /// Toplex with the patch to be sent
   Toplex_Subset patch_subset = patches_ [job_number];
-  
+
   std::vector < Geometric_Description > geometric_descriptions (patch_subset . size ());
   Cached_Box_Map patch_cached_info;
   
-  size_type key = 0;
+  size_t key = 0;
   for (Toplex_Subset::const_iterator it = patch_subset . begin (); it != patch_subset . end (); ++it, ++key) {
     geometric_descriptions . push_back (parameter_toplex . geometry (parameter_toplex . find (*it)));
     patch_cached_info . insert (Cached_Box_Pair (key, toplex_cached_info .find (*it) -> second ));
   }
-  
+
   /// Increment the jobs_sent counter
   ++num_jobs_sent_;
-  
+
   // prepare the message with the result of the computations
-  //*job << job_number;
-  *job << geometric_descriptions [ 0 ];
-  //*job << patch_cached_info;
-  
+  *job << job_number;
+//  *job << geometric_descriptions [ 0 ];
+//  *job << patch_cached_info;
+
   /// Increment the jobs_sent counter
   ++num_jobs_sent_;
   
@@ -109,5 +108,20 @@ CoordinatorBase::State Coordinator::Prepare(Message *job) {
 }
 
 void Coordinator::Process(const Message &result) {
+  /// typedefs
+  typedef std::map <size_t, Cached_Box_Information> Cached_Box_Map;
+  typedef std::pair <size_t, Cached_Box_Information> Cached_Box_Pair;
+//  typedef ConleyMorseGraph <Toplex_Subset, Conley_Index> Conley_Morse_Graph;
+
+  /// Read the results from the input message
+  size_t job_number;
+  result >> job_number;
+//  Cached_Box_Map patch_cached_info;
+//  result >> patch_cached_info;
+//  std::vector <Conley_Morse_Graph> conley_morse_graphs;
+//  result >> conley_morse_graphs;
+  std::vector <std::vector <size_t> > equivalence_classes;
+  result >> equivalence_classes;
+
   return;
 }

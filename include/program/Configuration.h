@@ -14,6 +14,7 @@ using namespace Adaptive_Cubical;
 /* Parameter Space */
 #define PS_DIMENSION 2
 #define PS_SUBDIVISIONS 6
+#define MAX_PATCH_SIZE 10
 
 Real PS_lower_bounds [PS_DIMENSION] = { 8.0, 37.0 };
 Real PS_upper_bounds [PS_DIMENSION] = { 3.0, 50.0 };
