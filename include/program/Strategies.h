@@ -5,6 +5,8 @@
 #ifndef _CMDP_STRATEGIES_
 #define _CMDP_STRATEGIES_
 
+#include <cstddef>
+
 
 /// A class for function objects that make decisions on whether
 /// one should subdivide a Morse set further or not,
