@@ -18,7 +18,8 @@
  *  It is the directed acyclic graph whose vertices have a
  *  Cubeset and a ConleyIndex.
  *
- *  Note that this class doesn't validate acyclic condition.
+ *  NOTE: this class doesn't validate acyclic condition.
+ *  NOTE: Cubeset and Graph should be default-constructable.
  */
 template<class CubeSet, class ConleyIndex>
 class ConleyMorseGraph {
@@ -65,13 +66,14 @@ class ConleyMorseGraph {
     component_accessor_ = boost::get(ComponentProperty(), graph_);
   }
   /** Destruct a graph.
-   *  Note that CubeSet and ConleyIndex assigned to each vertex are not deleted.
+   *  Note that CubeSet and ConleyIndex assigned to each vertex are deleted.
    */
-  ~ConleyMorseGraph() {}
+  virtual ~ConleyMorseGraph() {}
   /** Create a new vertex and return the descriptor of the vertex.
    *  The vertex is not connected to anywhere.
-   *  The vertex is not related to any cube set and conley index
-   *  just after this function is called.
+   *  An empty CubeSet and ConleyIndex are allocated and
+   *  assigned to the vertex just after this function is called.
+   *  ("empty" objects mean the objects created by default-constructor.)
    */
   Vertex AddVertex() {
     return boost::add_vertex(graph_);
@@ -79,8 +81,9 @@ class ConleyMorseGraph {
   /** Remove a vertex from the graph.
    *  All edges connected to and from the removed vertex are also removed.
    * 
-   *  Note that CubeSet and ConleyIndex assigned to the vertex are not deleted,
-   *  therefore please be careful not to leak memories.
+   *  Note that CubeSet and ConleyIndex assigned to the vertex are
+   *  also delteted, therefore please be careful not to share one ConleyIndex
+   *  from other place.
    */
   void RemoveVertex(Vertex vertex) {
     boost::clear_vertex(vertex, graph_);
@@ -108,18 +111,18 @@ class ConleyMorseGraph {
   
   /** Get a cubeset of the vertex. */
   CubeSet* GetCubeSet(Vertex vertex) const {
-    return component_accessor_[vertex].cube_set_;
+    return &component_accessor_[vertex].cube_set_;
   }
-  /** Set a cubeset to the vertex */
-  void SetCubeSet(Vertex vertex, CubeSet* cubeset) {
+  /** Set(copy) a cubeset to the vertex */
+  void SetCubeSet(Vertex vertex, const CubeSet &cubeset) {
     component_accessor_[vertex].cube_set_ = cubeset;
   }
   /** Get a Conley-Index of the vertex. */
   ConleyIndex* GetConleyIndex(Vertex vertex) const {
     return component_accessor_[vertex].conley_index_;
   }
-  /** Set a Conley-Index to the vertex */
-  void SetConleyIndex(Vertex vertex, ConleyIndex* conley_index) {
+  /** Set(copy) a Conley-Index to the vertex */
+  void SetConleyIndex(Vertex vertex, const ConleyIndex &conley_index) {
     component_accessor_[vertex].conley_index_ = conley_index;
   }
   /** return a iterator pair to all vertices */
@@ -177,13 +180,11 @@ class ConleyMorseGraph {
    *  there exist this struct because of serialization problem.
    */
   struct Component {
-    CubeSet *cube_set_;
-    ConleyIndex *conley_index_;
-    Component() {
-      cube_set_ = NULL;
-      conley_index_ = NULL;
-    }
-
+    CubeSet cube_set_;
+    ConleyIndex conley_index_;
+    Component() {}
+    virtual ~Component() {}
+    
     template<class Archive>
     void serialize(Archive& ar, const unsigned int version) {
       ar & conley_index_;

@@ -9,7 +9,7 @@ int main ( int argc, char * argv [] ) {
 
   for (int i=0; i<4; i++) {
     v[i] = cmgraph.AddVertex();
-    cmgraph.SetCubeSet(v[i], n+i);
+    cmgraph.SetCubeSet(v[i], n[i]);
   }
 
   cmgraph.AddEdge(v[0], v[1]);
