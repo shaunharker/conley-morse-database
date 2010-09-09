@@ -22,73 +22,54 @@ void Compute_Morse_Decomposition ( Conley_Morse_Graph * conley_morse_graph ,
   const typename Toplex::Subset & entrance_subset ,
   Combinatorial_Map & combinatorial_map ) {
 
-  // --- not yet implemented ---
-
-  // suggested outline:
-  // 1) create a subgraph of the combinatorial map
-  //    restricted to the given set to decompose
-  // 2) mark those vertices in the set to decompose which have edges coming in from outside
-  // 3) mark those vertices in the set to decompose which have edges going out to outside
+  // Compute Morse sets along with their entrance and exit sets
   
-  /* Naive construction of a subgraph, entrance_set, and exit set:
-     subgraph is copied, entrance_set is assumed to be entire subgraph,
-     and exit set is detected accurately*/
-  DirectedGraph<Toplex> subgraph;
-  typename Toplex::Subset Exit;
-  const typename Toplex::Subset & Entrance = set_to_decompose;
+  std::vector < typename Toplex::Subset > morse_sets;
+  std::vector < typename Toplex::Subset > morse_exits;
+  std::vector < typename Toplex::Subset > morse_entrances;
   
-  BOOST_FOREACH ( typename Toplex::Top_Cell cell, set_to_decompose ) {
-    /* intersect should be defined along with Toplex */
-    typename Toplex::Subset image = combinatorial_map ( cell );
-    BOOST_FOREACH ( typename Toplex::Top_Cell image_cell, image ) {
-      if ( set_to_decompose . find ( image_cell ) == set_to_decompose . end () ) {
-        Exit . insert ( cell );
-      } else {
-        subgraph [ cell ] . insert ( image_cell );
-      } /* if-else */
-    } /* boost_foreach */
-  } /* boost_foreach */
-
-  // 4) call Zin's function for computing SCCs
-  //    and the strict upper bounds for the path lengths
-  
-  // computeSCC will allocate Morse Sets and return them.
-  typename DirectedGraph<Toplex>::Components SCC = computeSCC ( subgraph );
+  computeSCC (& morse_sets,
+              & morse_entrances,
+              & morse_exits,
+              entrance_subset,
+              exit_subset,
+              combinatorial_map );
   
   std::vector<size_t> ConnectingPathBounds;
   std::vector<size_t> EntrancePathBounds;
   std::vector<size_t> ExitPathBounds;
   
-  computePathBounds( subgraph, SCC, Entrance, Exit, /* inputs */
+  computePathBounds( combinatorial_map, morse_sets, entrance_subset, exit_subset, /* inputs */
                      ConnectingPathBounds,
                      EntrancePathBounds,
                      ExitPathBounds,
                      *through_path_bound /* outputs */);
                     
-  // 5) copy and adjust the Morse sets returned by Zin's function
-  //    to the Conley-Morse graph object
-  
-  /* Loop through SCC (a vector of Toplex::Subset's) and construct a disconnected CMG */
-  std::vector<typename Conley_Morse_Graph::Vertex> vertex_indexing ( SCC . size () );
-  size_t index = 0;
-  BOOST_FOREACH ( Toplex::Subset * morse_set, SCC ) {
+  /* Loop through Morse Sets and construct a disconnected Conley Morse Graph (CMG) */
+  const size_t number_of_morse_sets = morse_sets . size ();
+  std::vector<typename Conley_Morse_Graph::Vertex> vertex_indexing ( number_of_morse_sets );
+  for ( size_t index = 0; index < morse_sets . size (); ++ index ) {      
     typename Conley_Morse_Graph::Vertex new_vertex = conley_morse_graph -> AddVertex ();
     vertex_indexing [ index ] = new_vertex;
-    conley_morse_graph -> SetCubeSet ( new_vertex, morse_set );
-    entrance_path_bounds -> operator [] ( new_vertex ) = EntrancePathBounds [ index ];
+    conley_morse_graph -> SetCubeSet ( new_vertex, morse_sets [ index ] );
+    std::swap ( exit_subsets -> operator [] ( new_vertex ), morse_exits [ index ] );
     exit_path_bounds -> operator [] ( new_vertex ) = ExitPathBounds [ index ];
-    ++ index;
+    std::swap ( entrance_subsets -> operator [] ( new_vertex ), morse_entrances [ index ] );
+    entrance_path_bounds -> operator [] ( new_vertex ) = EntrancePathBounds [ index ];
   } /* boost_foreach */
   
-  index = 0;
-  for ( unsigned int i = 0; i < SCC . size (); ++ i ) {
-    for ( unsigned int j = 0; j < SCC . size (); ++ j ) {
+  /* Produce the Edges on the CMG */
+  size_t index = 0;
+  for ( unsigned int i = 0; i < number_of_morse_sets; ++ i ) {
+    for ( unsigned int j = 0; j < number_of_morse_sets; ++ j ) {
       /* ConnectingPathBounds [ index ] tells us
           either a) the maximum number of steps to get from vertex i to vertex j
           or else b) that one cannot get from vertex i to vertex j */
       if ( ConnectingPathBounds [ index ] > 0 ) {
         /* TODO BUG: are i and j reversed? 50/50 chance this is right ;) */
-        typename Conley_Morse_Graph::Vertex new_edge = conley_morse_graph -> AddEdge (i, j)
+        typename Conley_Morse_Graph::Vertex new_edge = conley_morse_graph -> 
+          AddEdge (vertex_indexing [ i ], 
+                   vertex_indexing [ j ] );
         path_bounds [ new_edge ] = ConnectingPathBounds [ index ];
         // if ( connecting_orbits != NULL ) connecting_orbits -> [ new_edge ] = /* ??? */;
       } /* if */

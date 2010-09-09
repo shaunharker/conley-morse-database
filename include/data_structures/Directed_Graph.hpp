@@ -281,8 +281,13 @@ typename Toplex::Subset DirectedGraph<Toplex>::operator () ( const typename Topl
 /* A wrapper for the boost's strongly connected components algorithm */
 #include <boost/graph/strong_components.hpp>
 template < class Toplex >
-typename DirectedGraph<Toplex>::Components computeSCC(DirectedGraph<Toplex> & G)
-{
+void computeSCC 
+(std::vector < typename Toplex::Subset > * morse_sets,
+ std::vector < typename Toplex::Subset > * entrance_sets,
+ std::vector < typename Toplex::Subset > * exit_sets,
+ const typename Toplex::Subset & entrance,
+ const typename Toplex::Subset & exit,
+ const DirectedGraph<Toplex> & G) {
   using namespace boost;
 
   typedef DirectedGraph<Toplex> Graph;
@@ -343,10 +348,15 @@ typename DirectedGraph<Toplex>::Components computeSCC(DirectedGraph<Toplex> & G)
   
   // First we size the result, and "new" the "Component"s, which are
   // "Toplex::Subset"s 
-  typename Graph::Components result ( number_of_path_components );
-  BOOST_FOREACH ( Component * & comp_ptr, result ) {
-    comp_ptr = new Component; /* ALLOCATION */
-  } /* foreach */
+  morse_sets -> resize ( number_of_path_components );
+  entrance_sets -> resize ( number_of_path_components );
+  exit_sets -> resize ( number_of_path_components );
+
+  for ( unsigned int index = 0; index < number_of_path_components; ++ index ) {
+    morse_sets -> operator [] ( index ) = new Component;
+    entrance_sets -> operator [] ( index ) = new Component;
+    exit_sets -> operator [] ( index ) = new Component;
+  } /* for */
   
   // Now we copy the data 
   unsigned int comp_index = 0;
@@ -355,14 +365,21 @@ typename DirectedGraph<Toplex>::Components computeSCC(DirectedGraph<Toplex> & G)
     /* If the component is spurious, we do not record it. */
     if ( spurious_components [ index ++ ] ) continue;
     /* Otherwise, we copy it. */
-    typename DirectedGraph< Toplex >::Component & comp = * result [ comp_index ++ ];
+    typename DirectedGraph< Toplex >::Component & morse_set = 
+      * ( * morse_sets ) [ comp_index ];
+    typename DirectedGraph< Toplex >::Component & entrance_set = 
+      * ( * entrace_sets ) [ comp_index ];
+    typename DirectedGraph< Toplex >::Component & exit_set = 
+      * ( * exit_sets ) [ comp_index ];
+    ++ comp_index;
     BOOST_FOREACH ( Toplex::Top_Cell cell, vertices ) {
       comp . insert ( cell );
     } /* foreach */
+    /* Entrance and Exit sets */
+    // TODO: this is a trivial choice.
+    entrance_set = morse_set;
+    exit_set = morse_set;
   } /* foreach */
-
-  /* Exit the function */
-  return result;
 }
 
 template < class Toplex, class Map >

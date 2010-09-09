@@ -52,8 +52,11 @@ DirectedGraph<Toplex> collapseComponents (
 
 // Compute SCC using boost
 template < class Toplex >
-typename DirectedGraph<Toplex>::Components computeSCC (
-    DirectedGraph<Toplex> & G);
+void computeSCC 
+(std::vector < typename Toplex::Subset > * morse_sets,
+ std::vector < typename Toplex::Subset > * entrance_sets,
+ std::vector < typename Toplex::Subset > * exit_sets,
+ const DirectedGraph<Toplex> & G);
 
 // Return the length (number of edges inside the Graph) of the
 // longest path connecting v to w, assuming the graph is acyclic.

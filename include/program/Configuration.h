@@ -16,10 +16,10 @@ using namespace Adaptive_Cubical;
 #define PS_SUBDIVISIONS 6
 #define MAX_PATCH_SIZE 10
 
-Real PS_lower_bounds [PS_DIMENSION] = { 8.0, 37.0 };
-Real PS_upper_bounds [PS_DIMENSION] = { 3.0, 50.0 };
+const Real PS_lower_bounds [PS_DIMENSION] = { 8.0, 37.0 };
+const Real PS_upper_bounds [PS_DIMENSION] = { 3.0, 50.0 };
 
-Geometric_Description PS_Bounds ( PS_DIMENSION , std::vector<Real> ( PS_lower_bounds, 
+const Geometric_Description PS_Bounds ( PS_DIMENSION , std::vector<Real> ( PS_lower_bounds, 
                                                       PS_lower_bounds + PS_DIMENSION ), 
                                   std::vector<Real> ( PS_upper_bounds, 
                                                       PS_upper_bounds + PS_DIMENSION ) );
