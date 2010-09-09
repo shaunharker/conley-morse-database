@@ -116,7 +116,7 @@ void Determine_All_Connections ( Conley_Morse_Graph * conley_morse_graph ,
 
       // for every element of the final set for the source vertex
       for ( typename Set_Of_Vertices::iterator source_iter = source_set . begin () ;
-        source_iter != sorce_set . end () ; ++ source_iter ) {
+        source_iter != source_set . end () ; ++ source_iter ) {
 
         // for every element of the final set for the target vertex
         for ( typename Set_Of_Vertices::iterator target_iter = target_set . begin () ;

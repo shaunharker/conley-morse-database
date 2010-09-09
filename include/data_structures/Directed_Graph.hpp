@@ -535,7 +535,7 @@ void computePathBounds(std::vector<size_t> * ConnectingPathBounds,
   typedef DirectedGraph<Toplex> Graph;
   typedef typename DirectedGraph<Toplex>::Vertex Vertex;
   typedef typename DirectedGraph<Toplex>::Components Components;
-  size_t n = G.size();
+//  size_t n = G.size();
   size_t nComponents = SCC.size();
   typename Graph::iterator graph_it;
   typename Toplex::Subset::const_iterator comp_it;

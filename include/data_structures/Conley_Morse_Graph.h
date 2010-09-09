@@ -119,7 +119,7 @@ class ConleyMorseGraph {
    *  to the "to" vertex.
    *
    */
-  bool PathExist(Vertex from, Vertex to) const;
+  bool PathExists(Vertex from, Vertex to) const;
   
   /** Get a cubeset of the vertex. */
   CubeSet* GetCubeSet(Vertex vertex) const {
