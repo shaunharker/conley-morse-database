@@ -26,7 +26,7 @@ Coordinator::Coordinator(int argc, char **argv) {
   /// Minimum number of parameter patches
   size_t min_num_patches = static_cast <size_t> (PS_Toplex . size () / maxPatchSize) + 1;
   /// Number of subdivisons per side
-  size_t subdivisions_per_side = std::ceil (std::exp (std::log (min_num_patches) / param_dim));
+  size_t subdivisions_per_side = static_cast <size_t > (std::ceil (std::exp (std::log (min_num_patches) / param_dim)));
 
   /// Lenghts of the sides of the patch
   std::vector < Real > patch_sides_length (param_dim);
@@ -112,7 +112,7 @@ CoordinatorBase::State Coordinator::Prepare(Message *job) {
 	/// Add geometric description to the vector of geo descriptions
     geometric_descriptions . push_back ( Cell_GD );
 	/// Add the pair (top_cell, key) to the indices map
-    cells_indices_map . insert ( std::pair <Toplex::Top_Cell, size_t> (PS_Toplex . find (*it), key) );
+    cells_indices_map . insert ( std::pair <Toplex::Top_Cell, size_t> (* PS_Toplex . find (*it), key) );
     /// Insert cached box info into the map if there is any
 	if (PS_Toplex_Cached_Info . find (*it) != PS_Toplex_Cached_Info . end ())
       patch_cached_info . insert (Patch_Cached_Box_Pair (key, PS_Toplex_Cached_Info . find (*it) -> second));
@@ -176,7 +176,7 @@ void Coordinator::Process(const Message &result) {
   size_t key = 0;
   for (Toplex_Subset::const_iterator it = patch_results . begin (); it != patch_results . end (); ++it, ++key) {
     if (patch_cached_info . find (key) != patch_cached_info . end ()) {
-	  PS_Toplex_Cached_Info . insert (Toplex_Cached_Box_Pair (PS_Toplex . find (*it), patch_cached_info . find (key) -> second));
+	  PS_Toplex_Cached_Info . insert (Toplex_Cached_Box_Pair (* PS_Toplex . find (*it), patch_cached_info . find (key) -> second));
 	}
   }
 

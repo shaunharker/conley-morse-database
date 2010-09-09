@@ -17,6 +17,10 @@
 class Cached_Box_Information
 {
 public:
+  /// The default constructor.
+  Cached_Box_Information () : info (0) {
+    return;
+  }
 
 private:
   /// Some dummy information, unused at the moment.

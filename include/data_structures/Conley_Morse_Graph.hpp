@@ -7,14 +7,14 @@
  *  TODO: mark reached vertices.
  */
 template<class CubeSet, class ConleyIndex>
-bool ConleyMorseGraph<CubeSet,ConleyIndex>::PathExist(
+bool ConleyMorseGraph<CubeSet,ConleyIndex>::PathExists(
     ConleyMorseGraph<CubeSet,ConleyIndex>::Vertex from,
     ConleyMorseGraph<CubeSet,ConleyIndex>::Vertex to) const {
   if (from == to)
     return true;
   BOOST_FOREACH (Edge edge, boost::out_edges(from, graph_)) {
     Vertex next = boost::target(edge, graph_);
-    if (PathExist(next, to))
+    if (PathExists(next, to))
       return true;
   }
   return false;

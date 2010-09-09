@@ -9,7 +9,7 @@ int main ( int argc, char * argv [] ) {
 
   for (int i=0; i<4; i++) {
     v[i] = cmgraph.AddVertex();
-    cmgraph.SetCubeSet(v[i], n[i]);
+    cmgraph.SetCubeSet(v[i], n + i);
   }
 
   cmgraph.AddEdge(v[0], v[1]);
@@ -28,10 +28,10 @@ int main ( int argc, char * argv [] ) {
   }
   std::cout << std::endl;
   
-  std::cout << cmgraph.PathExist(v[0], v[1]) << std::endl;
-  std::cout << cmgraph.PathExist(v[1], v[0]) << std::endl;
-  std::cout << cmgraph.PathExist(v[0], v[3]) << std::endl;
-  std::cout << cmgraph.PathExist(v[3], v[0]) << std::endl;
+  std::cout << cmgraph.PathExists(v[0], v[1]) << std::endl;
+  std::cout << cmgraph.PathExists(v[1], v[0]) << std::endl;
+  std::cout << cmgraph.PathExists(v[0], v[3]) << std::endl;
+  std::cout << cmgraph.PathExists(v[3], v[0]) << std::endl;
 
   return 0;
 }

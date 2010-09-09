@@ -69,8 +69,8 @@ void SetupCMGraph(CMGraph *graph, std::vector<CMGraph::Vertex> *vertices,
   for (int i=0; i<num_vertices; i++) {
     CMGraph::Vertex v = graph->AddVertex();
     vertices->push_back(v);
-    graph->SetCubeSet(v, toplexes[i]);
-    graph->SetConleyIndex(v, indices[i]);
+    graph->SetCubeSet(v, toplexes + i);
+    graph->SetConleyIndex(v, indices + i);
   }
 }
 

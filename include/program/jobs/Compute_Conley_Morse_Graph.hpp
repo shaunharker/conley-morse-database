@@ -342,7 +342,7 @@ void Compute_Conley_Morse_Graph ( Conley_Morse_Graph * conley_morse_graph ,
         current_set = subdivided_set;
 
         // compute the combinatorial map on this Morse set
-        combinatorial_map = compue_directed_graph ( * current_set , * phase_space , interval_map );
+        combinatorial_map = compute_directed_graph ( * current_set , * phase_space , interval_map );
 
         // compute the Morse decomposition of this Morse set
         Conley_Morse_Graph * new_cmg = new Conley_Morse_Graph;

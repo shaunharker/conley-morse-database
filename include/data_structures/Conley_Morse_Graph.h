@@ -72,11 +72,11 @@ class ConleyMorseGraph {
    */
   virtual ~ConleyMorseGraph() {
     VertexIteratorPair vertices = Vertices ();
-    for ( Conley_Morse_Graph::VertexIterator morse_set_iterator = vertices . first ;
+    for ( VertexIterator morse_set_iterator = vertices . first ;
          morse_set_iterator != vertices . second ; ++ morse_set_iterator ) {
-      typename Toplex::Subset * morse_set = GetCubeSet ( * morse_set_iterator );
+      CubeSet * morse_set = GetCubeSet ( * morse_set_iterator );
       if ( morse_set ) delete morse_set;
-      Conley_Index_t * conley_index = GetConleyIndex ( * morse_set_iterator );
+      ConleyIndex * conley_index = GetConleyIndex ( * morse_set_iterator );
       if ( conley_index ) delete conley_index;
     } /* for */
   } /* ~ConleyMorseGraph */
@@ -126,7 +126,7 @@ class ConleyMorseGraph {
     return component_accessor_[vertex].cube_set_;
   }
   /** Set(copy) a cubeset to the vertex */
-  void SetCubeSet(Vertex vertex, CubeSet * Cubeset) {
+  void SetCubeSet(Vertex vertex, CubeSet * cubeset) {
     component_accessor_[vertex].cube_set_ = cubeset;
   }
   /** Get a Conley-Index of the vertex. */
