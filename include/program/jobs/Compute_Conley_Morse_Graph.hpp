@@ -36,6 +36,10 @@ void Determine_All_Connections ( Conley_Morse_Graph * conley_morse_graph ,
   std::map < Conley_Morse_Graph const * , Conley_Morse_Graph const * > & coarser_cmg ,
   std::map < Conley_Morse_Graph const * , typename Conley_Morse_Graph::Vertex > & coarser_set ) {
 
+  std::stack < Conley_Morse_Graph const * > stack_cmg;
+  std::stack < typename Conley_Morse_Graph::EdgeIterator > stack_edge;
+  std::stack < typename Conley_Morse_Graph::EdgeIteratorPair > stack_edge_pair;
+  
   // TODO: Implement this procedure.
   return;
 } /* Determine_All_Connections */
