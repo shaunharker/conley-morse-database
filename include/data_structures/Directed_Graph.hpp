@@ -337,7 +337,7 @@ void computeSCC
     if ( components [ index ] . size () == 1) {
       Vertex v = components [ index ] [ 0 ];
       if ( G [v] . find ( v ) == G [ v ] . end () ) {
-        spurious_components [ component_index ] = true;
+        spurious_components [ index ] = true;
       } else {
         ++ number_of_path_components;
       } /* if-else */
@@ -353,9 +353,7 @@ void computeSCC
   exit_sets -> resize ( number_of_path_components );
 
   for ( unsigned int index = 0; index < number_of_path_components; ++ index ) {
-    morse_sets -> operator [] ( index ) = new Component;
-    entrance_sets -> operator [] ( index ) = new Component;
-    exit_sets -> operator [] ( index ) = new Component;
+    morse_sets -> operator [] ( index ) = new typename Toplex::Subset;
   } /* for */
   
   // Now we copy the data 
@@ -368,12 +366,12 @@ void computeSCC
     typename DirectedGraph< Toplex >::Component & morse_set = 
       * ( * morse_sets ) [ comp_index ];
     typename DirectedGraph< Toplex >::Component & entrance_set = 
-      * ( * entrace_sets ) [ comp_index ];
+      * ( * entrance_sets ) [ comp_index ];
     typename DirectedGraph< Toplex >::Component & exit_set = 
       * ( * exit_sets ) [ comp_index ];
     ++ comp_index;
-    BOOST_FOREACH ( Toplex::Top_Cell cell, vertices ) {
-      comp . insert ( cell );
+    BOOST_FOREACH ( typename Toplex::Top_Cell cell, vertices ) {
+      morse_set . insert ( cell );
     } /* foreach */
     /* Entrance and Exit sets */
     // TODO: this is a trivial choice.
@@ -400,7 +398,7 @@ DirectedGraph<Toplex> compute_directed_graph (const typename Toplex::Subset & my
                                               const Map & f) {
   DirectedGraph<Toplex> directed_graph;
   BOOST_FOREACH ( typename Toplex::Top_Cell cell, my_subset ) {
-    directed_graph[*cell_iterator] = my_toplex.cover(f(my_toplex.geometry(cell)),my_subset);
+    directed_graph[cell] = my_toplex.cover(f(my_toplex.geometry(cell)),my_subset);
   } /* for_each */
   
   return directed_graph;
