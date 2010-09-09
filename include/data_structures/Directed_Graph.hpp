@@ -378,13 +378,48 @@ DirectedGraph<Toplex> compute_directed_graph (const Toplex & my_toplex,
 } /* compute_directed_graph */
 
 template < class Toplex, class Map >
+DirectedGraph<Toplex> compute_directed_graph (const typename Toplex::Subset & my_subset,
+                                              const Toplex & my_toplex, 
+                                              const Map & f) {
+  DirectedGraph<Toplex> directed_graph;
+  BOOST_FOREACH ( typename Toplex::Top_Cell cell, my_subset ) {
+    directed_graph[*cell_iterator] = my_toplex.cover(f(my_toplex.geometry(cell)),my_subset);
+  } /* for_each */
+  
+  return directed_graph;
+} /* compute_directed_graph */
+
+#if 0
+template < class Toplex, class Map >
 void subdivide_toplex_and_directed_graph (Toplex * my_toplex, 
                                           DirectedGraph<Toplex> * my_directed_graph,
                                           const typename Toplex::Subset & subdivide_me,
                                           const Map & f) {
-  /* TO BE IMPLEMENTED */
-} /* subdivide_toplex_and_directed_graph */
+  /* General strategy: we subdivide the cells, but we also need to update the graph
+     in an efficient manner. Any cell which maps into the subdivided region needs
+     to have its image recomputed. All new subdivided cells need to have the image 
+     computed. Thus, we (1) aquire a preimage, (2) subdivide the cells and keep track
+     of the new subdivided cells, and (3) update the directed graph by doing the map
+     computations. */
+  
+  /* (1) Acquire the preimage of the top cells we wish to subdivide */
+  typename Toplex::Subset recompute = my_directed_graph . preimage ( subdivide_me );
 
+  /* (2) Subdivide the cells,
+     and place the new subdivided cells into the set "recompute" */
+  BOOST_FOREACH ( typename Toplex::Top_Cell cell, subdivide_me ) {
+    recompute . insert ( my_toplex -> subdivide ( cell ) );
+    my_directed_graph . erase ( cell );
+  } /* boost_foreach */
+  
+  /* (3) Do the map computations */
+  BOOST_FOREACH ( typename Toplex::Top_Cell cell, subdivide_me ) {
+
+  // ...
+    
+} /* subdivide_toplex_and_directed_graph */
+#endif
+  
 // Compute the length of the longest path from v to w
 // assuming the graph is acyclic
 template < class Toplex >

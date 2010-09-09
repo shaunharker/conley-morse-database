@@ -39,6 +39,10 @@ template < class Toplex, class Map >
 DirectedGraph<Toplex> compute_directed_graph (const Toplex & my_toplex, 
                                               const Map & f);
 
+template < class Toplex, class Map >
+DirectedGraph<Toplex> compute_directed_graph (const typename Toplex::Subset & my_subset,
+                                              const Toplex & my_toplex, 
+                                              const Map & f);
 // Collapse components
 template < class Toplex >
 DirectedGraph<Toplex> collapseComponents (
