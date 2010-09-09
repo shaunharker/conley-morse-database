@@ -3,6 +3,7 @@
  */
 
 #include "program/Coordinator.h"
+#include "boost/foreach.hpp"
 
 Coordinator::Coordinator(int argc, char **argv) {
   size_t maxPatchSize = MAX_PATCH_SIZE; /// Maximum size of a patch in parameter space
@@ -62,17 +63,17 @@ Coordinator::Coordinator(int argc, char **argv) {
 
   /// Create a map with Cached_Box_Information for the intersecting boxes
   for (size_t i = 0; i < num_patches; ++i) {
-    for (Toplex_Subset::const_iterator it = PS_patches [i] . begin (); it != PS_patches [i] . end (); ++it) {
-	  for (size_t j = i + 1; j < num_patches; ++j) {
-	    if (PS_patches [j] .find (*it)) {  /// Top cell is in the intersection of PS_patches [i] and PS_patches [j]
-		  /// Add an entry to the map of Cached_Box_Information
-		  Cached_Box_Information cached_box_info;
-          PS_Toplex_Cached_Info . insert (Toplex_Cached_Box_Pair (*it, cached_box_info));
-		}
-	  }
+    BOOST_FOREACH ( Toplex::Top_Cell cell, PS_patches [i] ) {
+      for (size_t j = i + 1; j < num_patches; ++j) {
+        if (PS_patches [j] . find (cell) != PS_patches [j] . end ()) {  /// Top cell is in the intersection of PS_patches [i] and PS_patches [j]
+          /// Add an entry to the map of Cached_Box_Information
+          Cached_Box_Information cached_box_info;
+          PS_Toplex_Cached_Info . insert (Toplex_Cached_Box_Pair (cell, cached_box_info));
+        }
+      }
     }
   }
-
+  
   num_jobs_ = num_patches;
   num_jobs_sent_ = 0;
   num_jobs_received_ = 0;
@@ -105,7 +106,7 @@ CoordinatorBase::State Coordinator::Prepare(Message *job) {
   for (Toplex_Subset::const_iterator it = patch_subset . begin (); it != patch_subset . end (); ++it, ++key) {
     geometric_descriptions . push_back (PS_Toplex . geometry (PS_Toplex . find (*it)));
     /// Insert cached box info into the map if there is any
-	if (PS_Toplex_Cached_Info . find (*it))
+	if (PS_Toplex_Cached_Info . find (*it) != PS_Toplex_Cached_Info . end ())
       patch_cached_info . insert (Patch_Cached_Box_Pair (key, PS_Toplex_Cached_Info . find (*it) -> second ));
   }
 

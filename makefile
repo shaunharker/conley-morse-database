@@ -1,7 +1,7 @@
 # makefile for CMDP project                                                                       
 
 CXX := mpicxx
-HOMEDIR := ../..
+HOMEDIR := ..
 CAPDDIR := $(HOMEDIR)/capd
 CHOMPDIR := $(HOMEDIR)/chomp-rutgers
 BOOSTDIR := $(HOMEDIR)/boost_1_42_0
