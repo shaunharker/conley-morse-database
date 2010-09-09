@@ -1,4 +1,8 @@
+/// Test the single box job.
+/// This simple test program runs the function Compute_Conley_Morse_Graph
+/// for a sample parameter box for a sample map.
 
+#include "program/strategies.h"
 #include "program/jobs/Compute_Conley_Morse_Graph.h"
 #include "data_structures/Cached_Box_Information.h"
 #include "data_structures/Conley_Morse_Graph.h"
