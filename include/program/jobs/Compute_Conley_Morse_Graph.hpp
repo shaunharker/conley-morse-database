@@ -9,6 +9,7 @@
 #include <utility>
 #include <vector>
 #include <cstddef>
+#include <memory>
 
 #include "program/Configuration.h"
 #include "program/jobs/Compute_Path_Bounds.h"
@@ -293,14 +294,13 @@ void Compute_Conley_Morse_Graph ( Conley_Morse_Graph * conley_morse_graph ,
     conley_morse_graph , connecting_orbits ,
     final_path_bounds , interval_map , * phase_space );
 
-/*
   // free up the dynamically allocated memory
   // for the intermediate Morse decompositions
   for ( Conley_Morse_Graphs::iterator cmg_iterator = conley_morse_graphs . begin ();
     cmg_iterator != conley_morse_graphs . end (); ++ cmg_iterator )
   {
     Conley_Morse_Graph * cmg = * cmg_iterator;
-    typename Conley_Morse_Graph::VertexIteratorPair vertices = cmg -> Vertices ();
+/*  typename Conley_Morse_Graph::VertexIteratorPair vertices = cmg -> Vertices ();
     for ( Conley_Morse_Graph::VertexIterator morse_set_iterator = vertices . first ;
       morse_set_iterator != vertices . second ; ++ morse_set_iterator )
     {
@@ -311,9 +311,10 @@ void Compute_Conley_Morse_Graph ( Conley_Morse_Graph * conley_morse_graph ,
       if ( conley_index )
         delete conley_index;
     }
+*/
     delete cmg;
   }
-*/
+
   return;
 } /* Compute_Conley_Morse_Graph */
 
