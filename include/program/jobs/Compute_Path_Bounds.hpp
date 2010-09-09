@@ -109,7 +109,7 @@ void Search_Coarser_Conley_Morse_Graph( std::vector< Conley_Morse_Graph const * 
   typename std::map< Conley_Morse_Graph const *, Conley_Morse_Graph const * >::iterator itrCoarserCMG( coarser_cmg.find( conley_morse_graph ) );
   if ( itrCoarserCMG != coarser_cmg.end() ) {
     // A coarser conley morse graph is founded.
-    searched_conley_morse_graph.insert( ( *itrCoarserCMG ).second );
+    searched_conley_morse_graph.push_back( ( *itrCoarserCMG ).second );
 
     // We iterately look for coaser conley morse graphs.
     Search_Coarser_Conley_Morse_Graph( searched_conley_morse_graph, coarser_cmg, ( *itrCoarserCMG ).second );
