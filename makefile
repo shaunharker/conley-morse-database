@@ -26,16 +26,16 @@ all: Conley_Morse_Database
 DATABASE_OBJECTS = Conley_Morse_Database.o Message.o Communicator.o Worker.o Coordinator.o
 
 Conley_Morse_Database: $(DATABASE_OBJECTS)
-	$(CXX_STANDALONE) $(DATABASE_OBJECTS) -o Conley_Morse_Database
+	$(CXX_STANDALONE) $(DATABASE_OBJECTS) -o Conley_Morse_Database $(LIBS)
 
 Test_Morse_Graph: Test_Morse_Graph.o 
-	$(CXX_STANDALONE) Test_Morse_Graph.o -o $@
+	$(CXX_STANDALONE) Test_Morse_Graph.o -o $@ $(LIBS)
 
 Test_Single_Box_Job: Test_Single_Box_Job.o 
-	$(CXX_STANDALONE) Test_Single_Box_Job.o -o $@
+	$(CXX_STANDALONE) Test_Single_Box_Job.o -o $@ $(LIBS)
 
 Test_Clutching_Graph: Test_Clutching_Graph.o
-	$(CXX_STANDALONE) Test_Clutching_Graph.o -o $@
+	$(CXX_STANDALONE) Test_Clutching_Graph.o -o $@ $(LIBS)
 # Conley_Morse_Database.o: Message.o Communicator.o 
 
 Message.o: Message.h
