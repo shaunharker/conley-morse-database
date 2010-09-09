@@ -6,6 +6,7 @@
 #define _CMDP_COMPUTE_MORSE_DECOMPOSITION_HPP_
 
 #include "data_structures/Directed_Graph.h" /* For DirectedGraph<Toplex> */
+#include <algorithm>
 
 template < class Toplex , class Conley_Morse_Graph , class Combinatorial_Map >
 void Compute_Morse_Decomposition ( Conley_Morse_Graph * conley_morse_graph ,
@@ -28,22 +29,27 @@ void Compute_Morse_Decomposition ( Conley_Morse_Graph * conley_morse_graph ,
   std::vector < typename Toplex::Subset > morse_exits;
   std::vector < typename Toplex::Subset > morse_entrances;
   
-  computeSCC (& morse_sets,
+  computeSCC (& morse_sets, 
               & morse_entrances,
-              & morse_exits,
+              & morse_exits,  /* outputs */
+              
               entrance_subset,
               exit_subset,
-              combinatorial_map );
+              combinatorial_map /* inputs */ );
   
   std::vector<size_t> ConnectingPathBounds;
   std::vector<size_t> EntrancePathBounds;
   std::vector<size_t> ExitPathBounds;
   
-  computePathBounds( combinatorial_map, morse_sets, entrance_subset, exit_subset, /* inputs */
-                     ConnectingPathBounds,
-                     EntrancePathBounds,
-                     ExitPathBounds,
-                     *through_path_bound /* outputs */);
+  computePathBounds(&ConnectingPathBounds,
+                    &EntrancePathBounds,
+                    &ExitPathBounds,
+                    through_path_bound, /* outputs */
+                    
+                    combinatorial_map, 
+                    morse_sets, 
+                    entrance_subset, 
+                    exit_subset /* inputs */ );
                     
   /* Loop through Morse Sets and construct a disconnected Conley Morse Graph (CMG) */
   const size_t number_of_morse_sets = morse_sets . size ();

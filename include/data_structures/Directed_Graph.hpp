@@ -523,14 +523,14 @@ void BFLoop(DirectedGraph<Toplex> & G,
 }
 
 template < class Toplex >
-void computePathBounds(const DirectedGraph<Toplex> & G,
+void computePathBounds(std::vector<size_t> * ConnectingPathBounds,
+                       std::vector<size_t> * EntrancePathBounds,
+                       std::vector<size_t> * ExitPathBounds,
+                       size_t * ThruPathBound,
+                       const DirectedGraph<Toplex> & G,
                        const typename DirectedGraph<Toplex>::Components & SCC,
                        const typename Toplex::Subset & Entrance,
-                       const typename Toplex::Subset & Exit,
-                       std::vector<size_t> & ConnectingPathBounds,
-                       std::vector<size_t> & EntrancePathBounds,
-                       std::vector<size_t> & ExitPathBounds,
-                       size_t & ThruPathBound)
+                       const typename Toplex::Subset & Exit )
 {
 
   typedef DirectedGraph<Toplex> Graph;
@@ -550,11 +550,11 @@ void computePathBounds(const DirectedGraph<Toplex> & G,
   H = collapseComponents(G, SCC, V);
   
   // Components to Components
-  ConnectingPathBounds.clear();
+  ConnectingPathBounds -> clear();
   for (size_t i = 0; i < nComponents; i++) {
     for (size_t j = 0; j < nComponents; j++) {
       if (i == j) {
-        ConnectingPathBounds.push_back(0);
+        ConnectingPathBounds -> push_back(0);
       } else {
         Graph K(H);
         for (size_t k = 0; k < nComponents; k++) {
@@ -563,7 +563,7 @@ void computePathBounds(const DirectedGraph<Toplex> & G,
             K.removeVertex(V[k]);
           }
         }
-        ConnectingPathBounds.push_back(computeLongestPathLength(K, V[i], V[j]));
+        ConnectingPathBounds -> push_back(computeLongestPathLength(K, V[i], V[j]));
       }
     }
   }
@@ -571,7 +571,7 @@ void computePathBounds(const DirectedGraph<Toplex> & G,
   std::map <Vertex, size_t> distance;
 
   // Entrance to Components
-  EntrancePathBounds.clear();
+  EntrancePathBounds -> clear();
   for (size_t i = 0; i < nComponents; i++) {
     Graph K(H);
     for (size_t j = 0; j < nComponents; j++) {
@@ -590,11 +590,11 @@ void computePathBounds(const DirectedGraph<Toplex> & G,
       ++graph_it;
     }
     BFLoop(K, distance);
-    EntrancePathBounds.push_back(distance[V[i]]);
+    EntrancePathBounds -> push_back(distance[V[i]]);
   }
 
   // Components to Exit
-  ExitPathBounds.clear();
+  ExitPathBounds -> clear();
   for (size_t i = 0; i < nComponents; i++) {
     Graph K(H);
     for (size_t j = 0; j < nComponents; j++) {
@@ -618,7 +618,7 @@ void computePathBounds(const DirectedGraph<Toplex> & G,
       }
       ++comp_it;
     }
-    ExitPathBounds.push_back(maxLength);
+    ExitPathBounds -> push_back(maxLength);
   }
 
   // Entrance to Exit
@@ -645,7 +645,7 @@ void computePathBounds(const DirectedGraph<Toplex> & G,
     }
     ++comp_it;
   }
-  ThruPathBound = maxLength;
+  *ThruPathBound = maxLength;
   
   return;
 }

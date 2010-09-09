@@ -56,6 +56,8 @@ void computeSCC
 (std::vector < typename Toplex::Subset > * morse_sets,
  std::vector < typename Toplex::Subset > * entrance_sets,
  std::vector < typename Toplex::Subset > * exit_sets,
+ const typename Toplex::Subset & entrance,
+ const typename Toplex::Subset & exit,
  const DirectedGraph<Toplex> & G);
 
 // Return the length (number of edges inside the Graph) of the
@@ -90,16 +92,14 @@ size_t computeLongestPathLength(
 // Remark: the 'length' is defined to be the number of edges inside
 // the graph
 template < class Toplex >
-void computePathBounds(/* inputs */
+void computePathBounds(std::vector<size_t> * ConnectingPathBounds,
+                       std::vector<size_t> * EntrancePathBounds,
+                       std::vector<size_t> * ExitPathBounds,
+                       size_t * ThruPathBound,
                        const DirectedGraph<Toplex> & G,
                        const typename DirectedGraph<Toplex>::Components & SCC,
                        const typename Toplex::Subset & Entrance,
-                       const typename Toplex::Subset & Exit,
-                       /* outputs */
-                       std::vector<size_t> & ConnectingPathBounds,
-                       std::vector<size_t> & EntrancePathBounds,
-                       std::vector<size_t> & ExitPathBounds,
-                       size_t & ThruPathBound);
+                       const typename Toplex::Subset & Exit );
 
 #ifndef _DO_NOT_INCLUDE_HPP_
 #include "data_structures/Directed_Graph.hpp"
