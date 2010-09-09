@@ -50,8 +50,8 @@ void Compute_Path_Bounds ( std::map < typename Conley_Morse_Graph::Edge , size_t
       std::vector< Conley_Morse_Graph const * > coarserCMGTargetVertex;
       
       // The first component is a original conley morse graph
-      coarserCMGSourceVertex.insert( originalCMGSourceVertex );
-      coarserCMGTargetVertex.insert( originalCMGTargetVertex );
+      coarserCMGSourceVertex.push_back( originalCMGSourceVertex );
+      coarserCMGTargetVertex.push_back( originalCMGTargetVertex );
 
       // Then, insert coaser conley morse graphs if exist.
       Search_Coarser_Conley_Morse_Graph( coarserCMGSourceVertex, coarser_cmg, originalCMGSourceVertex );
