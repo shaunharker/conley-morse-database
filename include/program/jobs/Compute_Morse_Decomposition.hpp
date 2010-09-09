@@ -11,32 +11,33 @@ template < class Toplex , class Conley_Morse_Graph , class Combinatorial_Map >
 void Compute_Morse_Decomposition ( Conley_Morse_Graph * conley_morse_graph ,
   std::map < typename Conley_Morse_Graph::Vertex , size_t > * exit_path_bounds ,
   std::map < typename Conley_Morse_Graph::Vertex , size_t > * entrance_path_bounds ,
-  std::map < typename Conley_Morse_Graph::Edge , typename Toplex::Toplex_Subset > * connecting_orbits ,
+  std::map < typename Conley_Morse_Graph::Edge , typename Toplex::Subset > * connecting_orbits ,
   std::map < typename Conley_Morse_Graph::Edge , size_t > * path_bounds ,
   size_t * through_path_bound ,
-  const typename Toplex::Toplex_Subset & domain ,
-  const Combinatorial_Map & combinatorial_map ) {
+  const Toplex & phase_space ,
+  const typename Toplex::Subset & set_to_decompose ,
+  Combinatorial_Map & combinatorial_map ) {
 
   // --- not yet implemented ---
 
   // suggested outline:
   // 1) create a subgraph of the combinatorial map
-  //    restricted to the given domain
-  // 2) mark those vertices in the domain which have edges coming in from outside
-  // 3) mark those vertices in the domain which have edges going out to outside
+  //    restricted to the given set to decompose
+  // 2) mark those vertices in the set to decompose which have edges coming in from outside
+  // 3) mark those vertices in the set to decompose which have edges going out to outside
   
   /* Naive construction of a subgraph, entrance_set, and exit set:
      subgraph is copied, entrance_set is assumed to be entire subgraph,
      and exit set is detected accurately*/
   DirectedGraph<Toplex> subgraph;
   typename Toplex::Subset Exit;
-  typename Toplex::Subset & Entrance = domain;
+  const typename Toplex::Subset & Entrance = set_to_decompose;
   
-  BOOST_FOREACH ( typename Toplex::Top_Cell cell, domain ) {
+  BOOST_FOREACH ( typename Toplex::Top_Cell cell, set_to_decompose ) {
     /* intersect should be defined along with Toplex */
     typename Toplex::Subset image = combinatorial_map ( cell );
     BOOST_FOREACH ( typename Toplex::Top_Cell image_cell, image ) {
-      if ( domain . find ( image_cell ) == domain . end () ) {
+      if ( set_to_decompose . find ( image_cell ) == set_to_decompose . end () ) {
         Exit . insert ( cell );
       } else {
         subgraph [ cell ] . insert ( image_cell );

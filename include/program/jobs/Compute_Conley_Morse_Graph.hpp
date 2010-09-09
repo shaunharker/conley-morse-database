@@ -81,7 +81,7 @@ void Rule_Out_Connections ( Conley_Morse_Graph * conley_morse_graph ,
     bool disjoint = true;
     for ( typename Toplex_Subset::iterator cell_iter = source_set -> begin () ;
       disjoint && ( cell_iter != source_set -> end () ) ; ++ cell_iter ) {
-      typename Toplex::Geometric_Description box = phase_space . geometry ( *cell_iter );
+      typename Toplex::Geometric_Description box = phase_space . geometry ( * cell_iter );
       for ( size_t n = 0 ; disjoint && ( n < bound ) ; ++ n ) {
         box = interval_map ( box );
         Toplex_Subset cover = phase_space . cover ( box );
@@ -234,7 +234,7 @@ void Compute_Conley_Morse_Graph ( Conley_Morse_Graph * conley_morse_graph ,
         Compute_Morse_Decomposition < Toplex , Conley_Morse_Graph , Combinatorial_Map > ( new_cmg ,
           & ( exit_path_bounds [ new_cmg ] ) , & ( entrance_path_bounds [ new_cmg ] ) ,
           & ( all_connecting_orbits [ new_cmg ] ) , & ( path_bounds [ new_cmg ] ) ,
-          & ( through_path_bound [ new_cmg ] ) , * current_set , combinatorial_map );
+          & ( through_path_bound [ new_cmg ] ) , * phase_space , * current_set , combinatorial_map );
 
         // compute the Conley indices of the constructed Morse sets
         typename Conley_Morse_Graph::VertexIteratorPair new_vertices = new_cmg -> Vertices ();
@@ -289,8 +289,8 @@ void Compute_Conley_Morse_Graph ( Conley_Morse_Graph * conley_morse_graph ,
 
   // determine which connections between Morse sets are suprious
   // and remove them from the final Conley-Morse graph
-  Rule_Out_Connections < Conley_Morse_Graph, Map , Toplex > (
-    & conley_morse_graph , connecting_orbits ,
+  Rule_Out_Connections < Conley_Morse_Graph , Map , Toplex > (
+    conley_morse_graph , connecting_orbits ,
     final_path_bounds , interval_map , * phase_space );
 
 /*
