@@ -66,10 +66,21 @@ class ConleyMorseGraph {
   ConleyMorseGraph() {
     component_accessor_ = boost::get(ComponentProperty(), graph_);
   }
+  
   /** Destruct a graph.
    *  Note that CubeSet and ConleyIndex assigned to each vertex are deleted.
    */
-  virtual ~ConleyMorseGraph() {}
+  virtual ~ConleyMorseGraph() {
+    VertexIteratorPair vertices = Vertices ();
+    for ( Conley_Morse_Graph::VertexIterator morse_set_iterator = vertices . first ;
+         morse_set_iterator != vertices . second ; ++ morse_set_iterator ) {
+      typename Toplex::Subset * morse_set = GetCubeSet ( * morse_set_iterator );
+      if ( morse_set ) delete morse_set;
+      Conley_Index_t * conley_index = GetConleyIndex ( * morse_set_iterator );
+      if ( conley_index ) delete conley_index;
+    } /* for */
+  } /* ~ConleyMorseGraph */
+  
   /** Create a new vertex and return the descriptor of the vertex.
    *  The vertex is not connected to anywhere.
    *  An empty CubeSet and ConleyIndex are allocated and
@@ -112,18 +123,18 @@ class ConleyMorseGraph {
   
   /** Get a cubeset of the vertex. */
   CubeSet* GetCubeSet(Vertex vertex) const {
-    return &component_accessor_[vertex].cube_set_;
+    return component_accessor_[vertex].cube_set_;
   }
   /** Set(copy) a cubeset to the vertex */
-  void SetCubeSet(Vertex vertex, const CubeSet &cubeset) {
+  void SetCubeSet(Vertex vertex, const CubeSet * Cubeset) {
     component_accessor_[vertex].cube_set_ = cubeset;
   }
   /** Get a Conley-Index of the vertex. */
   ConleyIndex* GetConleyIndex(Vertex vertex) const {
-    return &component_accessor_[vertex].conley_index_;
+    return component_accessor_[vertex].conley_index_;
   }
   /** Set(copy) a Conley-Index to the vertex */
-  void SetConleyIndex(Vertex vertex, const ConleyIndex &conley_index) {
+  void SetConleyIndex(Vertex vertex, const ConleyIndex * conley_index) {
     component_accessor_[vertex].conley_index_ = conley_index;
   }
 
@@ -201,8 +212,8 @@ class ConleyMorseGraph {
    *  there exist this struct because of serialization problem.
    */
   struct Component {
-    CubeSet cube_set_;
-    ConleyIndex conley_index_;
+    CubeSet * cube_set_;
+    ConleyIndex * conley_index_;
     Component() {}
     virtual ~Component() {}
     
