@@ -52,7 +52,7 @@ void Compute_Final_Sets ( std::set < typename Conley_Morse_Graph::Vertex > * all
 
     // determine the set corresponding to this pair
     std::set < typename Conley_Morse_Graph::Vertex > & new_set =
-      final_sets [ current_vertex_pair ];
+      ( * final_sets ) [ current_vertex_pair ];
 
     // if the vertex corresponds to a final Morse set then set the value
     if ( final_set_iter != final_set . end () ) {
@@ -61,7 +61,7 @@ void Compute_Final_Sets ( std::set < typename Conley_Morse_Graph::Vertex > * all
 
     // otherwise use recursion to construct the set
     else {
-      Conley_Morse_Graph * new_cmg = finer_cmg [ current_vertex_pair ];
+      const Conley_Morse_Graph * new_cmg = finer_cmg [ current_vertex_pair ];
       Compute_Final_Sets ( & new_set , final_sets , new_cmg , final_set, finer_cmg );
     }
   }
@@ -102,7 +102,7 @@ void Determine_All_Connections ( Conley_Morse_Graph * conley_morse_graph ,
     & final_sets , conley_morse_graphs [ 0 ] , final_set , finer_cmg );
 
   // for every Conley-Morse graph in the list of Conley-Morse graphs
-  for ( std::vector < Conley_Morse_Graph * >::const_iterator cmg_iter =
+  for ( typename std::vector < Conley_Morse_Graph * >::const_iterator cmg_iter =
     conley_morse_graphs . begin () ; cmg_iter != conley_morse_graphs . end () ; ++ cmg_iter ) {
 
     // for every edge in the Conley-Morse graph
