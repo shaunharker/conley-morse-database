@@ -336,11 +336,9 @@ typename DirectedGraph<Toplex>::Components computeSCC(DirectedGraph<Toplex> & G)
   typename std::vector < Vertex >::iterator vect_it;
   it = components.begin();
   while (it != components.end()) {
-    // std::cout << "comp" << std::endl;
     vect_it = (*it).begin();
     comp.clear();
     while(vect_it != (*it).end()) {
-      // std::cout << *vect_it << std::endl;
       comp.insert(*vect_it);
       ++vect_it;
     }
@@ -403,7 +401,7 @@ size_t computeLongestPathLength(
   for (size_t i = 0; i < G.size() - 1; i++) {
     graph_it = G.begin();
     while (graph_it != G.end()) {
-      if (distance[(*graph_it).first] >= 0) {
+      if (distance[(*graph_it).first] > 0) {
         edge_it = ((*graph_it).second).begin();
         while (edge_it != ((*graph_it).second).end()) {
           if (distance[(*graph_it).first] + 1 > distance[*edge_it]) {
@@ -415,6 +413,7 @@ size_t computeLongestPathLength(
       ++graph_it;
     }
   }
+
 
   if (distance[w] > 0) {
     return distance[w] - 1;
@@ -436,12 +435,12 @@ void BFLoop(DirectedGraph<Toplex> & G,
   typename Graph::Components::iterator comp_it;
   typename Graph::Component::iterator vert_it;
   typename Toplex::Subset::iterator edge_it;
-
+  
   // Main loop
   for (size_t i = 0; i < G.size() - 1; i++) {
     graph_it = G.begin();
     while (graph_it != G.end()) {
-      if (distance[(*graph_it).first] >= 0) {
+      if (distance[(*graph_it).first] > 0) {
         edge_it = ((*graph_it).second).begin();
         while (edge_it != ((*graph_it).second).end()) {
           if (distance[(*graph_it).first] + 1 > distance[*edge_it]) {
@@ -476,10 +475,9 @@ void computePathBounds(DirectedGraph<Toplex> G,
   typename Toplex::Subset::iterator comp_it;
 
   Graph H;
-  //std::vector<typename DirectedGraph<Toplex>::Vertex> V;
   std::vector<Vertex> V;
 
-  // Compute the collapsed graph
+  // Compute the collapsed graph.
   // V is a vector containing vertices of the collapsed graph
   // corresponding to strongly connected components
   H = collapseComponents(G, SCC, V);
@@ -494,6 +492,7 @@ void computePathBounds(DirectedGraph<Toplex> G,
         Graph K(H);
         for (size_t k = 0; k < nComponents; k++) {
           if ((k != i) & (k != j)) {
+            
             K.removeVertex(V[k]);
           }
         }
@@ -530,14 +529,20 @@ void computePathBounds(DirectedGraph<Toplex> G,
   // Components to Exit
   ExitPathBounds.clear();
   for (size_t i = 0; i < nComponents; i++) {
+    Graph K(H);
+    for (size_t j = 0; j < nComponents; j++) {
+      if (j != i) {
+        K.removeVertex(V[j]);
+      }
+    }
     distance.clear();
-    graph_it = H.begin();
-    while(graph_it != H.end()) {
+    graph_it = K.begin();
+    while(graph_it != K.end()) {
       distance[(*graph_it).first] = 0;
       ++graph_it;
     }
     distance[V[i]] = 1;
-    BFLoop(H, distance);
+    BFLoop(K, distance);
     size_t maxLength = 0;
     comp_it = Exit.begin();
     while (comp_it != Exit.end()) {
