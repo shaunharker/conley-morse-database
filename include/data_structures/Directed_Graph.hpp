@@ -211,10 +211,10 @@ DirectedGraph<Toplex> collapseComponents (
   Representatives.clear();
   comp_it = Components.begin();
   while (comp_it != Components.end()) {
-    vert_it = (*comp_it).begin();
+    vert_it = (*comp_it)->begin();
     compRep = (*vert_it);
     ++vert_it;
-    while (vert_it != (*comp_it).end()) {
+    while (vert_it != (*comp_it)->end()) {
       edge_it = G[*(vert_it)].begin();
       while (edge_it != G[*(vert_it)].end()) {
         result[compRep].insert(*edge_it);
@@ -287,14 +287,12 @@ typename DirectedGraph<Toplex>::Components computeSCC(DirectedGraph<Toplex> & G)
 
   typedef DirectedGraph<Toplex> Graph;
   typedef typename graph_traits<Graph>::vertex_descriptor Vertex;
-
-  typename Graph::Components result;
   
-  /* Pair Associative Container -- Vertex to Vertex or Integer or Color */
+  /* Pair Associative Container (PAC) -- Vertex to Vertex or Integer or Color (VV, VI, VC) */
   typedef std::map< Vertex, Vertex > PAC_VV_t; 
   typedef std::map< Vertex, int > PAC_VI_t; 
   typedef std::map< Vertex, default_color_type > PAC_VC_t; 
-  /* Associative Property Map -- Vertex to Integer or Color */
+  /* Associative Property Map (APM) -- Vertex to Integer or Color (VV, VI, VC) */
   typedef boost::associative_property_map< PAC_VV_t > APM_VV_t;
   typedef boost::associative_property_map< PAC_VI_t > APM_VI_t;
   typedef boost::associative_property_map< PAC_VC_t > APM_VC_t;
@@ -317,34 +315,51 @@ typename DirectedGraph<Toplex>::Components computeSCC(DirectedGraph<Toplex> & G)
   std::vector < std::vector < Vertex > > components;
   build_component_lists(G, num_scc, component_number, components);
 
-  /* Erase top cells not in attractor sets */
-  Vertex v;
-  typename std::vector < std::vector < Vertex > >::iterator it = components.begin();
-  while (it != components.end ()) {
-    if ((*it).size() == 1) {
-      v = (*it)[0];
-      if (G[v].count(v) == 0) {
-        components.erase(it);
-        --it;
-      }
-    }
-    ++it;
+  /* DETECT SPURIOUS COMPONENTS */
+  
+  //   That is, any SCC which is a singleton not connecting to itself 
+  //   is considered spurious and eliminated. Really we are not computing
+  //   SCC but Path-SCC */
+  
+  // A vector to record which components are spurious.
+  // "false" means a component is not spurious
+  // "true" means a component is spurious
+  std::vector<bool> spurious_components ( num_scc, false );
+  unsigned int number_of_path_components = 0;
+  
+  // The following loop gives "spurious_components" the correct values:
+  for ( unsigned int index = 0; index < num_scc; ++ index ) {
+    if ( components [ index ] . size () == 1) {
+      Vertex v = components [ index ] [ 0 ];
+      if ( G [v] . find ( v ) == G [ v ] . end () ) {
+        spurious_components [ component_index ] = true;
+      } else {
+        ++ number_of_path_components;
+      } /* if-else */
+    } /* if */
   }
 
-  /* Convert 'components (std::vec)' into C (Toplex::Components) */
-  typename DirectedGraph< Toplex >::Component comp;
-  typename std::vector < Vertex >::iterator vect_it;
-  it = components.begin();
-  while (it != components.end()) {
-    vect_it = (*it).begin();
-    comp.clear();
-    while(vect_it != (*it).end()) {
-      comp.insert(*vect_it);
-      ++vect_it;
-    }
-    components.erase(it);
-    result.push_back(comp);
-  }
+  /* CONVERT RESULT INTO OUTPUT FORMAT */
+  
+  // First we size the result, and "new" the "Component"s, which are
+  // "Toplex::Subset"s 
+  typename Graph::Components result ( number_of_path_components );
+  BOOST_FOREACH ( Component * & comp_ptr, result ) {
+    comp_ptr = new Component; /* ALLOCATION */
+  } /* foreach */
+  
+  // Now we copy the data 
+  unsigned int comp_index = 0;
+  unsigned int index = 0;
+  BOOST_FOREACH ( std::vector<Vertex> & vertices, components ) {
+    /* If the component is spurious, we do not record it. */
+    if ( spurious_components [ index ++ ] ) continue;
+    /* Otherwise, we copy it. */
+    typename DirectedGraph< Toplex >::Component & comp = * result [ comp_index ++ ];
+    BOOST_FOREACH ( Toplex::Top_Cell cell, vertices ) {
+      comp . insert ( cell );
+    } /* foreach */
+  } /* foreach */
 
   /* Exit the function */
   return result;
@@ -385,8 +400,8 @@ size_t computeLongestPathLength(
 
   // Iterators
   typename Graph::iterator graph_it;
-  typename Graph::Components::iterator comp_it;
-  typename Graph::Component::iterator vert_it;
+  //typename Graph::Components::iterator comp_it;
+  //typename Graph::Component::iterator vert_it;
   typename Toplex::Subset::iterator edge_it;
 
   // Initialize 'distance'
@@ -432,8 +447,8 @@ void BFLoop(DirectedGraph<Toplex> & G,
 
   // Iterators
   typename Graph::iterator graph_it;
-  typename Graph::Components::iterator comp_it;
-  typename Graph::Component::iterator vert_it;
+  //typename Graph::Components::iterator comp_it;
+  //typename Graph::Component::iterator vert_it;
   typename Toplex::Subset::iterator edge_it;
   
   // Main loop
@@ -456,10 +471,10 @@ void BFLoop(DirectedGraph<Toplex> & G,
 }
 
 template < class Toplex >
-void computePathBounds(DirectedGraph<Toplex> G,
-                       typename DirectedGraph<Toplex>::Components SCC,
-                       typename Toplex::Subset Entrance,
-                       typename Toplex::Subset Exit,
+void computePathBounds(const DirectedGraph<Toplex> & G,
+                       const typename DirectedGraph<Toplex>::Components & SCC,
+                       const typename Toplex::Subset & Entrance,
+                       const typename Toplex::Subset & Exit,
                        std::vector<size_t> & ConnectingPathBounds,
                        std::vector<size_t> & EntrancePathBounds,
                        std::vector<size_t> & ExitPathBounds,

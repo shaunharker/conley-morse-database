@@ -17,7 +17,7 @@ class DirectedGraph : public std::map < typename Toplex::Top_Cell,
 public:
   typedef typename Toplex::Top_Cell Vertex;
   typedef typename Toplex::Subset Component;
-  typedef std::vector<Component> Components;
+  typedef std::vector<Component *> Components;
 
   // Constructor
   DirectedGraph() { };
@@ -83,10 +83,12 @@ size_t computeLongestPathLength(
 // Remark: the 'length' is defined to be the number of edges inside
 // the graph
 template < class Toplex >
-void computePathBounds(DirectedGraph<Toplex> G,
-                       typename DirectedGraph<Toplex>::Components SCC,
-                       typename Toplex::Subset Entrance,
-                       typename Toplex::Subset Exit,
+void computePathBounds(/* inputs */
+                       const DirectedGraph<Toplex> & G,
+                       const typename DirectedGraph<Toplex>::Components & SCC,
+                       const typename Toplex::Subset & Entrance,
+                       const typename Toplex::Subset & Exit,
+                       /* outputs */
                        std::vector<size_t> & ConnectingPathBounds,
                        std::vector<size_t> & EntrancePathBounds,
                        std::vector<size_t> & ExitPathBounds,
