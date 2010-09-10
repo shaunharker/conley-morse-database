@@ -21,7 +21,7 @@ const Real param_upper_bounds [PARAM_DIMENSION] = { 3.0, 50.0 };
 
 const Geometric_Description param_bounds ( PARAM_DIMENSION , std::vector<Real> ( param_lower_bounds, 
                                                       param_lower_bounds + PARAM_DIMENSION ), 
-                                  std::vector<Real> ( param_upper_bounds, 
+                                                      std::vector<Real> ( param_upper_bounds, 
                                                       param_upper_bounds + PARAM_DIMENSION ) );
 
 /* Phase Space */

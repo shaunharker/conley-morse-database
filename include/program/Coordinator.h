@@ -39,7 +39,7 @@ class Coordinator : public CoordinatorBase {
   size_t num_jobs_sent_;
   size_t num_jobs_received_;
   std::vector < Toplex_Subset > PS_patches;
-  Toplex PS_Toplex;
+  Toplex param_toplex;
   Toplex_Cached_Box_Map PS_Toplex_Cached_Info;
 };
 

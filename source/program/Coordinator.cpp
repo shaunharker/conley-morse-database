@@ -34,7 +34,7 @@ Coordinator::Coordinator(int argc, char **argv) {
   /// Number of patches
   size_t num_patches = 1;
   for (size_t i = 0; i < param_dim; ++i) {
-    patch_sides_length [i] = (PS_Bounds . upper_bounds [i] - PS_Bounds . lower_bounds [i]) / subdivisions_per_side;
+    patch_sides_length [i] = (param_bounds . upper_bounds [i] - param_bounds . lower_bounds [i]) / subdivisions_per_side;
 	num_patches *= subdivisions_per_side;
   }
 
@@ -49,7 +49,7 @@ Coordinator::Coordinator(int argc, char **argv) {
      factor *= (i == 0) ? 1 : subdivisions_per_side;
       size_t index = (n / factor) % subdivisions_per_side;
 	  /// Compute bounding box for the patch
-	  patch_lower_bounds [i] = PS_Bounds . lower_bounds [i] + index * patch_sides_length [i];
+	  patch_lower_bounds [i] = param_bounds . lower_bounds [i] + index * patch_sides_length [i];
 	  patch_upper_bounds [i] = patch_lower_bounds [i] + intersect_factor * patch_sides_length [i];
     }
 
@@ -69,7 +69,7 @@ Coordinator::Coordinator(int argc, char **argv) {
         if (PS_patches [j] . find (cell) != PS_patches [j] . end ()) {
           /// Add an entry to the map of Cached_Box_Information
           Cached_Box_Information cached_box_info;
-          param_toplex_Cached_Info . insert (Toplex_Cached_Box_Pair (cell, cached_box_info));
+          PS_Toplex_Cached_Info . insert (Toplex_Cached_Box_Pair (cell, cached_box_info));
         }
       }
     }
@@ -114,8 +114,8 @@ CoordinatorBase::State Coordinator::Prepare(Message *job) {
 	/// Add the pair (top_cell, key) to the indices map
     cells_indices_map . insert ( std::pair <Toplex::Top_Cell, size_t> (* param_toplex . find (*it), key) );
     /// Insert cached box info into the map if there is any
-	if (param_toplex_Cached_Info . find (*it) != param_toplex_Cached_Info . end ())
-      patch_cached_info . insert (Patch_Cached_Box_Pair (key, param_toplex_Cached_Info . find (*it) -> second));
+	if (PS_Toplex_Cached_Info . find (*it) != PS_Toplex_Cached_Info . end ())
+      patch_cached_info . insert (Patch_Cached_Box_Pair (key, PS_Toplex_Cached_Info . find (*it) -> second));
   }
 
   /// Adjacency information vector
