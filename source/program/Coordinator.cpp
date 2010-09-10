@@ -19,20 +19,23 @@ Coordinator::Coordinator(int argc, char **argv) {
     for (Toplex::const_iterator it = PS_Toplex . begin (); it != PS_Toplex . end (); ++it)
       PS_Toplex . subdivide (it);
   }
-  
+
   if (maxPatchSize < 2)
     maxPatchSize = 2;
 
   /// Minimum number of parameter patches
   size_t min_num_patches = static_cast <size_t> (PS_Toplex . size () / maxPatchSize) + 1;
   /// Number of subdivisons per side
-  size_t subdivisions_per_side = static_cast <size_t > (std::ceil (std::exp (std::log (min_num_patches) / param_dim)));
+  size_t subdivisions_per_side = std::ceil (std::exp (std::log (min_num_patches) / param_dim));
 
   /// Lenghts of the sides of the patch
   std::vector < Real > patch_sides_length (param_dim);
 
+  /// Number of patches
+  size_t num_patches = 1;
   for (size_t i = 0; i < param_dim; ++i) {
     patch_sides_length [i] = (PS_Bounds . upper_bounds [i] - PS_Bounds . lower_bounds [i]) / subdivisions_per_side;
+	num_patches *= subdivisions_per_side;
   }
 
   /// Bounds for the patch bounding box
@@ -40,26 +43,23 @@ Coordinator::Coordinator(int argc, char **argv) {
   std::vector < Real > patch_upper_bounds (param_dim);
 
   /// Create all the patches
-  for (size_t k = 0; k < subdivisions_per_side; ++k) {
-    for (size_t n = 0; n < subdivisions_per_side; ++n) {
-	  for (size_t j = 0; j < param_dim; ++j) {
-	    /// Compute bounding box for the patch
-		size_t factor = (j == 0) ? n : k;
-	    patch_lower_bounds [j] = PS_Bounds . lower_bounds [j] + factor * patch_sides_length [j];
-	    patch_upper_bounds [j] = patch_lower_bounds [j] + intersect_factor * patch_sides_length [j];
-	  }
-
-	  /// Construct the patch toplex
-	  Geometric_Description patch_bounds (param_dim, patch_lower_bounds, patch_upper_bounds);
-	  Toplex_Subset patch_subset = PS_Toplex . cover ( patch_bounds );
-
-	  /// Add  patch to the vector of patches
-	  PS_patches . push_back (patch_subset);
+  for (size_t n = 0; n < num_patches; ++n) {
+    size_t factor = 1;
+    for (size_t i = 0; i < param_dim; ++i) {
+     factor *= (i == 0) ? 1 : subdivisions_per_side;
+      size_t index = (n / factor) % subdivisions_per_side;
+	  /// Compute bounding box for the patch
+	  patch_lower_bounds [i] = PS_Bounds . lower_bounds [i] + index * patch_sides_length [i];
+	  patch_upper_bounds [i] = patch_lower_bounds [i] + intersect_factor * patch_sides_length [i];
     }
-  }
 
-  /// Number of patches
-  size_t num_patches = PS_patches . size();
+    /// Construct the patch toplex
+    Geometric_Description patch_bounds (param_dim, patch_lower_bounds, patch_upper_bounds);
+    Toplex_Subset patch_subset = PS_Toplex . cover ( patch_bounds );
+
+    /// Add  patch to the vector of patches
+    PS_patches . push_back (patch_subset);
+  }
 
   /// Create a map with Cached_Box_Information for the intersecting boxes
   for (size_t i = 0; i < num_patches; ++i) {
