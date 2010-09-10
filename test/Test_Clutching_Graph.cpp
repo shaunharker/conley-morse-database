@@ -1,5 +1,5 @@
 
-bool Check_If_Intersect(int x, int y)
+bool Check_if_Intersect(int dummy_x, int x, int dummy_y, int y)
 {
   return x==y;
 }
@@ -44,6 +44,9 @@ class DummyPatch {
   /** Return a pointer to C-M Graph related to that paramter */
   CMGraph* GetCMGraph(ParamBoxDescriptor d) const {
     return graphs_[d];
+  }
+  int* GetToplex(ParamBoxDescriptor d) const {
+    return NULL;
   }
   
   /** Return a pair of iterators for all parameter boxes */
@@ -131,27 +134,27 @@ int main(int argc, char *argv[])
 
   /* true is assumed, because two graph is the same  */
   VertexPairs<CMGraph> pairs11;
-  std::cout << ClutchingTwoGraphs(cmgraph1, cmgraph1, &pairs11) << std::endl;
+  std::cout << ClutchingTwoGraphs(cmgraph1, cmgraph1, 0, 0, &pairs11) << std::endl;
   ShowVertexPairs(cmgraph1, toplexes1, cmgraph1, toplexes1, pairs11);
 
   /* false is assumed */
   VertexPairs<CMGraph> pairs12;
-  std::cout << ClutchingTwoGraphs(cmgraph1, cmgraph2, &pairs12) << std::endl;
+  std::cout << ClutchingTwoGraphs(cmgraph1, cmgraph2, 0, 0, &pairs12) << std::endl;
   ShowVertexPairs(cmgraph1, toplexes1, cmgraph2, toplexes2, pairs12);
 
   /* false is assumed, because cmgraph3 is larger than cmgraph1 */
   VertexPairs<CMGraph> pairs13;
-  std::cout << ClutchingTwoGraphs(cmgraph1, cmgraph3, &pairs13) << std::endl;
+  std::cout << ClutchingTwoGraphs(cmgraph1, cmgraph3, 0, 0, &pairs13) << std::endl;
   ShowVertexPairs(cmgraph1, toplexes1, cmgraph3, toplexes3, pairs13);
 
   /* true is assumed, because cmgraph4 has shuffled data of cmgraph1 */
   VertexPairs<CMGraph> pairs14;
-  std::cout << ClutchingTwoGraphs(cmgraph1, cmgraph4, &pairs14) << std::endl;
+  std::cout << ClutchingTwoGraphs(cmgraph1, cmgraph4, 0, 0, &pairs14) << std::endl;
   ShowVertexPairs(cmgraph1, toplexes1, cmgraph4, toplexes4, pairs14);
 
   /* false is assumed */
   VertexPairs<CMGraph> pairs24;
-  std::cout << ClutchingTwoGraphs(cmgraph2, cmgraph4, &pairs24) << std::endl;
+  std::cout << ClutchingTwoGraphs(cmgraph2, cmgraph4, 0, 0, &pairs24) << std::endl;
   ShowVertexPairs(cmgraph2, toplexes2, cmgraph4, toplexes4, pairs24);
 
   /* test for Union-Find */
@@ -190,7 +193,7 @@ int main(int argc, char *argv[])
   };
   DummyPatch<CMGraph> dummy_patch(graphs, graphs+8);
   std::vector<std::vector<int> > ret;
-  ClutchingGraph<CMGraph, DummyPatch<CMGraph> >(dummy_patch, &ret);
+  ClutchingGraph<CMGraph, DummyPatch<CMGraph>, int>(dummy_patch, &ret);
 
   ShowVectorOfVectors<int>(ret);
   
@@ -220,7 +223,9 @@ int main(int argc, char *argv[])
     }
   }
 
-  Patch<CMGraph> patch(graphs_for_patch, neighbours);
+  std::vector<int> dummy_toplexes(8, 0);
+  
+  Patch<CMGraph, int> patch(graphs_for_patch, dummy_toplexes, neighbours);
 
   BOOST_FOREACH (size_t n, patch.ParamBoxes()) {
     std::cout << n << " ";
@@ -233,7 +238,7 @@ int main(int argc, char *argv[])
   std::cout << std::endl;
 
   std::vector<std::vector<size_t> > ret2;
-  ClutchingGraph<CMGraph, Patch<CMGraph> >(patch, &ret2);
+  ClutchingGraph<CMGraph, Patch<CMGraph,int>, int>(patch, &ret2);
   ShowVectorOfVectors(ret2);
   
   std::cout << "--" << std::endl;

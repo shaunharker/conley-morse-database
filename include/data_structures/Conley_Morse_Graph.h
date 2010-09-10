@@ -23,6 +23,7 @@
  *  NOTE: This class doesn't validate acyclic condition.
  *  NOTE: Cubeset and Graph must be default-constructable.
  *  NOTE: ConleyIndex must be serializable.
+ *  TODO: Add a field for a phase space toplex.
  */
 template<class CubeSet_t, class ConleyIndex_t>
 class ConleyMorseGraph {

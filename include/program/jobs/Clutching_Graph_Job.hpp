@@ -12,6 +12,7 @@
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/map.hpp>
 #include "program/Configuration.h"
+#include "program/jobs/Compute_Conley_Morse_Graph.h"
 
 /** Quotient Set class.
  *  Holds all equivalent classes using union-find structure.
@@ -184,10 +185,12 @@ class VertexPairs {
  * 
  *  NOTE: now infromation of edges is not used
  */
-template<class CMGraph>
+template<class CMGraph, class Toplex>
 bool ClutchingTwoGraphs(
     const CMGraph &graph1,
     const CMGraph &graph2,
+    const Toplex &toplex1,
+    const Toplex &toplex2,
     VertexPairs<CMGraph> *pairs) {
   typedef typename CMGraph::Vertex Vertex;
 
@@ -200,7 +203,7 @@ bool ClutchingTwoGraphs(
   BOOST_FOREACH (Vertex v1, graph1.Vertices()) {
     int n = 0;
     BOOST_FOREACH (Vertex v2, graph2.Vertices()) {
-      if (Check_if_Intersect(graph1.CubeSet(v1), graph2.CubeSet(v2))) {
+      if (Check_if_Intersect(toplex1, graph1.CubeSet(v1), toplex2, graph2.CubeSet(v2))) {
         if (pairs)
           pairs->Add(v1, v2);
         
@@ -231,7 +234,7 @@ bool ClutchingTwoGraphs(
   return result;
 }
 
-template<class CMGraph>
+template<class CMGraph, class Toplex>
 class Patch {
  public:
   typedef size_t ParamBoxDescriptor;
@@ -242,8 +245,10 @@ class Patch {
   typedef std::pair<AdjParamBoxIterator, AdjParamBoxIterator> AdjParamBoxIteratorPair;
     
   Patch(const std::vector<CMGraph> &cmgraphs,
+        const std::vector<Toplex> &toplexes,
         const std::vector<std::vector <size_t> > &neighbours)
-      : cmgraphs_(cmgraphs) {
+      : cmgraphs_(cmgraphs),
+        toplexes_(toplexes) {
     for (size_t i=0; i < neighbours.size(); i++) {
       BOOST_FOREACH (size_t j, neighbours[i]) {
         pairs_.push_back(std::pair<size_t, size_t>(i,j));
@@ -255,6 +260,10 @@ class Patch {
   const CMGraph* GetCMGraph(ParamBoxDescriptor d) const {
     return &cmgraphs_[d];
   }
+  const Toplex* GetToplex(ParamBoxDescriptor d) const {
+    return &toplexes_[d];
+  }
+  
   ParamBoxIteratorPair ParamBoxes() const {
     return ParamBoxIteratorPair(boost::make_counting_iterator((size_t)0),
                                 boost::make_counting_iterator(cmgraphs_.size()));
@@ -265,6 +274,7 @@ class Patch {
   }
  private:
   const std::vector<CMGraph> &cmgraphs_;
+  const std::vector<Toplex> &toplexes_;
   AdjParamPairs pairs_;
 };
 
@@ -272,7 +282,7 @@ class Patch {
  *
  *  NOTE: *ret must be empty
  */
-template<class CMGraph, class Patch>
+template<class CMGraph, class Patch, class Toplex>
 void ClutchingGraph(
     const Patch &patch,
     std::vector<std::vector<typename Patch::ParamBoxDescriptor> > *ret) {
@@ -289,7 +299,9 @@ void ClutchingGraph(
     if (!quotient_set.Find(p1, p2)) {
       const CMGraph *graph1 = patch.GetCMGraph(p1);
       const CMGraph *graph2 = patch.GetCMGraph(p2);
-      if (ClutchingTwoGraphs<CMGraph>(*graph1, *graph2, NULL))
+      const Toplex *toplex1 = patch.GetToplex(p1);
+      const Toplex *toplex2 = patch.GetToplex(p2);
+      if (ClutchingTwoGraphs<CMGraph>(*graph1, *graph2, *toplex1, *toplex2, NULL))
         quotient_set.Union(p1, p2);
     }
   }
@@ -318,24 +330,30 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   job >> cache_info;
   job >> neighbour;
 
+  std::vector<Toplex> phase_space_toplexes(geometric_descriptions.size());
+                                            
   std::vector<CMGraph> conley_morse_graphs(geometric_descriptions.size());
   std::vector<std::vector<size_t> > equivalent_classes;
 
   for (size_t n=0; n<N; n++) {
+    phase_space_toplexes[n].initialize(space_bounds);
 #if 0
     std::map<size_t, Cached_Box_Information>::iterator it = cache_info.find(n);
     Cached_Box_Information* info = (it == cache_info.end()) ? NULL : &(it->second);
-    Compute_Conley_Morse_Graph(&conley_morse_graphs[n],
-                               ....,
-                               geometric_descriptions[n],
-                               ....,
-                               ....,
-                               info);
+    Compute_Conley_Morse_Graph
+        <CMGraph, Toplex, ParameterToplex, LeslieMap , Decide_Subdiv ,
+        Decide_Conley_Index , Cached_Box_Information >
+      (&conley_morse_graphs[n],
+       &phase_space_toplexes[n],
+       geometric_descriptions[n],
+       decide_subdiv,
+       decide_conley_index,
+       info);
 #endif
   }
 
-  Patch<CMGraph> patch(conley_morse_graphs, neighbour);
-  ClutchingGraph<CMGraph, Patch<CMGraph> >(patch, &equivalent_classes);
+  Patch<CMGraph, Toplex> patch(conley_morse_graphs, phase_space_toplexes, neighbour);
+  ClutchingGraph<CMGraph, Patch<CMGraph, Toplex>, Toplex>(patch, &equivalent_classes);
 
   *result << job_number;
   *result << cache_info;
