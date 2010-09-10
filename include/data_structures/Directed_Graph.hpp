@@ -341,8 +341,7 @@ void computeSCC
   for ( unsigned int index = 0; index < num_scc; ++ index ) {
     if ( components [ index ] . size () == 1) {
       Vertex v = components [ index ] [ 0 ];
-      if ( G . find (v) -> second . find ( v ) == 
-           G . find (v) -> second . end () ) {
+      if ( G(v) . find ( v ) == G(v) . end () ) {
         spurious_components [ index ] = true;
         continue;
       } /* if */
