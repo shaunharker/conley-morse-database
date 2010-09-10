@@ -105,8 +105,7 @@ void Compute_Path_Bounds ( std::map < typename Conley_Morse_Graph::Edge , size_t
   }
 } /* Compute_Path_Bounds */
 
-// This function return the pointer to the common finest conley morse graph.
-
+// This function returns the pointer to the common finest conley morse graph.
 template< class Conley_Morse_Graph >
 Conley_Morse_Graph const * Search_Common_Finest_Conley_Morse_Graph( std::vector< Conley_Morse_Graph const * > &coarserCMGSourceVertex,
                                                                     std::vector< Conley_Morse_Graph const * > &coarserCMGTargetVertex ) {
