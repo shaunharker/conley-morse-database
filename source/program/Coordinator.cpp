@@ -7,24 +7,24 @@
 
 Coordinator::Coordinator(int argc, char **argv) {
   size_t maxPatchSize = MAX_PATCH_SIZE; /// Maximum size of a patch in parameter space
-  size_t param_dim = PS_DIMENSION;      /// Parameter space dimension
-  PS_Toplex . initialize (PS_Bounds);   /// Parameter space toplex
+  size_t param_dim = PARAM_DIMENSION;      /// Parameter space dimension
+  param_toplex . initialize (param_bounds);   /// Parameter space toplex
 
   /// Factor of the size of patch side that intersect next patch
   Real intersect_factor = 0.5;
 
   /// Subdivide parameter space toplex
-  for (int i = 0; i < PS_SUBDIVISIONS; ++i) {
+  for (int i = 0; i < PARAM_SUBDIVISIONS; ++i) {
     intersect_factor /= 2.0;  /// Make intersect_factor x box_side equal half the size of a cell
-    for (Toplex::const_iterator it = PS_Toplex . begin (); it != PS_Toplex . end (); ++it)
-      PS_Toplex . subdivide (it);
+    for (Toplex::const_iterator it = param_toplex . begin (); it != param_toplex . end (); ++it)
+      param_toplex . subdivide (it);
   }
 
   if (maxPatchSize < 2)
     maxPatchSize = 2;
 
   /// Minimum number of parameter patches
-  size_t min_num_patches = static_cast <size_t> (PS_Toplex . size () / maxPatchSize) + 1;
+  size_t min_num_patches = static_cast <size_t> (param_toplex . size () / maxPatchSize) + 1;
   /// Number of subdivisons per side
   size_t subdivisions_per_side = static_cast <size_t> (std::ceil (std::exp (std::log (min_num_patches) / param_dim)));
 
@@ -55,7 +55,7 @@ Coordinator::Coordinator(int argc, char **argv) {
 
     /// Construct the patch toplex
     Geometric_Description patch_bounds (param_dim, patch_lower_bounds, patch_upper_bounds);
-    Toplex_Subset patch_subset = PS_Toplex . cover ( patch_bounds );
+    Toplex_Subset patch_subset = param_toplex . cover ( patch_bounds );
 
     /// Add  patch to the vector of patches
     PS_patches . push_back (patch_subset);
@@ -69,7 +69,7 @@ Coordinator::Coordinator(int argc, char **argv) {
         if (PS_patches [j] . find (cell) != PS_patches [j] . end ()) {
           /// Add an entry to the map of Cached_Box_Information
           Cached_Box_Information cached_box_info;
-          PS_Toplex_Cached_Info . insert (Toplex_Cached_Box_Pair (cell, cached_box_info));
+          param_toplex_Cached_Info . insert (Toplex_Cached_Box_Pair (cell, cached_box_info));
         }
       }
     }
@@ -108,14 +108,14 @@ CoordinatorBase::State Coordinator::Prepare(Message *job) {
 
   size_t key = 0;
   for (Toplex_Subset::const_iterator it = patch_subset . begin (); it != patch_subset . end (); ++it, ++key) {
-    Geometric_Description Cell_GD = PS_Toplex . geometry (PS_Toplex . find (*it));
+    Geometric_Description Cell_GD = param_toplex . geometry (param_toplex . find (*it));
 	/// Add geometric description to the vector of geo descriptions
     geometric_descriptions . push_back ( Cell_GD );
 	/// Add the pair (top_cell, key) to the indices map
-    cells_indices_map . insert ( std::pair <Toplex::Top_Cell, size_t> (* PS_Toplex . find (*it), key) );
+    cells_indices_map . insert ( std::pair <Toplex::Top_Cell, size_t> (* param_toplex . find (*it), key) );
     /// Insert cached box info into the map if there is any
-	if (PS_Toplex_Cached_Info . find (*it) != PS_Toplex_Cached_Info . end ())
-      patch_cached_info . insert (Patch_Cached_Box_Pair (key, PS_Toplex_Cached_Info . find (*it) -> second));
+	if (param_toplex_Cached_Info . find (*it) != param_toplex_Cached_Info . end ())
+      patch_cached_info . insert (Patch_Cached_Box_Pair (key, param_toplex_Cached_Info . find (*it) -> second));
   }
 
   /// Adjacency information vector
@@ -124,10 +124,10 @@ CoordinatorBase::State Coordinator::Prepare(Message *job) {
   /// Find adjacency information for cells in the patch
   BOOST_FOREACH ( Toplex::Top_Cell cell_in_patch, patch_subset ) {
     /// Find geometric description for the cell
-    Geometric_Description Cell_GD = PS_Toplex . geometry (PS_Toplex . find (cell_in_patch));
+    Geometric_Description Cell_GD = param_toplex . geometry (param_toplex . find (cell_in_patch));
 
 	/// Cover the geometric description in the toplex to get the neighbors
-    Toplex_Subset Cell_GD_Cover = PS_Toplex . cover ( Cell_GD );
+    Toplex_Subset Cell_GD_Cover = param_toplex . cover ( Cell_GD );
 
     /// For all cells in the cover
     BOOST_FOREACH ( Toplex::Top_Cell cell_in_cover, Cell_GD_Cover ) {
@@ -176,7 +176,7 @@ void Coordinator::Process(const Message &result) {
   size_t key = 0;
   for (Toplex_Subset::const_iterator it = patch_results . begin (); it != patch_results . end (); ++it, ++key) {
     if (patch_cached_info . find (key) != patch_cached_info . end ()) {
-	  PS_Toplex_Cached_Info . insert (Toplex_Cached_Box_Pair (* PS_Toplex . find (*it), patch_cached_info . find (key) -> second));
+	  PS_Toplex_Cached_Info . insert (Toplex_Cached_Box_Pair (* param_toplex . find (*it), patch_cached_info . find (key) -> second));
 	}
   }
 
@@ -189,11 +189,19 @@ void Coordinator::Process(const Message &result) {
   std::cout << "Job " << job_number << " complete!" << std::endl;
   std::cout << "Number of CM Graphs computed: " << conley_morse_graphs . size() << std::endl;
 
-
   /// Save the Conley Morse graphs
   for (size_t i = 0; i < num_cells; ++i) {
-    // std::cout << conley_morse_graphs [i] << std::endl;
+    std::cout << "Graph with " << conley_morse_graphs [i] . NumVertices() << " vertices." << std::endl;
+
+    BOOST_FOREACH (Conley_Morse_Graph::Vertex vert_from, conley_morse_graphs [i] . Vertices ()) {
+      std::cout << conley_morse_graphs [i] . CubeSet (vert_from) << " -> ";
+	  BOOST_FOREACH (Conley_Morse_Graph::Vertex vert_to, conley_morse_graphs [i] . OutEdges (vert_from)) {
+        std::cout << conley_morse_graphs [i] . CubeSet (vert_to) << " ";
+      }
+      std::cout << std::endl;
+    }
   }
+  std::cout << std::endl;
 
   /// Save the equivalence class information
   for (size_t i = 0; i < num_cells; ++i) {
