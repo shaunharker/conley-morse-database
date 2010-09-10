@@ -247,8 +247,8 @@ class Patch {
   }
   
   /** Return a pointer to C-M Graph related to that paramter */
-  CMGraph* GetCMGraph(ParamBoxDescriptor d) const {
-    return cmgraphs_[d];
+  const CMGraph* GetCMGraph(ParamBoxDescriptor d) const {
+    return &cmgraphs_[d];
   }
   ParamBoxIteratorPair ParamBoxes() const {
     return ParamBoxIteratorPair(boost::make_counting_iterator((size_t)0),
@@ -329,9 +329,10 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
                                info);
 #endif
   }
-#if 0
-  ClutchingGraph(..., &equivalent_classes);
-#endif
+
+  Patch<CMGraph> patch(conley_morse_graphs, neighbour);
+  ClutchingGraph<CMGraph, Patch<CMGraph> >(patch, &equivalent_classes);
+
   result->open_for_writing();
   *result << job_number;
   *result << cache_info;
