@@ -25,7 +25,7 @@ void Compute_Morse_Decomposition ( Conley_Morse_Graph * conley_morse_graph ,
 
   // Compute Morse sets along with their entrance and exit sets
   
-  std::vector < typename Toplex::Subset * > morse_sets;
+  std::vector < typename Toplex::Subset > morse_sets;
   std::vector < typename Toplex::Subset > morse_exits;
   std::vector < typename Toplex::Subset > morse_entrances;
   
@@ -57,7 +57,7 @@ void Compute_Morse_Decomposition ( Conley_Morse_Graph * conley_morse_graph ,
   for ( size_t index = 0; index < morse_sets . size (); ++ index ) {      
     typename Conley_Morse_Graph::Vertex new_vertex = conley_morse_graph -> AddVertex ();
     vertex_indexing [ index ] = new_vertex;
-    conley_morse_graph -> SetCubeSet ( new_vertex, morse_sets [ index ] );
+    std::swap ( conley_morse_graph -> CubeSet ( new_vertex ), morse_sets [ index ] );
     std::swap ( exit_subsets -> operator [] ( new_vertex ), morse_exits [ index ] );
     exit_path_bounds -> operator [] ( new_vertex ) = ExitPathBounds [ index ];
     std::swap ( entrance_subsets -> operator [] ( new_vertex ), morse_entrances [ index ] );

@@ -282,7 +282,7 @@ typename Toplex::Subset DirectedGraph<Toplex>::operator () ( const typename Topl
 #include <boost/graph/strong_components.hpp>
 template < class Toplex >
 void computeSCC 
-(std::vector < typename Toplex::Subset * > * morse_sets,
+(std::vector < typename Toplex::Subset > * morse_sets,
  std::vector < typename Toplex::Subset > * entrance_sets,
  std::vector < typename Toplex::Subset > * exit_sets,
  const typename Toplex::Subset & entrance,
@@ -352,10 +352,6 @@ void computeSCC
   morse_sets -> resize ( number_of_path_components );
   entrance_sets -> resize ( number_of_path_components );
   exit_sets -> resize ( number_of_path_components );
-
-  for ( unsigned int index = 0; index < number_of_path_components; ++ index ) {
-    morse_sets -> operator [] ( index ) = new typename Toplex::Subset;
-  } /* for */
   
   // Now we copy the data 
   unsigned int comp_index = 0;
@@ -365,7 +361,7 @@ void computeSCC
     if ( spurious_components [ index ++ ] ) continue;
     /* Otherwise, we copy it. */
     typename DirectedGraph< Toplex >::Component & morse_set = 
-      * ( * morse_sets ) [ comp_index ];
+      ( * morse_sets ) [ comp_index ];
     typename DirectedGraph< Toplex >::Component & entrance_set = 
       ( * entrance_sets ) [ comp_index ];
     typename DirectedGraph< Toplex >::Component & exit_set = 
