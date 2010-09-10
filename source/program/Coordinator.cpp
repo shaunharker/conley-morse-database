@@ -191,17 +191,18 @@ void Coordinator::Process(const Message &result) {
 
   /// Save the Conley Morse graphs
   for (size_t i = 0; i < num_cells; ++i) {
-    std::cout << "Graph with " << conley_morse_graphs [i] . NumVertices() << " vertices." << std::endl;
+//    std::cout << "Graph with " << conley_morse_graphs [i] . NumVertices() << " vertices." << std::endl;
 
     BOOST_FOREACH (Conley_Morse_Graph::Vertex vert_from, conley_morse_graphs [i] . Vertices ()) {
-      std::cout << conley_morse_graphs [i] . CubeSet (vert_from) << " -> ";
+//      std::cout << conley_morse_graphs [i] . CubeSet (vert_from) << " -> ";
 	  BOOST_FOREACH (Conley_Morse_Graph::Vertex vert_to, conley_morse_graphs [i] . OutEdges (vert_from)) {
-        std::cout << conley_morse_graphs [i] . CubeSet (vert_to) << " ";
+//        std::cout << conley_morse_graphs [i] . CubeSet (vert_to) << " ";
       }
-      std::cout << std::endl;
+//      std::cout << std::endl;
     }
   }
-  std::cout << std::endl;
+//  std::cout << std::endl;
+
 
   /// Save the equivalence class information
   for (size_t i = 0; i < num_cells; ++i) {
