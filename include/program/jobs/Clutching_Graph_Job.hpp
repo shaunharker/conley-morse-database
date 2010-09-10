@@ -9,6 +9,9 @@
 #include <vector>
 #include "data_structures/Cached_Box_Information.h"
 #include <boost/iterator_adaptors.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/map.hpp>
+#include "program/Configuration.h"
 
 /** Quotient Set class.
  *  Holds all equivalent classes using union-find structure.
@@ -197,7 +200,7 @@ bool ClutchingTwoGraphs(
   BOOST_FOREACH (Vertex v1, graph1.Vertices()) {
     int n = 0;
     BOOST_FOREACH (Vertex v2, graph2.Vertices()) {
-      if (Check_If_Intersect(graph1.CubeSet(v1), graph2.CubeSet(v2))) {
+      if (Check_if_Intersect(graph1.CubeSet(v1), graph2.CubeSet(v2))) {
         if (pairs)
           pairs->Add(v1, v2);
         
@@ -210,11 +213,13 @@ bool ClutchingTwoGraphs(
         if (!used.insert(v2).second)
           result = false;
 
+#if 0
         /* if two intersected components have different properties,
            the two graphs does not
            share the "same" structure */
         result = result &&
                  (graph1.ConleyIndex(v1) == graph2.ConleyIndex(v2));
+#endif
       }
     }
     /* if a reccurent set in one C-M graph intersects
@@ -306,23 +311,22 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   std::vector<std::vector<size_t> > neighbour;
   const size_t N = geometric_descriptions.size();
   
-  typedef ConleyMorseGraph<typename Toplex::Toplex_Subset, ConleyIndex> CMGraph;
+  typedef ConleyMorseGraph<typename Toplex::Subset, ConleyIndex> CMGraph;
   
-  job.open_for_reading();
   job >> job_number;
   job >> geometric_descriptions;
   job >> cache_info;
   job >> neighbour;
-  job.close();
 
   std::vector<CMGraph> conley_morse_graphs(geometric_descriptions.size());
   std::vector<std::vector<size_t> > equivalent_classes;
 
   for (size_t n=0; n<N; n++) {
 #if 0
-    std::map<size_t, Cached_Box_Information> it = cache_info.find(n);
-    Cached_Box_Information* info = (it == cache_info.end()) ? NULL : &(*it);
+    std::map<size_t, Cached_Box_Information>::iterator it = cache_info.find(n);
+    Cached_Box_Information* info = (it == cache_info.end()) ? NULL : &(it->second);
     Compute_Conley_Morse_Graph(&conley_morse_graphs[n],
+                               ....,
                                geometric_descriptions[n],
                                ....,
                                ....,
@@ -333,10 +337,8 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   Patch<CMGraph> patch(conley_morse_graphs, neighbour);
   ClutchingGraph<CMGraph, Patch<CMGraph> >(patch, &equivalent_classes);
 
-  result->open_for_writing();
   *result << job_number;
   *result << cache_info;
   *result << conley_morse_graphs;
   *result << equivalent_classes;
-  result->close();
 }
