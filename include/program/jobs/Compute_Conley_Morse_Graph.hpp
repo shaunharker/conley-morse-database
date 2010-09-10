@@ -321,7 +321,7 @@ void Compute_Conley_Morse_Graph ( Conley_Morse_Graph * conley_morse_graph ,
           // move or compute its Conley index
           Conley_Index_t & conley_index ( current_cmg -> ConleyIndex ( current_vertex ) );
           if ( conley_index . undefined () && decide_conley_index . compute_final ( current_set ) ) {
-            Conley_Index ( & conley_index , * phase_space , current_set , combinatorial_map );
+            Conley_Index ( & conley_index , * phase_space , current_set , interval_map );
           }
           std::swap ( conley_morse_graph -> ConleyIndex ( new_vertex ) ,
             current_cmg -> ConleyIndex ( current_vertex ) );
@@ -378,7 +378,7 @@ void Compute_Conley_Morse_Graph ( Conley_Morse_Graph * conley_morse_graph ,
           // compute the Conley index if requested to 
           if ( decide_conley_index . compute_after_subdivision ( subdiv , new_set ) ) {
             Conley_Index_t & conley_index ( new_cmg -> ConleyIndex ( new_vertex ) );
-            Conley_Index ( & conley_index , * phase_space , new_set , combinatorial_map );
+            Conley_Index ( & conley_index , * phase_space , new_set , interval_map );
           }
         }
 
