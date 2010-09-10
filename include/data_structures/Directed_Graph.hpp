@@ -401,6 +401,8 @@ DirectedGraph<Toplex> compute_directed_graph (const typename Toplex::Subset & my
   return directed_graph;
 } /* compute_directed_graph */
   
+
+#if 1
 // Compute the length of the longest path from v to w
 // assuming the graph is acyclic
 template < class Toplex >
@@ -616,3 +618,63 @@ void computePathBounds(std::vector<size_t> * ConnectingPathBounds,
   
   return;
 }
+
+#endif
+
+
+#if 0
+
+// Compute the lengths of the longest paths beginning in a source set "Source"
+// and terminating at any given vertex of the graph. (A result of zero means either
+// a) the vertex was in the source or b) no such path exists)
+template < class Toplex >
+void LongestPathLengths(std::map <typename DirectedGraph<Toplex>::Vertex, size_t> * distance,
+                    const typename Toplex::Subset Source,
+                    const DirectedGraph<Toplex> & G )
+{
+} /* LongestPathLengths */
+
+template < class Toplex >
+void computePathBounds(std::vector<size_t> * ConnectingPathBounds,
+                       std::vector<size_t> * EntrancePathBounds,
+                       std::vector<size_t> * ExitPathBounds,
+                       size_t * ThruPathBound,
+                       const DirectedGraph<Toplex> & G,
+                       const typename DirectedGraph<Toplex>::Components & SCC,
+                       const typename Toplex::Subset & Entrance,
+                       const typename Toplex::Subset & Exit )
+{
+  
+  typedef DirectedGraph<Toplex> Graph;
+  typedef typename DirectedGraph<Toplex>::Vertex Vertex;
+  typedef typename DirectedGraph<Toplex>::Components Components;
+  //  size_t n = G.size();
+  size_t nComponents = SCC.size();
+  typename Graph::iterator graph_it;
+  typename Toplex::Subset::const_iterator comp_it;
+  
+  Graph H;
+  std::vector<Vertex> V;
+  
+  // Compute the collapsed graph.
+  // V is a vector containing vertices of the collapsed graph
+  // corresponding to strongly connected components
+  H = collapseComponents(G, SCC, V);
+  
+  
+  
+  // Entrance to Components
+  
+  // Entrance to Exit
+
+  // Components to Components and Exit
+
+  
+  
+  
+  
+  return;
+}
+
+#endif
+
