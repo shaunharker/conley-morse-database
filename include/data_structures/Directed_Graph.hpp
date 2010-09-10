@@ -258,8 +258,13 @@ DirectedGraph<Toplex> collapseComponents (
 }
 
 template < class Toplex >
-typename Toplex::Subset DirectedGraph<Toplex>::operator () ( const typename Toplex::Top_Cell & cell ) {
+typename Toplex::Subset & DirectedGraph<Toplex>::operator () ( const typename Toplex::Top_Cell & cell ) {
   return operator [] ( cell );
+} /* DirectedGraph<Toplex>::operator () for Top Cells */
+
+template < class Toplex >
+const typename Toplex::Subset & DirectedGraph<Toplex>::operator () ( const typename Toplex::Top_Cell & cell ) const {
+  return find ( cell ) -> second;
 } /* DirectedGraph<Toplex>::operator () for Top Cells */
 
 // typename Toplex::Subset DirectedGraph<Toplex>::operator () ( const typename Toplex::Subset & subset ) {
@@ -484,9 +489,9 @@ void BFLoop(std::map <typename DirectedGraph<Toplex>::Vertex, size_t> * in_dista
           if ( distance[ *vert_it ] + 1 > distance[ *adj_it]) {
             distance[ *adj_it ] = distance[ *vert_it ] + 1;
           } /* if */
-        } /* while */
+        } /* for */
       } /* if */
-    } /* while */
+    } /* for */
   } /* for */
   return;
 } /* BFLoop */
@@ -628,10 +633,33 @@ void computePathBounds(std::vector<size_t> * ConnectingPathBounds,
 // and terminating at any given vertex of the graph. (A result of zero means either
 // a) the vertex was in the source or b) no such path exists)
 template < class Toplex >
-void LongestPathLengths(std::map <typename DirectedGraph<Toplex>::Vertex, size_t> * distance,
-                    const typename Toplex::Subset Source,
-                    const DirectedGraph<Toplex> & G )
+void LongestPathLengths(std::map <typename DirectedGraph<Toplex>::Vertex, size_t> * in_distance,
+                        const typename Toplex::Subset Source,
+                        const std::vector<typename DirectedGraph<Toplex>::Vertex> & top_sorted_vertices,
+                        const DirectedGraph<Toplex> & G )
 {
+  std::map <typename DirectedGraph<Toplex>::Vertex, size_t> & distance = * in_distance;
+  distance . clear ();
+  
+  /* Loop through the vertices of G in topologically sorted order */
+  vertex_iterator vert_it, vert_end;
+  
+  /* Initialize the distance structure with 0 */
+  BOOST_FOREACH ( Vertex v, top_sorted_vertices ) {
+    distance [ v ] = 0;
+  } /* boost_foreach */
+  
+  BOOST_FOREACH ( Vertex v, top_sorted_vertices ) {
+    if ( distance [ v ] > 0 || Source . find ( v ) != Source . end () ) {    
+      /* Loop through the adjacent vertices of v */
+      adjacency_iterator adj_it, adj_end;
+      for (boost::tie ( adj_it, adj_end ) = boost::adjacent_vertices ( v, G ); 
+           adj_it != adj_end; ++ adj_it ) {
+        if ( distance[ v ] + 1 > distance[ *adj_it]) distance[ *adj_it ] = distance[ v ] + 1;
+      } /* for */
+    } /* if */
+  } /* for */
+  
 } /* LongestPathLengths */
 
 template < class Toplex >
@@ -654,7 +682,9 @@ void computePathBounds(std::vector<size_t> * ConnectingPathBounds,
   std::vector<Vertex> V;
   Graph H = collapseComponents(G, SCC, V);
   
-  
+  std::vector<Vertex> top_sorted_vertices ( H . size () );
+  boost::topological_sort(H, top_sorted_vertices . rbegin () );
+
   std::map <typename DirectedGraph<Toplex>::Vertex, size_t> distance;
   
   /* Compute lengths beginning from the Entrance set.
@@ -662,7 +692,7 @@ void computePathBounds(std::vector<size_t> * ConnectingPathBounds,
        entrance -> components
        entrance -> exit
      path length upper bounds */
-  LongestPathLengths ( &distance, Entrance, H )
+  LongestPathLengths ( &distance, Entrance, top_sorted_vertices, H )
   
   // Entrance to Components
   for ( size_t i = 0; i < V . size (); ++ i ) {
@@ -680,7 +710,7 @@ void computePathBounds(std::vector<size_t> * ConnectingPathBounds,
   for ( size_t i = 0; i < V . size (); ++ i ) {
     typename Toplex::Subset source;
     source . insert ( V [ i ] );
-    LongestPathLengths ( &distance, source, H );
+    LongestPathLengths ( &distance, source, top_sorted_vertices, H );
     for ( size_t j = 0; j < V . size (); ++ j ) {
       ConnectingPathBounds [ index ++ ] = distance [ V [ j ] ];
     } /* for */

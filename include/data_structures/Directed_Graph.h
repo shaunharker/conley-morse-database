@@ -29,7 +29,8 @@ public:
   void removeVertex(Vertex);
       
   // Functional Notation when Directed Graph is considered as a Combinatorial Map
-  typename Toplex::Subset operator () ( const typename Toplex::Top_Cell & );
+  typename Toplex::Subset & operator () ( const typename Toplex::Top_Cell & );
+  const typename Toplex::Subset & operator () ( const typename Toplex::Top_Cell & ) const;
   typename Toplex::Subset operator () ( const typename Toplex::Subset & );
 
 private:
