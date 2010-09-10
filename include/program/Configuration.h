@@ -27,8 +27,8 @@ const Geometric_Description param_bounds ( PARAM_DIMENSION , std::vector<Real> (
 /* Phase Space */
 #define SPACE_DIMENSION 2
 
-const Real space_lower_bounds [PARAM_DIMENSION] = { 8.0, 37.0 };
-const Real space_upper_bounds [PARAM_DIMENSION] = { 3.0, 50.0 };
+const Real space_lower_bounds [PARAM_DIMENSION] = { 0.0, 200.0 };
+const Real space_upper_bounds [PARAM_DIMENSION] = { 0.0, 200.0 };
 
 const Geometric_Description space_bounds ( SPACE_DIMENSION , std::vector<Real> ( space_lower_bounds, 
                                                       space_lower_bounds + SPACE_DIMENSION ), 
