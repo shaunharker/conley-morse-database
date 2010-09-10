@@ -64,6 +64,9 @@ void Compute_Final_Sets ( std::set < typename Conley_Morse_Graph::Vertex > * all
       const Conley_Morse_Graph * new_cmg = finer_cmg [ current_vertex_pair ];
       Compute_Final_Sets ( & new_set , final_sets , new_cmg , final_set, finer_cmg );
     }
+
+    // add the set to the union of these sets
+    all_of_them -> insert ( new_set . begin () , new_set . end () );
   }
   return;
 } /* Compute_Final_Sets */
