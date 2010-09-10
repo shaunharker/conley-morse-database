@@ -209,6 +209,10 @@ int main(int argc, char *argv[])
     { -1, },
   };
 
+  std::vector<CMGraph> graphs_for_patch;
+  for (int i=0; i<8; i++) {
+    graphs_for_patch.push_back(*graphs[i]);
+  }
   std::vector<std::vector<size_t> > neighbours;
   
   for (int i=0; i<8; i++) {
@@ -217,7 +221,31 @@ int main(int argc, char *argv[])
       neighbours.back().push_back(neighbour_array[i][j]);
     }
   }
+
+  Patch<CMGraph> patch(graphs_for_patch, neighbours);
+
+  BOOST_FOREACH (size_t n, patch.ParamBoxes()) {
+    std::cout << n << " ";
+  }
+  std::cout << std::endl;
+  std::pair<size_t, size_t> p;
+  BOOST_FOREACH (p , patch.AdjecentBoxPairs()) {
+    std::cout << "(" << p.first << "," << p.second << ")" << " ";
+  }
+  std::cout << std::endl;
+
+  std::vector<std::vector<size_t> > ret2;
+  ClutchingGraph<CMGraph, Patch<CMGraph> >(patch, &ret2);
+  BOOST_FOREACH (std::vector<size_t> &t, ret2) {
+    std::cout << "(";
+    BOOST_FOREACH (size_t& s, t) {
+      std::cout << s << ",";
+    }
+    std::cout << ")";
+  }
+  
   std::cout << "--" << std::endl;
+
   
   return 0;
 }
