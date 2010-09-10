@@ -13,6 +13,8 @@
 #include <boost/function.hpp>
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
+#include <boost/shared_ptr.hpp>
+#include <boost/serialization/shared_ptr.hpp>
 
 /** Conley-Morse Graph.
  *  It is the directed acyclic graph whose vertices have a
@@ -22,7 +24,7 @@
  *  NOTE: Cubeset and Graph must be default-constructable.
  *  NOTE: ConleyIndex must be serializable.
  */
-template<class CubeSet, class ConleyIndex>
+template<class CubeSet_t, class ConleyIndex_t>
 class ConleyMorseGraph {
  private:
   struct Component;
@@ -71,15 +73,7 @@ class ConleyMorseGraph {
    *  Note that CubeSet and ConleyIndex assigned to each vertex are deleted.
    */
   virtual ~ConleyMorseGraph() {
-    VertexIteratorPair vertices = Vertices ();
-    for ( VertexIterator morse_set_iterator = vertices . first ;
-         morse_set_iterator != vertices . second ; ++ morse_set_iterator ) {
-      CubeSet * morse_set = GetCubeSet ( * morse_set_iterator );
-      if ( morse_set ) delete morse_set;
-      ConleyIndex * conley_index = GetConleyIndex ( * morse_set_iterator );
-      if ( conley_index ) delete conley_index;
-    } /* for */
-  } /* ~ConleyMorseGraph */
+  }
   
   /** Create a new vertex and return the descriptor of the vertex.
    *  The vertex is not connected to anywhere.
@@ -122,20 +116,19 @@ class ConleyMorseGraph {
   bool PathExists(Vertex from, Vertex to) const;
   
   /** Get a cubeset of the vertex. */
-  CubeSet* GetCubeSet(Vertex vertex) const {
-    return component_accessor_[vertex].cube_set_;
+  CubeSet_t &CubeSet(Vertex vertex) {
+    return *component_accessor_[vertex].cube_set_;
   }
-  /** Set(copy) a cubeset to the vertex */
-  void SetCubeSet(Vertex vertex, CubeSet * cubeset) {
-    component_accessor_[vertex].cube_set_ = cubeset;
+  const CubeSet_t &CubeSet(Vertex vertex) const {
+    return *component_accessor_[vertex].cube_set_;
   }
+  
   /** Get a Conley-Index of the vertex. */
-  ConleyIndex* GetConleyIndex(Vertex vertex) const {
-    return component_accessor_[vertex].conley_index_;
+  const ConleyIndex_t &ConleyIndex(Vertex vertex) const {
+    return *component_accessor_[vertex].conley_index_;
   }
-  /** Set(copy) a Conley-Index to the vertex */
-  void SetConleyIndex(Vertex vertex, ConleyIndex * conley_index) {
-    component_accessor_[vertex].conley_index_ = conley_index;
+  ConleyIndex_t &ConleyIndex(Vertex vertex) {
+    return *component_accessor_[vertex].conley_index_;
   }
 
   /** Return a index of the vertex.
@@ -210,11 +203,16 @@ class ConleyMorseGraph {
 
   /** struct of each component, which has a pointer to cubeset and conley index.
    *  there exist this struct because of serialization problem.
-   */
+   *  boost::shared_ptr is used because serialization library support
+   *  boost::shared_ptr (auto_ptr is sufficient, but we cannot serialization)
+   */ 
   struct Component {
-    CubeSet * cube_set_;
-    ConleyIndex * conley_index_;
-    Component() {}
+    boost::shared_ptr<CubeSet_t> cube_set_;
+    boost::shared_ptr<ConleyIndex_t> conley_index_;
+    Component()
+        : cube_set_(boost::shared_ptr<CubeSet_t>(new CubeSet_t())),
+          conley_index_(boost::shared_ptr<ConleyIndex_t>(new ConleyIndex_t())) {}
+    
     virtual ~Component() {}
     
     template<class Archive>

@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <vector>
 #include "data_structures/Cached_Box_Information.h"
-
+#include <boost/iterator_adaptors.hpp>
 
 /** Quotient Set class.
  *  Holds all equivalent classes using union-find structure.
@@ -197,7 +197,7 @@ bool ClutchingTwoGraphs(
   BOOST_FOREACH (Vertex v1, graph1.Vertices()) {
     int n = 0;
     BOOST_FOREACH (Vertex v2, graph2.Vertices()) {
-      if (Check_If_Intersect(*graph1.GetCubeSet(v1), *graph2.GetCubeSet(v2))) {
+      if (Check_If_Intersect(graph1.CubeSet(v1), graph2.CubeSet(v2))) {
         if (pairs)
           pairs->Add(v1, v2);
         
@@ -214,7 +214,7 @@ bool ClutchingTwoGraphs(
            the two graphs does not
            share the "same" structure */
         result = result &&
-                 (*graph1.GetConleyIndex(v1) == *graph2.GetConleyIndex(v2));
+                 (graph1.ConleyIndex(v1) == graph2.ConleyIndex(v2));
       }
     }
     /* if a reccurent set in one C-M graph intersects
@@ -225,6 +225,43 @@ bool ClutchingTwoGraphs(
   }
   return result;
 }
+
+template<class CMGraph>
+class Patch {
+ public:
+  typedef size_t ParamBoxDescriptor;
+  typedef boost::counting_iterator<size_t> ParamBoxIterator;
+  typedef std::vector<std::pair<size_t, size_t> > AdjParamPairs;
+  typedef std::pair<ParamBoxIterator, ParamBoxIterator> ParamBoxIteratorPair;
+  typedef AdjParamPairs::const_iterator AdjParamBoxIterator;
+  typedef std::pair<AdjParamBoxIterator, AdjParamBoxIterator> AdjParamBoxIteratorPair;
+    
+  Patch(const std::vector<CMGraph> &cmgraphs,
+        const std::vector<std::vector <size_t> > &neighbours)
+      : cmgraphs_(cmgraphs) {
+    for (size_t i=0; i < neighbours.size(); i++) {
+      BOOST_FOREACH (size_t j, neighbours[i]) {
+        pairs_.push_back(std::pair<size_t, size_t>(i,j));
+      }
+    }
+  }
+  
+  /** Return a pointer to C-M Graph related to that paramter */
+  CMGraph* GetCMGraph(ParamBoxDescriptor d) const {
+    return cmgraphs_[d];
+  }
+  ParamBoxIteratorPair ParamBoxes() const {
+    return ParamBoxIteratorPair(boost::make_counting_iterator((size_t)0),
+                                boost::make_counting_iterator(cmgraphs_.size()));
+  }
+
+  AdjParamBoxIteratorPair AdjecentBoxPairs() const {
+    return AdjParamBoxIteratorPair(pairs_.begin(), pairs_.end());
+  }
+ private:
+  const std::vector<CMGraph> &cmgraphs_;
+  AdjParamPairs pairs_;
+};
 
 /** Compute an equivalent classes and fill the result to "ret".
  *

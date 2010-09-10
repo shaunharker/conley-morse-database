@@ -9,7 +9,7 @@ int main ( int argc, char * argv [] ) {
 
   for (int i=0; i<4; i++) {
     v[i] = cmgraph.AddVertex();
-    cmgraph.SetCubeSet(v[i], n + i);
+    cmgraph.CubeSet(v[i]) = n[i];
   }
 
   cmgraph.AddEdge(v[0], v[1]);
@@ -17,14 +17,14 @@ int main ( int argc, char * argv [] ) {
   cmgraph.AddEdge(v[1], v[2]);
   cmgraph.AddEdge(v[2], v[3]);
   BOOST_FOREACH (CMGraph::Vertex x, cmgraph.OutEdges(v[0])) {
-    std::cout << *cmgraph.GetCubeSet(x) << std::endl;
+    std::cout << cmgraph.CubeSet(x) << std::endl;
   }
   BOOST_FOREACH (CMGraph::Vertex x, cmgraph.InEdges(v[2])) {
-    std::cout << *cmgraph.GetCubeSet(x) << std::endl;
+    std::cout << cmgraph.CubeSet(x) << std::endl;
   }
   BOOST_FOREACH (CMGraph::Edge e, cmgraph.Edges()) {
-    std::cout << "(" << *cmgraph.GetCubeSet(cmgraph.Source(e)) << " "
-              << *cmgraph.GetCubeSet(cmgraph.Target(e)) << ") " ;
+    std::cout << "(" << cmgraph.CubeSet(cmgraph.Source(e)) << " "
+              << cmgraph.CubeSet(cmgraph.Target(e)) << ") " ;
   }
   std::cout << std::endl;
   

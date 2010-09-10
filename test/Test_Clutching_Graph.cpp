@@ -69,8 +69,8 @@ void SetupCMGraph(CMGraph *graph, std::vector<CMGraph::Vertex> *vertices,
   for (int i=0; i<num_vertices; i++) {
     CMGraph::Vertex v = graph->AddVertex();
     vertices->push_back(v);
-    graph->SetCubeSet(v, toplexes + i);
-    graph->SetConleyIndex(v, indices + i);
+    graph->CubeSet(v) = toplexes[i];
+    graph->ConleyIndex(v) = indices[i];
   }
 }
 
@@ -183,9 +183,9 @@ int main(int argc, char *argv[])
     &cmgraph1, &cmgraph1, &cmgraph4, &cmgraph2,
     &cmgraph2, &cmgraph1, &cmgraph3, &cmgraph3,
   };
-  DummyPatch<CMGraph> patch(graphs, graphs+8);
+  DummyPatch<CMGraph> dummy_patch(graphs, graphs+8);
   std::vector<std::vector<int> > ret;
-  ClutchingGraph<CMGraph, DummyPatch<CMGraph> >(patch, &ret);
+  ClutchingGraph<CMGraph, DummyPatch<CMGraph> >(dummy_patch, &ret);
 
   BOOST_FOREACH (std::vector<int> &t, ret) {
     std::cout << "(";
@@ -195,6 +195,29 @@ int main(int argc, char *argv[])
     std::cout << ")";
   }
   std::cout << std::endl;
+  
+  /* test for class Patch */
+  std::cout << "--" << std::endl;
+  int neighbour_array[8][9] = {
+    { 1, 4, -1 },
+    { 2, 5, -1 },
+    { 3, 6, -1},
+    { 7, -1},
+    { 5, -1},
+    { 6, -1},
+    { 7, -1},
+    { -1, },
+  };
+
+  std::vector<std::vector<size_t> > neighbours;
+  
+  for (int i=0; i<8; i++) {
+    neighbours.push_back(std::vector<size_t>());
+    for (int j=0; neighbour_array[i][j] != -1; j++) {
+      neighbours.back().push_back(neighbour_array[i][j]);
+    }
+  }
+  std::cout << "--" << std::endl;
   
   return 0;
 }
