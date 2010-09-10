@@ -455,7 +455,7 @@ size_t computeLongestPathLength(
   } else {
     return 0;
   }
-}
+} /* computeLongestPathLength */
 
 // The main loop of 
 template < class Toplex >
@@ -470,6 +470,8 @@ void BFLoop(DirectedGraph<Toplex> & G,
   //typename Graph::Components::iterator comp_it;
   //typename Graph::Component::iterator vert_it;
   typename Toplex::Subset::iterator edge_it;
+  
+  if ( G . size () ) == 0 ) return;
   
   // Main loop
   for (size_t i = 0; i < G.size() - 1; i++) {
