@@ -5,7 +5,9 @@
 #ifndef _CMDP_COMPUTE_PATH_BOUNDS_HPP_
 #define _CMDP_COMPUTE_PATH_BOUNDS_HPP_
 
-// In this version, I consider only the direct path between morse sets. This MUST be modified.
+// In this version, I consider only the direct path between morse sets.
+// I don't handle the possibility that connecting orbits can touch some morse sets in their paths.
+// This MUST be modified later.
 template < class Conley_Morse_Graph >
 void Compute_Path_Bounds ( std::map < typename Conley_Morse_Graph::Edge , size_t > *return_path_bounds ,
                            const Conley_Morse_Graph & conley_morse_graph ,
@@ -63,9 +65,11 @@ void Compute_Path_Bounds ( std::map < typename Conley_Morse_Graph::Edge , size_t
         // They don't belong to the same conley morse graph, that means that there are no connections between them.
         return_path_bounds->insert( std::pair< typename Conley_Morse_Graph::Edge, size_t >( edge, 0 ) );
       } else {
-        // They belong to the same conley morse graph in some coarser scales and have a connection.
-        typename std::vector< Conley_Morse_Graph const * >::iterator itrCommonFinestCMGSourceVertex( std::find( coarserCMGSourceVertex.begin(), coarserCMGSourceVertex.end(), coarserCMGSourceVertex.back() ) );
-        typename std::vector< Conley_Morse_Graph const * >::iterator itrCommonFinestCMGTargetVertex( std::find( coarserCMGTargetVertex.begin(), coarserCMGTargetVertex.end(), coarserCMGTargetVertex.back() ) );
+        // They belong to the same conley morse graph in some coarser scales.
+        // Retrieve the common finest conley morse graph.
+        Conley_Morse_Graph const *commonFinestCMG( Search_Common_Finest_Conley_Morse_Graph( coarserCMGSourceVertex, coarserCMGTargetVertex ) );
+        typename std::vector< Conley_Morse_Graph const * >::iterator itrCommonFinestCMGSourceVertex( std::find( coarserCMGSourceVertex.begin(), coarserCMGSourceVertex.end(), commonFinestCMG ) );
+        typename std::vector< Conley_Morse_Graph const * >::iterator itrCommonFinestCMGTargetVertex( std::find( coarserCMGTargetVertex.begin(), coarserCMGTargetVertex.end(), commonFinestCMG ) );
         
         // Get a path length between Morse sets at the common coarser level
         // This considers only the direct connection, and MUST be modified later.
@@ -100,6 +104,20 @@ void Compute_Path_Bounds ( std::map < typename Conley_Morse_Graph::Edge , size_t
     }
   }
 } /* Compute_Path_Bounds */
+
+// This function return the pointer to the common finest conley morse graph.
+
+template< class Conley_Morse_Graph >
+Conley_Morse_Graph const * Search_Common_Finest_Conley_Morse_Graph( std::vector< Conley_Morse_Graph const * > &coarserCMGSourceVertex,
+                                                                    std::vector< Conley_Morse_Graph const * > &coarserCMGTargetVertex ) {
+  typename std::vector< Conley_Morse_Graph const * >::reverse_iterator itrCMGSource( coarserCMGSourceVertex.rbegin() );
+  typename std::vector< Conley_Morse_Graph const * >::reverse_iterator itrCMGTarget( coarserCMGTargetVertex.rbegin() );
+  while ( *itrCMGSource == *itrCMGTarget ) {
+    ++itrCMGSource;
+    ++itrCMGTarget;
+  }
+  return *( itrCMGTarget - 1 );
+} /* Search_Common_Finest_Conley_Morse_Graph */
 
 // This function returns a vector of pointers to coaser conley morse graphs
 template< class Conley_Morse_Graph >
