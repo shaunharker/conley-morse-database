@@ -183,6 +183,13 @@ void Coordinator::Process(const Message &result) {
   /// Number of parameter cells in this patch
   size_t num_cells = patch_results . size ();
 
+
+  /// Temporary output
+  std::cout << std::endl;
+  std::cout << "Job " << job_number << " complete!" << std::endl;
+  std::cout << "Number of CM Graphs computed: " << conley_morse_graphs . size() << std::endl;
+
+
   /// Save the Conley Morse graphs
   for (size_t i = 0; i < num_cells; ++i) {
     // std::cout << conley_morse_graphs [i] << std::endl;
