@@ -647,34 +647,51 @@ void computePathBounds(std::vector<size_t> * ConnectingPathBounds,
   
   typedef DirectedGraph<Toplex> Graph;
   typedef typename DirectedGraph<Toplex>::Vertex Vertex;
-  typedef typename DirectedGraph<Toplex>::Components Components;
-  //  size_t n = G.size();
-  size_t nComponents = SCC.size();
-  typename Graph::iterator graph_it;
-  typename Toplex::Subset::const_iterator comp_it;
-  
-  Graph H;
-  std::vector<Vertex> V;
   
   // Compute the collapsed graph.
   // V is a vector containing vertices of the collapsed graph
   // corresponding to strongly connected components
-  H = collapseComponents(G, SCC, V);
+  std::vector<Vertex> V;
+  Graph H = collapseComponents(G, SCC, V);
   
   
+  std::map <typename DirectedGraph<Toplex>::Vertex, size_t> distance;
+  
+  /* Compute lengths beginning from the Entrance set.
+     From this information we can compute the 
+       entrance -> components
+       entrance -> exit
+     path length upper bounds */
+  LongestPathLengths ( &distance, Entrance, H )
   
   // Entrance to Components
-  
+  for ( size_t i = 0; i < V . size (); ++ i ) {
+    (*EntrancePathBounds)[i] = distance [ V [ i ] ];
+  } /* for */
+
   // Entrance to Exit
-
+  *ThruPathBound = 0;
+  BOOST_FOREACH ( Vertex v, Exit ) {
+    if ( distance [ v ] > *ThruPathBound ) *ThruPathBound = distance [ v ];
+  } /* boost_foreach */
+  
   // Components to Components and Exit
-
+  size_t index = 0;
+  for ( size_t i = 0; i < V . size (); ++ i ) {
+    typename Toplex::Subset source;
+    source . insert ( V [ i ] );
+    LongestPathLengths ( &distance, source, H );
+    for ( size_t j = 0; j < V . size (); ++ j ) {
+      ConnectingPathBounds [ index ++ ] = distance [ V [ j ] ];
+    } /* for */
+    
+    (*ExitPathBounds)[i] = 0;
+    BOOST_FOREACH ( Vertex v, Exit ) {
+      if ( distance [ v ] > (*ExitPathBounds)[i] ) (*ExitPathBounds)[i] = distance [ v ];
+    } /* boost_foreach */
+  } /* for */
   
-  
-  
-  
-  return;
-}
+} /* computePathBounds */
 
 #endif
 

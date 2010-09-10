@@ -3,17 +3,17 @@
  */
 
 #include "program/Worker.h"
+#include "program/jobs/Clutching_Graph_Job.h"
+#include "toplexes/Adaptive_Cubical_Toplex.h" /* For Toplex */
+#include "algorithms/Homology.h" /* for Conley_Index_t */
+
+using namespace Adaptive_Cubical;
+
 // #include <unistd.h>
 
-/* Sample worker */
 Worker::Worker(int argc, char **argv) {
 }
 
-/* sample worker, double the integer */
 void Worker::Work(Message * result, const Message &job) {
-  int data;
-  // sleep(2);
-  job >> data;
-  result->tag = 1;
-  *result << data*2;
+  Clutching_Graph_Job < Toplex, Toplex, Conley_Index_t > ( result , job ); 
 }
