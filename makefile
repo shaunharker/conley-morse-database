@@ -6,7 +6,7 @@ CAPDDIR := $(HOMEDIR)/capd
 CHOMPDIR := $(HOMEDIR)/chomp-rutgers
 BOOSTDIR := $(HOMEDIR)/boost_1_42_0
 LIBDIR = -L$(BOOSTDIR)/stage/lib/ -L$(CHOMPDIR)/lib/
-LIBS = -static $(LIBDIR) -lboost_serialization -lchomp-rutgers
+LIBS = $(LIBDIR) -lboost_serialization -lchomp-rutgers
 CXXFLAGS := -O3 -m64 -Wall -I./include/ -I$(CAPDDIR)/include -I$(CHOMPDIR)/include -Wno-deprecated -I$(BOOSTDIR) 
 
 
@@ -29,16 +29,16 @@ TESTS: Test_Morse_Graph Test_Single_Box_Job Test_Clutching_Graph
 DATABASE_OBJECTS = Conley_Morse_Database.o Message.o Communicator.o Worker.o Coordinator.o
 
 Conley_Morse_Database: $(DATABASE_OBJECTS)
-        $(CXX_STANDALONE) $(DATABASE_OBJECTS) -o Conley_Morse_Database $(LIBS)
+	$(CXX_STANDALONE) $(DATABASE_OBJECTS) -o Conley_Morse_Database $(LIBS)
 
 Test_Morse_Graph: Test_Morse_Graph.o
-        $(CXX_STANDALONE) Test_Morse_Graph.o -o $@ $(LIBS)
+	$(CXX_STANDALONE) Test_Morse_Graph.o -o $@ $(LIBS)
 
 Test_Single_Box_Job: Test_Single_Box_Job.o
-        $(CXX_STANDALONE) Test_Single_Box_Job.o -o $@ $(LIBS)
+	$(CXX_STANDALONE) Test_Single_Box_Job.o -o $@ $(LIBS)
 
 Test_Clutching_Graph: Test_Clutching_Graph.o
-        $(CXX_STANDALONE) Test_Clutching_Graph.o -o $@ $(LIBS)
+	$(CXX_STANDALONE) Test_Clutching_Graph.o -o $@ $(LIBS)
 # Conley_Morse_Database.o: Message.o Communicator.o                                                                
 
 Message.o: Message.h
@@ -49,4 +49,4 @@ Communicator.o: Communicator.h
 
 .PHONY: clean
 clean:
-        rm *.o
+	rm *.o
