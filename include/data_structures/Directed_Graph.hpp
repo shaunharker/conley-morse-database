@@ -459,38 +459,39 @@ size_t computeLongestPathLength(
 
 // The main loop of 
 template < class Toplex >
-void BFLoop(DirectedGraph<Toplex> & G,
-            std::map <typename DirectedGraph<Toplex>::Vertex, size_t> & distance)
+void BFLoop(std::map <typename DirectedGraph<Toplex>::Vertex, size_t> * in_distance,
+            const DirectedGraph<Toplex> & G )
 {
+  /* Refer to output by reference */
+  std::map <typename DirectedGraph<Toplex>::Vertex, size_t> & distance = * in_distance;
+  /* Typedefs */
   typedef DirectedGraph<Toplex> Graph;
-  typedef typename DirectedGraph<Toplex>::Vertex Vertex;
-
-  // Iterators
-  typename Graph::iterator graph_it;
-  //typename Graph::Components::iterator comp_it;
-  //typename Graph::Component::iterator vert_it;
-  typename Toplex::Subset::iterator edge_it;
+  typedef typename boost::graph_traits<Graph>::vertex_iterator vertex_iterator;
+  typedef typename boost::graph_traits<Graph>::adjacency_iterator adjacency_iterator;
   
-  if ( G . size () ) == 0 ) return;
-  
+  if ( G . size () == 0 ) return;  
   // Main loop
+  /* Loop |G| - 1 times. */
   for (size_t i = 0; i < G.size() - 1; i++) {
-    graph_it = G.begin();
-    while (graph_it != G.end()) {
-      if (distance[(*graph_it).first] > 0) {
-        edge_it = ((*graph_it).second).begin();
-        while (edge_it != ((*graph_it).second).end()) {
-          if (distance[(*graph_it).first] + 1 > distance[*edge_it]) {
-            distance[*edge_it] = distance[(*graph_it).first] + 1;
-          }
-          ++edge_it;
-        }
-      }
-      ++graph_it;
-    }
-  }
+    /* "Relax" every edge in the graph: */
+    /* Loop through the vertices of G */
+    vertex_iterator vert_it, vert_end;
+    for (boost::tie ( vert_it, vert_end ) = boost::vertices ( G );
+         vert_it != vert_end; ++ vert_it ) {
+      if ( distance[ * vert_it ] > 0) {
+        /* Loop through the adjacent vertices of *vert_it */
+        adjacency_iterator adj_it, adj_end;
+        for (boost::tie ( adj_it, adj_end ) = boost::adjacent_vertices ( *vert_it, G );
+             adj_it != adj_end; ++ adj_it ) {
+          if ( distance[ *vert_it ] + 1 > distance[ *adj_it]) {
+            distance[ *adj_it ] = distance[ *vert_it ] + 1;
+          } /* if */
+        } /* while */
+      } /* if */
+    } /* while */
+  } /* for */
   return;
-}
+} /* BFLoop */
 
 template < class Toplex >
 void computePathBounds(std::vector<size_t> * ConnectingPathBounds,
@@ -559,7 +560,7 @@ void computePathBounds(std::vector<size_t> * ConnectingPathBounds,
       }
       ++graph_it;
     }
-    BFLoop(K, distance);
+    BFLoop(&distance, K);
     EntrancePathBounds -> push_back(distance[V[i]]);
   }
 
@@ -579,7 +580,7 @@ void computePathBounds(std::vector<size_t> * ConnectingPathBounds,
       ++graph_it;
     }
     distance[V[i]] = 1;
-    BFLoop(K, distance);
+    BFLoop(&distance, K);
     size_t maxLength = 0;
     comp_it = Exit.begin();
     while (comp_it != Exit.end()) {
@@ -606,7 +607,7 @@ void computePathBounds(std::vector<size_t> * ConnectingPathBounds,
     }
     ++graph_it;
   }
-  BFLoop(K, distance);
+  BFLoop(&distance, K);
   size_t maxLength = 0;
   comp_it = Exit.begin();
   while (comp_it != Exit.end()) {
