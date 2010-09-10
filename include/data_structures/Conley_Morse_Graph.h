@@ -20,7 +20,7 @@
  *  It is the directed acyclic graph whose vertices have a
  *  Cubeset and a ConleyIndex.
  *
- *  NOTE: this class doesn't validate acyclic condition.
+ *  NOTE: This class doesn't validate acyclic condition.
  *  NOTE: Cubeset and Graph must be default-constructable.
  *  NOTE: ConleyIndex must be serializable.
  */
@@ -117,18 +117,18 @@ class ConleyMorseGraph {
   
   /** Get a cubeset of the vertex. */
   CubeSet_t &CubeSet(Vertex vertex) {
-    return *component_accessor_[vertex].cube_set_;
+    return component_accessor_[vertex].cube_set_;
   }
   const CubeSet_t &CubeSet(Vertex vertex) const {
-    return *component_accessor_[vertex].cube_set_;
+    return component_accessor_[vertex].cube_set_;
   }
   
   /** Get a Conley-Index of the vertex. */
   const ConleyIndex_t &ConleyIndex(Vertex vertex) const {
-    return *component_accessor_[vertex].conley_index_;
+    return component_accessor_[vertex].conley_index_;
   }
   ConleyIndex_t &ConleyIndex(Vertex vertex) {
-    return *component_accessor_[vertex].conley_index_;
+    return component_accessor_[vertex].conley_index_;
   }
 
   /** Return a index of the vertex.
@@ -203,15 +203,13 @@ class ConleyMorseGraph {
 
   /** struct of each component, which has a pointer to cubeset and conley index.
    *  there exist this struct because of serialization problem.
-   *  boost::shared_ptr is used because serialization library support
-   *  boost::shared_ptr (auto_ptr is sufficient, but we cannot serialization)
+   * 
+   *  TODO: use boost::shared_ptr
    */ 
   struct Component {
-    boost::shared_ptr<CubeSet_t> cube_set_;
-    boost::shared_ptr<ConleyIndex_t> conley_index_;
-    Component()
-        : cube_set_(boost::shared_ptr<CubeSet_t>(new CubeSet_t())),
-          conley_index_(boost::shared_ptr<ConleyIndex_t>(new ConleyIndex_t())) {}
+    CubeSet_t cube_set_;
+    ConleyIndex_t conley_index_;
+    Component() {}
     
     virtual ~Component() {}
     
