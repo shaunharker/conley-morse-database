@@ -87,6 +87,18 @@ void ShowVertexPairs(const CMGraph &graph1, const int *ptr1,
   std::cout << std::endl;
 }
 
+template<class T>
+void ShowVectorOfVectors(const std::vector<std::vector<T> > &vect) {
+  BOOST_FOREACH (const std::vector<T> &t, vect) {
+    std::cout << "(";
+    BOOST_FOREACH (const T& s, t) {
+      std::cout << s << ",";
+    }
+    std::cout << ")";
+  }
+  std::cout << std::endl;
+}
+
 int main(int argc, char *argv[])
 {
   /* test for ClutchingTwoGraphs */
@@ -167,15 +179,8 @@ int main(int argc, char *argv[])
   std::cout << u.Find(12, 15) << std::endl;
   std::cout << u.Find(12, 14) << std::endl;
   u.FillToVector(&vect);
-  
-  BOOST_FOREACH (std::vector<int> &t, vect) {
-    std::cout << "(";
-    BOOST_FOREACH (int& s, t) {
-      std::cout << s << ",";
-    }
-    std::cout << ")";
-  }
-  std::cout << std::endl;
+
+  ShowVectorOfVectors(vect);
   
   /* test for ClutchingGraphs */
   std::cout << "--" << std::endl;
@@ -187,14 +192,7 @@ int main(int argc, char *argv[])
   std::vector<std::vector<int> > ret;
   ClutchingGraph<CMGraph, DummyPatch<CMGraph> >(dummy_patch, &ret);
 
-  BOOST_FOREACH (std::vector<int> &t, ret) {
-    std::cout << "(";
-    BOOST_FOREACH (int& s, t) {
-      std::cout << s << ",";
-    }
-    std::cout << ")";
-  }
-  std::cout << std::endl;
+  ShowVectorOfVectors<int>(ret);
   
   /* test for class Patch */
   std::cout << "--" << std::endl;
@@ -236,13 +234,7 @@ int main(int argc, char *argv[])
 
   std::vector<std::vector<size_t> > ret2;
   ClutchingGraph<CMGraph, Patch<CMGraph> >(patch, &ret2);
-  BOOST_FOREACH (std::vector<size_t> &t, ret2) {
-    std::cout << "(";
-    BOOST_FOREACH (size_t& s, t) {
-      std::cout << s << ",";
-    }
-    std::cout << ")";
-  }
+  ShowVectorOfVectors(ret2);
   
   std::cout << "--" << std::endl;
 
