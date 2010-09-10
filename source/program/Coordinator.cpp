@@ -26,7 +26,7 @@ Coordinator::Coordinator(int argc, char **argv) {
   /// Minimum number of parameter patches
   size_t min_num_patches = static_cast <size_t> (PS_Toplex . size () / maxPatchSize) + 1;
   /// Number of subdivisons per side
-  size_t subdivisions_per_side = std::ceil (std::exp (std::log (min_num_patches) / param_dim));
+  size_t subdivisions_per_side = static_cast <size_t> (std::ceil (std::exp (std::log (min_num_patches) / param_dim)));
 
   /// Lenghts of the sides of the patch
   std::vector < Real > patch_sides_length (param_dim);
