@@ -339,10 +339,10 @@ void computeSCC
       if ( G . find (v) -> second . find ( v ) == 
            G . find (v) -> second . end () ) {
         spurious_components [ index ] = true;
-      } else {
-        ++ number_of_path_components;
-      } /* if-else */
+        continue;
+      } /* if */
     } /* if */
+    ++ number_of_path_components;
   }
 
   /* CONVERT RESULT INTO OUTPUT FORMAT */
