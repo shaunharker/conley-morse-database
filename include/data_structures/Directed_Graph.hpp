@@ -200,7 +200,7 @@ DirectedGraph<Toplex> collapseComponents (
   // Iterators
   typename Graph::iterator graph_it;
   typename Graph::Components::const_iterator comp_it;
-  typename Graph::Component::iterator vert_it;
+  typename Graph::Component::const_iterator vert_it;
   typename Toplex::Subset::const_iterator edge_it;
   
   // For each component, remove the vertices of the component
@@ -211,10 +211,10 @@ DirectedGraph<Toplex> collapseComponents (
   Representatives.clear();
   comp_it = Components.begin();
   while (comp_it != Components.end()) {
-    vert_it = (*comp_it)->begin();
+    vert_it = (*comp_it).begin();
     compRep = (*vert_it);
     ++vert_it;
-    while (vert_it != (*comp_it)->end()) {
+    while (vert_it != (*comp_it).end()) {
       edge_it = G . find ( *(vert_it) ) -> second .begin();
       while (edge_it != G . find ( *(vert_it) ) -> second . end()) {
         result[compRep].insert(*edge_it);

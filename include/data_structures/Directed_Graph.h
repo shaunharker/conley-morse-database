@@ -17,7 +17,7 @@ class DirectedGraph : public std::map < typename Toplex::Top_Cell,
 public:
   typedef typename Toplex::Top_Cell Vertex;
   typedef typename Toplex::Subset Component;
-  typedef std::vector<Component *> Components;
+  typedef std::vector<Component> Components;
 
   // Constructor
   DirectedGraph() { };
