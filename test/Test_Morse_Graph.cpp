@@ -1,5 +1,8 @@
 
 #include "data_structures/Conley_Morse_Graph.h"
+#include <fstream>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
 
 int main ( int argc, char * argv [] ) {
   typedef ConleyMorseGraph<int, int> CMGraph;
@@ -33,5 +36,14 @@ int main ( int argc, char * argv [] ) {
   std::cout << cmgraph.PathExists(v[0], v[3]) << std::endl;
   std::cout << cmgraph.PathExists(v[3], v[0]) << std::endl;
 
+#if 0
+  std::ofstream dummy_out("/dev/null");
+  boost::archive::text_oarchive oa(dummy_out);
+  //boost::shared_ptr<std::string> x = boost::shared_ptr<std::string>(new std::string());
+  //oa << x;
+  oa << cmgraph;
+  dummy_out.close();
+#endif
+  
   return 0;
 }
