@@ -9,8 +9,10 @@
 //#include <boost/iterator/iterator_facade.hpp>
 #include <boost/iterator/transform_iterator.hpp> 
 #include <boost/graph/graph_traits.hpp>
+#include <boost/graph/graph_concepts.hpp>
 #include <boost/graph/properties.hpp>
 #include <boost/foreach.hpp>
+#include <boost/graph/topological_sort.hpp>
 
 /* External Adaptation of DirectedGraph so it is a BGL graph as well */
 
@@ -143,6 +145,14 @@ std::pair<typename graph_traits< DirectedGraph<Toplex> >::out_edge_iterator,
 out_edges(const typename graph_traits< DirectedGraph<Toplex> >::vertex_descriptor & u, 
           const DirectedGraph<Toplex> & g) {
   const typename Toplex::Subset & subset = g . find ( u ) -> second;
+  /*
+  //DEBUG
+  if ( g . find ( u ) == g . end () ) {
+    std::cout << "Fatal out_edges flaw: vertex " << u << " isn't in graph.\n";
+    //exit ( -1 );
+  } 
+  //END DEBUG
+  */
   typedef typename graph_traits< DirectedGraph<Toplex> >::out_edge_iterator edge_iter;
   return std::make_pair (edge_iter ( u, subset . begin () ),
                          edge_iter ( u, subset . end () ) );
@@ -192,6 +202,9 @@ DirectedGraph<Toplex> collapseComponents (
 {
   typedef DirectedGraph <Toplex> Graph;
   typedef typename DirectedGraph<Toplex>::Vertex Vertex;
+  typedef typename boost::graph_traits<DirectedGraph<Toplex> >::vertex_iterator vi;
+  typedef typename boost::graph_traits<DirectedGraph<Toplex> >::adjacency_iterator ai; // Toplex_Subset iterators
+
   std::map < Vertex, Vertex > table;
 
   Graph result(G);
@@ -210,11 +223,16 @@ DirectedGraph<Toplex> collapseComponents (
   // destinations of edges, is constructed at the same time.
   Representatives.clear();
   comp_it = Components.begin();
+  // Iterate through components
   while (comp_it != Components.end()) {
     vert_it = (*comp_it).begin();
     compRep = (*vert_it);
+    //std::cout << "Processing compRep " << compRep << "\n";
     ++vert_it;
+    // Iterate through vertices in component (except for the first, dubbed the representative)
     while (vert_it != (*comp_it).end()) {
+      //std::cout << "  contains vertex " << * vert_it << "\n";
+      // Give all edges to the representative
       edge_it = G . find ( *(vert_it) ) -> second .begin();
       while (edge_it != G . find ( *(vert_it) ) -> second . end()) {
         result[compRep].insert(*edge_it);
@@ -229,30 +247,55 @@ DirectedGraph<Toplex> collapseComponents (
     Representatives.push_back(compRep);
   }
 
-  // Replace the destinations of edges according to 'table' 
-  std::vector<Vertex> toBeRemoved;
-  graph_it = result.begin();
-  while (graph_it != result.end()) {
-    edge_it = ((*graph_it).second).begin();
-    toBeRemoved.clear();
-    while (edge_it != ((*graph_it).second).end()) {
-      if (table.count(*edge_it)) {
-        ((*graph_it).second).insert(table[*edge_it]);
-        toBeRemoved.push_back(*edge_it);
-      }
-      ++edge_it;
+  // Iterate through the vertices of the graph
+  vi source_it, end_of_graph;
+  for (boost::tie ( source_it, end_of_graph ) = boost::vertices ( result );
+       source_it != end_of_graph; ++ source_it ) {
+    typename Toplex::Subset target_set;
+    Vertex source_vertex = * source_it;
+    // Iterate through the target vertices of the current vertex
+    ai target_it, end_of_target;
+    for (boost::tie ( target_it, end_of_target ) = boost::adjacent_vertices ( source_vertex, result );
+         target_it != end_of_target; ++ target_it ) {
+      Vertex target_vertex = * target_it;
+      // If the target vertex has been eliminated, then insert the representative instead.
+      typename std::map <Vertex, Vertex>::const_iterator new_target_it = table . find ( target_vertex );
+      if ( new_target_it != table . end () ) {
+        // Target the representative instead
+        target_vertex = new_target_it -> second;
+      } /* if */
+      // Unless its a self-loop, add it.
+      if ( target_vertex != source_vertex ) {
+        //std::cout << "Inserting edge (" << source_vertex << ", " << target_vertex << ")\n";
+        target_set . insert ( target_vertex );
+      } /* if-else */
+    } /* for */
+    result [ source_vertex ] = target_set;
+  } /* for */
+
+  //debug
+  /*
+  std::cout << "collapse components ----\n";
+  typedef const std::pair < const typename Toplex::Top_Cell, typename Toplex::Subset > DG_value;
+  
+  BOOST_FOREACH ( DG_value & x, G ) {
+    BOOST_FOREACH ( typename Toplex::Top_Cell target_cell, x . second ) {
+      if ( G . find ( target_cell ) == G . end () ) std::cout << " G [ " << x . first << "] has " <<
+        target_cell << " yet " << target_cell << " is not in the domain of G\n";
     }
-    for (size_t i = 0; i < toBeRemoved.size(); i++) {
-      ((*graph_it).second).erase(toBeRemoved[i]);
-    }
-    ++graph_it;
   }
   
-  // Remove self loops at the representative of components
-  for (size_t i = 0; i < Representatives.size(); i++) {
-    result[Representatives[i]].erase(Representatives[i]);
+  BOOST_FOREACH ( DG_value & x, result ) {
+    BOOST_FOREACH ( typename Toplex::Top_Cell target_cell, x . second ) {
+      if ( result . find ( target_cell ) == result . end () ) std::cout << " result [ " << x . first << "] has " <<
+        target_cell << " yet " << target_cell << " is not in the domain of result\n";
+      if ( target_cell == x . first ) std::cout << " result [ " << x . first << "] has " <<
+        target_cell << " yet " << target_cell << " we said self-loops were eliminated \n";
+    }
   }
-
+   */
+  /* what if... the only thing mapping to some vertex in a morse set
+     are the other vertices in the morse set... huh */
   // Return 
   return result;
 }
@@ -406,7 +449,7 @@ DirectedGraph<Toplex> compute_directed_graph (const typename Toplex::Subset & my
 } /* compute_directed_graph */
   
 
-#if 1
+#if 0
 // Compute the length of the longest path from v to w
 // assuming the graph is acyclic
 template < class Toplex >
@@ -625,8 +668,7 @@ void computePathBounds(std::vector<size_t> * ConnectingPathBounds,
 
 #endif
 
-
-#if 0
+#if 1
 
 // Compute the lengths of the longest paths beginning in a source set "Source"
 // and terminating at any given vertex of the graph. (A result of zero means either
@@ -637,7 +679,14 @@ void LongestPathLengths(std::map <typename DirectedGraph<Toplex>::Vertex, size_t
                         const std::vector<typename DirectedGraph<Toplex>::Vertex> & top_sorted_vertices,
                         const DirectedGraph<Toplex> & G )
 {
-  std::map <typename DirectedGraph<Toplex>::Vertex, size_t> & distance = * in_distance;
+  
+  /* Typedefs */
+  typedef DirectedGraph<Toplex> Graph;
+  typedef typename boost::graph_traits<Graph>::vertex_iterator vertex_iterator;
+  typedef typename boost::graph_traits<Graph>::adjacency_iterator adjacency_iterator;
+  typedef 
+  typename DirectedGraph<Toplex>::Vertex Vertex;
+  std::map <Vertex, size_t> & distance = * in_distance;
   distance . clear ();
   
   /* Loop through the vertices of G in topologically sorted order */
@@ -671,9 +720,21 @@ void computePathBounds(std::vector<size_t> * ConnectingPathBounds,
                        const typename Toplex::Subset & Entrance,
                        const typename Toplex::Subset & Exit )
 {
-  
+  using namespace boost;
   typedef DirectedGraph<Toplex> Graph;
   typedef typename DirectedGraph<Toplex>::Vertex Vertex;
+  
+  //debug
+  /*
+  typedef const std::pair < const typename Toplex::Top_Cell, typename Toplex::Subset > DG_value;
+
+  BOOST_FOREACH ( DG_value & x, G ) {
+    BOOST_FOREACH ( typename Toplex::Top_Cell target_cell, x . second ) {
+      if ( G . find ( target_cell ) == G . end () ) std::cout << " G [ " << x . first << "] has " <<
+        target_cell << " yet " << target_cell << " is not in the domain of G\n";
+    }
+  }
+  */
   
   // Compute the collapsed graph.
   // V is a vector containing vertices of the collapsed graph
@@ -681,17 +742,54 @@ void computePathBounds(std::vector<size_t> * ConnectingPathBounds,
   std::vector<Vertex> V;
   Graph H = collapseComponents(G, SCC, V);
   
+  /* Pair Associative Container (PAC) -- Vertex to Vertex or Integer or Color (VV, VI, VC) */
+  //typedef std::map< Vertex, Vertex > PAC_VV_t; 
+  //typedef std::map< Vertex, int > PAC_VI_t; 
+  typedef std::map< Vertex, default_color_type > PAC_VC_t; 
+  /* Associative Property Map (APM) -- Vertex to Integer or Color (VV, VI, VC) */
+  //typedef boost::associative_property_map< PAC_VV_t > APM_VV_t;
+  //typedef boost::associative_property_map< PAC_VI_t > APM_VI_t;
+  typedef boost::associative_property_map< PAC_VC_t > APM_VC_t;
+  
+  //PAC_VI_t pac_component;
+  //PAC_VI_t pac_discover_time;
+  //PAC_VV_t pac_root;
+  PAC_VC_t pac_color;
+  
+  //APM_VI_t component_number ( pac_component );
+  //APM_VI_t discover_time ( pac_discover_time );
+  //APM_VV_t root ( pac_root );
+  APM_VC_t color ( pac_color );
+  
+  //DEBUG
+  std::cout << "Topological sort about to begin on graph H with " << H . size () << " vertices\n";
+
+  /*
+  BOOST_FOREACH ( DG_value & x, H ) {
+    BOOST_FOREACH ( typename Toplex::Top_Cell target_cell, x . second ) {
+      if ( H . find ( target_cell ) == H . end () ) std::cout << " H [ " << x . first << "] = " <<
+        target_cell << " yet " << target_cell << " is not in the domain of H\n";
+    }
+  }
+   */
+  
   std::vector<Vertex> top_sorted_vertices ( H . size () );
-  boost::topological_sort(H, top_sorted_vertices . rbegin () );
+  boost::topological_sort(H, std::back_inserter ( top_sorted_vertices ), color_map(color));
+
 
   std::map <typename DirectedGraph<Toplex>::Vertex, size_t> distance;
+  
+  /* Initialize the lengths of the output vectors */
+  EntrancePathBounds -> resize ( V . size () );
+  ExitPathBounds -> resize ( V . size ());
+  ConnectingPathBounds -> resize ( V . size () * V . size () );
   
   /* Compute lengths beginning from the Entrance set.
      From this information we can compute the 
        entrance -> components
        entrance -> exit
      path length upper bounds */
-  LongestPathLengths ( &distance, Entrance, top_sorted_vertices, H )
+  LongestPathLengths ( &distance, Entrance, top_sorted_vertices, H );
   
   // Entrance to Components
   for ( size_t i = 0; i < V . size (); ++ i ) {
@@ -711,7 +809,7 @@ void computePathBounds(std::vector<size_t> * ConnectingPathBounds,
     source . insert ( V [ i ] );
     LongestPathLengths ( &distance, source, top_sorted_vertices, H );
     for ( size_t j = 0; j < V . size (); ++ j ) {
-      ConnectingPathBounds [ index ++ ] = distance [ V [ j ] ];
+      (*ConnectingPathBounds) [ index ++ ] = distance [ V [ j ] ];
     } /* for */
     
     (*ExitPathBounds)[i] = 0;

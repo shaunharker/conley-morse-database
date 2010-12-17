@@ -13,13 +13,23 @@
 int main ( int argc, char * argv [] ) 
 {
   typedef Decide_Subdiv_Level_Size< Adaptive_Cubical::Toplex > Decide_Subdiv;
-  Decide_Subdiv decide_subdiv ( 5 , 100000 );
+  Decide_Subdiv decide_subdiv ( 12 , 100000 );
   typedef Decide_Conley_Index_Size< Adaptive_Cubical::Toplex > Decide_Conley_Index;
-  Decide_Conley_Index decide_conley_index ( 2 , 10000 , true , Decide_Conley_Index::MaxValue );
+  Decide_Conley_Index decide_conley_index ( 2 , 0, false , 0 ); //Decide_Conley_Index::MaxValue );
 
   ConleyMorseGraph < Adaptive_Cubical::Toplex::Subset, Conley_Index_t > conley_morse_graph;
   Adaptive_Cubical::Geometric_Description parameter_box ( 2 , 20.01 , 20.02 );
+  parameter_box . lower_bounds [ 0 ] = 140.0;
+  parameter_box . upper_bounds [ 0 ] = 140.1;
+  parameter_box . lower_bounds [ 1 ] = 112.0;
+  parameter_box . upper_bounds [ 1 ] = 112.1;
+
   Adaptive_Cubical::Geometric_Description phase_space_box ( 2 , 0 , 300 );
+  phase_space_box . lower_bounds [ 0 ] = -0.001;
+  phase_space_box . upper_bounds [ 0 ] = 320.056;
+  phase_space_box . lower_bounds [ 1 ] = -0.001;
+  phase_space_box . upper_bounds [ 1 ] = 224.040;
+  
   Adaptive_Cubical::Toplex phase_space;
   phase_space . initialize ( phase_space_box );
   Cached_Box_Information cached_box_information;

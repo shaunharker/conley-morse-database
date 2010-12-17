@@ -218,6 +218,82 @@ void Rule_Out_Connections ( Conley_Morse_Graph * conley_morse_graph ,
 
 // --------------------------------------------------
 
+template < class Toplex >
+void draw_ascii_subset ( const Toplex & my_toplex, const typename Toplex::Subset & my_subset ) {
+  int Width = 128;
+  int Height = 128;
+  int i_max = 0;
+  int j_max = 0;
+  typename Toplex::Geometric_Description bounds = my_toplex . bounds ();
+  std::vector < std::vector < bool > > data ( Height + 1 );
+  for ( int j = 0; j <= Height; ++ j ) data [ j ] . resize ( Width + 1, false );
+  for ( typename Toplex::Subset::const_iterator it = my_subset . begin (); 
+       it != my_subset . end (); ++ it ) {
+    typename Toplex::Geometric_Description box = my_toplex . geometry ( my_toplex . find ( *it ) );
+    int i_left = ( box . lower_bounds [ 0 ] - bounds . lower_bounds [ 0 ] ) /
+    ( bounds . upper_bounds [ 0 ] - bounds . lower_bounds [ 0 ] ) * (float) Width;
+    int j_left = ( box . lower_bounds [ 1 ] - bounds . lower_bounds [ 1 ] ) /
+    ( bounds . upper_bounds [ 1 ] - bounds . lower_bounds [ 1 ] ) * (float) Height;
+    int i_right = ( box . upper_bounds [ 0 ] - bounds . lower_bounds [ 0 ] ) /
+    ( bounds . upper_bounds [ 0 ] - bounds . lower_bounds [ 0 ] ) * (float) Width;
+    int j_right = ( box . upper_bounds [ 1 ] - bounds . lower_bounds [ 1 ] ) /
+    ( bounds . upper_bounds [ 1 ] - bounds . lower_bounds [ 1 ] ) * (float) Height;
+    
+    i_max = std::max ( i_right, i_max );
+    j_max = std::max ( j_right, j_max );
+    
+    for ( int i = i_left; i < i_right; ++ i )
+      for ( int j = j_left; j < j_right; ++ j ) 
+        data [ j ] [ i ] = true;
+  }
+  /*
+   for ( int j = Height; j >= 0; -- j ) {
+   for ( int i = 0; i <= Width; ++ i ) {
+   if ( data [ j ] [ i ] ) std::cout << "#";
+   else std::cout << ".";
+   }
+   std::cout << "\n";
+   } 
+   */
+  j_max += 5;
+  i_max += 5;
+  data . clear ();
+  data . resize ( Height + 1);
+  for ( int j = 0; j <= Height; ++ j ) data [ j ] . resize ( Width + 1, false );
+  for ( typename Toplex::Subset::const_iterator it = my_subset . begin (); 
+       it != my_subset . end (); ++ it ) {
+    typename Toplex::Geometric_Description box = my_toplex . geometry ( my_toplex . find ( *it ) );
+    int i_left = ( box . lower_bounds [ 0 ] - bounds . lower_bounds [ 0 ] ) /
+    ( bounds . upper_bounds [ 0 ] - bounds . lower_bounds [ 0 ] ) * (float) Width
+    * ((float) Width / (float) i_max );
+    int j_left = ( box . lower_bounds [ 1 ] - bounds . lower_bounds [ 1 ] ) /
+    ( bounds . upper_bounds [ 1 ] - bounds . lower_bounds [ 1 ] ) * (float) Height
+    * ( (float) Height / (float) j_max );
+    int i_right = ( box . upper_bounds [ 0 ] - bounds . lower_bounds [ 0 ] ) /
+    ( bounds . upper_bounds [ 0 ] - bounds . lower_bounds [ 0 ] ) * (float) Width
+    * ((float) Width / (float) i_max );
+    int j_right = ( box . upper_bounds [ 1 ] - bounds . lower_bounds [ 1 ] ) /
+    ( bounds . upper_bounds [ 1 ] - bounds . lower_bounds [ 1 ] ) * (float) Height
+    * ( (float) Height / (float) j_max );
+    
+    for ( int i = i_left; i < i_right; ++ i )
+      for ( int j = j_left; j < j_right; ++ j ) { 
+        if ( j > Height || i > Width ) {
+          std::cout << " i = " << i << " and j = " << j << "\n";
+        } else {
+          data [ j ] [ i ] = true;
+        }
+      }
+  }
+  for ( int j = Height; j >= 0; -- j ) {
+    for ( int i = 0; i <= Width; ++ i ) {
+      if ( data [ j ] [ i ] ) std::cout << "#";
+      else std::cout << ".";
+    } /* for */
+    std::cout << "\n";
+  } /* for */
+} /* draw_ascii_subset */
+
 template < class Conley_Morse_Graph, class Toplex , class Parameter_Toplex , class Map ,
   class Decide_Subdiv , class Decide_Conley_Index , class Cached_Box_Information >
 void Compute_Conley_Morse_Graph ( Conley_Morse_Graph * conley_morse_graph ,
@@ -290,6 +366,7 @@ void Compute_Conley_Morse_Graph ( Conley_Morse_Graph * conley_morse_graph ,
     // determine the first and one-past-the-last CMG to try subdividing
     size_t cmg_begin = subdiv ? cmg_subdiv_end [ subdiv - 1 ] : 0;
     size_t cmg_end = conley_morse_graphs . size ();
+    std::cout << "(cmg_begin, cmg_end ) = " << cmg_begin << ", " << cmg_end << "\n";
     if (cmg_begin == cmg_end)
       break;
     cmg_subdiv_begin . push_back ( cmg_begin );
@@ -297,7 +374,7 @@ void Compute_Conley_Morse_Graph ( Conley_Morse_Graph * conley_morse_graph ,
 
     // go through all the CMGs and consider subdividing their Morse sets
     for ( size_t cmg_number = cmg_begin ; cmg_number != cmg_end ; ++ cmg_number ) {
-
+      std::cout << "  cmg_number = " << cmg_number << "\n";
       // extract the Conley-Morse graph whose Morse sets are to be subdivided
       Conley_Morse_Graph * current_cmg = conley_morse_graphs [ cmg_number ];
 
@@ -306,19 +383,23 @@ void Compute_Conley_Morse_Graph ( Conley_Morse_Graph * conley_morse_graph ,
       for ( typename Conley_Morse_Graph::VertexIterator morse_set_iterator = vertices . first ;
         morse_set_iterator != vertices . second ; ++ morse_set_iterator )
       {
+        std::cout << "    processing a morse_set.\n";
         // determine the Morse set
         typename Conley_Morse_Graph::Vertex current_vertex = * morse_set_iterator;
         typename Toplex::Subset & current_set ( current_cmg -> CubeSet ( current_vertex ) );
 
+        // DEBUG Let's draw a picture.
+        draw_ascii_subset ( *phase_space, current_set );
         // if the Morse set should not be subdivided anymore
         if ( ! decide_subdiv ( subdiv , current_set ) ) {
-
+          std::cout << "      The Morse set will not be subdivided further.\n";
           // add the Morse set to the final decomposition and set up the right links
           typename Conley_Morse_Graph::Vertex new_vertex = conley_morse_graph -> AddVertex ();
           original_cmg [ new_vertex ] = current_cmg;
           original_set [ new_vertex ] = current_vertex;
 
           // move or compute its Conley index
+          std::cout << "      Computing Conley Index.\n";
           Conley_Index_t & conley_index ( current_cmg -> ConleyIndex ( current_vertex ) );
           if ( conley_index . undefined () && decide_conley_index . compute_final ( current_set ) ) {
             Conley_Index ( & conley_index , * phase_space , current_set , interval_map );
@@ -333,7 +414,7 @@ void Compute_Conley_Morse_Graph ( Conley_Morse_Graph * conley_morse_graph ,
           // mark the connection between the original Morse set and the final one
           final_set [ std::make_pair ( current_cmg , current_vertex ) ] = new_vertex;
           continue;
-        }
+        } /* if */
 
         // subdivide the current Morse set
         // TODO: Consider subdividing parts of the Morse set if necessary.
@@ -344,9 +425,11 @@ void Compute_Conley_Morse_Graph ( Conley_Morse_Graph * conley_morse_graph ,
         std::swap ( current_set , subdivided_set );
 
         // compute the combinatorial map on this Morse set
+        std::cout << "    Computing Combinatorial Map\n";
         combinatorial_map = compute_directed_graph ( current_set , * phase_space , interval_map );
 
         // compute the Morse decomposition of this Morse set
+        std::cout << "    Computing Morse Decomposition\n";
         Conley_Morse_Graph * new_cmg = new Conley_Morse_Graph;
         conley_morse_graphs . push_back ( new_cmg );
         Compute_Morse_Decomposition < Toplex , Conley_Morse_Graph , Combinatorial_Map > ( new_cmg ,
@@ -358,6 +441,7 @@ void Compute_Conley_Morse_Graph ( Conley_Morse_Graph * conley_morse_graph ,
           entrance_subsets [ current_cmg ] [ current_vertex ] , combinatorial_map );
 
         // compute the Conley indices of the constructed Morse sets
+        std::cout << "    Computing Conley Indices\n";
         typename Conley_Morse_Graph::VertexIteratorPair new_vertices = new_cmg -> Vertices ();
         for ( typename Conley_Morse_Graph::VertexIterator new_set_iterator = new_vertices . first ;
           new_set_iterator != new_vertices . second ; ++ new_set_iterator ) {
@@ -373,14 +457,14 @@ void Compute_Conley_Morse_Graph ( Conley_Morse_Graph * conley_morse_graph ,
             std::swap ( current_cmg -> ConleyIndex ( current_vertex ) ,
               new_cmg -> ConleyIndex ( new_vertex ) );
             continue;
-          }
+          } /* if */
 
           // compute the Conley index if requested to 
           if ( decide_conley_index . compute_after_subdivision ( subdiv , new_set ) ) {
             Conley_Index_t & conley_index ( new_cmg -> ConleyIndex ( new_vertex ) );
             Conley_Index ( & conley_index , * phase_space , new_set , interval_map );
           }
-        }
+        } /* for */
 
         // mark the links between the coarser and finer decompositions
         finer_cmg [ std::make_pair ( current_cmg , current_vertex ) ] = new_cmg;
@@ -392,9 +476,9 @@ void Compute_Conley_Morse_Graph ( Conley_Morse_Graph * conley_morse_graph ,
         std::swap ( undefined_index , current_cmg -> ConleyIndex ( current_vertex ) );
         typename Toplex::Subset empty_set;
         std::swap ( empty_set , current_cmg -> CubeSet ( current_vertex ) );
-      }
-    }
-  }
+      } /* for ( each Morse Set ) */
+    } /* for ( each CMG ) */
+  } /* for ( each subdivision level) */
 
   // determine connections between the Morse sets in the final graph,
   // based on the coarser Morse sets on the way
