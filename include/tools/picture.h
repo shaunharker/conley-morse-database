@@ -3,9 +3,9 @@
 #ifndef CMPD_PICTURE
 #define CMPD_PICTURE
 
-typedef double Real; // TODO, worry about this
 /// Draw to RGBA bitmap
 struct Picture {
+  typedef double Real; // TODO, worry about this
   unsigned char * bitmap;
   int Width;
   int Height;
