@@ -207,10 +207,10 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   std::vector<CMGraph> conley_morse_graphs(geometric_descriptions.size());
   std::vector<std::vector<size_t> > equivalent_classes;
 
-  //std::cout << "ClutchingGraph: The patch size is " << N << "\n";
+  std::cout << "ClutchingGraph: The patch size is " << N << "\n";
   
   for (size_t n=0; n<N; n++) {
-    //std::cout << "Computing Conley Morse Graph for parameter box " << geometric_descriptions [ n ] << "\n";
+    std::cout << "Computing Conley Morse Graph for parameter box " << geometric_descriptions [ n ] << "\n";
     phase_space_toplexes[n].initialize(space_bounds);
 #if 1
     std::map<size_t, Cached_Box_Information>::iterator it = cache_info.find(n);
