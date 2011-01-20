@@ -13,6 +13,8 @@ enum {
                      ready to compute a new job */
   kRetireTag = 1001, /* Tag of retire message, "retire" means that coordinator has
                         no more jobs, so worker should stop */
+  kResultTag = 1002 /* Tag of "result" message, means that worker is sending a result
+                       message. */
 };
 
 /** Wait for a worker to send a message and receive it.
@@ -108,6 +110,7 @@ int RunWorker(Communicator *comm, Worker *worker) {
     if (job.tag == kRetireTag)
       return 0;
     worker->Work(&result, job);
+    result . tag = kResultTag;
     comm->Send(result, comm->CoordinatorChannel());
   }
 }
