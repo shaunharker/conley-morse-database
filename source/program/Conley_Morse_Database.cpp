@@ -11,4 +11,5 @@
 int main ( int argc, char * argv [] ) {
   return coordinator_worker_scheme::Run<
   SimpleMPICommunicator, Coordinator, Worker>(argc, argv);
+  //return coordinator_worker_scheme::RunSingleProcess<Coordinator, Worker>(argc, argv);
 }

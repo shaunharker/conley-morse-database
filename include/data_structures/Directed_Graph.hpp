@@ -86,6 +86,7 @@ struct graph_traversal_category :
 } /* namespace DirectedGraph_detail */
 
 namespace boost {
+
 template < class Toplex >
 struct graph_traits< DirectedGraph<Toplex> > {    
   /* Vertex and Edge descriptor */
@@ -167,7 +168,7 @@ out_degree(const typename graph_traits< DirectedGraph<Toplex> >::vertex_descript
   
 template < class Toplex >
 std::pair<typename graph_traits< DirectedGraph<Toplex> >::vertex_iterator, 
-          typename graph_traits< DirectedGraph<Toplex> >::vertex_iterator>
+          typename graph_traits< DirectedGraph<Toplex> >::vertex_iterator> 
 vertices(const DirectedGraph<Toplex> & g) {
   typedef typename graph_traits< DirectedGraph<Toplex> >::vertex_iterator Iterator;
   return std::make_pair ( Iterator (g.begin()), Iterator (g.end()) );    
@@ -360,11 +361,14 @@ void computeSCC
   APM_VV_t root ( pac_root );
   APM_VC_t color ( pac_color );
   
+  //vertices < Toplex > (G); // instantiate the function template or it won't compile, oddly enough
+
   unsigned int num_scc = strong_components(G, component_number, 
                                            root_map(root).
                                            color_map(color).
                                            discover_time_map(discover_time));
 
+  //unsigned int num_scc = 0; //debug
   std::vector < std::vector < Vertex > > components;
   build_component_lists(G, num_scc, component_number, components);
 
@@ -762,7 +766,7 @@ void computePathBounds(std::vector<size_t> * ConnectingPathBounds,
   APM_VC_t color ( pac_color );
   
   //DEBUG
-  std::cout << "Topological sort about to begin on graph H with " << H . size () << " vertices\n";
+  //std::cout << "Topological sort about to begin on graph H with " << H . size () << " vertices\n";
 
   /*
   BOOST_FOREACH ( DG_value & x, H ) {

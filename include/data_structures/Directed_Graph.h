@@ -102,6 +102,71 @@ void computePathBounds(std::vector<size_t> * ConnectingPathBounds,
                        const typename Toplex::Subset & Entrance,
                        const typename Toplex::Subset & Exit );
 
+// Some declarations to precede inclusion of boost graph headers
+
+namespace DirectedGraph_detail {
+  
+  template < class Toplex >
+  class DirectedGraph_out_edge_iterator;
+  
+  template < class Toplex >
+  class DirectedGraph_vertex_iterator;
+  
+  struct graph_traversal_category;
+  
+} /* namespace DirectedGraph_detail */
+
+namespace boost {
+  
+  template < class Toplex >
+  struct graph_traits;
+  
+  template < class Toplex >
+  std::pair< typename graph_traits< DirectedGraph<Toplex> >::adjacency_iterator, 
+             typename graph_traits< DirectedGraph<Toplex> >::adjacency_iterator > 
+  adjacent_vertices ( typename graph_traits< DirectedGraph<Toplex> >::vertex_descriptor v, 
+                     const DirectedGraph<Toplex> & g );
+  
+  /* For some reason the BGL has already implemented the following and we get ambiguity.
+   The problem is that these are overloads and not specialization. 
+   Luckily, the defaults are precisely what we want. 
+   */
+  /*
+   template < class Toplex >
+   typename graph_traits< DirectedGraph<Toplex> >::vertex_descriptor 
+   source(const typename graph_traits< DirectedGraph<Toplex> >::edge_descriptor & e, 
+   const DirectedGraph<Toplex> & g);
+   *//* source */
+  
+  /*
+   template < class Toplex >
+   typename graph_traits< DirectedGraph<Toplex> >::vertex_descriptor
+   target(const typename graph_traits< DirectedGraph<Toplex> >::edge_descriptor & e, 
+   const DirectedGraph<Toplex> & g);
+   *//* target */
+  
+  template < class Toplex >
+  std::pair<typename graph_traits< DirectedGraph<Toplex> >::out_edge_iterator, 
+            typename graph_traits< DirectedGraph<Toplex> >::out_edge_iterator > 
+  out_edges(const typename graph_traits< DirectedGraph<Toplex> >::vertex_descriptor & u, 
+            const DirectedGraph<Toplex> & g);
+  
+  template < class Toplex >
+  typename graph_traits< DirectedGraph<Toplex> >::degree_size_type  
+  out_degree(const typename graph_traits< DirectedGraph<Toplex> >::vertex_descriptor & u, 
+             const DirectedGraph<Toplex> & g);
+  
+  template < class Toplex >
+  std::pair<typename graph_traits< DirectedGraph<Toplex> >::vertex_iterator, 
+            typename graph_traits< DirectedGraph<Toplex> >::vertex_iterator> 
+  vertices(const DirectedGraph<Toplex> & g);
+  
+  template < class Toplex >
+  typename graph_traits< DirectedGraph<Toplex> >::vertices_size_type 
+  num_vertices(const DirectedGraph<Toplex> & g);
+  
+} /* namespace boost */
+
 #ifndef _DO_NOT_INCLUDE_HPP_
 #include "data_structures/Directed_Graph.hpp"
 #endif

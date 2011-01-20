@@ -13,137 +13,7 @@
 #include <boost/serialization/map.hpp>
 #include "program/Configuration.h"
 #include "program/jobs/Compute_Conley_Morse_Graph.h"
-
-/** Quotient Set class.
- *  Holds all equivalent classes using union-find structure.
- *  T must be: copyable, assignable, default constructable, and comparable
- */
-template<class T>
-class UnionFind {
- public:
-  template<class Iterator>
-  UnionFind(Iterator begin, Iterator end);
-  
-  /** If x and y contain different sets, these two sets are unioned.
-   */
-  void Union(T x, T y);
-  /** Return true if x and y contain the same class.
-   */
-  bool Find(T x, T y) const;
-  /** Return the representative element of the set containing x */
-  T Representative(T x) const;
-
-  /** Merge other UnionFind */
-  void Merge(const UnionFind<T> &other);
-
-  /** Add a new element {x} to Quotient set. if x is already contained,
-   *  this function causes no effect.
-   */
-  void Add(T x);
-
-  /** Add new element from iterator */
-  template<class Iterator>
-  void Add(Iterator begin, Iterator end);
-
-  /* Copy all data to vector */
-  void FillToVector(std::vector<std::vector<T> > *ret);
-  
- private:
-  struct Entry {
-    T parent;
-    /* if rank == 0, this entry is not a root, otherwise, this entry is root and
-     * rank means the size of the set.
-     */
-    int rank; 
-  };
-  mutable std::map<T, Entry> tree_;
-};
-
-template<class T> void UnionFind<T>::Union(T x, T y) {
-  x = Representative(x);
-  y = Representative(y);
-  if (x != y) {
-    Entry *x_entry = &tree_[x];
-    Entry *y_entry = &tree_[y];
-    if (x_entry->rank < y_entry->rank)
-      std::swap(x_entry, y_entry);
-    x_entry->rank += y_entry->rank;
-    y_entry->parent = x;
-    y_entry->rank = 0;
-  }
-}
-
-template<class T>
-template<class Iterator>
-UnionFind<T>::UnionFind(Iterator begin, Iterator end) {
-  for (Iterator i=begin; i != end; i++) {
-    tree_[*i].rank = 1;
-  }
-}
-
-template<class T>
-bool UnionFind<T>::Find(T x, T y) const {
-  return Representative(x) == Representative(y);
-}
-
-template<class T>
-T UnionFind<T>::Representative(T x) const {
-  if (tree_[x].rank > 0) {
-    return x;
-  } else {
-    T root = Representative(tree_[x].parent);
-    tree_[x].parent = root;
-    return root;
-  }
-}
-
-template<class T>
-void UnionFind<T>::Add(T x) {
-  if (tree_.find(x) == tree_.end()) {
-    tree_[x].rank = 1;
-  }
-}
-
-template<class T>
-void UnionFind<T>::Merge(const UnionFind<T> &other) {
-  T key;
-  Entry entry;
-
-  BOOST_FOREACH (boost::tie(key, entry), other.tree_) {
-    T root = other.Representative(key);
-    Add(root);
-    Add(key);
-    Union(root, key);
-  }
-}
-
-template<class T>
-void UnionFind<T>::FillToVector(std::vector<std::vector<T> > *ret) {
-  Entry entry;
-  T key;
-
-  std::map<T, size_t> roots;
-  typename std::map<T, size_t>::iterator it;
-  bool inserted;
-  typedef typename std::map<T, size_t>::value_type vtype;
-  size_t n = 0;
-  
-  BOOST_FOREACH (boost::tie(key, entry), tree_) {
-    T rep = Representative(key);
-    boost::tie(it, inserted) = roots.insert(vtype(rep, n));
-    size_t k;
-    if (inserted) {
-      ret->push_back(std::vector<T>(1, rep));
-      k = n;
-      n++;
-    } else {
-      k = it->second;
-    }
-    if (key != rep)
-      ret->at(k).push_back(key);
-  }
-}
-
+#include "data_structures/UnionFind.hpp"
     
 template<class CMGraph>
 class VertexPairs {
@@ -321,23 +191,28 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   std::vector<typename ParameterToplex::Geometric_Description> geometric_descriptions;
   std::map<size_t, Cached_Box_Information> cache_info;
   std::vector<std::vector<size_t> > neighbour;
-  const size_t N = geometric_descriptions.size();
   
   typedef ConleyMorseGraph<typename Toplex::Subset, ConleyIndex> CMGraph;
-  
+  std::vector < typename Toplex::Top_Cell > cell_names;
   job >> job_number;
+  job >> cell_names;
   job >> geometric_descriptions;
   job >> cache_info;
   job >> neighbour;
+
+  const size_t N = geometric_descriptions.size();
 
   std::vector<Toplex> phase_space_toplexes(geometric_descriptions.size());
                                             
   std::vector<CMGraph> conley_morse_graphs(geometric_descriptions.size());
   std::vector<std::vector<size_t> > equivalent_classes;
 
+  std::cout << "ClutchingGraph: The patch size is " << N << "\n";
+  
   for (size_t n=0; n<N; n++) {
+    std::cout << "Computing Conley Morse Graph for parameter box " << geometric_descriptions [ n ] << "\n";
     phase_space_toplexes[n].initialize(space_bounds);
-#if 0
+#if 1
     std::map<size_t, Cached_Box_Information>::iterator it = cache_info.find(n);
     Cached_Box_Information* info = (it == cache_info.end()) ? NULL : &(it->second);
     Compute_Conley_Morse_Graph
@@ -358,5 +233,6 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   *result << job_number;
   *result << cache_info;
   *result << conley_morse_graphs;
+  *result << cell_names;
   *result << equivalent_classes;
 }

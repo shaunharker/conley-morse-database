@@ -36,6 +36,7 @@ void Compute_Path_Bounds ( std::map < typename Conley_Morse_Graph::Edge , size_t
     typename Conley_Morse_Graph::Vertex sourceVertex( conley_morse_graph.Source( edge ) );
     typename Conley_Morse_Graph::Vertex targetVertex( conley_morse_graph.Target( edge ) );
     
+    std::cout << "calculating path bound on edge " << edge << "\n";
     // Determine whether the vertices belong to the same conley morse graph.
     // Get the original conley morse graphs.
     Conley_Morse_Graph const *originalCMGSourceVertex( original_cmg[ sourceVertex ] );
@@ -44,6 +45,8 @@ void Compute_Path_Bounds ( std::map < typename Conley_Morse_Graph::Edge , size_t
     // If the vertices belong to the same conley morse graph, I simply copy the path length between them from path_bounds.
     if ( originalCMGSourceVertex == originalCMGTargetVertex ) {
       // They belong to the same conley morse graph, so I simply copy the path_bounds.
+      std::cout << "  Case 1. Derived from same CMG; copying answer.\n";
+      std::cout << "     inserting the edge " << ( path_bounds[ originalCMGTargetVertex ].find( edge ) ) -> first << "\n";
       return_path_bounds->insert( *( path_bounds[ originalCMGTargetVertex ].find( edge ) ) );
     } else {
       // They belong to the different conley morse graphs.
@@ -63,6 +66,8 @@ void Compute_Path_Bounds ( std::map < typename Conley_Morse_Graph::Edge , size_t
       // Check whether the vertices belong to the same conley morse graph in the coarsest level.
       if ( coarserCMGSourceVertex.back() != coarserCMGTargetVertex.back() ) {
         // They don't belong to the same conley morse graph, that means that there are no connections between them.
+        std::cout << "  Case 2. Coarsening does not bring vertices into same CMG; concluding no connection.\n";
+        std::cout << "     inserting the edge " << edge << "\n";
         return_path_bounds->insert( std::pair< typename Conley_Morse_Graph::Edge, size_t >( edge, 0 ) );
       } else {
         // They belong to the same conley morse graph in some coarser scales.
@@ -78,6 +83,8 @@ void Compute_Path_Bounds ( std::map < typename Conley_Morse_Graph::Edge , size_t
         if ( !coarserEdge.second ) {
           // There are no direct edges.
           // I simply return 0. Is it right?
+          std::cout << "  Case 3. ???\n";
+          std::cout << "     inserting the edge " << edge << "\n";
           return_path_bounds->insert( std::pair< typename Conley_Morse_Graph::Edge, size_t >( edge, 0 ) );
         } else {
           // There is a direct edge, and I retrieve the path length between them.
@@ -98,6 +105,8 @@ void Compute_Path_Bounds ( std::map < typename Conley_Morse_Graph::Edge , size_t
                 ++itrCMGTargetVertex ) {
             entrancePathBounds += Extract_Entrance_Path_Bounds( entrance_path_bounds, *( itrCMGTargetVertex + 1 ), coarser_set[ *itrCMGTargetVertex ] );
           }
+          std::cout << "  Case 4. Arithmetical game being played...\n";
+          std::cout << "     inserting the edge " << edge << "\n";
           return_path_bounds->insert( std::pair< typename Conley_Morse_Graph::Edge, size_t >( edge, pathBoundsAtCommonLevel + exitPathBounds + entrancePathBounds ) );
         }
       }

@@ -16,8 +16,8 @@ using namespace Adaptive_Cubical;
 #define PARAM_SUBDIVISIONS 6
 #define MAX_PATCH_SIZE 10
 
-const Real param_lower_bounds [PARAM_DIMENSION] = { 8.0, 37.0 };
-const Real param_upper_bounds [PARAM_DIMENSION] = { 3.0, 50.0 };
+const Real param_lower_bounds [PARAM_DIMENSION] = { 8.0, 3.0 };
+const Real param_upper_bounds [PARAM_DIMENSION] = { 37.0, 50.0 };
 
 const Geometric_Description param_bounds ( PARAM_DIMENSION , std::vector<Real> ( param_lower_bounds, 
                                                       param_lower_bounds + PARAM_DIMENSION ), 
@@ -27,8 +27,8 @@ const Geometric_Description param_bounds ( PARAM_DIMENSION , std::vector<Real> (
 /* Phase Space */
 #define SPACE_DIMENSION 2
 
-const Real space_lower_bounds [PARAM_DIMENSION] = { 0.0, 200.0 };
-const Real space_upper_bounds [PARAM_DIMENSION] = { 0.0, 200.0 };
+const Real space_lower_bounds [PARAM_DIMENSION] = { 0.0, 0.0 };
+const Real space_upper_bounds [PARAM_DIMENSION] = { 200.0, 200.0 };
 
 const Geometric_Description space_bounds ( SPACE_DIMENSION , std::vector<Real> ( space_lower_bounds, 
                                                       space_lower_bounds + SPACE_DIMENSION ), 
@@ -44,10 +44,11 @@ typedef LeslieMap GeometricMap;
 #include "program/Strategies.h"
 
 typedef Decide_Subdiv_Level_Size< Adaptive_Cubical::Toplex > Decide_Subdiv;
-const Decide_Subdiv decide_subdiv ( 5 , 100000 );
+const Decide_Subdiv decide_subdiv ( 6 , 100000 );
 
 typedef Decide_Conley_Index_Size< Adaptive_Cubical::Toplex > Decide_Conley_Index;
-const Decide_Conley_Index decide_conley_index ( 2 , 10000 , true , Decide_Conley_Index::MaxValue );
+const Decide_Conley_Index decide_conley_index ( 2 , 0, false, 0);
+//const Decide_Conley_Index decide_conley_index ( 2 , 10000 , true , Decide_Conley_Index::MaxValue );
 
 
 /* Default Settings */

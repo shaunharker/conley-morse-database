@@ -14,6 +14,7 @@
 #include "distributed/Distributed.h"
 #include "data_structures/Cached_Box_Information.h"
 #include "data_structures/Conley_Morse_Graph.h"
+#include "data_structures/UnionFind.hpp"
 #include "program/Configuration.h"
 
 #include "toplexes/Adaptive_Cubical_Toplex.h"
@@ -34,6 +35,7 @@ class Coordinator : public CoordinatorBase {
   Coordinator(int argc, char **argv);
   virtual CoordinatorBase::State Prepare(Message *job);
   virtual void Process(const Message &result);
+  void finalize ( void );
  private:
   size_t num_jobs_;
   size_t num_jobs_sent_;
@@ -41,6 +43,7 @@ class Coordinator : public CoordinatorBase {
   std::vector < Toplex_Subset > PS_patches;
   Toplex param_toplex;
   Toplex_Cached_Box_Map PS_Toplex_Cached_Info;
+  UnionFind < Toplex::Top_Cell > continuation_classes;
 };
 
 #ifndef _DO_NOT_INCLUDE_HPP_

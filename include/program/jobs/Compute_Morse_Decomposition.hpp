@@ -29,13 +29,14 @@ void Compute_Morse_Decomposition ( Conley_Morse_Graph * conley_morse_graph ,
   std::vector < typename Toplex::Subset > morse_exits;
   std::vector < typename Toplex::Subset > morse_entrances;
   
-  computeSCC (& morse_sets, 
-              & morse_entrances,
-              & morse_exits,  /* outputs */
+  computeSCC < Toplex >
+      (& morse_sets, 
+       & morse_entrances,
+       & morse_exits,  /* outputs */
               
-              entrance_subset,
-              exit_subset,
-              combinatorial_map /* inputs */ );
+       entrance_subset,
+       exit_subset,
+       combinatorial_map /* inputs */ );
   
   std::vector<size_t> ConnectingPathBounds;
   std::vector<size_t> EntrancePathBounds;
