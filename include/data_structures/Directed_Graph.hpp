@@ -368,6 +368,7 @@ void computeSCC
                                            color_map(color).
                                            discover_time_map(discover_time));
 
+  std::cout << "num_scc = " << num_scc << "\n";
   //unsigned int num_scc = 0; //debug
   std::vector < std::vector < Vertex > > components;
   build_component_lists(G, num_scc, component_number, components);
