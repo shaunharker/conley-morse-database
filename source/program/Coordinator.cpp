@@ -276,7 +276,7 @@ void Coordinator::Process(const Message &result) {
   // Turn equivalence classes into a UnionFind structure (converting to topcells)
   UnionFind < Toplex::Top_Cell > new_continuation_info;
   BOOST_FOREACH ( std::vector < size_t > & eqv_class, equivalence_classes ) {
-    for ( int i = 0; i < eqv_class . size (); ++ i ) {
+    for ( int i = 0; i < (int) eqv_class . size (); ++ i ) {
       new_continuation_info . Add ( cell_names [ eqv_class [ i ] ] );
       if ( i > 0 ) new_continuation_info . Union ( cell_names [ eqv_class [ 0 ] ], 
                                                    cell_names [ eqv_class [ i ] ] );
