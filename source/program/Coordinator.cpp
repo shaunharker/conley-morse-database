@@ -64,7 +64,7 @@ Coordinator::Coordinator(int argc, char **argv) {
   num_jobs_sent_ = 0;
   num_jobs_received_ = 0;
   std::cout << "Coordinator Constructed.\n";
-  char c; std::cin >> c;
+  //char c; std::cin >> c;
 }
   
 #if 0 // deprecating
@@ -162,7 +162,7 @@ Coordinator::Coordinator(int argc, char **argv) {
   num_jobs_sent_ = 0;
   num_jobs_received_ = 0;
   std::cout << "Coordinator Constructed.\n";
-  char c; std::cin >> c;
+  //char c; std::cin >> c;
 }
 #endif
 
