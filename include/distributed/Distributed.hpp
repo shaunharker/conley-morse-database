@@ -13,8 +13,10 @@ enum {
                      ready to compute a new job */
   kRetireTag = 1001, /* Tag of retire message, "retire" means that coordinator has
                         no more jobs, so worker should stop */
-  kResultTag = 1002 /* Tag of "result" message, means that worker is sending a result
+  kResultTag = 1002, /* Tag of "result" message, means that worker is sending a result
                        message. */
+  kJobTag = 1003 /* Tag of "result" message, means that worker is sending a result
+                     message. */
 };
 
 /** Wait for a worker to send a message and receive it.
@@ -53,6 +55,7 @@ void AssignJobToFreeWorker(Communicator *comm,
   typedef typename Communicator::Channel Channel;
   Channel f = free_workers->front();
   free_workers->pop_front();
+  std::cout << "Sending message with (job ) tag = " << job . tag << "\n";
   comm->Send(job, f);
 }
 
@@ -83,6 +86,7 @@ int RunCoordinator(Communicator *comm, Coordinator *coordinator) {
     state = coordinator->Prepare(&job);
     switch (state) {
       case CoordinatorBase::kOK:
+        job . tag = kJobTag;
         WaitForFreeWorker(comm, coordinator, &free_workers);
         AssignJobToFreeWorker(comm, job, &free_workers);
         break;
@@ -105,12 +109,14 @@ int RunWorker(Communicator *comm, Worker *worker) {
   ready_message.tag = kReadyTag;
   for (;;) {
     Message job, result;
+    std::cout << "Sending message with (ready ) tag = " << ready_message . tag << "\n";
     comm->Send(ready_message, comm->CoordinatorChannel());
     comm->Receive(&job, comm->CoordinatorChannel());
     if (job.tag == kRetireTag)
       return 0;
     worker->Work(&result, job);
     result . tag = kResultTag;
+    std::cout << "Sending message with (result ) tag = " << result . tag << "\n";
     comm->Send(result, comm->CoordinatorChannel());
   }
 }
