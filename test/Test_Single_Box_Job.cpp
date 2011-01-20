@@ -13,8 +13,6 @@
 
 #include "tools/lodepng/lodepng.h"
 
-typedef double Real;
-
 template < class Toplex >
 void draw_ascii_subset ( const Toplex & my_toplex, const typename Toplex::Subset & my_subset ) {
   int Width = 128;
@@ -28,13 +26,13 @@ void draw_ascii_subset ( const Toplex & my_toplex, const typename Toplex::Subset
        it != my_subset . end (); ++ it ) {
     typename Toplex::Geometric_Description box = my_toplex . geometry ( my_toplex . find ( *it ) );
     int i_left = ( box . lower_bounds [ 0 ] - bounds . lower_bounds [ 0 ] ) /
-    ( bounds . upper_bounds [ 0 ] - bounds . lower_bounds [ 0 ] ) * (Real) Width;
+    ( bounds . upper_bounds [ 0 ] - bounds . lower_bounds [ 0 ] ) * (Picture::Real) Width;
     int j_left = ( box . lower_bounds [ 1 ] - bounds . lower_bounds [ 1 ] ) /
-    ( bounds . upper_bounds [ 1 ] - bounds . lower_bounds [ 1 ] ) * (Real) Height;
+    ( bounds . upper_bounds [ 1 ] - bounds . lower_bounds [ 1 ] ) * (Picture::Real) Height;
     int i_right = ( box . upper_bounds [ 0 ] - bounds . lower_bounds [ 0 ] ) /
-    ( bounds . upper_bounds [ 0 ] - bounds . lower_bounds [ 0 ] ) * (Real) Width;
+    ( bounds . upper_bounds [ 0 ] - bounds . lower_bounds [ 0 ] ) * (Picture::Real) Width;
     int j_right = ( box . upper_bounds [ 1 ] - bounds . lower_bounds [ 1 ] ) /
-    ( bounds . upper_bounds [ 1 ] - bounds . lower_bounds [ 1 ] ) * (Real) Height;
+    ( bounds . upper_bounds [ 1 ] - bounds . lower_bounds [ 1 ] ) * (Picture::Real) Height;
     
     i_max = std::max ( i_right, i_max );
     j_max = std::max ( j_right, j_max );
@@ -61,17 +59,17 @@ void draw_ascii_subset ( const Toplex & my_toplex, const typename Toplex::Subset
        it != my_subset . end (); ++ it ) {
     typename Toplex::Geometric_Description box = my_toplex . geometry ( my_toplex . find ( *it ) );
     int i_left = ( box . lower_bounds [ 0 ] - bounds . lower_bounds [ 0 ] ) /
-    ( bounds . upper_bounds [ 0 ] - bounds . lower_bounds [ 0 ] ) * (Real) Width
-    * ((Real) Width / (Real) i_max );
+    ( bounds . upper_bounds [ 0 ] - bounds . lower_bounds [ 0 ] ) * (Picture::Real) Width
+    * ((Picture::Real) Width / (Picture::Real) i_max );
     int j_left = ( box . lower_bounds [ 1 ] - bounds . lower_bounds [ 1 ] ) /
-    ( bounds . upper_bounds [ 1 ] - bounds . lower_bounds [ 1 ] ) * (Real) Height
-    * ( (Real) Height / (Real) j_max );
+    ( bounds . upper_bounds [ 1 ] - bounds . lower_bounds [ 1 ] ) * (Picture::Real) Height
+    * ( (Picture::Real) Height / (Picture::Real) j_max );
     int i_right = ( box . upper_bounds [ 0 ] - bounds . lower_bounds [ 0 ] ) /
-    ( bounds . upper_bounds [ 0 ] - bounds . lower_bounds [ 0 ] ) * (Real) Width
-    * ((Real) Width / (Real) i_max );
+    ( bounds . upper_bounds [ 0 ] - bounds . lower_bounds [ 0 ] ) * (Picture::Real) Width
+    * ((Picture::Real) Width / (Picture::Real) i_max );
     int j_right = ( box . upper_bounds [ 1 ] - bounds . lower_bounds [ 1 ] ) /
-    ( bounds . upper_bounds [ 1 ] - bounds . lower_bounds [ 1 ] ) * (Real) Height
-    * ( (Real) Height / (Real) j_max );
+    ( bounds . upper_bounds [ 1 ] - bounds . lower_bounds [ 1 ] ) * (Picture::Real) Height
+    * ( (Picture::Real) Height / (Picture::Real) j_max );
     
     for ( int i = i_left; i < i_right; ++ i )
       for ( int j = j_left; j < j_right; ++ j ) { 
@@ -105,8 +103,8 @@ int main ( int argc, char * argv [] )
     std::cout << "Usage: Supply 2 (not " << argc << ") arguments:\n";
     std::cout << "Input two integers in [0, 50)\n";
   }
-  Real bx = ( Real ) atoi ( argv [ 1 ] ); //37.0;
-  Real by = ( Real ) atoi ( argv [ 2 ] ); //17.0;
+  Adaptive_Cubical::Real bx = ( Adaptive_Cubical::Real ) atoi ( argv [ 1 ] ); //37.0;
+  Adaptive_Cubical::Real by = ( Adaptive_Cubical::Real ) atoi ( argv [ 2 ] ); //17.0;
   
   Adaptive_Cubical::Geometric_Description phase_space_box ( 2 , 0 , 300 );
   phase_space_box . lower_bounds [ 0 ] = -0.001;
