@@ -44,7 +44,7 @@ typedef LeslieMap GeometricMap;
 #include "program/Strategies.h"
 
 typedef Decide_Subdiv_Level_Size< Adaptive_Cubical::Toplex > Decide_Subdiv;
-const Decide_Subdiv decide_subdiv ( 6 , 100000 );
+const Decide_Subdiv decide_subdiv ( 12 , 100000 );
 
 typedef Decide_Conley_Index_Size< Adaptive_Cubical::Toplex > Decide_Conley_Index;
 const Decide_Conley_Index decide_conley_index ( 2 , 0, false, 0);

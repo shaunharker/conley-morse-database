@@ -8,7 +8,7 @@
 #include "tools/lodepng/lodepng.h"
 
 Coordinator::Coordinator(int argc, char **argv) {
-  int patch_stride = 2; // distance between center of patches in box-units
+  int patch_stride = 1; // distance between center of patches in box-units
   // warning: currently only works if patch_stride is a power of two
   
   // Initialize parameter space bounds
@@ -184,8 +184,8 @@ CoordinatorBase::State Coordinator::Prepare(Message *job) {
 
   /// Job number (job id) of job to be sent
   size_t job_number = num_jobs_sent_;
-
   std::cout << "Coordinator::Prepare: Preparing job " << job_number << "\n";
+
   //std::cout << "PS_patches . size () = " << PS_patches . size () << "\n";
   
   /// Toplex with the patch to be sent
