@@ -299,7 +299,7 @@ void Coordinator::Process(const Message &result) {
     }
   }
   */
-  
+  /*
   /// Number of parameter cells in this patch
   size_t num_cells = patch_results . size ();
 
@@ -330,7 +330,7 @@ void Coordinator::Process(const Message &result) {
       // std::cout << equivalence_classes [i] [j] << std::endl;
 	}
   }
-
+*/
   /// Increment jobs received counter
   ++num_jobs_received_;
   

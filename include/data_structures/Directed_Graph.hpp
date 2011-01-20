@@ -447,14 +447,15 @@ DirectedGraph<Toplex> compute_directed_graph (const typename Toplex::Subset & my
                                               const Map & f) {
   DirectedGraph<Toplex> directed_graph;
   BOOST_FOREACH ( typename Toplex::Top_Cell cell, my_subset ) {
+    std::cout << "Geometry of cell " << cell << " = " << my_toplex.geometry(cell) << "\n";
+    std::cout << "Applying f yields " << cell << " = " << f(my_toplex.geometry(cell)) << "\n";
+    
     directed_graph[cell] = my_toplex.cover(f(my_toplex.geometry(cell)),my_subset);
-  } /* for_each */
-  /* DEBUG */
-  BOOST_FOREACH ( typename Toplex::Top_Cell cell, my_subset ) {
     BOOST_FOREACH ( typename Toplex::Top_Cell cell2, directed_graph[cell] ) {
-      std::cout << cell << " -> " << cell2 << "\n";
+      std::cout << cell << " -> " << cell2 << " " << my_toplex.geometry(cell2) << "\n";
     }
-  }
+  } /* for_each */
+
   return directed_graph;
 } /* compute_directed_graph */
   
