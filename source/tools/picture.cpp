@@ -43,7 +43,6 @@ void Picture::draw_square ( unsigned char Red, unsigned char Green, unsigned cha
 // copy a scaled version of A into output (which is initialized to some Height and Width
 // and axes scales)
 void copy_scaled_picture ( Picture * picture, const Picture & A ) {
-  Picture & output = * picture;
   /*
   std::cout << "scaling size " <<
   "[" << A . x_min << ", " << A . x_max << "] x [" 

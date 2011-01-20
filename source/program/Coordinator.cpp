@@ -54,11 +54,13 @@ Coordinator::Coordinator(int argc, char **argv) {
     // Add "patch_subset" to the growing vector of patches
     PS_patches . push_back (patch_subset);
     // DEBUG
+    /*
     std::cout << "    patch_bounds = " << patch_bounds << "\n";
     std::cout << "    intersects " << patch_subset . size () << " top cells\n";
     BOOST_FOREACH ( Toplex::Top_Cell cell, patch_subset ) {
       std::cout << "        --> " << param_toplex . geometry ( cell ) << "\n";
     }
+     */
   } /* for */
   num_jobs_ = PS_patches . size ();
   num_jobs_sent_ = 0;
@@ -122,7 +124,7 @@ Coordinator::Coordinator(int argc, char **argv) {
   /// Create all the patches
   for (size_t n = 0; n < num_patches; ++n) {
     size_t factor = 1;
-    std::cout << "  Creating patch #" << n << "\n";
+    //std::cout << "  Creating patch #" << n << "\n";
     for (size_t i = 0; i < param_dim; ++i) {
       factor *= (i == 0) ? 1 : subdivisions_per_side;
       size_t index = (n / factor) % subdivisions_per_side;
@@ -133,16 +135,16 @@ Coordinator::Coordinator(int argc, char **argv) {
 
     /// Construct the patch toplex
     Geometric_Description patch_bounds (param_dim, patch_lower_bounds, patch_upper_bounds);
-    std::cout << "    patch_bounds = " << patch_bounds << "\n";
+    //std::cout << "    patch_bounds = " << patch_bounds << "\n";
     Toplex_Subset patch_subset = param_toplex . cover ( patch_bounds );
-    std::cout << "    intersects " << patch_subset . size () << " top cells\n";
-    BOOST_FOREACH ( Toplex::Top_Cell cell, patch_subset ) {
-      std::cout << "        --> " << param_toplex . geometry ( cell ) << "\n";
-    }
+    //std::cout << "    intersects " << patch_subset . size () << " top cells\n";
+    //BOOST_FOREACH ( Toplex::Top_Cell cell, patch_subset ) {
+    //  std::cout << "        --> " << param_toplex . geometry ( cell ) << "\n";
+    //}
     /// Add  patch to the vector of patches
     PS_patches . push_back (patch_subset);
   }
-  std::cout << "PS_patches . size () = " << PS_patches . size () << "\n";
+  //std::cout << "PS_patches . size () = " << PS_patches . size () << "\n";
 
   /// Create a map with Cached_Box_Information for the intersecting boxes
   for (size_t i = 0; i < num_patches; ++i) {
@@ -184,7 +186,7 @@ CoordinatorBase::State Coordinator::Prepare(Message *job) {
   size_t job_number = num_jobs_sent_;
 
   std::cout << "Coordinator::Prepare: Preparing job " << job_number << "\n";
-  std::cout << "PS_patches . size () = " << PS_patches . size () << "\n";
+  //std::cout << "PS_patches . size () = " << PS_patches . size () << "\n";
   
   /// Toplex with the patch to be sent
   Toplex_Subset patch_subset = PS_patches [job_number];
@@ -200,7 +202,7 @@ CoordinatorBase::State Coordinator::Prepare(Message *job) {
     Geometric_Description Cell_GD = param_toplex . geometry (param_toplex . find (*it));
 	/// Add geometric description to the vector of geo descriptions
     geometric_descriptions [ key ] = Cell_GD;
-    std::cout << "Cell_GD = " << Cell_GD << "\n";
+    //std::cout << "Cell_GD = " << Cell_GD << "\n";
 	/// Add the pair (top_cell, key) to the indices map
     cells_indices_map . insert ( std::pair <Toplex::Top_Cell, size_t> (* param_toplex . find (*it), key) );
     //Insert cached box info into the map if there is any
@@ -235,7 +237,7 @@ CoordinatorBase::State Coordinator::Prepare(Message *job) {
   }
 
   std::cout << "Coordinator::Prepare: Sent job " << num_jobs_sent_ << "\n";
-  std::cout << "  patch size = " << geometric_descriptions . size () << "\n";
+  //std::cout << "  patch size = " << geometric_descriptions . size () << "\n";
   //char c; std::cin >> c;
   // DEBUG
   //if ( num_jobs_sent_ == 50 ) {
@@ -303,9 +305,9 @@ void Coordinator::Process(const Message &result) {
 
 
   /// Temporary output
-  std::cout << std::endl;
-  std::cout << "Job " << job_number << " complete!" << std::endl;
-  std::cout << "Number of CM Graphs computed: " << conley_morse_graphs . size() << std::endl;
+  //std::cout << std::endl;
+  //std::cout << "Job " << job_number << " complete!" << std::endl;
+  //std::cout << "Number of CM Graphs computed: " << conley_morse_graphs . size() << std::endl;
 
   /// Save the Conley Morse graphs
   for (size_t i = 0; i < num_cells; ++i) {
@@ -341,8 +343,10 @@ void Coordinator::Process(const Message &result) {
 }
 
 void Coordinator::finalize ( void ) {
+  std::cout << "Coordinate::finalize ()\n";
   // Draw a parameter space picture if it is 2D.
   if ( PARAM_DIMENSION != 2 ) return;
+  std::cout << "Drawing parameter space picture\n";
   // Create a picture of parameter space.
   std::vector<std::vector<Toplex::Top_Cell> > classes;
   continuation_classes . FillToVector( &classes ); 
