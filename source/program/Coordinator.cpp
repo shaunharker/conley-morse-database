@@ -65,7 +65,7 @@ Coordinator::Coordinator(int argc, char **argv) {
   num_jobs_ = PS_patches . size ();
   num_jobs_sent_ = 0;
   num_jobs_received_ = 0;
-  std::cout << "Coordinator Constructed.\n";
+  std::cout << "Coordinator Constructed, there are " << num_jobs_ << " jobs.\n";
   //char c; std::cin >> c;
 }
   
@@ -310,10 +310,10 @@ void Coordinator::Process(const Message &result) {
     std::cout << "\n";
   }
       */
-  //std::cout << "Coordinator::Process: Received result " << job_number << "\n";
+  std::cout << "Coordinator::Process: Received result " << job_number << "\n";
   //char c; std::cin >> c;
   /// Paramter patch corresponding to received results
-  Toplex_Subset patch_results = PS_patches [job_number];
+  //Toplex_Subset patch_results = PS_patches [job_number];
 
   /// Update the cached box information in PS_Toplex_Cached_Info
   

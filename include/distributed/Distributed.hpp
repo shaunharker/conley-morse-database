@@ -55,7 +55,7 @@ void AssignJobToFreeWorker(Communicator *comm,
   typedef typename Communicator::Channel Channel;
   Channel f = free_workers->front();
   free_workers->pop_front();
-  std::cout << "Sending message with (job ) tag = " << job . tag << "\n";
+  //std::cout << "Sending message with (job ) tag = " << job . tag << "\n";
   comm->Send(job, f);
 }
 
@@ -109,14 +109,14 @@ int RunWorker(Communicator *comm, Worker *worker) {
   ready_message.tag = kReadyTag;
   for (;;) {
     Message job, result;
-    std::cout << "Sending message with (ready ) tag = " << ready_message . tag << "\n";
+    //std::cout << "Sending message with (ready ) tag = " << ready_message . tag << "\n";
     comm->Send(ready_message, comm->CoordinatorChannel());
     comm->Receive(&job, comm->CoordinatorChannel());
     if (job.tag == kRetireTag)
       return 0;
     worker->Work(&result, job);
     result . tag = kResultTag;
-    std::cout << "Sending message with (result ) tag = " << result . tag << "\n";
+    //std::cout << "Sending message with (result ) tag = " << result . tag << "\n";
     comm->Send(result, comm->CoordinatorChannel());
   }
 }
