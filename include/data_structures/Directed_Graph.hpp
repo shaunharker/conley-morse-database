@@ -368,7 +368,7 @@ void computeSCC
                                            color_map(color).
                                            discover_time_map(discover_time));
 
-  std::cout << "num_scc = " << num_scc << "\n";
+  //std::cout << "num_scc = " << num_scc << "\n";
   //unsigned int num_scc = 0; //debug
   std::vector < std::vector < Vertex > > components;
   build_component_lists(G, num_scc, component_number, components);
@@ -447,13 +447,13 @@ DirectedGraph<Toplex> compute_directed_graph (const typename Toplex::Subset & my
                                               const Map & f) {
   DirectedGraph<Toplex> directed_graph;
   BOOST_FOREACH ( typename Toplex::Top_Cell cell, my_subset ) {
-    std::cout << "Geometry of cell " << cell << " = " << my_toplex.geometry(cell) << "\n";
-    std::cout << "Applying f yields " << cell << " = " << f(my_toplex.geometry(cell)) << "\n";
+    //std::cout << "Geometry of cell " << cell << " = " << my_toplex.geometry(cell) << "\n";
+    //std::cout << "Applying f yields " << cell << " = " << f(my_toplex.geometry(cell)) << "\n";
     
     directed_graph[cell] = my_toplex.cover(f(my_toplex.geometry(cell)),my_subset);
-    BOOST_FOREACH ( typename Toplex::Top_Cell cell2, directed_graph[cell] ) {
-      std::cout << cell << " -> " << cell2 << " " << my_toplex.geometry(cell2) << "\n";
-    }
+    //BOOST_FOREACH ( typename Toplex::Top_Cell cell2, directed_graph[cell] ) {
+    //  std::cout << cell << " -> " << cell2 << " " << my_toplex.geometry(cell2) << "\n";
+    //}
   } /* for_each */
 
   return directed_graph;

@@ -143,8 +143,8 @@ int main ( int argc, char * argv [] )
 
   // Create a Picture
   
-  int Width = 400;
-  int Height = 400;
+  int Width = 512;
+  int Height = 512;
   Picture * picture = new Picture( Width, Height, 0.0, 0.0, 0.0, 0.0 ); // this assures I have the origin in current imp
   
   typedef Conley_Morse_Graph::VertexIterator VI;
