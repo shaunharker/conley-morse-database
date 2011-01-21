@@ -68,14 +68,21 @@ bool ClutchingTwoGraphs(
   std::set<Vertex> used;
   bool result = true;
 
+  unsigned int threshold = 100; // WARNING, arbitrary threshold
+  // This checks to see there is a 1-1 intersection relation among 
+  // morse sets with size >= threshold
+  /*
   if (graph1.NumVertices() != graph2.NumVertices()) {
     result = false;
     return false;
   }
+  */
   
   BOOST_FOREACH (Vertex v1, graph1.Vertices()) {
     int n = 0;
+    if ( graph1.CubeSet(v1).size() < threshold ) continue;
     BOOST_FOREACH (Vertex v2, graph2.Vertices()) {
+      if ( graph2.CubeSet(v2).size() < threshold ) continue;
       if (Check_if_Intersect(toplex1, graph1.CubeSet(v1), toplex2, graph2.CubeSet(v2))) {
         //if (pairs) pairs->Add(v1, v2);
         
@@ -218,10 +225,10 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   std::vector<CMGraph> conley_morse_graphs(geometric_descriptions.size());
   std::vector<std::vector<size_t> > equivalent_classes;
 
-  std::cout << "ClutchingGraph: The patch size is " << N << "\n";
+  //std::cout << "ClutchingGraph: The patch size is " << N << "\n";
   
   for (size_t n=0; n<N; n++) {
-    std::cout << "Computing Conley Morse Graph for parameter box " << geometric_descriptions [ n ] << "\n";
+    //std::cout << "Computing Conley Morse Graph for parameter box " << geometric_descriptions [ n ] << "\n";
     phase_space_toplexes[n].initialize(space_bounds);
 #if 1
     std::map<size_t, Cached_Box_Information>::iterator it = cache_info.find(n);

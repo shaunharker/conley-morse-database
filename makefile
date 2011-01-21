@@ -24,7 +24,7 @@ VPATH = ./source/data_structures:./source/program:./source/program/jobs:./source
 all: Conley_Morse_Database TESTS
 
 .PHONY: TESTS
-TESTS: Test_Morse_Graph Test_Single_Box_Job Test_Clutching_Graph
+TESTS: Test_Morse_Graph Test_Single_Box_Job
 
 DATABASE_OBJECTS = Conley_Morse_Database.o Message.o Communicator.o Worker.o Coordinator.o picture.o lodepng.o
 

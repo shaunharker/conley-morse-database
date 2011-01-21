@@ -99,9 +99,10 @@ int main ( int argc, char * argv [] )
   typedef ConleyMorseGraph < Adaptive_Cubical::Toplex::Subset , Conley_Index_t > Conley_Morse_Graph;
   Conley_Morse_Graph conley_morse_graph;
   
-  if ( argc != 2 ) {
+  if ( argc != 3 ) {
     std::cout << "Usage: Supply 2 (not " << argc << ") arguments:\n";
-    std::cout << "Input two integers in [0, 50)\n";
+    std::cout << "Input two integers in [0, 64)\n";
+    return 0;
   }
   Adaptive_Cubical::Real bx = ( Adaptive_Cubical::Real ) atoi ( argv [ 1 ] ); //37.0;
   Adaptive_Cubical::Real by = ( Adaptive_Cubical::Real ) atoi ( argv [ 2 ] ); //17.0;
@@ -121,13 +122,13 @@ int main ( int argc, char * argv [] )
   
   Adaptive_Cubical::Geometric_Description parameter_box ( 2 , 20.01 , 20.02 );
   parameter_box . lower_bounds [ 0 ] = parameter_space_limits . lower_bounds [ 0 ] + 
-  ( parameter_space_limits . upper_bounds [ 0 ] - parameter_space_limits . lower_bounds [ 0 ] ) * bx / 50.0;
+  ( parameter_space_limits . upper_bounds [ 0 ] - parameter_space_limits . lower_bounds [ 0 ] ) * bx / 64.0;
   parameter_box . upper_bounds [ 0 ] = parameter_space_limits . lower_bounds [ 0 ] + 
-  ( parameter_space_limits . upper_bounds [ 0 ] - parameter_space_limits . lower_bounds [ 0 ] ) * ( bx + 1.0 ) / 50.0;
+  ( parameter_space_limits . upper_bounds [ 0 ] - parameter_space_limits . lower_bounds [ 0 ] ) * ( bx + 1.0 ) / 64.0;
   parameter_box . lower_bounds [ 1 ] = parameter_space_limits . lower_bounds [ 1 ] + 
-  ( parameter_space_limits . upper_bounds [ 1 ] - parameter_space_limits . lower_bounds [ 1 ] ) * by / 50.0;
+  ( parameter_space_limits . upper_bounds [ 1 ] - parameter_space_limits . lower_bounds [ 1 ] ) * by / 64.0;
   parameter_box . upper_bounds [ 1 ] = parameter_space_limits . lower_bounds [ 1 ] + 
-  ( parameter_space_limits . upper_bounds [ 1 ] - parameter_space_limits . lower_bounds [ 1 ] ) * ( by + 1.0 ) / 50.0;
+  ( parameter_space_limits . upper_bounds [ 1 ] - parameter_space_limits . lower_bounds [ 1 ] ) * ( by + 1.0 ) / 64.0;
 
   
   Adaptive_Cubical::Toplex phase_space;
