@@ -274,6 +274,7 @@ void Coordinator::Process(const Message &result) {
 
   
   /* DEBUG */
+  /*
   std::cout << "continuation classes reported:\n";
   BOOST_FOREACH ( std::vector < size_t > & eqv_class, equivalence_classes ) {
     std::cout << "CLASS: ";
@@ -282,6 +283,7 @@ void Coordinator::Process(const Message &result) {
     }
     std::cout << "\n";
   }
+   */
   
   // Turn equivalence classes into a UnionFind structure (converting to topcells)
   UnionFind < Toplex::Top_Cell > new_continuation_info;
@@ -295,6 +297,7 @@ void Coordinator::Process(const Message &result) {
   continuation_classes . Merge ( new_continuation_info );
   
   /* DEBUG */
+  /*
   std::cout << "continuation classes so far:\n";
   std::vector < std::vector < Toplex::Top_Cell > > data;
   continuation_classes . FillToVector ( &data );
@@ -305,7 +308,7 @@ void Coordinator::Process(const Message &result) {
     }
     std::cout << "\n";
   }
-      
+      */
   std::cout << "Coordinator::Process: Received result " << job_number << "\n";
   //char c; std::cin >> c;
   /// Paramter patch corresponding to received results
@@ -366,6 +369,19 @@ void Coordinator::Process(const Message &result) {
 
 void Coordinator::finalize ( void ) {
   std::cout << "Coordinate::finalize ()\n";
+  
+  // dump continuation class data
+  std::cout << "continuation classes so far:\n";
+  std::vector < std::vector < Toplex::Top_Cell > > data;
+  continuation_classes . FillToVector ( &data );
+  BOOST_FOREACH ( std::vector < Toplex::Top_Cell > & eqv_class, data ) {
+    std::cout << "CLASS: ";
+    for ( int i = 0; i < (int) eqv_class . size (); ++ i ) {
+      std::cout << eqv_class [ i ] << " ";
+    }
+    std::cout << "\n";
+  }
+  
   std::vector<std::vector<Toplex::Top_Cell> > classes;
   continuation_classes . FillToVector( &classes ); 
   std::cout << "Number of classes = " << classes . size () << "\n";
@@ -377,8 +393,8 @@ void Coordinator::finalize ( void ) {
   std::cout << "Drawing parameter space picture\n";
   // Create a picture of parameter space.
 
-  int Width = 500;
-  int Height = 500;
+  int Width = 640;
+  int Height = 640;
   // Start with a clear picture of the right size.
   Picture * picture = new Picture(Width, Height, 
                                   param_bounds . lower_bounds [ 0 ], 
