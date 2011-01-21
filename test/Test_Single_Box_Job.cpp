@@ -92,7 +92,7 @@ void draw_ascii_subset ( const Toplex & my_toplex, const typename Toplex::Subset
 int main ( int argc, char * argv [] ) 
 {
   typedef Decide_Subdiv_Level_Size< Adaptive_Cubical::Toplex > Decide_Subdiv;
-  Decide_Subdiv decide_subdiv ( 12 , 100000 );
+  Decide_Subdiv decide_subdiv ( 10 , 100000 );
   typedef Decide_Conley_Index_Size< Adaptive_Cubical::Toplex > Decide_Conley_Index;
   Decide_Conley_Index decide_conley_index ( 2 , 0, false , 0 ); //Decide_Conley_Index::MaxValue );
 

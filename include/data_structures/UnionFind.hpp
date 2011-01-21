@@ -137,7 +137,7 @@ void UnionFind<T>::FillToVector(std::vector<std::vector<T> > *ret) {
   
   BOOST_FOREACH (boost::tie(key, entry), tree_) {
     T rep = Representative(key);
-    boost::tie(it, inserted) = roots.insert(vtype(rep, n));
+    boost::tie(it, inserted) = roots.insert(vtype(rep, n)); // relies on bouncing the insert
     size_t k;
     if (inserted) {
       ret->push_back(std::vector<T>(1, rep));

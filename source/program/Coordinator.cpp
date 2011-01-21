@@ -14,15 +14,15 @@ Coordinator::Coordinator(int argc, char **argv) {
   // Initialize parameter space bounds
   param_toplex . initialize (param_bounds);   /// Parameter space toplex
   // Subdivide parameter space toplex
-  Real scale = 1;
-  int num_across = 1;
+  Real scale = Real ( 1.0 );
+  int num_across = 1; // The number of boxes across
   for (int i = 0; i < PARAM_SUBDIVISIONS; ++i) {
     scale /= (Real) 2.0;
     num_across *= 2;
     param_toplex . subdivide (); // subdivide every top cell
   }
   // Determine the lengths of the boxes.
-  // Also, determine the number of interior vertices = (num_across - 1)^dim
+  // Also, determine the number of interior vertices = (num_across/stride - 1)^dim
   int num_interior_vertices = 1;
   int limit = num_across / patch_stride - 1;
   std::vector < Real > side_length ( PARAM_DIMENSION );
@@ -273,6 +273,16 @@ void Coordinator::Process(const Message &result) {
   result >> equivalence_classes;
 
   
+  /* DEBUG */
+  std::cout << "continuation classes reported:\n";
+  BOOST_FOREACH ( std::vector < size_t > & eqv_class, equivalence_classes ) {
+    std::cout << "CLASS: ";
+    for ( int i = 0; i < (int) eqv_class . size (); ++ i ) {
+      std::cout << "(" << eqv_class [ i ] << ", " << cell_names [ eqv_class [ i ] ] << ") ";
+    }
+    std::cout << "\n";
+  }
+  
   // Turn equivalence classes into a UnionFind structure (converting to topcells)
   UnionFind < Toplex::Top_Cell > new_continuation_info;
   BOOST_FOREACH ( std::vector < size_t > & eqv_class, equivalence_classes ) {
@@ -284,6 +294,18 @@ void Coordinator::Process(const Message &result) {
   }
   continuation_classes . Merge ( new_continuation_info );
   
+  /* DEBUG */
+  std::cout << "continuation classes so far:\n";
+  std::vector < std::vector < Toplex::Top_Cell > > data;
+  continuation_classes . FillToVector ( &data );
+  BOOST_FOREACH ( std::vector < Toplex::Top_Cell > & eqv_class, data ) {
+    std::cout << "CLASS: ";
+    for ( int i = 0; i < (int) eqv_class . size (); ++ i ) {
+      std::cout << eqv_class [ i ] << " ";
+    }
+    std::cout << "\n";
+  }
+      
   std::cout << "Coordinator::Process: Received result " << job_number << "\n";
   //char c; std::cin >> c;
   /// Paramter patch corresponding to received results
@@ -344,12 +366,17 @@ void Coordinator::Process(const Message &result) {
 
 void Coordinator::finalize ( void ) {
   std::cout << "Coordinate::finalize ()\n";
+  std::vector<std::vector<Toplex::Top_Cell> > classes;
+  continuation_classes . FillToVector( &classes ); 
+  std::cout << "Number of classes = " << classes . size () << "\n";
+  for ( int i = 0; i < (int) classes . size (); ++ i ) {
+    std::cout << "  Size of class " << i << " is " << classes [ i ] . size () << "\n";
+  }
   // Draw a parameter space picture if it is 2D.
   if ( PARAM_DIMENSION != 2 ) return;
   std::cout << "Drawing parameter space picture\n";
   // Create a picture of parameter space.
-  std::vector<std::vector<Toplex::Top_Cell> > classes;
-  continuation_classes . FillToVector( &classes ); 
+
   int Width = 500;
   int Height = 500;
   // Start with a clear picture of the right size.

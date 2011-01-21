@@ -63,28 +63,36 @@ bool ClutchingTwoGraphs(
     const Toplex &toplex2,
     VertexPairs<CMGraph> *pairs) {
   typedef typename CMGraph::Vertex Vertex;
+  //std::cout << "Testing for equivalence\n";
 
   std::set<Vertex> used;
   bool result = true;
 
-  if (graph1.NumVertices() != graph2.NumVertices())
+  if (graph1.NumVertices() != graph2.NumVertices()) {
     result = false;
+    return false;
+  }
   
   BOOST_FOREACH (Vertex v1, graph1.Vertices()) {
     int n = 0;
     BOOST_FOREACH (Vertex v2, graph2.Vertices()) {
       if (Check_if_Intersect(toplex1, graph1.CubeSet(v1), toplex2, graph2.CubeSet(v2))) {
-        if (pairs)
-          pairs->Add(v1, v2);
+        //if (pairs) pairs->Add(v1, v2);
         
         n++;
         /* if two components in one C-M graph intersect
            one reccurent set in other C-M graph, the two graphs does not
            share the "same" structure */
-        if (n >= 2)
+        if (n >= 2) {
           result = false;
-        if (!used.insert(v2).second)
+          return false;
+        }
+        /* If the component that we intersect has already been "used", return false.
+           Otherwise, mark the component as used as a side effect */
+        if (!used.insert(v2).second) {
           result = false;
+          return false;
+        }
 
 #if 0
         /* if two intersected components have different properties,
@@ -93,14 +101,17 @@ bool ClutchingTwoGraphs(
         result = result &&
                  (graph1.ConleyIndex(v1) == graph2.ConleyIndex(v2));
 #endif
-      }
-    }
+      } /* if intersect */
+    } /* loop through second structure */
     /* if a reccurent set in one C-M graph intersects
        no reccurent set in other C-M graph, the two graphs does not
        share the "same" structure */
-    if (n == 0)
+    if (n == 0) {
       result = false;
-  }
+      return false;
+    }
+  } /* loop through first structure */
+  //std::cout << "Reported an equivalence\n";
   return result;
 }
 
