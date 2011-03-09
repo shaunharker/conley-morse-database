@@ -63,7 +63,7 @@ bool ClutchingTwoGraphs(
     const Toplex &toplex2,
     VertexPairs<CMGraph> *pairs) {
   typedef typename CMGraph::Vertex Vertex;
-  //std::cout << "Testing for equivalence\n";
+  std::cout << "Testing for equivalence\n";
 
   std::set<Vertex> used;
   bool result = true;
@@ -78,10 +78,17 @@ bool ClutchingTwoGraphs(
   }
   */
   
+  int count = 0;
   BOOST_FOREACH (Vertex v1, graph1.Vertices()) {
     int n = 0;
+    std::cout << "outer loop: " << count ++ << "\n";
+    std::cout << " size = " << graph1.CubeSet(v1).size() << "\n";
     if ( graph1.CubeSet(v1).size() < threshold ) continue;
+    int count2 = 0;
     BOOST_FOREACH (Vertex v2, graph2.Vertices()) {
+      std::cout << "  inner loop: " << count2 ++ << "\n";
+      std::cout << "    size = " << graph2.CubeSet(v2).size() << "\n";
+
       if ( graph2.CubeSet(v2).size() < threshold ) continue;
       if (Check_if_Intersect(toplex1, graph1.CubeSet(v1), toplex2, graph2.CubeSet(v2))) {
         //if (pairs) pairs->Add(v1, v2);
@@ -234,7 +241,7 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
     std::map<size_t, Cached_Box_Information>::iterator it = cache_info.find(n);
     Cached_Box_Information* info = (it == cache_info.end()) ? NULL : &(it->second);
     Compute_Conley_Morse_Graph
-        <CMGraph, Toplex, ParameterToplex, LeslieMap , Decide_Subdiv ,
+        <CMGraph, Toplex, ParameterToplex, GeometricMap , Decide_Subdiv ,
         Decide_Conley_Index , Cached_Box_Information >
       (&conley_morse_graphs[n],
        &phase_space_toplexes[n],
