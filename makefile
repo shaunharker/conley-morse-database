@@ -34,6 +34,12 @@ Conley_Morse_Database: $(DATABASE_OBJECTS)
 Test_Morse_Graph: Test_Morse_Graph.o
 	$(CXX_STANDALONE) Test_Morse_Graph.o -o $@ $(LIBS)
 
+TestConleyMorseGraph: TestConleyMorseGraph.o picture.o lodepng.o
+	$(CXX_STANDALONE) TestConleyMorseGraph.o picture.o lodepng.o -o $@ $(LIBS)
+
+TestBipartiteClutching: TestBipartiteClutching.o picture.o lodepng.o
+	$(CXX_STANDALONE) TestBipartiteClutching.o picture.o lodepng.o -o $@ $(LIBS)
+
 Test_Single_Box_Job: Test_Single_Box_Job.o
 	$(CXX_STANDALONE) Test_Single_Box_Job.o picture.o lodepng.o -o $@ $(LIBS)
 

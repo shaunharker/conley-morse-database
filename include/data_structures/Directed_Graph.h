@@ -5,6 +5,8 @@
 #ifndef _CMDP_DIRECTED_GRAPH_
 #define _CMDP_DIRECTED_GRAPH_
 
+#include <stack>
+
 #include <map>
 #include <vector>
 #include <set>
@@ -44,14 +46,31 @@ template < class Toplex, class Map >
 DirectedGraph<Toplex> compute_directed_graph (const typename Toplex::Subset & my_subset,
                                               const Toplex & my_toplex, 
                                               const Map & f);
+
+template < class Toplex, class Map >
+DirectedGraph<Toplex> compute_directed_graph (const std::vector < typename Toplex::Subset > & sets,
+                                              const Toplex & my_toplex, 
+                                              const Map & f);
 // Collapse components
 template < class Toplex >
 DirectedGraph<Toplex> collapseComponents (
-    DirectedGraph<Toplex> & G,
-    typename DirectedGraph<Toplex>::Components & Components,
+    const DirectedGraph<Toplex> & G,
+    const typename DirectedGraph<Toplex>::Components & Components,
     std::vector<typename DirectedGraph<Toplex>::Vertex> & Representatives);
 
-// Compute SCC using boost
+
+// Computation of reachability information given a DAG and vertices of interest
+template < class Graph >
+void compute_reachability ( std::vector < std::vector < typename Graph::Vertex > > * output, 
+                      const Graph & H, 
+                      const std::vector < typename Graph::Vertex > & representatives );
+
+// Compute Morse sets
+template < class Toplex >
+void compute_morse_sets (std::vector < typename Toplex::Subset > * morse_sets,
+                         const DirectedGraph<Toplex> & G);
+
+// Compute SCC using boost  (actually, pathSCC =: combinatorial morse sets)
 template < class Toplex >
 void computeSCC 
 (std::vector < typename Toplex::Subset > * morse_sets,

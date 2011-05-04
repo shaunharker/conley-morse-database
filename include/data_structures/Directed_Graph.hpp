@@ -327,6 +327,130 @@ const typename Toplex::Subset & DirectedGraph<Toplex>::operator () ( const typen
 
 /* Global functions */
 
+template < class Graph >
+void compute_reachability ( std::vector < std::vector < typename Graph::Vertex > > * output, 
+                      const Graph & H, 
+                      const std::vector < typename Graph::Vertex > & representatives ) {
+  typedef typename Graph::Vertex Vertex;
+  typedef typename boost::graph_traits<Graph>::vertex_iterator vi;
+  typedef typename boost::graph_traits<Graph>::adjacency_iterator ai;
+  // Initialize output
+  output -> clear ();
+  output -> resize ( representatives . size () );
+  // Iterate through the vertices of the graph
+  std::set < Vertex > special;
+  for ( unsigned int s = 0; s < representatives . size (); ++ s ) {
+    special . insert ( representatives [ s ] );
+  }
+  // make an empty stack
+  for ( unsigned int s = 0; s < representatives . size (); ++ s ) {
+    std::set < Vertex > visited;
+    std::stack < Vertex > dfs_stack;
+    dfs_stack . push ( representatives [ s ] );
+
+    while ( not dfs_stack . empty () ) {
+      // Pop from the stack and continue if its a repeat
+      Vertex source_vertex = dfs_stack . top ();
+      dfs_stack . pop ();
+      if ( visited . insert ( source_vertex ) . second == false ) continue;
+      // add to output if saw connectivity among special nodes
+      if ( special . count ( source_vertex ) != 0 &&
+           source_vertex != representatives [ s ] ) (*output) [ s ] . push_back ( source_vertex );
+      // push target vertices onto stack
+      ai target_it, end_of_target;
+      boost::tie ( target_it, end_of_target ) = boost::adjacent_vertices ( source_vertex, H );
+      for ( ; target_it != end_of_target ; ++ target_it ) dfs_stack . push ( * target_it );
+    } /* while */
+  }/* for */
+} /* compute_reachability */
+
+
+#include <boost/graph/strong_components.hpp>
+template < class Toplex >
+void compute_morse_sets (std::vector < typename Toplex::Subset > * morse_sets,
+                         const DirectedGraph<Toplex> & G) {
+  using namespace boost;
+  
+  typedef DirectedGraph<Toplex> Graph;
+  typedef typename graph_traits<Graph>::vertex_descriptor Vertex;
+  
+  /* Pair Associative Container (PAC) -- Vertex to Vertex or Integer or Color (VV, VI, VC) */
+  typedef std::map< Vertex, Vertex > PAC_VV_t; 
+  typedef std::map< Vertex, int > PAC_VI_t; 
+  typedef std::map< Vertex, default_color_type > PAC_VC_t; 
+  /* Associative Property Map (APM) -- Vertex to Integer or Color (VV, VI, VC) */
+  typedef boost::associative_property_map< PAC_VV_t > APM_VV_t;
+  typedef boost::associative_property_map< PAC_VI_t > APM_VI_t;
+  typedef boost::associative_property_map< PAC_VC_t > APM_VC_t;
+  
+  PAC_VI_t pac_component;
+  PAC_VI_t pac_discover_time;
+  PAC_VV_t pac_root;
+  PAC_VC_t pac_color;
+  
+  APM_VI_t component_number ( pac_component );
+  APM_VI_t discover_time ( pac_discover_time );
+  APM_VV_t root ( pac_root );
+  APM_VC_t color ( pac_color );
+  
+  //vertices < Toplex > (G); // instantiate the function template or it won't compile, oddly enough
+  
+  unsigned int num_scc = strong_components(G, component_number, 
+                                           root_map(root).
+                                           color_map(color).
+                                           discover_time_map(discover_time));
+  
+  //std::cout << "num_scc = " << num_scc << "\n";
+  //unsigned int num_scc = 0; //debug
+  std::vector < std::vector < Vertex > > components;
+  build_component_lists(G, num_scc, component_number, components);
+  
+  /* DETECT SPURIOUS COMPONENTS */
+  
+  //   That is, any SCC which is a singleton not connecting to itself 
+  //   is considered spurious and eliminated. Really we are not computing
+  //   SCC but Path-SCC */
+  
+  // A vector to record which components are spurious.
+  // "false" means a component is not spurious
+  // "true" means a component is spurious
+  std::vector<bool> spurious_components ( num_scc, false );
+  unsigned int number_of_path_components = 0;
+  
+  // The following loop gives "spurious_components" the correct values:
+  for ( unsigned int index = 0; index < num_scc; ++ index ) {
+    if ( components [ index ] . size () == 1) {
+      Vertex v = components [ index ] [ 0 ];
+      if ( G(v) . find ( v ) == G(v) . end () ) {
+        spurious_components [ index ] = true;
+        continue;
+      } /* if */
+    } /* if */
+    ++ number_of_path_components;
+  }
+  
+  /* CONVERT RESULT INTO OUTPUT FORMAT */
+  
+  // First we size the result, and "new" the "Component"s, which are
+  // "Toplex::Subset"s 
+  morse_sets -> resize ( number_of_path_components );
+  
+  // Now we copy the data 
+  unsigned int comp_index = 0;
+  unsigned int index = 0;
+  BOOST_FOREACH ( std::vector<Vertex> & vertices, components ) {
+    /* If the component is spurious, we do not record it. */
+    if ( spurious_components [ index ++ ] ) continue;
+    /* Otherwise, we copy it. */
+    typename DirectedGraph< Toplex >::Component & morse_set = 
+    ( * morse_sets ) [ comp_index ];
+    ++ comp_index;
+    BOOST_FOREACH ( typename Toplex::Top_Cell cell, vertices ) {
+      morse_set . insert ( cell );
+    } /* foreach */
+  } /* foreach */
+}
+
 /* A wrapper for the boost's strongly connected components algorithm */
 #include <boost/graph/strong_components.hpp>
 template < class Toplex >
@@ -458,7 +582,49 @@ DirectedGraph<Toplex> compute_directed_graph (const typename Toplex::Subset & my
 
   return directed_graph;
 } /* compute_directed_graph */
+
+template < class Toplex, class Map >
+DirectedGraph<Toplex> compute_directed_graph (const std::vector < typename Toplex::Subset > & sets,
+                                              const Toplex & my_toplex, 
+                                              const Map & f) {
+  DirectedGraph<Toplex> directed_graph;
+  BOOST_FOREACH ( const typename Toplex::Subset & my_subset, sets ) {
+    BOOST_FOREACH ( typename Toplex::Top_Cell cell, my_subset ) {
+      directed_graph[cell] = my_toplex.cover(f(my_toplex.geometry(cell)),my_subset);
+    } /* boost_foreach */
+  } /* boost_foreach */
+  return directed_graph;
+} /* compute_directed_graph */
+
+template < class Graph >
+void store_directed_graph ( const Graph & G, const char * filename ) {
+  typedef typename Graph::Vertex Vertex;
+  typedef typename boost::graph_traits<Graph >::vertex_iterator vi;
+  typedef typename boost::graph_traits<Graph >::adjacency_iterator ai;
+ 
+  std::ofstream outfile ( filename );
   
+  outfile << "digraph G { \n";
+  outfile << "node [ shape = point, color=blue  ];\n";
+  outfile << "edge [ color=black  ];\n";
+  // Iterate through the vertices of the graph
+  vi source_it, end_of_graph;
+  for (boost::tie ( source_it, end_of_graph ) = boost::vertices ( G );
+       source_it != end_of_graph; ++ source_it ) {
+    Vertex source_vertex = * source_it;
+    // Iterate through the target vertices of the current vertex
+    ai target_it, end_of_target;
+    for (boost::tie ( target_it, end_of_target ) = boost::adjacent_vertices ( source_vertex, G );
+         target_it != end_of_target; ++ target_it ) {
+      Vertex target_vertex = * target_it;
+      outfile << source_vertex << " -> " << target_vertex << ";\n";
+    } /* for */
+  } /* for */
+  
+  outfile << "}\n";
+  outfile . close ();
+  
+}
 
 #if 0
 // Compute the length of the longest path from v to w

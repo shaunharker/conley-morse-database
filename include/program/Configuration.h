@@ -36,9 +36,10 @@ const Geometric_Description space_bounds ( SPACE_DIMENSION , std::vector<Real> (
                                                       space_upper_bounds + SPACE_DIMENSION ) );
 
 /* Map Choice */
+//#include "maps/fisheries.h"
+//typedef FishMap4 GeometricMap;
 #include "maps/leslie.h"
 typedef LeslieMap GeometricMap;
-
 
 /* Strategies */
 #include "program/Strategies.h"

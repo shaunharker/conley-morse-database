@@ -20,6 +20,8 @@ struct Picture {
   ///    Does not overwrite -- rather, it takes the min of the color value of what
   ///    is being written and what is already there. This allows us to superpose images.
   void draw_square ( unsigned char Red, unsigned char Green, unsigned char Blue, 
+                    Real draw_x_min, Real draw_x_max, Real draw_y_min, Real draw_y_max, bool transparent = true );
+  void draw_square_outline ( unsigned char Red, unsigned char Green, unsigned char Blue, 
                     Real draw_x_min, Real draw_x_max, Real draw_y_min, Real draw_y_max );
 };
 
