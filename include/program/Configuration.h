@@ -26,6 +26,8 @@ const Geometric_Description param_bounds ( PARAM_DIMENSION , std::vector<Real> (
 
 /* Phase Space */
 #define SPACE_DIMENSION 2
+#define PHASE_SUBDIVISIONS 10
+#define COMPLEXITY_LIMIT 200000
 
 const Real space_lower_bounds [PARAM_DIMENSION] = { 0.0, 0.0 };
 const Real space_upper_bounds [PARAM_DIMENSION] = { 200.0, 200.0 };
@@ -42,6 +44,7 @@ const Geometric_Description space_bounds ( SPACE_DIMENSION , std::vector<Real> (
 typedef LeslieMap GeometricMap;
 
 /* Strategies */
+/*
 #include "program/Strategies.h"
 
 typedef Decide_Subdiv_Level_Size< Adaptive_Cubical::Toplex > Decide_Subdiv;
@@ -49,6 +52,7 @@ const Decide_Subdiv decide_subdiv ( 10 , 100000 );
 
 typedef Decide_Conley_Index_Size< Adaptive_Cubical::Toplex > Decide_Conley_Index;
 const Decide_Conley_Index decide_conley_index ( 2 , 0, false, 0);
+ */
 //const Decide_Conley_Index decide_conley_index ( 2 , 10000 , true , Decide_Conley_Index::MaxValue );
 
 

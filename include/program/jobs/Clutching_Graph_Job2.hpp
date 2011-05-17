@@ -13,7 +13,7 @@
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/map.hpp>
 #include "program/Configuration.h"
-#include "program/jobs/Compute_Conley_Morse_Graph2.h"
+#include "program/jobs/Compute_Conley_Morse_Graph3.h"
 #include "data_structures/UnionFind.hpp"
 
 /* Prefix Tree Structure Used in Clutching Algorithm */
@@ -285,7 +285,7 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   for (size_t n=0; n<N; n++) {
     //std::cout << "Computing Conley Morse Graph for parameter box " << geometric_descriptions [ n ] << "\n";
     phase_space_toplexes[n].initialize(space_bounds);
-#if 0
+#if 1
     std::map<size_t, Cached_Box_Information>::iterator it = cache_info.find(n);
     Cached_Box_Information* info = (it == cache_info.end()) ? NULL : &(it->second);
     Compute_Conley_Morse_Graph3 <CMGraph, Toplex, ParameterToplex, GeometricMap >

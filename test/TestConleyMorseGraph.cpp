@@ -1,14 +1,18 @@
 /// Construct and display a conley morse graph for a given dynamical system
+
+//#define VISUALIZE_DEBUG
+
 // STANDARD HEADERS
 #include <iostream>
 #include <fstream>
+#include <ctime>
 
 // HEADERS FOR DATA STRUCTURES
 #include "data_structures/Conley_Morse_Graph.h"
 #include "toplexes/Adaptive_Cubical_Toplex.h"
 
 // HEADERS FOR ALGORITHMS
-#define PHASEDEPTH 12
+#define PHASEDEPTH 10
 #include "program/jobs/Compute_Conley_Morse_Graph3.h"
 
 // HEADER FOR MAP FILE
@@ -31,6 +35,9 @@ void CreateDotFile ( const CMG & cmg );
 // MAIN PROGRAM
 int main ( int argc, char * argv [] ) 
 {
+  
+  clock_t start, stop;
+  start = clock ();
   
   /* READ TWO INPUTS (which will give a parameter space box) */
   
@@ -68,6 +75,10 @@ int main ( int argc, char * argv [] )
   Compute_Conley_Morse_Graph3 < CMG, Adaptive_Cubical::Toplex, Adaptive_Cubical::Toplex, LeslieMap/*FishMap4*/ >
     ( & conley_morse_graph, & phase_space, parameter_box );
 
+  stop = clock ();
+  std::cout << "Total Time for Finding Morse Sets, Connections, and Conley Indices: " << 
+    (float) (stop - start ) / (float) CLOCKS_PER_SEC << "\n";
+  
   /* DRAW MORSE SETS */
   DrawMorseSets ( phase_space, conley_morse_graph );
 

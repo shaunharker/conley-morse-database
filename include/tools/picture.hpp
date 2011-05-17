@@ -206,9 +206,9 @@ Picture * draw_toplex_and_morse_sets (const int Width, const int Height,
   for (boost::tie ( it, stop ) = conley_morse_graph . Vertices ();
        it != stop;
        ++ it ) {
-    unsigned char Red;
-    unsigned char Green;
-    unsigned char Blue;
+    unsigned char Red = 0;
+    unsigned char Green = 0;
+    unsigned char Blue = 0; // initialize to zero to stop compiler warning
     switch ( rand() % 6 ) {
       case 0 : Red = 0; Blue = 255; Green = rand()%255; break;
       case 1 : Blue = 0; Green = 255; Red = rand()%255; break;

@@ -3,7 +3,7 @@
  */
 
 #include "program/Worker.h"
-#include "program/jobs/Clutching_Graph_Job.h"
+#include "program/jobs/Clutching_Graph_Job2.h"
 #include "toplexes/Adaptive_Cubical_Toplex.h" /* For Toplex */
 #include "algorithms/Homology.h" /* for Conley_Index_t */
 

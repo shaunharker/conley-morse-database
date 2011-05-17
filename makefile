@@ -5,8 +5,8 @@ HOMEDIR := ..
 CAPDDIR := $(HOMEDIR)/capd
 CHOMPDIR := $(HOMEDIR)/chomp-rutgers
 BOOSTDIR := $(HOMEDIR)/boost_1_42_0
-LIBDIR = -L$(BOOSTDIR)/stage/lib/ -L$(CHOMPDIR)/lib/ 
-LIBS = $(LIBDIR) -lboost_serialization -lchomp-rutgers
+LIBDIR = -L$(BOOSTDIR)/stage/lib/ -L$(CHOMPDIR)/lib/ -L/usr/X11/lib/
+LIBS = $(LIBDIR) -lboost_serialization -lchomp-rutgers -lX11
 CXXFLAGS := -O3 -m64 -Wall -I./include/ -I$(CAPDDIR)/include -I$(CHOMPDIR)/include -I$(INCLUDES) -Wno-deprecated -I$(BOOSTDIR) -ggdb
 
 

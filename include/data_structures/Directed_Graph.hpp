@@ -2,7 +2,10 @@
  *  Directed_Graph.hpp
  */
 
+#include <iostream>
+#include <fstream>
 #include <functional>
+
 
 /* BOOST includes */
 //#include <boost/config.hpp>
