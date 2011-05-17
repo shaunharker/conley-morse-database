@@ -7,6 +7,7 @@
 #include <boost/foreach.hpp>
 #include <algorithm>
 #include <vector>
+#include <ctime>
 #include <set>
 #include "data_structures/Cached_Box_Information.h"
 #include <boost/iterator_adaptors.hpp>
@@ -280,10 +281,13 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   std::vector<CMGraph> conley_morse_graphs(geometric_descriptions.size());
   std::vector<std::vector<size_t> > equivalent_classes;
   
+  clock_t start = clock ();
+  
   //std::cout << "ProduceClutchingGraph: The patch size is " << N << "\n";
   
   for (size_t n=0; n<N; n++) {
     //std::cout << "Computing Conley Morse Graph for parameter box " << geometric_descriptions [ n ] << "\n";
+    clock_t start1 = clock ();
     phase_space_toplexes[n].initialize(space_bounds);
 #if 1
     std::map<size_t, Cached_Box_Information>::iterator it = cache_info.find(n);
@@ -292,12 +296,20 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
     (&conley_morse_graphs[n],
      &phase_space_toplexes[n],
      geometric_descriptions[n]);
+    std::cout << "Job " << job_number << " subtask done. Time = " << (float)(clock() - start1 ) / (float) CLOCKS_PER_SEC << "\n";
+
 #endif
   }
   
+  std::cout << "Job " << job_number << " finished CMG construction. Time = " << (float)(clock() - start ) / (float) CLOCKS_PER_SEC << "\n";
+  
+  start = clock ();
+  
   Patch<CMGraph, Toplex> patch(conley_morse_graphs, phase_space_toplexes, neighbour);
   ProduceClutchingGraph<CMGraph, Patch<CMGraph, Toplex>, Toplex>(patch, &equivalent_classes);
-  
+
+  std::cout << "Job " << job_number << " finished Clutching. Time = " << (float)(clock() - start ) / (float) CLOCKS_PER_SEC << "\n";
+
   *result << job_number;
   *result << cache_info;
   *result << conley_morse_graphs;

@@ -36,8 +36,8 @@ void Compute_Conley_Morse_Graph3 (Conley_Morse_Graph * conley_morse_graph ,
   start = clock ();
   typedef DirectedGraph < Toplex > Graph;
   typedef typename Graph::Vertex vertex_t;
-  std::cout << "[" << parameter_box . lower_bounds [ 0 ] << ", " << parameter_box . upper_bounds [ 0 ] << "] X";
-  std::cout << "[" << parameter_box . lower_bounds [ 1 ] << ", " << parameter_box . upper_bounds [ 1 ] << "]\n";
+  //std::cout << "[" << parameter_box . lower_bounds [ 0 ] << ", " << parameter_box . upper_bounds [ 0 ] << "] X";
+  //std::cout << "[" << parameter_box . lower_bounds [ 1 ] << ", " << parameter_box . upper_bounds [ 1 ] << "]\n";
 
   // create map object
   Map interval_map ( parameter_box );
@@ -52,16 +52,16 @@ void Compute_Conley_Morse_Graph3 (Conley_Morse_Graph * conley_morse_graph ,
   while ( subdivided && ++ depth <= PHASE_SUBDIVISIONS ) {
     subdivided = false;
     // DEBUG
-    std::cout << "depth = " << depth << " and phase_space . size () = " << phase_space -> size () << "\n";
+    //std::cout << "depth = " << depth << " and phase_space . size () = " << phase_space -> size () << "\n";
     // compute combinatorial map
-    std::cout << "Computing directed graph...\n";
+    //std::cout << "Computing directed graph...\n";
     Graph G = compute_directed_graph ( morse_sets, * phase_space , interval_map );
     // compute morse sets
-    std::cout << "Computing morse sets...\n";
+    //std::cout << "Computing morse sets...\n";
     morse_sets . clear ();
     compute_morse_sets ( &morse_sets, G );
     // subdivide morse sets
-    std::cout << "Subdividing morse sets...\n";
+    //std::cout << "Subdividing morse sets...\n";
     BOOST_FOREACH ( typename Toplex::Subset & morse_set, morse_sets ) {
       if ( morse_set . size () * ( (1 << phase_space -> dimension () ) - 1) + complexity < COMPLEXITY_LIMIT ) {
         morse_set = phase_space -> subdivide ( morse_set );
@@ -73,20 +73,20 @@ void Compute_Conley_Morse_Graph3 (Conley_Morse_Graph * conley_morse_graph ,
     } /* boost_foreach */
   } /* for */
   // Finalize: Create entire directed graph in memory and determine morse sets
-  std::cout << "phase_space . size () = " << phase_space -> size () << "\n";
-  std::cout << "Computing directed graph...\n";
+  //std::cout << "phase_space . size () = " << phase_space -> size () << "\n";
+  //std::cout << "Computing directed graph...\n";
   Graph G = compute_directed_graph ( * phase_space , interval_map );
-  std::cout << "Computing morse sets...\n";
+  //std::cout << "Computing morse sets...\n";
   morse_sets . clear ();
   compute_morse_sets ( &morse_sets, G );
 
   stop = clock ();
-  std::cout << "CCMG: Time to Compute Morse Sets = " << (float)(stop - start)/(float)CLOCKS_PER_SEC << "\n";
+  //std::cout << "CCMG: Time to Compute Morse Sets = " << (float)(stop - start)/(float)CLOCKS_PER_SEC << "\n";
   
   /* Produce Morse Graph */
   start = clock ();
   // condense morse sets
-  std::cout << "Calculating Morse Graph...\n";
+  //std::cout << "Calculating Morse Graph...\n";
   std::vector< vertex_t > representatives;
   
   Graph H = collapseComponents < Toplex > ( G, morse_sets, /*output*/ representatives );
@@ -112,7 +112,7 @@ void Compute_Conley_Morse_Graph3 (Conley_Morse_Graph * conley_morse_graph ,
   }
   
   stop = clock ();
-  std::cout << "CCMG: Time to Compute Morse Graph = " << (float)(stop - start)/(float)CLOCKS_PER_SEC << "\n";
+  //std::cout << "CCMG: Time to Compute Morse Graph = " << (float)(stop - start)/(float)CLOCKS_PER_SEC << "\n";
   
   // produce conley index
   if ( should_compute_conley_index ) {
@@ -125,7 +125,7 @@ void Compute_Conley_Morse_Graph3 (Conley_Morse_Graph * conley_morse_graph ,
                                     interval_map );
     }
     stop = clock ();
-    std::cout << "CCMG: Time to Compute Conley Indices = " << (float)(stop - start)/(float)CLOCKS_PER_SEC << "\n";
+    //std::cout << "CCMG: Time to Compute Conley Indices = " << (float)(stop - start)/(float)CLOCKS_PER_SEC << "\n";
   }
   // TODO
   return;
