@@ -25,10 +25,10 @@ Picture::~Picture ( void ) { if ( bitmap != NULL ) delete bitmap; }
 
 void Picture::draw_square ( unsigned char Red, unsigned char Green, unsigned char Blue, 
                   Real draw_x_min, Real draw_x_max, Real draw_y_min, Real draw_y_max, bool transparent ) {
-  int left = ( (draw_x_min - x_min) / (x_max - x_min) ) * (Real) Width;
-  int right = ( (draw_x_max - x_min) / (x_max - x_min ) ) * (Real) Width;
-  int bottom = ( (draw_y_min - y_min) / (y_max - y_min) ) * (Real) Height;
-  int top = ( (draw_y_max - y_min) / (y_max - y_min ) )* (Real) Height;
+  int left = (int) (( (draw_x_min - x_min) / (x_max - x_min) ) * (Real) Width );
+  int right = (int) (( (draw_x_max - x_min) / (x_max - x_min ) ) * (Real) Width );
+  int bottom = (int) (( (draw_y_min - y_min) / (y_max - y_min) ) * (Real) Height );
+  int top = (int) (( (draw_y_max - y_min) / (y_max - y_min ) )* (Real) Height );
   if ( (left == right) && (right + 1 < Width) ) ++ right;
   if ( (bottom == top) && (top  + 1 < Height) ) ++ top;
   for ( int i = left; i < right; ++ i ) {

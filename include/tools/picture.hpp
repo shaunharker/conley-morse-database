@@ -23,7 +23,7 @@ Picture * draw_picture (const int Width, const int Height,
     y_min = std::min ( y_min, box . lower_bounds [ 1 ] );
     y_max = std::max ( y_max, box . upper_bounds [ 1 ] );
   }
-  if ( x_min == x_max || y_min == y_max ) std::cout << "draw_picture: wtf?\n" << x_min << " " << x_max << " " << y_min << " " << y_max << "\n";
+  if ( x_min == x_max || y_min == y_max ) std::cout << "draw_picture: \n" << x_min << " " << x_max << " " << y_min << " " << y_max << "\n";
 
   // Create picture
   Picture * picture = new Picture( Width, Height, x_min, x_max, y_min, y_max );
