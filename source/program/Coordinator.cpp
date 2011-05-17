@@ -6,6 +6,7 @@
 #include "boost/foreach.hpp"
 #include "tools/picture.h"
 #include "tools/lodepng/lodepng.h"
+#include <ctime>
 
 Coordinator::Coordinator(int argc, char **argv) {
   int patch_stride = 1; // distance between center of patches in box-units
@@ -394,6 +395,7 @@ void Coordinator::finalize ( void ) {
   std::cout << "Drawing parameter space picture\n";
   // Create a picture of parameter space.
 
+  clock_t start = clock ();
   int Width = 640;
   int Height = 640;
   // Start with a clear picture of the right size.
@@ -404,24 +406,35 @@ void Coordinator::finalize ( void ) {
                                   param_bounds . upper_bounds [ 1 ]);
   BOOST_FOREACH ( std::vector < Toplex::Top_Cell > & eqv_class, classes ) {
     // Cobble together the subset
+    start = clock ();
     Toplex::Subset subset;
     BOOST_FOREACH ( Toplex::Top_Cell cell, eqv_class ) {
       subset . insert ( cell );
     }
+    std::cout << "Made subset, " << (float)(clock() - start)/(float)CLOCKS_PER_SEC << "\n";
+    
     // Pick Some Random Color
     unsigned char Red = rand () % 255;
     unsigned char Green = rand () % 255;
     unsigned char Blue = rand () % 255;
     // Draw a picture of the subset
+    start = clock ();
+
     Picture * class_picture = draw_picture ( Width, Height, 
                                             Red, Green, Blue, 
                                             param_toplex, subset );
+    std::cout << "draw_picture, " << (float)(clock() - start)/(float)CLOCKS_PER_SEC << "\n";
+
     // Combine the picture with the previous ones
+    start = clock ();
     Picture * combination = combine_pictures ( Width, Height, *picture, *class_picture );
+    std::cout << "combine_pictures, " << (float)(clock() - start)/(float)CLOCKS_PER_SEC << "\n";
+
     std::swap ( picture, combination );
     delete class_picture;
     delete combination;
   }
+  std::cout << "encoding file...\n";
   LodePNG_encode32_file( "image.png", picture -> bitmap, picture -> Width, picture -> Height);
 
 }
