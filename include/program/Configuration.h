@@ -26,8 +26,8 @@ const Geometric_Description param_bounds ( PARAM_DIMENSION , std::vector<Real> (
 
 /* Phase Space */
 #define SPACE_DIMENSION 2
-#define PHASE_SUBDIVISIONS 5
-#define COMPLEXITY_LIMIT 10000
+#define PHASE_SUBDIVISIONS 12
+#define COMPLEXITY_LIMIT 200000
 
 const Real space_lower_bounds [PARAM_DIMENSION] = { 0.0, 0.0 };
 const Real space_upper_bounds [PARAM_DIMENSION] = { 200.0, 200.0 };
