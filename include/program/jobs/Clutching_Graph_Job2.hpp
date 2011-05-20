@@ -6,6 +6,7 @@
 #include "distributed/Message.h"
 #include <boost/foreach.hpp>
 #include <algorithm>
+#include <stack>
 #include <vector>
 #include <ctime>
 #include <set>
