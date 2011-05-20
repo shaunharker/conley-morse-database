@@ -6,14 +6,25 @@
 #include <iostream>
 #include <fstream>
 #include <ctime>
+#include <vector>
 
+//#define VISUALIZE_DEBUG
+//#define RGVISUALIZE_DEBUG
 // HEADERS FOR DATA STRUCTURES
 #include "data_structures/Conley_Morse_Graph.h"
 #include "toplexes/Adaptive_Cubical_Toplex.h"
 
 // HEADERS FOR ALGORITHMS
-#define PHASEDEPTH 10
+#define PHASE_SUBDIVISIONS 12
+#define COMPLEXITY_LIMIT 2000000
+
+#define NEW_GRAPH_THEORY
+
+#ifndef NEW_GRAPH_THEORY
 #include "program/jobs/Compute_Conley_Morse_Graph3.h"
+#else
+#include "program/jobs/Compute_Conley_Morse_Graph4.h"
+#endif
 
 // HEADER FOR MAP FILE
 #include "maps/leslie.h"
@@ -24,7 +35,13 @@
 #include "tools/lodepng/lodepng.h"
 
 // TYPEDEFS
-typedef ConleyMorseGraph < Adaptive_Cubical::Toplex::Subset , Conley_Index_t > CMG;
+#ifdef NEW_GRAPH_THEORY
+typedef std::vector < Adaptive_Cubical::Toplex::Top_Cell > CellContainer;
+#else
+typedef Adaptive_Cubical::Toplex::Subset CellContainer;
+#endif
+
+typedef ConleyMorseGraph < CellContainer , Conley_Index_t > CMG;
 
 // FUNCTION DECLARATIONS
 Adaptive_Cubical::Geometric_Description initialize_phase_space_box ( const int bx, const int by );
@@ -72,9 +89,14 @@ int main ( int argc, char * argv [] )
   CMG conley_morse_graph;
   
   /* COMPUTE CONLEY MORSE GRAPH */
+#ifdef NEW_GRAPH_THEORY
+  Compute_Conley_Morse_Graph4 < CMG, Adaptive_Cubical::Toplex, Adaptive_Cubical::Toplex, LeslieMap/*FishMap4*/ >
+    ( & conley_morse_graph, & phase_space, parameter_box, true, false );
+#else
   Compute_Conley_Morse_Graph3 < CMG, Adaptive_Cubical::Toplex, Adaptive_Cubical::Toplex, LeslieMap/*FishMap4*/ >
-    ( & conley_morse_graph, & phase_space, parameter_box );
-
+  ( & conley_morse_graph, & phase_space, parameter_box, true, false );
+#endif
+  
   stop = clock ();
   std::cout << "Total Time for Finding Morse Sets, Connections, and Conley Indices: " << 
     (float) (stop - start ) / (float) CLOCKS_PER_SEC << "\n";
@@ -145,11 +167,11 @@ void DrawMorseSets ( const Toplex & phase_space, const CMG & conley_morse_graph 
     delete combination;
   }
    */
-  Picture * picture = draw_morse_sets ( Width, Height, phase_space, conley_morse_graph );
+  Picture * picture = draw_morse_sets<Toplex,CellContainer>( Width, Height, phase_space, conley_morse_graph );
   LodePNG_encode32_file( "morse_sets.png", picture -> bitmap, picture -> Width, picture -> Height);
-  Picture * picture2 = draw_toplex ( Width, Height, phase_space );
+  Picture * picture2 = draw_toplex <Toplex,CellContainer>( Width, Height, phase_space );
   LodePNG_encode32_file( "toplex.png", picture2 -> bitmap, picture2 -> Width, picture2 -> Height);
-  Picture * picture3 = draw_toplex_and_morse_sets ( Width, Height, phase_space, conley_morse_graph );
+  Picture * picture3 = draw_toplex_and_morse_sets <Toplex,CellContainer>( Width, Height, phase_space, conley_morse_graph );
   LodePNG_encode32_file( "toplex_and_morse.png", picture3 -> bitmap, picture3 -> Width, picture3 -> Height);
 
   delete picture;
@@ -200,4 +222,5 @@ void CreateDotFile ( const CMG & cmg ) {
   outfile . close ();
   
 }
+
 

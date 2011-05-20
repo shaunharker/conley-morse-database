@@ -2,11 +2,13 @@
 // a tool for converting 2D adaptive cubical complexes into .png files
 
 #include <algorithm>
+#include <iterator>
+#include "boost/foreach.hpp"
 
-template < class Toplex >
+template < class Toplex, class CellContainer >
 Picture * draw_picture (const int Width, const int Height,
-			unsigned char Red, unsigned char Green, unsigned char Blue,
-			const Toplex & my_toplex, const typename Toplex::Subset & my_subset ) {
+                        unsigned char Red, unsigned char Green, unsigned char Blue,
+                        const Toplex & my_toplex, const CellContainer & my_subset ) {
   typename Toplex::Geometric_Description bounds = my_toplex . bounds ();
   // Prepare variables for bounds finding loop
   Picture::Real x_min = bounds . upper_bounds [ 0 ];
@@ -15,29 +17,26 @@ Picture * draw_picture (const int Width, const int Height,
   Picture::Real y_max = bounds . lower_bounds [ 1 ];
   
   // Find bounds of picture
-  for ( typename Toplex::Subset::const_iterator it = my_subset . begin (); 
-	it != my_subset . end (); ++ it ) {
-    typename Toplex::Geometric_Description box = my_toplex . geometry ( my_toplex . find ( *it ) );
+  BOOST_FOREACH ( typename Toplex::Top_Cell cell, my_subset ) {
+    typename Toplex::Geometric_Description box = my_toplex . geometry ( my_toplex . find ( cell ) );
     x_min = std::min ( x_min, box . lower_bounds [ 0 ] );
     x_max = std::max ( x_max, box . upper_bounds [ 0 ] );
     y_min = std::min ( y_min, box . lower_bounds [ 1 ] );
     y_max = std::max ( y_max, box . upper_bounds [ 1 ] );
   }
   if ( x_min == x_max || y_min == y_max ) std::cout << "draw_picture: \n" << x_min << " " << x_max << " " << y_min << " " << y_max << "\n";
-
+  
   // Create picture
   Picture * picture = new Picture( Width, Height, x_min, x_max, y_min, y_max );
   
   // Draw picture
-  for ( typename Toplex::Subset::const_iterator it = my_subset . begin (); 
-	it != my_subset . end (); ++ it ) {
-    typename Toplex::Geometric_Description box = my_toplex . geometry ( my_toplex . find ( *it ) );
+  BOOST_FOREACH ( typename Toplex::Top_Cell cell, my_subset ) {
+    typename Toplex::Geometric_Description box = my_toplex . geometry ( my_toplex . find ( cell ) );
     picture -> draw_square (Red, Green, Blue,
                             box . lower_bounds [ 0 ],
                             box . upper_bounds [ 0 ],
                             box . lower_bounds [ 1 ],
                             box . upper_bounds [ 1 ]);
-                           
   }
   
   return picture;
@@ -47,11 +46,11 @@ Picture * draw_picture (const int Width, const int Height,
 #include "data_structures/Conley_Morse_Graph.h"
 #include "algorithms/Homology.h"
 
-template < class Toplex >
+template < class Toplex, class CellContainer >
 Picture * draw_morse_sets (const int Width, const int Height,
                            const Toplex & my_toplex, 
-                           const ConleyMorseGraph < typename Toplex::Subset , Conley_Index_t > & conley_morse_graph ) {
-  typedef ConleyMorseGraph < typename Toplex::Subset , Conley_Index_t > CMG;
+                           const ConleyMorseGraph < CellContainer , Conley_Index_t > & conley_morse_graph ) {
+  typedef ConleyMorseGraph < CellContainer , Conley_Index_t > CMG;
   typename Toplex::Geometric_Description bounds = my_toplex . bounds ();
   // Prepare variables for bounds finding loop
   Picture::Real x_min = bounds . upper_bounds [ 0 ];
@@ -67,8 +66,8 @@ Picture * draw_morse_sets (const int Width, const int Height,
        it != stop;
        ++ it ) {
     // Draw the Morse Set
-    typename Toplex::Subset const & my_subset = conley_morse_graph . CubeSet ( *it );
-    for ( typename Toplex::Subset::const_iterator cellit = my_subset . begin (); 
+    CellContainer const & my_subset = conley_morse_graph . CubeSet ( *it );
+    for ( typename CellContainer::const_iterator cellit = my_subset . begin (); 
          cellit != my_subset . end (); ++ cellit ) {
       typename Toplex::Geometric_Description box = my_toplex . geometry ( my_toplex . find ( *cellit ) );
       x_min = std::min ( x_min, box . lower_bounds [ 0 ] );
@@ -90,8 +89,8 @@ Picture * draw_morse_sets (const int Width, const int Height,
     unsigned char Green = rand () % 255;
     unsigned char Blue = rand () % 255;
     // Draw the Morse Set
-    typename Toplex::Subset const & my_subset = conley_morse_graph . CubeSet ( *it );
-    for ( typename Toplex::Subset::const_iterator cellit = my_subset . begin (); 
+    CellContainer const & my_subset = conley_morse_graph . CubeSet ( *it );
+    for ( typename CellContainer::const_iterator cellit = my_subset . begin (); 
          cellit != my_subset . end (); ++ cellit ) {
       typename Toplex::Geometric_Description box = my_toplex . geometry ( my_toplex . find ( *cellit ) );
       picture -> draw_square (Red, Green, Blue,
@@ -105,7 +104,7 @@ Picture * draw_morse_sets (const int Width, const int Height,
   return picture;
 } /* draw_morse_sets */
 
-template < class Toplex >
+template < class Toplex, class CellContainer >
 Picture * draw_toplex (const int Width, const int Height,
                        const Toplex & my_toplex ) {
   typename Toplex::Geometric_Description bounds = my_toplex . bounds ();
@@ -119,8 +118,10 @@ Picture * draw_toplex (const int Width, const int Height,
   Picture * picture = new Picture( Width, Height, x_min, x_max, y_min, y_max );
   
   // Loop through top cells to draw them
-  typename Toplex::Subset const & my_subset = my_toplex . cover ( my_toplex . bounds () );
-  for ( typename Toplex::Subset::const_iterator cellit = my_subset . begin (); 
+  CellContainer my_subset;
+  std::insert_iterator<CellContainer> ii ( my_subset, my_subset . begin () );
+  my_toplex . cover ( ii, my_toplex . bounds () );
+  for ( typename CellContainer::const_iterator cellit = my_subset . begin (); 
        cellit != my_subset . end (); ++ cellit ) {
     // Draw the outline of the cell
     unsigned char Red = rand () % 255;
@@ -143,11 +144,11 @@ Picture * draw_toplex (const int Width, const int Height,
   return picture;
 } /* draw_toplex */
 
-template < class Toplex >
+template < class Toplex, class CellContainer >
 Picture * draw_toplex_and_morse_sets (const int Width, const int Height,
                        const Toplex & my_toplex,
-                      const ConleyMorseGraph < typename Toplex::Subset , Conley_Index_t > & conley_morse_graph ) {
-  typedef ConleyMorseGraph < typename Toplex::Subset , Conley_Index_t > CMG;
+                      const ConleyMorseGraph < CellContainer, Conley_Index_t > & conley_morse_graph ) {
+  typedef ConleyMorseGraph < CellContainer , Conley_Index_t > CMG;
   typename Toplex::Geometric_Description bounds = my_toplex . bounds ();
   // Prepare variables for bounds finding loop
   Picture::Real x_min = bounds . lower_bounds [ 0 ];
@@ -159,14 +160,16 @@ Picture * draw_toplex_and_morse_sets (const int Width, const int Height,
   Picture * picture = new Picture( Width, Height, x_min, x_max, y_min, y_max );
   
   // Loop through top cells to draw them
-  typename Toplex::Subset const & my_subset = my_toplex . cover ( my_toplex . bounds () );
-  for ( typename Toplex::Subset::const_iterator cellit = my_subset . begin (); 
-       cellit != my_subset . end (); ++ cellit ) {
+  CellContainer my_subset;
+  std::insert_iterator<CellContainer> ii ( my_subset, my_subset . begin () );
+  my_toplex . cover ( ii, my_toplex . bounds () );
+  
+  BOOST_FOREACH ( typename Toplex::Top_Cell cell, my_subset ) {
     // Draw the outline of the cell
     unsigned char Red = rand () % 255;
     unsigned char Green = rand () % 255;
     unsigned char Blue = rand () % 255;
-    typename Toplex::Geometric_Description box = my_toplex . geometry ( my_toplex . find ( *cellit ) );
+    typename Toplex::Geometric_Description box = my_toplex . geometry ( my_toplex . find ( cell ) );
     Picture::Real volume = ( box . upper_bounds [ 0 ] - box . lower_bounds [ 0 ] )*( box . upper_bounds [ 1 ] - box . lower_bounds [ 1 ] ) ;
     Picture::Real total_volume = ( bounds . upper_bounds [ 0 ] - bounds . lower_bounds [ 0 ] )*( bounds . upper_bounds [ 1 ] - bounds . lower_bounds [ 1 ] ) ;
     Picture::Real ratio = total_volume / volume;
@@ -191,10 +194,9 @@ Picture * draw_toplex_and_morse_sets (const int Width, const int Height,
     unsigned char Green = 255; // rand () % 255;
     unsigned char Blue = 255; //rand () % 255;
     // Draw the Morse Set
-    typename Toplex::Subset const & my_subset = conley_morse_graph . CubeSet ( *it );
-    for ( typename Toplex::Subset::const_iterator cellit = my_subset . begin (); 
-         cellit != my_subset . end (); ++ cellit ) {
-      typename Toplex::Geometric_Description box = my_toplex . geometry ( my_toplex . find ( *cellit ) );
+    CellContainer const & my_subset = conley_morse_graph . CubeSet ( *it );
+    BOOST_FOREACH ( typename Toplex::Top_Cell cell, my_subset ) {
+      typename Toplex::Geometric_Description box = my_toplex . geometry ( my_toplex . find ( cell ) );
       picture -> draw_square (Red, Green, Blue,
                               box . lower_bounds [ 0 ],
                               box . upper_bounds [ 0 ],
@@ -210,7 +212,8 @@ Picture * draw_toplex_and_morse_sets (const int Width, const int Height,
     unsigned char Green = 0;
     unsigned char Blue = 0; // initialize to zero to stop compiler warning
     switch ( rand() % 6 ) {
-      case 0 : Red = 0; Blue = 255; Green = rand()%255; break;
+      case 0 : Red = 0; 
+        Blue = 255; Green = rand()%255; break;
       case 1 : Blue = 0; Green = 255; Red = rand()%255; break;
       case 2 : Green = 0; Red = 255; Blue = rand()%255; break;
       case 3 : Red = 0; Green = 255; Blue = rand()%255; break;
@@ -219,10 +222,9 @@ Picture * draw_toplex_and_morse_sets (const int Width, const int Height,
       default : break;
     }
     // Draw the Morse Set
-    typename Toplex::Subset const & my_subset = conley_morse_graph . CubeSet ( *it );
-    for ( typename Toplex::Subset::const_iterator cellit = my_subset . begin (); 
-         cellit != my_subset . end (); ++ cellit ) {
-      typename Toplex::Geometric_Description box = my_toplex . geometry ( my_toplex . find ( *cellit ) );
+    CellContainer const & my_subset = conley_morse_graph . CubeSet ( *it );
+    BOOST_FOREACH ( typename Toplex::Top_Cell cell, my_subset ) {
+      typename Toplex::Geometric_Description box = my_toplex . geometry ( my_toplex . find ( cell ) );
       picture -> draw_square (Red, Green, Blue,
                               box . lower_bounds [ 0 ],
                               box . upper_bounds [ 0 ],

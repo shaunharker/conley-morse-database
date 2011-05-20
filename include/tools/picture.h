@@ -27,10 +27,10 @@ struct Picture {
 
 /// Product a RGBA image of a toplex subset so that the top cells are colored
 /// according to the values in Red, Green, and Blue. (Alpha is set to 255)
-template < class Toplex >
+template < class Toplex, class CellContainer >
 Picture * draw_picture (const int Width, const int Height,
                         unsigned char Red, unsigned char Green, unsigned char Blue,
-                        const Toplex & my_toplex, const typename Toplex::Subset & my_subset );
+                        const Toplex & my_toplex, const CellContainer & my_subset );
 
 /// Copy the picture in "A" into "picture" by scaling it
 void copy_scaled_picture ( Picture * picture, const Picture & A );

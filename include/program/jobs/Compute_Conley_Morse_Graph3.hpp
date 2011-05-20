@@ -11,6 +11,8 @@
 #include "boost/foreach.hpp"
 
 #include "program/Configuration.h"
+
+
 #include "algorithms/Homology.h"
 #include "data_structures/Directed_Graph.h"
 
@@ -30,12 +32,18 @@ template < class Conley_Morse_Graph, class Toplex , class Parameter_Toplex , cla
 void Compute_Conley_Morse_Graph3 (Conley_Morse_Graph * conley_morse_graph ,
                                  Toplex * phase_space ,
                                   const typename Parameter_Toplex::Geometric_Description & parameter_box,
-                                  bool should_compute_conley_index,
-                                  bool should_compute_reachability ) {
-  clock_t start, stop;
-  start = clock ();
+                                  bool should_compute_reachability,
+                                  bool should_compute_conley_index) {
+  clock_t start0, start;
+  float map_time = 0;
+  float scc_time = 0;
+  float reach_time = 0;
+  float conley_time = 0;
+
+  start0 = clock ();
   typedef DirectedGraph < Toplex > Graph;
   typedef typename Graph::Vertex vertex_t;
+  std::cout << "Compute_Conley_Morse_Graph.\n";
   //std::cout << "[" << parameter_box . lower_bounds [ 0 ] << ", " << parameter_box . upper_bounds [ 0 ] << "] X";
   //std::cout << "[" << parameter_box . lower_bounds [ 1 ] << ", " << parameter_box . upper_bounds [ 1 ] << "]\n";
 
@@ -55,11 +63,15 @@ void Compute_Conley_Morse_Graph3 (Conley_Morse_Graph * conley_morse_graph ,
     //std::cout << "depth = " << depth << " and phase_space . size () = " << phase_space -> size () << "\n";
     // compute combinatorial map
     //std::cout << "Computing directed graph...\n";
+    start = clock ();
     Graph G = compute_directed_graph ( morse_sets, * phase_space , interval_map );
+    map_time += (float)(clock() - start) / (float) CLOCKS_PER_SEC;
     // compute morse sets
     //std::cout << "Computing morse sets...\n";
     morse_sets . clear ();
+    start = clock ();
     compute_morse_sets ( &morse_sets, G );
+    scc_time += (float)(clock() - start) / (float) CLOCKS_PER_SEC;
     // subdivide morse sets
     //std::cout << "Subdividing morse sets...\n";
     BOOST_FOREACH ( typename Toplex::Subset & morse_set, morse_sets ) {
@@ -75,13 +87,19 @@ void Compute_Conley_Morse_Graph3 (Conley_Morse_Graph * conley_morse_graph ,
   // Finalize: Create entire directed graph in memory and determine morse sets
   //std::cout << "phase_space . size () = " << phase_space -> size () << "\n";
   //std::cout << "Computing directed graph...\n";
+  start = clock ();
   Graph G = compute_directed_graph ( * phase_space , interval_map );
+  map_time += (float)(clock() - start) / (float) CLOCKS_PER_SEC;
+
   //std::cout << "Computing morse sets...\n";
   morse_sets . clear ();
+  start = clock ();
   compute_morse_sets ( &morse_sets, G );
+  scc_time += (float)(clock() - start) / (float) CLOCKS_PER_SEC;
 
-  stop = clock ();
-  //std::cout << "CCMG: Time to Compute Morse Sets = " << (float)(stop - start)/(float)CLOCKS_PER_SEC << "\n";
+  std::cout << "Time to compute map = " << map_time << "\n";
+  std::cout << "Time to compute scc = " << scc_time << "\n";
+  
   
   /* Produce Morse Graph */
   start = clock ();
@@ -111,22 +129,26 @@ void Compute_Conley_Morse_Graph3 (Conley_Morse_Graph * conley_morse_graph ,
     }
   }
   
-  stop = clock ();
-  //std::cout << "CCMG: Time to Compute Morse Graph = " << (float)(stop - start)/(float)CLOCKS_PER_SEC << "\n";
+  reach_time = (float)(clock() - start) / (float) CLOCKS_PER_SEC;
+
+  //if ( should_compute_reachability) 
+    std::cout << "Time to compute reachability = " << reach_time << "\n";
   
+  start = clock ();
   // produce conley index
   if ( should_compute_conley_index ) {
-    start = clock ();
     // loop through vertices of conley morse graph
     BOOST_FOREACH (cmg_vertex_t v, conley_morse_graph -> Vertices () ) {
-      Conley_Index < Toplex, Map > ( & conley_morse_graph -> ConleyIndex ( v ),
+      Conley_Index < Toplex, typename Toplex::Subset, Map > ( & conley_morse_graph -> ConleyIndex ( v ),
                                     * phase_space, 
                                     conley_morse_graph -> CubeSet ( v ),
                                     interval_map );
     }
-    stop = clock ();
-    //std::cout << "CCMG: Time to Compute Conley Indices = " << (float)(stop - start)/(float)CLOCKS_PER_SEC << "\n";
   }
+  conley_time = (float)(clock() - start) / (float) CLOCKS_PER_SEC;
+
+  if ( should_compute_conley_index) std::cout << "Time to compute Conley Index = " << conley_time << "\n";
+
   // TODO
   return;
 } /* Compute_Conley_Morse_Graph */

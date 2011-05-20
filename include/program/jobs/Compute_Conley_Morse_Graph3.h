@@ -11,10 +11,10 @@
 /// of a Conley-Morse graph.
 template < class Conley_Morse_Graph, class Toplex , class Parameter_Toplex , class Map >
 void Compute_Conley_Morse_Graph3 ( Conley_Morse_Graph * conley_morse_graph ,
-  Toplex * phase_space ,
+  Toplex * phase_space,
   const typename Parameter_Toplex::Geometric_Description & parameter_box,
-  bool should_compute_conley_index = false,
-  bool should_compute_reachability = false);
+  bool should_compute_reachability = false,
+  bool should_compute_conley_index = false);
 
 
 #ifndef _DO_NOT_INCLUDE_HPP_
