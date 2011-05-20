@@ -185,6 +185,7 @@ void compute_strong_components (std::vector<std::vector<typename OutEdgeGraph::s
                                 const OutEdgeGraph & G, 
           /* optional output */ std::vector<typename OutEdgeGraph::size_type> * topological_sort ) {
   // typedefs and const variables
+  long int effort = 0;
   typedef typename OutEdgeGraph::size_type size_type;
   typedef std::pair<size_type, size_type> Edge;
   const size_type sentinel = G . sentinel ();
@@ -206,6 +207,7 @@ void compute_strong_components (std::vector<std::vector<typename OutEdgeGraph::s
     dfs_stack . push ( Edge ( sentinel, root ) );
     while ( not dfs_stack . empty () ) {
       Edge S = dfs_stack . top ();
+      ++effort;
       //std::cout << "Top = (" << dfs_stack . top () . first << ", " << dfs_stack . top () . second << ")\n";
       size_type & v = S . second;
       if ( index [ v ] == sentinel ) {
@@ -220,6 +222,7 @@ void compute_strong_components (std::vector<std::vector<typename OutEdgeGraph::s
         const std::vector<size_type> & children = G . adjacencies ( v );
         // Work through children
         BOOST_FOREACH ( size_type w, children ) {
+          ++ effort;
           //std::cout << "Inspecting edge (" << v << ", " << w << ")\n";
           if ( w == v ) {
             // Self-edge. For Path-SCC, we will want to know about this.
@@ -292,7 +295,7 @@ void compute_strong_components (std::vector<std::vector<typename OutEdgeGraph::s
       } // if visited
     } // while dfs stack non-empty
   } // while not all nodes explored
-  
+  std::cout << "SCC effort = " << effort << "\n";
 }
 
 #if 0
