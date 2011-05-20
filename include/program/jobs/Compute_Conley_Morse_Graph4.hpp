@@ -38,8 +38,10 @@ void Compute_Conley_Morse_Graph4 (Conley_Morse_Graph * CMG,
   clock_t start0, start;
   float map_time = 0;
   float scc_time = 0;
+  float this_map_time = 0;
+  float this_scc_time = 0;
   float conley_time = 0;
-
+  float clear_time = 0;
   start0 = clock ();
   typedef std::vector<typename Toplex::Top_Cell> CellContainer;
   typedef CombinatorialMap<Toplex,CellContainer> Graph;
@@ -73,17 +75,27 @@ void Compute_Conley_Morse_Graph4 (Conley_Morse_Graph * CMG,
     std::cout << "depth = " << depth << " and phase_space . size () = " << phase_space -> size () << "\n";
     // compute combinatorial map
     std::cout << "There are " << morse_sets . size () << " morse sets.\n";
-    std::cout << "(map, scc) = " << map_time << ", " << scc_time << "\n";
+    unsigned long cells_left = 0;
+    BOOST_FOREACH ( CellContainer & morse_set, morse_sets ) {
+      cells_left += morse_set . size ();
+    }
+    std::cout << "cells left = " << cells_left << "\n";
+    std::cout << "cumulative (map, scc) = " << map_time << ", " << scc_time << "\n";
     std::cout << "Computing directed graph...\n";
     start = clock ();
     Graph G = compute_combinatorial_map ( morse_sets, * phase_space, interval_map );
-    map_time += (float)(clock() - start) / (float) CLOCKS_PER_SEC;
+    this_map_time = (float)(clock() - start) / (float) CLOCKS_PER_SEC;
+    map_time += this_map_time;
+    std::cout << "      processed at rate " << (float) cells_left / (float) this_map_time << "\n";  
     // compute morse sets
     std::cout << "Computing morse sets...\n";
     morse_sets . clear ();
     start = clock ();
     compute_morse_sets <Conley_Morse_Graph,Toplex,CellContainer> ( &morse_sets, G );
-    scc_time += (float)(clock() - start) / (float) CLOCKS_PER_SEC;
+    this_scc_time = (float)(clock() - start) / (float) CLOCKS_PER_SEC;
+    scc_time += this_scc_time;
+    std::cout << "      processed at rate " << (float) cells_left / (float) this_scc_time << "\n";  
+
     // subdivide morse sets
     std::cout << "Subdividing morse sets...\n";
     BOOST_FOREACH ( CellContainer & morse_set, morse_sets ) {
@@ -96,26 +108,40 @@ void Compute_Conley_Morse_Graph4 (Conley_Morse_Graph * CMG,
         complexity = phase_space -> size ();
         subdivided = true;
       } else {
+        //start = clock ();
         morse_set . clear (); // toss it out (we'll recover it after this while loop)
+        //clear_time += (float)(clock() - start) / (float) CLOCKS_PER_SEC;
+        //std::cout << "Clear time = " << clear_time << "\n";
       }
     } /* boost_foreach */
   } /* for */
+
   // Finalize: Create entire directed graph in memory and determine morse sets
   std::cout << "phase_space . size () = " << phase_space -> size () << "\n";
-  std::cout << "(map, scc) = " << map_time << ", " << scc_time << "\n";
+  unsigned long cells_left = 0;
+  std::cout << "There are " << morse_sets . size () << " morse sets.\n";
+  BOOST_FOREACH ( CellContainer & morse_set, morse_sets ) {
+    cells_left += morse_set . size ();
+  }
+  std::cout << "cells left = " << cells_left << "\n";
+  std::cout << "cumulative (map, scc) = " << map_time << ", " << scc_time << "\n";
   std::cout << "Final: Computing directed graph...\n";
   start = clock ();
   Graph G = compute_combinatorial_map<Toplex,Map,CellContainer> ( * phase_space , interval_map );
-  map_time += (float)(clock() - start) / (float) CLOCKS_PER_SEC;
-
+  this_map_time = (float)(clock() - start) / (float) CLOCKS_PER_SEC;
+  map_time += this_map_time;
+  std::cout << "      processed at rate " << (float) cells_left / (float) this_map_time << "\n";  
+  
   std::cout << "Final: Computing morse sets...\n";
   morse_sets . clear ();
   start = clock ();
   compute_morse_sets<Conley_Morse_Graph,Toplex,CellContainer> ( &morse_sets, G, CMG );
-  scc_time += (float)(clock() - start) / (float) CLOCKS_PER_SEC;
-
-  std::cout << "Time to compute map = " << map_time << "\n";
-  std::cout << "Time to compute scc = " << scc_time << "\n";
+  this_scc_time = (float)(clock() - start) / (float) CLOCKS_PER_SEC;
+  scc_time += this_scc_time;
+  std::cout << "      processed at rate " << (float) cells_left / (float) this_scc_time << "\n";  
+  
+  std::cout << "Total Time to compute map = " << map_time << "\n";
+  std::cout << "Total Time to compute scc = " << scc_time << "\n";
   
   // produce conley index
   start = clock ();
