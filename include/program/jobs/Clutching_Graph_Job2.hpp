@@ -266,7 +266,11 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   std::map<size_t, Cached_Box_Information> cache_info;
   std::vector<std::vector<size_t> > neighbour;
   
+#if 0
   typedef ConleyMorseGraph<typename Toplex::Subset, ConleyIndex> CMGraph;
+#else
+  typedef ConleyMorseGraph< std::vector < typename Toplex::Top_Cell >, ConleyIndex> CMGraph;
+#endif
   std::vector < typename Toplex::Top_Cell > cell_names;
   job >> job_number;
   job >> cell_names;

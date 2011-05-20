@@ -7,6 +7,7 @@
 #include "tools/picture.h"
 #include "tools/lodepng/lodepng.h"
 #include <ctime>
+#include <fstream>
 
 Coordinator::Coordinator(int argc, char **argv) {
   int patch_stride = 1; // distance between center of patches in box-units
@@ -360,6 +361,10 @@ void Coordinator::Process(const Message &result) {
 */
   /// Increment jobs received counter
   ++num_jobs_received_;
+  
+  std::ofstream outfile ( "progress.txt");
+  outfile << num_jobs_received_;
+  outfile . close ();
   
   // Are we done?
   if ( num_jobs_received_ == num_jobs_ ) {

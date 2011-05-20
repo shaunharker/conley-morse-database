@@ -447,17 +447,17 @@ void compute_reachability ( std::vector < std::vector < unsigned int > > * outpu
   typedef typename Graph::size_type size_type;
   //size_type sentinel = G . sentinel ();
   /* Count the Morse Sets */
-  std::cout << "REACHABILITY.\n";
-  std::cout << "Count the Morse Sets\n";
+  //std::cout << "REACHABILITY.\n";
+  //std::cout << "Count the Morse Sets\n";
   size_type number_of_morse_sets = morse_sets . size ();
-  std::cout << "There are " << number_of_morse_sets << " of them.\n";
+  //std::cout << "There are " << number_of_morse_sets << " of them.\n";
   if ( number_of_morse_sets == 0 ) return; // trivial case
   output -> resize ( number_of_morse_sets );
   /* Paint the Morse Sets */
   // For each morse set, go through its vertices and 
   // color them according to which morse set they are in.
   // Vertices not in a morse set are colored "number_of_morse_sets"
-  std::cout << "Paint the Morse Sets\n";
+  //std::cout << "Paint the Morse Sets\n";
 
   std::vector < size_type > morse_paint ( G . num_vertices (), number_of_morse_sets );
   for ( size_type count = 0; count < number_of_morse_sets; ++ count ) {
@@ -466,7 +466,7 @@ void compute_reachability ( std::vector < std::vector < unsigned int > > * outpu
     } 
   } 
   /* Break the Morse Sets up into Computational Groups of 64 and proceed */
-  std::cout << "Group Loop\n";
+  //std::cout << "Group Loop\n";
 
   size_type groups = ( (number_of_morse_sets - 1) / 64 ) + 1;
   // We use a vector called morse_code. It's function it to maintain
@@ -502,7 +502,7 @@ void compute_reachability ( std::vector < std::vector < unsigned int > > * outpu
     // Loop through topological sort.
     // Our goal is to produce "condensed_code", which we can read the info off from.
     // The intermediate information is stored in "morse_code"
-    std::cout << "Loop through top sort \n";
+    //std::cout << "Loop through top sort \n";
     for ( size_type vi = topological_sort . size () - 1; vi != 0; -- vi ) {
       size_type v = topological_sort [ vi ];
       const std::vector < size_type > & children = G . adjacencies ( v );
@@ -521,7 +521,7 @@ void compute_reachability ( std::vector < std::vector < unsigned int > > * outpu
     } //dry problem
     // now condensed_code is indexed by targets, and contains the sources reaching it.
     
-    std::cout << "Loop through Morse Sets\n";
+    //std::cout << "Loop through Morse Sets\n";
     // Loop through Morse Sets to learn reachability information
     for ( size_type count = 0; count < number_of_morse_sets; ++ count ) {
       // Read condensed code to determine which of the group reached this morse set
@@ -533,7 +533,7 @@ void compute_reachability ( std::vector < std::vector < unsigned int > > * outpu
         //std::cout << "(offset, i) = " << offset << ", " << i << "\n";
         if ( condensed_code [ count ] & bit ) {
           //std::cout << "bit = " << bit << "\n";
-          std::cout << "Writing connection (" << offset + i << ", " << count << ")\n";
+          //std::cout << "Writing connection (" << offset + i << ", " << count << ")\n";
           (*output)[offset + i] . push_back ( count );
         } // if
         bit <<= 1;
