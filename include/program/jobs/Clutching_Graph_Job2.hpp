@@ -10,7 +10,6 @@
 #include <vector>
 #include <ctime>
 #include <set>
-#include "data_structures/Cached_Box_Information.h"
 #include <boost/iterator_adaptors.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/map.hpp>
@@ -264,7 +263,6 @@ template <class Toplex, class ParameterToplex, class ConleyIndex >
 void Clutching_Graph_Job ( Message * result , const Message & job ) {
   size_t job_number;
   std::vector<typename ParameterToplex::Geometric_Description> geometric_descriptions;
-  std::map<size_t, Cached_Box_Information> cache_info;
   std::vector<std::vector<size_t> > neighbour;
   
 #if 0
@@ -276,7 +274,6 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   job >> job_number;
   job >> cell_names;
   job >> geometric_descriptions;
-  job >> cache_info;
   job >> neighbour;
   
   const size_t N = geometric_descriptions.size();
@@ -295,16 +292,12 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
     clock_t start1 = clock ();
     phase_space_toplexes[n].initialize(space_bounds);
 #if 0
-    std::map<size_t, Cached_Box_Information>::iterator it = cache_info.find(n);
-    Cached_Box_Information* info = (it == cache_info.end()) ? NULL : &(it->second);
     Compute_Conley_Morse_Graph3 <CMGraph, Toplex, ParameterToplex, GeometricMap >
     (&conley_morse_graphs[n],
      &phase_space_toplexes[n],
      geometric_descriptions[n], true, false);
     std::cout << "Job " << job_number << " subtask done. Time = " << (float)(clock() - start1 ) / (float) CLOCKS_PER_SEC << "\n";
 #else
-    std::map<size_t, Cached_Box_Information>::iterator it = cache_info.find(n);
-    Cached_Box_Information* info = (it == cache_info.end()) ? NULL : &(it->second);
     Compute_Conley_Morse_Graph4 <CMGraph, Toplex, ParameterToplex, GeometricMap >
     (&conley_morse_graphs[n],
      &phase_space_toplexes[n],
@@ -324,7 +317,6 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   std::cout << "Job " << job_number << " finished Clutching. Time = " << (float)(clock() - start ) / (float) CLOCKS_PER_SEC << "\n";
 
   *result << job_number;
-  *result << cache_info;
   *result << conley_morse_graphs;
   *result << cell_names;
   *result << equivalent_classes;

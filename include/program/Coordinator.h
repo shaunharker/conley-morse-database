@@ -12,7 +12,6 @@
 #include "boost/serialization/map.hpp"
 
 #include "distributed/Distributed.h"
-#include "data_structures/Cached_Box_Information.h"
 #include "data_structures/Conley_Morse_Graph.h"
 #include "data_structures/UnionFind.hpp"
 #include "program/Configuration.h"
@@ -23,11 +22,7 @@
 using namespace Adaptive_Cubical;
 
 /// typedefs
-typedef std::map <Toplex::Top_Cell, Cached_Box_Information> Toplex_Cached_Box_Map;
-typedef std::pair <Toplex::Top_Cell, Cached_Box_Information> Toplex_Cached_Box_Pair;
-typedef std::map <size_t, Cached_Box_Information> Patch_Cached_Box_Map;
-typedef std::pair <size_t, Cached_Box_Information> Patch_Cached_Box_Pair;
-typedef ConleyMorseGraph <Toplex_Subset, Conley_Index_t> Conley_Morse_Graph;
+typedef ConleyMorseGraph < std::vector < Adaptive_Cubical::Toplex::Top_Cell >, Conley_Index_t> Conley_Morse_Graph;
 
 /// Coordinator class
 class Coordinator : public CoordinatorBase {
@@ -42,7 +37,6 @@ class Coordinator : public CoordinatorBase {
   size_t num_jobs_received_;
   std::vector < Toplex_Subset > PS_patches;
   Toplex param_toplex;
-  Toplex_Cached_Box_Map PS_Toplex_Cached_Info;
   UnionFind < Toplex::Top_Cell > continuation_classes;
 };
 

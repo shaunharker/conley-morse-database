@@ -147,20 +147,6 @@ Coordinator::Coordinator(int argc, char **argv) {
     PS_patches . push_back (patch_subset);
   }
   //std::cout << "PS_patches . size () = " << PS_patches . size () << "\n";
-
-  /// Create a map with Cached_Box_Information for the intersecting boxes
-  for (size_t i = 0; i < num_patches; ++i) {
-    BOOST_FOREACH ( Toplex::Top_Cell cell, PS_patches [i] ) {
-      for (size_t j = i + 1; j < num_patches; ++j) {
-	    /// If top cell is in the intersection of PS_patches [i] and PS_patches [j]
-        if (PS_patches [j] . find (cell) != PS_patches [j] . end ()) {
-          /// Add an entry to the map of Cached_Box_Information
-          Cached_Box_Information cached_box_info;
-          PS_Toplex_Cached_Info . insert (Toplex_Cached_Box_Pair (cell, cached_box_info));
-        }
-      }
-    }
-  }
   
   num_jobs_ = num_patches;
   num_jobs_sent_ = 0;
@@ -194,7 +180,6 @@ CoordinatorBase::State Coordinator::Prepare(Message *job) {
   Toplex_Subset patch_subset = PS_patches [job_number];
 
   std::vector < Geometric_Description > geometric_descriptions (patch_subset . size ());
-  //Patch_Cached_Box_Map patch_cached_info;
 
   /// Map with the pairing (top_cell, index in geometric_descriptions vector)
   std::map <Toplex::Top_Cell, size_t> cells_indices_map;
@@ -207,10 +192,7 @@ CoordinatorBase::State Coordinator::Prepare(Message *job) {
     //std::cout << "Cell_GD = " << Cell_GD << "\n";
 	/// Add the pair (top_cell, key) to the indices map
     cells_indices_map . insert ( std::pair <Toplex::Top_Cell, size_t> (* param_toplex . find (*it), key) );
-    //Insert cached box info into the map if there is any
-    //if (PS_Toplex_Cached_Info . find (*it) != PS_Toplex_Cached_Info . end ())
-    //  patch_cached_info . insert (Patch_Cached_Box_Pair (key, PS_Toplex_Cached_Info . find (*it) -> second));
-  
+
   }
   // Cell Name data (translate back into top-cell names from index number)
   std::vector < Toplex::Top_Cell > cell_names;
@@ -251,7 +233,6 @@ CoordinatorBase::State Coordinator::Prepare(Message *job) {
   *job << job_number;
   *job << cell_names;
   *job << geometric_descriptions;
-  *job << Patch_Cached_Box_Map (); //patch_cached_info;
   *job << adjacency_information;
 
   /// Increment the jobs_sent counter
@@ -266,8 +247,6 @@ void Coordinator::Process(const Message &result) {
   /// Read the results from the result message
   size_t job_number;
   result >> job_number;
-  Patch_Cached_Box_Map patch_cached_info;
-  result >> patch_cached_info;
   std::vector <Conley_Morse_Graph> conley_morse_graphs;
   result >> conley_morse_graphs;
   std::vector < Toplex::Top_Cell > cell_names;

@@ -1,5 +1,5 @@
 /*
- *  Compute_Conley_Morse_Graph3.hpp
+ *  Compute_Conley_Morse_Graph4.hpp
  */
 
 #ifndef _CMDP_COMPUTE_CONLEY_MORSE_GRAPH_HPP_
@@ -68,18 +68,18 @@ void Compute_Conley_Morse_Graph4 (Conley_Morse_Graph * CMG,
     // DEBUG
     //std::cout << "depth = " << depth << " and phase_space . size () = " << phase_space -> size () << "\n";
     // compute combinatorial map
-    //std::cout << "Computing directed graph...\n";
+    std::cout << "Computing directed graph...\n";
     start = clock ();
     Graph G = compute_combinatorial_map ( morse_sets, * phase_space, interval_map );
     map_time += (float)(clock() - start) / (float) CLOCKS_PER_SEC;
     // compute morse sets
-    //std::cout << "Computing morse sets...\n";
+    std::cout << "Computing morse sets...\n";
     morse_sets . clear ();
     start = clock ();
     compute_morse_sets <Conley_Morse_Graph,Toplex,CellContainer> ( &morse_sets, G );
     scc_time += (float)(clock() - start) / (float) CLOCKS_PER_SEC;
     // subdivide morse sets
-    //std::cout << "Subdividing morse sets...\n";
+    std::cout << "Subdividing morse sets...\n";
     BOOST_FOREACH ( CellContainer & morse_set, morse_sets ) {
       if ( depth <= MIN_PHASE_SUBDIVISIONS ||
            morse_set . size () * ( (1 << phase_space -> dimension () ) - 1) + complexity < COMPLEXITY_LIMIT ) {
@@ -96,12 +96,12 @@ void Compute_Conley_Morse_Graph4 (Conley_Morse_Graph * CMG,
   } /* for */
   // Finalize: Create entire directed graph in memory and determine morse sets
   //std::cout << "phase_space . size () = " << phase_space -> size () << "\n";
-  //std::cout << "Computing directed graph...\n";
+  std::cout << "Final: Computing directed graph...\n";
   start = clock ();
   Graph G = compute_combinatorial_map<Toplex,Map,CellContainer> ( * phase_space , interval_map );
   map_time += (float)(clock() - start) / (float) CLOCKS_PER_SEC;
 
-  //std::cout << "Computing morse sets...\n";
+  std::cout << "Final: Computing morse sets...\n";
   morse_sets . clear ();
   start = clock ();
   compute_morse_sets<Conley_Morse_Graph,Toplex,CellContainer> ( &morse_sets, G, CMG );
