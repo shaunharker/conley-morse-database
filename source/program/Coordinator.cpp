@@ -361,11 +361,11 @@ void Coordinator::Process(const Message &result) {
 */
   /// Increment jobs received counter
   ++num_jobs_received_;
-  
+  /*
   std::ofstream outfile ( "progress.txt");
   outfile << num_jobs_received_;
   outfile . close ();
-  
+  */
   // Are we done?
   if ( num_jobs_received_ == num_jobs_ ) {
     finalize ();
