@@ -171,7 +171,6 @@ void compute_morse_sets (std::vector< CellContainer > * output,
     /* Produce Morse Graph Edges */
     for (unsigned int s = 0; s < reach_info . size (); ++ s ) {
       BOOST_FOREACH ( unsigned int t, reach_info [ s ] ) {
-        std::cout << "compute_morse_sets: AddEdge ( " << s << ", " << t << ")\n";
         MG -> AddEdge ( translate_to_cmg [ s ], translate_to_cmg [ t ] );
       }
     }

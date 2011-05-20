@@ -12,9 +12,14 @@
 #include "data_structures/GraphTheory.h"
 #include "algorithms/Homology.h"
 
-#ifndef PHASE_SUBDIVISIONS
-#warning Specify header parameter PHASE_SUBDIVISIONS; using default value 10
-#define PHASE_SUBDIVISIONS 10
+#ifndef MIN_PHASE_SUBDIVISIONS
+#warning Specify header parameter MIN_PHASE_SUBDIVISIONS; using default value 10
+#define MIN_PHASE_SUBDIVISIONS 12
+#endif
+
+#ifndef MAX_PHASE_SUBDIVISIONS
+#warning Specify header parameter MAX_PHASE_SUBDIVISIONS; using default value 10
+#define MAX_PHASE_SUBDIVISIONS 15
 #endif
 
 #ifndef COMPLEXITY_LIMIT
@@ -58,7 +63,7 @@ void Compute_Conley_Morse_Graph4 (Conley_Morse_Graph * CMG,
   /* Main Loop: */
   bool subdivided = true;
   int depth = 1;
-  while ( subdivided && ++ depth <= PHASE_SUBDIVISIONS ) {
+  while ( subdivided && ++ depth <= MAX_PHASE_SUBDIVISIONS ) {
     subdivided = false;
     // DEBUG
     //std::cout << "depth = " << depth << " and phase_space . size () = " << phase_space -> size () << "\n";
@@ -76,7 +81,8 @@ void Compute_Conley_Morse_Graph4 (Conley_Morse_Graph * CMG,
     // subdivide morse sets
     //std::cout << "Subdividing morse sets...\n";
     BOOST_FOREACH ( CellContainer & morse_set, morse_sets ) {
-      if ( morse_set . size () * ( (1 << phase_space -> dimension () ) - 1) + complexity < COMPLEXITY_LIMIT ) {
+      if ( depth <= MIN_PHASE_SUBDIVISIONS ||
+           morse_set . size () * ( (1 << phase_space -> dimension () ) - 1) + complexity < COMPLEXITY_LIMIT ) {
         CellContainer new_morse_set;
         std::insert_iterator<CellContainer> ii ( new_morse_set, new_morse_set . begin () );
         phase_space -> subdivide (ii, morse_set);
