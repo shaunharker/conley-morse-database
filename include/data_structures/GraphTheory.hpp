@@ -449,6 +449,7 @@ void compute_reachability ( std::vector < std::vector < unsigned int > > * outpu
   typedef typename Graph::size_type size_type;
   //size_type sentinel = G . sentinel ();
   /* Count the Morse Sets */
+  unsigned long effort = 0;
   //std::cout << "REACHABILITY.\n";
   //std::cout << "Count the Morse Sets\n";
   size_type number_of_morse_sets = morse_sets . size ();
@@ -464,6 +465,7 @@ void compute_reachability ( std::vector < std::vector < unsigned int > > * outpu
   std::vector < size_type > morse_paint ( G . num_vertices (), number_of_morse_sets );
   for ( size_type count = 0; count < number_of_morse_sets; ++ count ) {
     BOOST_FOREACH ( size_type v, morse_sets [ count ] ) {
+      ++ effort;
       morse_paint [ v ] = count;
     } 
   } 
@@ -484,6 +486,7 @@ void compute_reachability ( std::vector < std::vector < unsigned int > > * outpu
   for ( size_type group_number = 0; group_number < groups; ++ group_number ) {
     //std::cout << "Process Group " << group_number << "\n";
 
+    ++ effort;
     size_type group_size = std::min((unsigned int) 64, number_of_morse_sets - 64 * group_number);
     size_type offset = 64 * group_number;
     //std::cout << "group_size = " << group_size << "\n";
@@ -496,8 +499,10 @@ void compute_reachability ( std::vector < std::vector < unsigned int > > * outpu
     for ( size_type count = 0; count < group_size; ++ count ) {
       size_type set_number = offset + count;
       unsigned long code = ((unsigned long)1) << count;
+      ++ effort;
       //std::cout << "Producing code = " << code << "\n";
       BOOST_FOREACH ( size_type v, morse_sets [ set_number ] ) {
+        ++ effort;
         morse_code [ v ] = code;
       } 
     } 
@@ -509,6 +514,7 @@ void compute_reachability ( std::vector < std::vector < unsigned int > > * outpu
       size_type v = topological_sort [ vi ];
       const std::vector < size_type > & children = G . adjacencies ( v );
       BOOST_FOREACH ( size_type w, children ) {
+        ++ effort;
         morse_code [ w ] |= morse_code [ v ];
         condensed_code [ morse_paint [ w ] ] |= morse_code [ v ];
       }
@@ -517,6 +523,7 @@ void compute_reachability ( std::vector < std::vector < unsigned int > > * outpu
     size_type v = topological_sort [ 0 ];
     const std::vector < size_type > & children = G . adjacencies ( v );
     BOOST_FOREACH ( size_type w, children ) {
+      ++ effort;
       morse_code [ w ] |= morse_code [ v ];
       condensed_code [ morse_paint [ w ] ] |= morse_code [ v ];
     }
@@ -529,11 +536,13 @@ void compute_reachability ( std::vector < std::vector < unsigned int > > * outpu
       // Read condensed code to determine which of the group reached this morse set
       /* TODO: WRITE NASTY, OPTIMIZED UNROLLED BIT MANIPULATION CODE */
       //std::cout << " condensed_code [ " << count << " ] = " << condensed_code [ count ] << "\n";
-
+      ++ effort;
       unsigned long bit = 1;
       for ( int i = 0; i < 64; ++ i ) {
+        ++ effort;
         //std::cout << "(offset, i) = " << offset << ", " << i << "\n";
         if ( condensed_code [ count ] & bit ) {
+          ++ effort;
           //std::cout << "bit = " << bit << "\n";
           //std::cout << "Writing connection (" << offset + i << ", " << count << ")\n";
           (*output)[offset + i] . push_back ( count );
@@ -542,5 +551,5 @@ void compute_reachability ( std::vector < std::vector < unsigned int > > * outpu
       } // for bit index
     } // for morse set
   } // for groups
-  
+  std::cout << "reach effort = " << effort << "\n";
 } /* compute_reachability */

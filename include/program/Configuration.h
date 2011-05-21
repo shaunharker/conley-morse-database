@@ -30,7 +30,7 @@ const Geometric_Description param_bounds ( PARAM_DIMENSION , std::vector<Real> (
 #define MIN_PHASE_SUBDIVISIONS 12
 #endif
 #ifndef MAX_PHASE_SUBDIVISIONS
-#define MAX_PHASE_SUBDIVISIONS 15
+#define MAX_PHASE_SUBDIVISIONS 12
 #endif
 #ifndef COMPLEXITY_LIMIT
 #define COMPLEXITY_LIMIT 200000
