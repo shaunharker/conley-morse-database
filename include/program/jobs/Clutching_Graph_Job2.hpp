@@ -96,45 +96,53 @@ bool ClutchingTwoGraphs( std::set < std::pair < typename CMGraph::Vertex, typena
                         const CMGraph &graph2,
                         const Toplex &toplex1,
                         const Toplex &toplex2 ) {
+  unsigned long effort = 0;
   typedef typename CMGraph::Vertex Vertex;
   typedef std::vector<unsigned char> Prefix;
   /* Build a Prefix Tree */
-  std::cout << "Building Prefix Tree 1.\n";
+  //std::cout << "Building Prefix Tree 1.\n";
   PrefixTree<Vertex> tree;
   std::stack < PrefixNode<Vertex> * > first_cells, second_cells;
   BOOST_FOREACH (Vertex v, graph1.Vertices()) {
-    BOOST_FOREACH ( Top_Cell t, graph1 . CubeSet ( v ) ) {
+    std::cout << "Size of cubeset = " << graph1 . CubeSet ( v ) . size () << "\n";
+    BOOST_FOREACH ( Top_Cell t, graph1 . CubeSet ( v ) ) { // here
       Prefix p = toplex1 . prefix ( t );
       first_cells . push ( tree . insert ( p, v ) );
+      ++ effort;
     }
   }
-  std::cout << "Building Prefix Tree 2.\n";
+  //std::cout << "Building Prefix Tree 2.\n";
 
   BOOST_FOREACH (Vertex v, graph2.Vertices()) {
     BOOST_FOREACH ( Top_Cell t, graph2 . CubeSet ( v ) ) {
       Prefix p = toplex2 . prefix ( t );
       second_cells . push ( tree . insert ( p, v ) );
+      ++ effort;
     }
   }  
   /* Climb from each item place in tree and record which pairs we get */
   std::set < std::pair < Vertex, Vertex > > bipartite_graph;
-  std::cout << "Climbing Prefix Tree 1.\n";
+  //std::cout << "Climbing Prefix Tree 1.\n";
 
   while ( not first_cells . empty () ) {
+    ++ effort;
     PrefixNode < Vertex > * node = first_cells . top ();
     first_cells . pop ();
     Vertex a, b;
     a = node -> tag () [ 0 ];
     // If there are two items here, then we don't need to climb.
     if ( node -> tag () . size () > 1 ) {
+      ++ effort;
       b = node -> tag () [ 1 ];
       bipartite_graph . insert ( std::pair < Vertex, Vertex > ( a, b ) );
       continue;
     } 
     // Otherwise, we do need to climb.
     while ( node -> parent () != NULL ) {
+      ++ effort;
       node = node -> parent ();
       if ( node -> tag () . size () > 0 ) {
+        ++ effort;
         b = node -> tag () [ 0 ];
         bipartite_graph . insert ( std::pair < Vertex, Vertex > ( a, b ) );
         //std::cout << "(" << a << ", " << b << ")\n";
@@ -142,24 +150,28 @@ bool ClutchingTwoGraphs( std::set < std::pair < typename CMGraph::Vertex, typena
       }
     }
   }
-  std::cout << "Climbing Prefix Tree 2.\n";
+  //std::cout << "Climbing Prefix Tree 2.\n";
 
   // Now an exact repeat for the other case
   while ( not second_cells . empty () ) {
+    ++ effort;
     PrefixNode < Vertex > * node = second_cells . top ();
     second_cells . pop ();
     Vertex a, b;
     a = node -> tag () [ 0 ];
     // If there are two items here, then we don't need to climb.
     if ( node -> tag () . size () > 1 ) {
+      ++ effort;
       b = node -> tag () [ 1 ];
       bipartite_graph . insert ( std::pair < Vertex, Vertex > ( a, b ) ); // pointless, actually; already there
       continue;
     } 
     // Otherwise, we do need to climb.
     while ( node -> parent () != NULL ) {
+      ++ effort;
       node = node -> parent ();
       if ( node -> tag () . size () > 0 ) {
+        ++ effort;
         b = node -> tag () [ 0 ];
         bipartite_graph . insert ( std::pair < Vertex, Vertex > ( b, a ) ); // notice the reversal
         //std::cout << "(" << b << ", " << a << ")\n";
@@ -171,8 +183,9 @@ bool ClutchingTwoGraphs( std::set < std::pair < typename CMGraph::Vertex, typena
   // Report matching information
   if ( result != NULL ) *result = bipartite_graph;
   
+  std::cout << "Clutching effort = " << effort << "\n";
   // Now check to see if the clutching graph is indeed a matching
-  std::cout << "Check for Match.\n";
+  //std::cout << "Check for Match.\n";
   std::set < Vertex > first_vertices, second_vertices;
   if ( graph1 . NumVertices () != graph2 . NumVertices () ) return false;
   typedef std::pair<Vertex,Vertex> VertexPair;
