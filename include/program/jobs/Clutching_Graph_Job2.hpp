@@ -67,9 +67,8 @@ public:
   PrefixIterator insert ( const Prefix & p, const T & item ) {
     if ( root_ == NULL ) root_ = new PrefixNode < T >;
     PrefixNode <T> * node = root_;
-    Prefix follow_me = p;
-    for ( unsigned int i = 0; i < follow_me . size (); ++ i ) {
-      if ( follow_me [ i ] == 0 ) {
+    for ( unsigned int i = 0; i < p . size (); ++ i ) {
+      if ( p [ i ] == 0 ) {
         node = node -> left ();
       } else {
         node = node -> right ();
@@ -100,6 +99,7 @@ bool ClutchingTwoGraphs( std::set < std::pair < typename CMGraph::Vertex, typena
   typedef typename CMGraph::Vertex Vertex;
   typedef std::vector<unsigned char> Prefix;
   /* Build a Prefix Tree */
+  std::cout << "Building Prefix Tree 1.\n";
   PrefixTree<Vertex> tree;
   std::stack < PrefixNode<Vertex> * > first_cells, second_cells;
   BOOST_FOREACH (Vertex v, graph1.Vertices()) {
@@ -108,6 +108,8 @@ bool ClutchingTwoGraphs( std::set < std::pair < typename CMGraph::Vertex, typena
       first_cells . push ( tree . insert ( p, v ) );
     }
   }
+  std::cout << "Building Prefix Tree 2.\n";
+
   BOOST_FOREACH (Vertex v, graph2.Vertices()) {
     BOOST_FOREACH ( Top_Cell t, graph2 . CubeSet ( v ) ) {
       Prefix p = toplex2 . prefix ( t );
@@ -116,7 +118,8 @@ bool ClutchingTwoGraphs( std::set < std::pair < typename CMGraph::Vertex, typena
   }  
   /* Climb from each item place in tree and record which pairs we get */
   std::set < std::pair < Vertex, Vertex > > bipartite_graph;
-  
+  std::cout << "Climbing Prefix Tree 1.\n";
+
   while ( not first_cells . empty () ) {
     PrefixNode < Vertex > * node = first_cells . top ();
     first_cells . pop ();
@@ -139,7 +142,8 @@ bool ClutchingTwoGraphs( std::set < std::pair < typename CMGraph::Vertex, typena
       }
     }
   }
-  
+  std::cout << "Climbing Prefix Tree 2.\n";
+
   // Now an exact repeat for the other case
   while ( not second_cells . empty () ) {
     PrefixNode < Vertex > * node = second_cells . top ();
@@ -168,6 +172,7 @@ bool ClutchingTwoGraphs( std::set < std::pair < typename CMGraph::Vertex, typena
   if ( result != NULL ) *result = bipartite_graph;
   
   // Now check to see if the clutching graph is indeed a matching
+  std::cout << "Check for Match.\n";
   std::set < Vertex > first_vertices, second_vertices;
   if ( graph1 . NumVertices () != graph2 . NumVertices () ) return false;
   typedef std::pair<Vertex,Vertex> VertexPair;
@@ -245,8 +250,10 @@ void ProduceClutchingGraph(
       const CMGraph *graph2 = patch.GetCMGraph(p2);
       const Toplex *toplex1 = patch.GetToplex(p1);
       const Toplex *toplex2 = patch.GetToplex(p2);
+      std::cout << "Calling ClutchingTwoGraphs...\n";
       if (ClutchingTwoGraphs<CMGraph>(NULL, *graph1, *graph2, *toplex1, *toplex2))
         quotient_set.Union(p1, p2);
+      std::cout << "Returning.\n";
     }
   }
   

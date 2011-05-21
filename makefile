@@ -21,7 +21,7 @@ CXX_STANDALONE := $(CXX) $(CXXFLAGS) $(LIBS)
 
 VPATH = ./source/data_structures:./source/program:./source/program/jobs:./source/distributed:./include/data_structures:./include/program:./include/program/jobs:./include/distributed:./test/:./source/tools/:./include/tools/:./source/tools/lodepng/:./include/tools/lodepng/
 
-all: Conley_Morse_Database TESTS
+all: Conley_Morse_Database
 
 .PHONY: TESTS
 TESTS: Test_Morse_Graph Test_Single_Box_Job
