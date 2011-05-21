@@ -5,6 +5,8 @@
 #include <algorithm>
 #include "boost/foreach.hpp"
 
+#define DEBUGPRINT if(0)
+
 /* Combinatorial Map */
 template < class Toplex, class CellContainer >
 CombinatorialMap<Toplex,CellContainer>::CombinatorialMap ( const size_type N ) : sentinel_ ( N ) {
@@ -295,7 +297,7 @@ void compute_strong_components (std::vector<std::vector<typename OutEdgeGraph::s
       } // if visited
     } // while dfs stack non-empty
   } // while not all nodes explored
-  std::cout << "SCC effort = " << effort << "\n";
+  DEBUGPRINT std::cout << "SCC effort = " << effort << "\n";
 }
 
 #if 0
@@ -551,5 +553,5 @@ void compute_reachability ( std::vector < std::vector < unsigned int > > * outpu
       } // for bit index
     } // for morse set
   } // for groups
-  std::cout << "reach effort = " << effort << "\n";
+  DEBUGPRINT std::cout << "reach effort = " << effort << "\n";
 } /* compute_reachability */

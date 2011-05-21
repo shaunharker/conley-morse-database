@@ -27,7 +27,7 @@
 #define COMPLEXITY_LIMIT 200000
 #endif
 
-
+#define DEBUGPRINT if(0)
 
 template < class Conley_Morse_Graph, class Toplex , class Parameter_Toplex , class Map >
 void Compute_Conley_Morse_Graph4 (Conley_Morse_Graph * CMG,
@@ -45,10 +45,9 @@ void Compute_Conley_Morse_Graph4 (Conley_Morse_Graph * CMG,
   start0 = clock ();
   typedef std::vector<typename Toplex::Top_Cell> CellContainer;
   typedef CombinatorialMap<Toplex,CellContainer> Graph;
-  std::cout << "\n\n-------------------------------\n";
-
-  std::cout << "| Compute_Conley_Morse_Graph. |\n";
-  std::cout << "-------------------------------\n\n";
+  DEBUGPRINT std::cout << "\n\n-------------------------------\n";
+  DEBUGPRINT std::cout << "| Compute_Conley_Morse_Graph. |\n";
+  DEBUGPRINT std::cout << "-------------------------------\n\n";
 
   //std::cout << "[" << parameter_box . lower_bounds [ 0 ] << ", " << parameter_box . upper_bounds [ 0 ] << "] X";
   //std::cout << "[" << parameter_box . lower_bounds [ 1 ] << ", " << parameter_box . upper_bounds [ 1 ] << "]\n";
@@ -71,33 +70,33 @@ void Compute_Conley_Morse_Graph4 (Conley_Morse_Graph * CMG,
   int depth = 1;
   while ( subdivided && ++ depth <= MAX_PHASE_SUBDIVISIONS ) {
     subdivided = false;
-    // DEBUG
-    std::cout << "depth = " << depth << " and phase_space . size () = " << phase_space -> size () << "\n";
+    // DEBUGPRINT
+    DEBUGPRINT std::cout << "depth = " << depth << " and phase_space . size () = " << phase_space -> size () << "\n";
     // compute combinatorial map
-    std::cout << "There are " << morse_sets . size () << " morse sets.\n";
+    DEBUGPRINT std::cout << "There are " << morse_sets . size () << " morse sets.\n";
     unsigned long cells_left = 0;
     BOOST_FOREACH ( CellContainer & morse_set, morse_sets ) {
       cells_left += morse_set . size ();
     }
-    std::cout << "cells left = " << cells_left << "\n";
-    std::cout << "cumulative (map, scc) = " << map_time << ", " << scc_time << "\n";
-    std::cout << "Computing directed graph...\n";
+    DEBUGPRINT std::cout << "cells left = " << cells_left << "\n";
+    DEBUGPRINT std::cout << "cumulative (map, scc) = " << map_time << ", " << scc_time << "\n";
+    DEBUGPRINT std::cout << "Computing directed graph...\n";
     start = clock ();
     Graph G = compute_combinatorial_map ( morse_sets, * phase_space, interval_map );
     this_map_time = (float)(clock() - start) / (float) CLOCKS_PER_SEC;
     map_time += this_map_time;
-    std::cout << "      processed at rate " << (float) cells_left / (float) this_map_time << "\n";  
+    DEBUGPRINT std::cout << "      processed at rate " << (float) cells_left / (float) this_map_time << "\n";  
     // compute morse sets
-    std::cout << "Computing morse sets...\n";
+    DEBUGPRINT std::cout << "Computing morse sets...\n";
     morse_sets . clear ();
     start = clock ();
     compute_morse_sets <Conley_Morse_Graph,Toplex,CellContainer> ( &morse_sets, G );
     this_scc_time = (float)(clock() - start) / (float) CLOCKS_PER_SEC;
     scc_time += this_scc_time;
-    std::cout << "      processed at rate " << (float) cells_left / (float) this_scc_time << "\n";  
+    DEBUGPRINT std::cout << "      processed at rate " << (float) cells_left / (float) this_scc_time << "\n";  
 
     // subdivide morse sets
-    std::cout << "Subdividing morse sets...\n";
+    DEBUGPRINT std::cout << "Subdividing morse sets...\n";
     BOOST_FOREACH ( CellContainer & morse_set, morse_sets ) {
       if ( depth <= MIN_PHASE_SUBDIVISIONS ||
            morse_set . size () * ( (1 << phase_space -> dimension () ) - 1) + complexity < COMPLEXITY_LIMIT ) {
@@ -117,31 +116,31 @@ void Compute_Conley_Morse_Graph4 (Conley_Morse_Graph * CMG,
   } /* for */
 
   // Finalize: Create entire directed graph in memory and determine morse sets
-  std::cout << "phase_space . size () = " << phase_space -> size () << "\n";
+  DEBUGPRINT std::cout << "phase_space . size () = " << phase_space -> size () << "\n";
   unsigned long cells_left = 0;
-  std::cout << "There are " << morse_sets . size () << " morse sets.\n";
+  DEBUGPRINT std::cout << "There are " << morse_sets . size () << " morse sets.\n";
   BOOST_FOREACH ( CellContainer & morse_set, morse_sets ) {
     cells_left += morse_set . size ();
   }
-  std::cout << "cells left = " << cells_left << "\n";
-  std::cout << "cumulative (map, scc) = " << map_time << ", " << scc_time << "\n";
-  std::cout << "Final: Computing directed graph...\n";
+  DEBUGPRINT std::cout << "cells left = " << cells_left << "\n";
+  DEBUGPRINT std::cout << "cumulative (map, scc) = " << map_time << ", " << scc_time << "\n";
+  DEBUGPRINT std::cout << "Final: Computing directed graph...\n";
   start = clock ();
   Graph G = compute_combinatorial_map<Toplex,Map,CellContainer> ( * phase_space , interval_map );
   this_map_time = (float)(clock() - start) / (float) CLOCKS_PER_SEC;
   map_time += this_map_time;
-  std::cout << "      processed at rate " << (float) cells_left / (float) this_map_time << "\n";  
+  DEBUGPRINT std::cout << "      processed at rate " << (float) cells_left / (float) this_map_time << "\n";  
   
-  std::cout << "Final: Computing morse sets...\n";
+  DEBUGPRINT std::cout << "Final: Computing morse sets...\n";
   morse_sets . clear ();
   start = clock ();
   compute_morse_sets<Conley_Morse_Graph,Toplex,CellContainer> ( &morse_sets, G, CMG );
   this_scc_time = (float)(clock() - start) / (float) CLOCKS_PER_SEC;
   scc_time += this_scc_time;
-  std::cout << "      processed at rate " << (float) cells_left / (float) this_scc_time << "\n";  
+  DEBUGPRINT std::cout << "      processed at rate " << (float) cells_left / (float) this_scc_time << "\n";  
   
-  std::cout << "Total Time to compute map = " << map_time << "\n";
-  std::cout << "Total Time to compute scc = " << scc_time << "\n";
+  DEBUGPRINT std::cout << "Total Time to compute map = " << map_time << "\n";
+  DEBUGPRINT std::cout << "Total Time to compute scc = " << scc_time << "\n";
   
   // produce conley index
   start = clock ();
@@ -157,11 +156,13 @@ void Compute_Conley_Morse_Graph4 (Conley_Morse_Graph * CMG,
   }
   conley_time = (float)(clock() - start) / (float) CLOCKS_PER_SEC;
 
-  if ( should_compute_conley_index) std::cout << "Time to compute Conley Index = " << conley_time << "\n";
+  DEBUGPRINT if ( should_compute_conley_index) std::cout << "Time to compute Conley Index = " << conley_time << "\n";
 
   // TODO
   return;
 } /* Compute_Conley_Morse_Graph */
 
+
+#undef DEBUGPRINT
 
 #endif

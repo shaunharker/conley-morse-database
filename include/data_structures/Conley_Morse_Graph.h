@@ -35,6 +35,7 @@ class ConleyMorseGraph {
   struct ComponentProperty {
     typedef boost::vertex_property_tag kind;
   };
+  typedef CubeSet_t CellContainer;
   typedef boost::property<ComponentProperty, Component> VertexProperty;
   typedef boost::no_property EdgeProperty;
   typedef boost::adjacency_list<boost::listS, boost::listS,

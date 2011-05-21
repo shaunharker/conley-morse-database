@@ -99,13 +99,23 @@ bool ClutchingTwoGraphs( std::set < std::pair < typename CMGraph::Vertex, typena
   unsigned long effort = 0;
   typedef typename CMGraph::Vertex Vertex;
   typedef std::vector<unsigned char> Prefix;
+  typedef typename CMGraph::CellContainer CellContainer;
   /* Build a Prefix Tree */
   //std::cout << "Building Prefix Tree 1.\n";
   PrefixTree<Vertex> tree;
   std::stack < PrefixNode<Vertex> * > first_cells, second_cells;
   BOOST_FOREACH (Vertex v, graph1.Vertices()) {
-    std::cout << "Size of cubeset = " << graph1 . CubeSet ( v ) . size () << "\n";
+    //std::cout << "Size of cubeset = " << graph1 . CubeSet ( v ) . size () << "\n";
+
+    // CREEPY BUG ON CONLEY2 -- I SUSPECT SUBTLE COMPILER OPTIMIZATION BUG INTERACTING WITH BOOST_FOREACH
+#if 0
     BOOST_FOREACH ( Top_Cell t, graph1 . CubeSet ( v ) ) { // here
+#else
+    for ( typename CellContainer::const_iterator it1 = graph1 . CubeSet ( v ) . begin (), 
+          it2 = graph1 . CubeSet ( v ) . end (); it1 != it2; ++ it1 ) {
+      Top_Cell t = *it1;
+#endif
+
       Prefix p = toplex1 . prefix ( t );
       first_cells . push ( tree . insert ( p, v ) );
       ++ effort;
@@ -183,7 +193,8 @@ bool ClutchingTwoGraphs( std::set < std::pair < typename CMGraph::Vertex, typena
   // Report matching information
   if ( result != NULL ) *result = bipartite_graph;
   
-  std::cout << "Clutching effort = " << effort << "\n";
+  //std::cout << "Clutching effort = " << effort << "\n";
+  
   // Now check to see if the clutching graph is indeed a matching
   //std::cout << "Check for Match.\n";
   std::set < Vertex > first_vertices, second_vertices;
@@ -263,10 +274,10 @@ void ProduceClutchingGraph(
       const CMGraph *graph2 = patch.GetCMGraph(p2);
       const Toplex *toplex1 = patch.GetToplex(p1);
       const Toplex *toplex2 = patch.GetToplex(p2);
-      std::cout << "Calling ClutchingTwoGraphs...\n";
+      //std::cout << "Calling ClutchingTwoGraphs...\n";
       if (ClutchingTwoGraphs<CMGraph>(NULL, *graph1, *graph2, *toplex1, *toplex2))
         quotient_set.Union(p1, p2);
-      std::cout << "Returning.\n";
+      //std::cout << "Returning.\n";
     }
   }
   
