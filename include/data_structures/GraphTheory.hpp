@@ -202,7 +202,7 @@ void compute_strong_components (std::vector<std::vector<typename OutEdgeGraph::s
   size_type current_index = 0;
   lowlink_stack . push ( std::make_pair ( sentinel, sentinel ) ); // so there is always a top.
   // Main Loop
-  //std::cout << "SCC. N = " << N << ", sentinel = " << sentinel << "\n";
+  std::cout << "SCC. N = " << N << ", sentinel = " << sentinel << "\n";
   //std::cout << "sentinel = " << sentinel << "\n";
   for ( size_type root = 0; root < N; ++ root ) {
     if ( index [ root ] != sentinel ) continue;
@@ -322,7 +322,7 @@ void compute_strong_components (std::vector<std::vector<typename OutEdgeGraph::s
   size_type current_index = 0;
   lowlink_stack . push ( std::make_pair ( sentinel, sentinel ) ); // so there is always a top.
   // Main Loop
-  //std::cout << "SCC. N = " << N << ", sentinel = " << sentinel << "\n";
+  std::cout << "SCC. N = " << N << ", sentinel = " << sentinel << "\n";
   //std::cout << "sentinel = " << sentinel << "\n";
   for ( size_type root = 0; root < N; ++ root ) {
     if ( index [ root ] != sentinel ) continue;

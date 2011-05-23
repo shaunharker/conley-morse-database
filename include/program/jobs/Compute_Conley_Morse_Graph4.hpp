@@ -23,8 +23,8 @@
 #endif
 
 #ifndef COMPLEXITY_LIMIT
-#warning Specify header parameter COMPLEXITY_LIMIT; using default value 200000
-#define COMPLEXITY_LIMIT 200000
+#warning Specify header parameter COMPLEXITY_LIMIT; using default value 10000
+#define COMPLEXITY_LIMIT 10000
 #endif
 
 #define DEBUGPRINT if(0)
@@ -99,12 +99,13 @@ void Compute_Conley_Morse_Graph4 (Conley_Morse_Graph * CMG,
     DEBUGPRINT std::cout << "Subdividing morse sets...\n";
     BOOST_FOREACH ( CellContainer & morse_set, morse_sets ) {
       if ( depth <= MIN_PHASE_SUBDIVISIONS ||
-           morse_set . size () * ( (1 << phase_space -> dimension () ) - 1) + complexity < COMPLEXITY_LIMIT ) {
+          morse_set . size () < COMPLEXITY_LIMIT ) {
+           //morse_set . size () * ( (1 << phase_space -> dimension () ) - 1) + complexity < COMPLEXITY_LIMIT ) {
         CellContainer new_morse_set;
         std::insert_iterator<CellContainer> ii ( new_morse_set, new_morse_set . begin () );
         phase_space -> subdivide (ii, morse_set);
         std::swap ( new_morse_set, morse_set );
-        complexity = phase_space -> size ();
+        //complexity = phase_space -> size ();
         subdivided = true;
       } else {
         //start = clock ();

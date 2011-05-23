@@ -14,11 +14,12 @@
 #include "data_structures/Conley_Morse_Graph.h"
 #include "toplexes/Adaptive_Cubical_Toplex.h"
 
+#define PARAMETER_BOXES 50
 // HEADERS FOR ALGORITHMS
 #define MIN_PHASE_SUBDIVISIONS 12
-#define MAX_PHASE_SUBDIVISIONS 12
-
-#define COMPLEXITY_LIMIT 200000
+#define MAX_PHASE_SUBDIVISIONS 16
+#define SPACE_DIMENSION 2
+#define COMPLEXITY_LIMIT 10000
 
 #define NEW_GRAPH_THEORY
 
@@ -72,27 +73,19 @@ int main ( int argc, char * argv [] )
   /* INITIALIZE PHASE SPACE (create a single box, which will be subdivided later) */
   Adaptive_Cubical::Toplex phase_space;
   Adaptive_Cubical::Geometric_Description phase_box = initialize_phase_space_box (bx, by);
-  /* fishery example
-   Adaptive_Cubical::Geometric_Description phase_box (4);
-  phase_box . lower_bounds [ 0 ] = 0;
-  phase_box . lower_bounds [ 1 ] = 0;
-  phase_box . lower_bounds [ 2 ] = 0;
-  phase_box . upper_bounds [ 0 ] = 5.0;
-  phase_box . upper_bounds [ 1 ] = 5.0;
-  phase_box . upper_bounds [ 2 ] = 5.0;
-  */
+
   phase_space . initialize ( phase_box );
   
   /* INITIALIZE PARAMETER SPACE REGION */
   Adaptive_Cubical::Geometric_Description parameter_box = initialize_parameter_space_box (bx, by);
-  // FISHERY Adaptive_Cubical::Geometric_Description parameter_box (1);
 
   /* INITIALIZE CONLEY MORSE GRAPH (create an empty one) */
   CMG conley_morse_graph;
   
   /* COMPUTE CONLEY MORSE GRAPH */
 #ifdef NEW_GRAPH_THEORY
-  Compute_Conley_Morse_Graph4 < CMG, Adaptive_Cubical::Toplex, Adaptive_Cubical::Toplex, LeslieMap/*FishMap4*/ >
+  Compute_Conley_Morse_Graph4 < CMG, Adaptive_Cubical::Toplex, Adaptive_Cubical::Toplex, 
+                              LeslieMap /*FishMap4*/ >
     ( & conley_morse_graph, & phase_space, parameter_box, true, false );
 #else
   Compute_Conley_Morse_Graph3 < CMG, Adaptive_Cubical::Toplex, Adaptive_Cubical::Toplex, LeslieMap/*FishMap4*/ >
@@ -100,7 +93,7 @@ int main ( int argc, char * argv [] )
 #endif
   
   stop = clock ();
-  std::cout << "Total Time for Finding Morse Sets, Connections, and Conley Indices: " << 
+  std::cout << "Total Time for Finding Morse Sets and reachability relation: " << 
     (float) (stop - start ) / (float) CLOCKS_PER_SEC << "\n";
   
   /* DRAW MORSE SETS */
@@ -113,11 +106,15 @@ int main ( int argc, char * argv [] )
 
 
 Adaptive_Cubical::Geometric_Description initialize_phase_space_box ( const int bx, const int by ) {
-  Adaptive_Cubical::Geometric_Description phase_space_box ( 2 , 0 , 300 );
-  phase_space_box . lower_bounds [ 0 ] = -0.001;
+  Adaptive_Cubical::Geometric_Description phase_space_box ( SPACE_DIMENSION , 0 , 10.1f  );
+  
+  phase_space_box . lower_bounds [ 0 ] = 0.0;
   phase_space_box . upper_bounds [ 0 ] = 320.056;
-  phase_space_box . lower_bounds [ 1 ] = -0.001;
+
+  phase_space_box . lower_bounds [ 1 ] = 0.0;
   phase_space_box . upper_bounds [ 1 ] = 224.040;
+
+ 
   return phase_space_box;
 }
 
@@ -131,13 +128,13 @@ Adaptive_Cubical::Geometric_Description initialize_parameter_space_box ( const i
   
   Adaptive_Cubical::Geometric_Description parameter_box ( 2 , 20.01 , 20.02 );
   parameter_box . lower_bounds [ 0 ] = parameter_space_limits . lower_bounds [ 0 ] + 
-  ( parameter_space_limits . upper_bounds [ 0 ] - parameter_space_limits . lower_bounds [ 0 ] ) * bx / 50.0;
+  ( parameter_space_limits . upper_bounds [ 0 ] - parameter_space_limits . lower_bounds [ 0 ] ) * bx / (float) PARAMETER_BOXES;
   parameter_box . upper_bounds [ 0 ] = parameter_space_limits . lower_bounds [ 0 ] + 
-  ( parameter_space_limits . upper_bounds [ 0 ] - parameter_space_limits . lower_bounds [ 0 ] ) * ( bx + 1.0 ) / 50.0;
+  ( parameter_space_limits . upper_bounds [ 0 ] - parameter_space_limits . lower_bounds [ 0 ] ) * ( bx + 1.0 ) / (float) PARAMETER_BOXES;
   parameter_box . lower_bounds [ 1 ] = parameter_space_limits . lower_bounds [ 1 ] + 
-  ( parameter_space_limits . upper_bounds [ 1 ] - parameter_space_limits . lower_bounds [ 1 ] ) * by / 50.0;
+  ( parameter_space_limits . upper_bounds [ 1 ] - parameter_space_limits . lower_bounds [ 1 ] ) * by / (float) PARAMETER_BOXES;
   parameter_box . upper_bounds [ 1 ] = parameter_space_limits . lower_bounds [ 1 ] + 
-  ( parameter_space_limits . upper_bounds [ 1 ] - parameter_space_limits . lower_bounds [ 1 ] ) * ( by + 1.0 ) / 50.0;
+  ( parameter_space_limits . upper_bounds [ 1 ] - parameter_space_limits . lower_bounds [ 1 ] ) * ( by + 1.0 ) / (float) PARAMETER_BOXES;
     
   return parameter_box;
 }
@@ -145,8 +142,8 @@ Adaptive_Cubical::Geometric_Description initialize_parameter_space_box ( const i
 void DrawMorseSets ( const Toplex & phase_space, const CMG & conley_morse_graph ) {
   // Create a Picture
   
-  int Width = 512;
-  int Height = 512;
+  int Width =  256;
+  int Height = 256;
   
   /*
   Picture * picture = new Picture( Width, Height, 0.0, 0.0, 0.0, 0.0 ); // this assures I have the origin in current imp
@@ -193,23 +190,22 @@ void CreateDotFile ( const CMG & cmg ) {
   outfile << "digraph G { \n";
   //outfile << "node [ shape = point, color=black  ];\n";
   //outfile << "edge [ color=red  ];\n";
-  
+
   // LOOP THROUGH VERTICES AND GIVE THEM NAMES
   std::map < V, int > vertex_to_index;
-  //std::vector < V > index_to_vertex;
-  //index_to_vertex . resize ( cmg . NumVertices () );
   VI start, stop;
   int i = 0;
-  for (boost::tie ( start, stop ) = cmg . Vertices ();
-       start != stop;
-       ++ start ) {
+  for (boost::tie ( start, stop ) = cmg . Vertices (); start != stop; ++ start ) {
     vertex_to_index [ *start ] = i;
-    //index_to_vertex [ i ] = *start;
+    outfile << i << " [label=\""<< cmg . CubeSet (*start) .size () << "\"]\n";
     ++ i;
   }
+  int N = cmg . NumVertices ();
   
-  // LOOP THROUGH EDGES
+  // LOOP THROUGH CMG EDGES
   EI estart, estop;
+  typedef std::pair<int, int> int_pair;
+  std::set < int_pair > edges;
   for (boost::tie ( estart, estop ) = cmg . Edges ();
        estart != estop;
        ++ estart ) {
@@ -217,8 +213,34 @@ void CreateDotFile ( const CMG & cmg ) {
     V target = cmg . Target ( *estart );
     int index_source = vertex_to_index [ source ];
     int index_target = vertex_to_index [ target ];
-    outfile << index_source << " -> " << index_target << ";\n";
+    if ( index_source != index_target ) // Cull the self-edges
+      edges . insert ( std::make_pair ( index_source, index_target ) );
   }
+  // TRANSITIVE REDUCTION (n^5, non-optimal)
+  // We determine those edges (a, c) for which there are edges (a, b) and (b, c)
+  // and store them in "transitive_edges"
+  std::set < int_pair > transitive_edges;
+  BOOST_FOREACH ( int_pair edge, edges ) {
+    for ( int j = 0; j < N; ++ j ) {
+      bool left = false;
+      bool right = false;
+      BOOST_FOREACH ( int_pair edge2, edges ) {
+        if ( edge2 . first == edge . first && edge2 . second == j ) left = true;
+        if ( edge2 . first == j && edge2 . second == edge . second ) right = true;
+      }
+      if ( left && right ) transitive_edges . insert ( edge );
+    }
+  }
+  
+  // PRINT OUT EDGES OF TRANSITIVE CLOSURE
+  BOOST_FOREACH ( int_pair edge, edges ) {
+    if ( transitive_edges . count ( edge ) == 0 )
+      outfile << edge . first << " -> " << edge . second << ";\n";
+  }
+  
+  edges . clear ();
+  transitive_edges . clear ();
+
   outfile << "}\n";
   
   outfile . close ();

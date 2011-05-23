@@ -28,7 +28,11 @@ Picture * draw_picture (const int Width, const int Height,
   
   // Create picture
   Picture * picture = new Picture( Width, Height, x_min, x_max, y_min, y_max );
-  
+  std::cout << "x_min = " << x_min << "\n";
+  std::cout << "x_max = " << x_max << "\n";
+  std::cout << "y_min = " << y_min << "\n";
+  std::cout << "y_max = " << y_max << "\n";
+
   // Draw picture
   BOOST_FOREACH ( typename Toplex::Top_Cell cell, my_subset ) {
     typename Toplex::Geometric_Description box = my_toplex . geometry ( my_toplex . find ( cell ) );
@@ -82,6 +86,7 @@ Picture * draw_morse_sets (const int Width, const int Height,
   Picture * picture = new Picture( Width, Height, x_min, x_max, y_min, y_max );
   
   // Loop through Morse Sets to draw them
+  int count = 0;
   for (boost::tie ( it, stop ) = conley_morse_graph . Vertices ();
        it != stop;
        ++ it ) {
@@ -90,15 +95,26 @@ Picture * draw_morse_sets (const int Width, const int Height,
     unsigned char Blue = rand () % 255;
     // Draw the Morse Set
     CellContainer const & my_subset = conley_morse_graph . CubeSet ( *it );
+    if ( my_subset . size () < 10 ) std::cout << "Small Morse Set " << count << ": ";
+    ++ count;
+
     for ( typename CellContainer::const_iterator cellit = my_subset . begin (); 
          cellit != my_subset . end (); ++ cellit ) {
+
       typename Toplex::Geometric_Description box = my_toplex . geometry ( my_toplex . find ( *cellit ) );
+
+      // DEBUG
+      if ( my_subset . size () < 10 ) std::cout << box << " ";
+      
       picture -> draw_square (Red, Green, Blue,
                               box . lower_bounds [ 0 ],
                               box . upper_bounds [ 0 ],
                               box . lower_bounds [ 1 ],
-                              box . upper_bounds [ 1 ]);
+                              box . upper_bounds [ 1 ], 
+                              true);
     }
+    if ( my_subset . size () < 10 ) std::cout << "\n";
+
   }
 
   return picture;
@@ -137,7 +153,8 @@ Picture * draw_toplex (const int Width, const int Height,
                                     box . lower_bounds [ 0 ],
                                     box . upper_bounds [ 0 ],
                                     box . lower_bounds [ 1 ],
-                                    box . upper_bounds [ 1 ]);
+                                    box . upper_bounds [ 1 ],
+                            false);
   }
 
 
@@ -179,7 +196,8 @@ Picture * draw_toplex_and_morse_sets (const int Width, const int Height,
                             box . lower_bounds [ 0 ],
                             box . upper_bounds [ 0 ],
                             box . lower_bounds [ 1 ],
-                            box . upper_bounds [ 1 ]);
+                            box . upper_bounds [ 1 ],
+                            false /* not transparent */);
   }
   
   // Loop through Morse Sets to draw them

@@ -25,7 +25,9 @@ const Geometric_Description param_bounds ( PARAM_DIMENSION , std::vector<Real> (
                                                       param_upper_bounds + PARAM_DIMENSION ) );
 
 /* Phase Space */
+#ifndef SPACE_DIMENSION
 #define SPACE_DIMENSION 2
+#endif
 #ifndef MIN_PHASE_SUBDIVISIONS
 #define MIN_PHASE_SUBDIVISIONS 12
 #endif
@@ -35,7 +37,7 @@ const Geometric_Description param_bounds ( PARAM_DIMENSION , std::vector<Real> (
 #ifndef COMPLEXITY_LIMIT
 #define COMPLEXITY_LIMIT 200000
 #endif
-const Real space_lower_bounds [PARAM_DIMENSION] = { -0.001, -0.001 };
+const Real space_lower_bounds [PARAM_DIMENSION] = { 0.0, 0.0 };
 const Real space_upper_bounds [PARAM_DIMENSION] = { 320.056, 224.040 };
 
 const Geometric_Description space_bounds ( SPACE_DIMENSION , std::vector<Real> ( space_lower_bounds, 
@@ -48,22 +50,6 @@ const Geometric_Description space_bounds ( SPACE_DIMENSION , std::vector<Real> (
 //typedef FishMap4 GeometricMap;
 #include "maps/leslie.h"
 typedef LeslieMap GeometricMap;
-
-/* Strategies */
-/*
-#include "program/Strategies.h"
-
-typedef Decide_Subdiv_Level_Size< Adaptive_Cubical::Toplex > Decide_Subdiv;
-const Decide_Subdiv decide_subdiv ( 10 , 100000 );
-
-typedef Decide_Conley_Index_Size< Adaptive_Cubical::Toplex > Decide_Conley_Index;
-const Decide_Conley_Index decide_conley_index ( 2 , 0, false, 0);
- */
-//const Decide_Conley_Index decide_conley_index ( 2 , 10000 , true , Decide_Conley_Index::MaxValue );
-
-
-/* Default Settings */
-
 
 
 #ifndef _DO_NOT_INCLUDE_HPP_
