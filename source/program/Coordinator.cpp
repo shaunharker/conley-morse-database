@@ -251,24 +251,13 @@ void Coordinator::Process(const Message &result) {
   result >> job_number;
   std::vector <Conley_Morse_Graph> conley_morse_graphs;
   result >> conley_morse_graphs;
+  std::map < std::pair < size_t, size_t >, std::set < std::pair < Conley_Morse_Graph::Vertex, Conley_Morse_Graph::Vertex > > > clutch;
+  //result >> clutch;
   std::vector < Toplex::Top_Cell > cell_names;
   result >> cell_names;
   std::vector < std::vector <size_t> > equivalence_classes;
   result >> equivalence_classes;
 
-  
-  /* DEBUG */
-  /*
-  std::cout << "continuation classes reported:\n";
-  BOOST_FOREACH ( std::vector < size_t > & eqv_class, equivalence_classes ) {
-    std::cout << "CLASS: ";
-    for ( int i = 0; i < (int) eqv_class . size (); ++ i ) {
-      std::cout << "(" << eqv_class [ i ] << ", " << cell_names [ eqv_class [ i ] ] << ") ";
-    }
-    std::cout << "\n";
-  }
-   */
-  
   // Turn equivalence classes into a UnionFind structure (converting to topcells)
   UnionFind < Toplex::Top_Cell > new_continuation_info;
   BOOST_FOREACH ( std::vector < size_t > & eqv_class, equivalence_classes ) {
@@ -280,73 +269,24 @@ void Coordinator::Process(const Message &result) {
   }
   continuation_classes . Merge ( new_continuation_info );
   
-  /* DEBUG */
-  /*
-  std::cout << "continuation classes so far:\n";
-  std::vector < std::vector < Toplex::Top_Cell > > data;
-  continuation_classes . FillToVector ( &data );
-  BOOST_FOREACH ( std::vector < Toplex::Top_Cell > & eqv_class, data ) {
-    std::cout << "CLASS: ";
-    for ( int i = 0; i < (int) eqv_class . size (); ++ i ) {
-      std::cout << eqv_class [ i ] << " ";
-    }
-    std::cout << "\n";
+  // Copy CMG's into DATABASE
+  int count = 0;
+  BOOST_FOREACH ( const Conley_Morse_Graph & cp, conley_morse_graphs ) {
+    graphs [ cell_names [ count ] ] = cp;
+    ++ count;
   }
-      */
+
+  // Copy CLUTCHING GRAPHS into DATABASE
+  typedef std::pair < std::pair < size_t, size_t >, std::set < std::pair < Conley_Morse_Graph::Vertex, Conley_Morse_Graph::Vertex > > > ClutchPair;
+  BOOST_FOREACH ( const ClutchPair & cp, clutch ) {
+    clutchings [ std::make_pair ( cell_names [ cp . first . first ], cell_names [ cp . first . second ] ) ] = cp . second;
+  }
+
   std::cout << "Coordinator::Process: Received result " << job_number << "\n";
-  //char c; std::cin >> c;
-  /// Paramter patch corresponding to received results
-  //Toplex_Subset patch_results = PS_patches [job_number];
-
-  /// Update the cached box information in PS_Toplex_Cached_Info
   
-  /*
-  size_t key = 0;
-  for (Toplex_Subset::const_iterator it = patch_results . begin (); it != patch_results . end (); ++it, ++key) {
-    if (patch_cached_info . find (key) != patch_cached_info . end ()) {
-      PS_Toplex_Cached_Info . insert (Toplex_Cached_Box_Pair (* param_toplex . find (*it), patch_cached_info . find (key) -> second));
-    }
-  }
-  */
-  /*
-  /// Number of parameter cells in this patch
-  size_t num_cells = patch_results . size ();
-
-
-  /// Temporary output
-  //std::cout << std::endl;
-  //std::cout << "Job " << job_number << " complete!" << std::endl;
-  //std::cout << "Number of CM Graphs computed: " << conley_morse_graphs . size() << std::endl;
-
-  /// Save the Conley Morse graphs
-  for (size_t i = 0; i < num_cells; ++i) {
-//    std::cout << "Graph with " << conley_morse_graphs [i] . NumVertices() << " vertices." << std::endl;
-
-    BOOST_FOREACH (Conley_Morse_Graph::Vertex vert_from, conley_morse_graphs [i] . Vertices ()) {
-//      std::cout << conley_morse_graphs [i] . CubeSet (vert_from) << " -> ";
-	  BOOST_FOREACH (Conley_Morse_Graph::Vertex vert_to, conley_morse_graphs [i] . OutEdges (vert_from)) {
-//        std::cout << conley_morse_graphs [i] . CubeSet (vert_to) << " ";
-      }
-//      std::cout << std::endl;
-    }
-  }
-//  std::cout << std::endl;
-
-
-  /// Save the equivalence class information
-  for (size_t i = 0; i < num_cells; ++i) {
-    for (size_t j = 0; j < num_cells; ++j) {
-      // std::cout << equivalence_classes [i] [j] << std::endl;
-	}
-  }
-*/
   /// Increment jobs received counter
   ++num_jobs_received_;
-  /*
-  std::ofstream outfile ( "progress.txt");
-  outfile << num_jobs_received_;
-  outfile . close ();
-  */
+  
   // Are we done?
   if ( num_jobs_received_ == num_jobs_ ) {
     finalize ();
@@ -356,8 +296,11 @@ void Coordinator::Process(const Message &result) {
 }
 
 // temporary hack to get continuation graph, eventually to be promoted to database structure
-void save_continuation_graph ( const Toplex & toplex, 
-                               const std::vector < std::vector < Toplex::Top_Cell > > & data ) {
+void Coordinator::save_continuation_graph ( void ) {
+  Toplex & toplex = param_toplex; // convenient
+  std::vector < std::vector < Toplex::Top_Cell > > data;
+  continuation_classes . FillToVector ( &data );
+  
   // First, convert the classes into sets of top cells 
   std::vector < std::set < Toplex::Top_Cell > > classes ( data . size () );
   for ( unsigned int i = 0; i < data . size (); ++ i ) {
@@ -372,7 +315,7 @@ void save_continuation_graph ( const Toplex & toplex,
     }
   }
   
-  std::set < std::pair < unsigned int, unsigned int > > edges;
+  std::set < std::pair < unsigned int, unsigned int > > my_edges;
   // Loop through cells
   typedef Toplex::iterator IT;
   for ( IT it = toplex . begin (); it != toplex . end (); ++ it ) {
@@ -383,23 +326,218 @@ void save_continuation_graph ( const Toplex & toplex,
     toplex . cover ( ii, toplex . geometry ( t ) );
     BOOST_FOREACH ( Top_Cell s, neighbors ) {
       if ( included [ s ] < included [ t ] ) {
-        edges . insert ( std::make_pair ( included [ s ], included [ t ] ) );
+        my_edges . insert ( std::make_pair ( included [ s ], included [ t ] ) );
       }
     }
   }
   
   // Now output the continuation graph to a file
-  std::ofstream outfile ("continuationgraph.gz");
-  outfile << "graph G {\n";
+  std::ofstream outfile ("continuationgraph.gv");
+  outfile << "digraph G {\n";
   for ( unsigned int i = 0; i < data . size (); ++ i ) {
-    if ( data [ i ] . size () > 1 )
-    outfile << i << " [label=\"" << data [ i ] . size () << "\"];\n";
+    if ( data [ i ] . size () > 1 ) {
+      outfile << "subgraph cluster" << i << " {\n"; //[label=\"" << data [ i ] . size () << "\"];\n";
+      Top_Cell rep = continuation_classes . Representative ( data [ i ] [ 0 ] );
+      // Make rep's CMG
+      typedef Conley_Morse_Graph CMG;
+      CMG & cmg = graphs [ rep ];
+      typedef CMG::Vertex V;
+      typedef CMG::Edge E;
+      typedef CMG::VertexIterator VI;
+      typedef CMG::EdgeIterator EI;
+      
+      // LOOP THROUGH VERTICES AND GIVE THEM NAMES
+      std::map < V, int > vertex_to_index;
+      VI start, stop;
+      int j = 0;
+      for (boost::tie ( start, stop ) = cmg . Vertices (); start != stop; ++ start ) {
+        vertex_to_index [ *start ] = i;
+        outfile << i << "N" << j << " [label=\""<< " " <<  /*cmg . CubeSet (*start) .size () <<*/ "\"]\n";
+        ++ j;
+      }
+      int N = cmg . NumVertices ();
+      
+      // LOOP THROUGH CMG EDGES
+      EI estart, estop;
+      typedef std::pair<int, int> int_pair;
+      std::set < int_pair > edges;
+      for (boost::tie ( estart, estop ) = cmg . Edges ();
+           estart != estop;
+           ++ estart ) {
+        V source = cmg . Source ( *estart );
+        V target = cmg . Target ( *estart );
+        int index_source = vertex_to_index [ source ];
+        int index_target = vertex_to_index [ target ];
+        if ( index_source != index_target ) // Cull the self-edges
+          edges . insert ( std::make_pair ( index_source, index_target ) );
+      }
+      // TRANSITIVE REDUCTION (n^5, non-optimal)
+      // We determine those edges (a, c) for which there are edges (a, b) and (b, c)
+      // and store them in "transitive_edges"
+      std::set < int_pair > transitive_edges;
+      BOOST_FOREACH ( int_pair edge, edges ) {
+        for ( int j = 0; j < N; ++ j ) {
+          bool left = false;
+          bool right = false;
+          BOOST_FOREACH ( int_pair edge2, edges ) {
+            if ( edge2 . first == edge . first && edge2 . second == j ) left = true;
+            if ( edge2 . first == j && edge2 . second == edge . second ) right = true;
+          }
+          if ( left && right ) transitive_edges . insert ( edge );
+        }
+      }
+      
+      // PRINT OUT EDGES OF TRANSITIVE CLOSURE
+      BOOST_FOREACH ( int_pair edge, edges ) {
+        if ( transitive_edges . count ( edge ) == 0 )
+          outfile << i << "N" << edge . first << " -> " << i << "N" << edge . second << ";\n";
+      }
+      
+      edges . clear ();
+      transitive_edges . clear ();
+      
+      outfile << "}\n";
+      
+      // END CMG WRITING CODE
+    }
+    
   }
-  typedef std::pair < unsigned int, unsigned int > Edge; 
-  BOOST_FOREACH ( const Edge & edge, edges ) {
-    if ( data [ edge . first ] . size () > 1 && data [ edge . second ] . size () > 1 )
-    outfile << edge . first << " -- " << edge . second << ";\n";
-  }
+  
+  
+  // clutching edges
+  outfile << "edge [dir=none,color=red];\n";
+  typedef std::pair < unsigned int, unsigned int > Edge_t; 
+  BOOST_FOREACH ( const Edge_t & my_edge, my_edges ) {
+    if ( data [ my_edge . first ] . size () > 1 && data [ my_edge . second ] . size () > 1 ) {
+      //outfile << edge . first << " -- " << edge . second << ";\n";
+      Top_Cell rep1 = continuation_classes . Representative ( data [ my_edge.first ] [ 0 ] );
+      Top_Cell rep2 = continuation_classes . Representative ( data [ my_edge.second ] [ 0 ] );
+      if ( rep1 > rep2) continue;
+      // Make rep's CMG
+      typedef Conley_Morse_Graph CMG;
+      CMG & cmg1 = graphs [ rep1 ];
+      CMG & cmg2 = graphs [ rep2 ];
+      
+      outfile << my_edge.first << "N" << 0 << " -> " << my_edge.second << "N" << 0 << " " << 
+      "[ltail=cluster" << my_edge.first << ",lhead=cluster" << my_edge.second << "];\n";
+#if 0
+      typedef CMG::Vertex V;
+      typedef CMG::Edge E;
+      typedef CMG::VertexIterator VI;
+      typedef CMG::EdgeIterator EI;
+      
+      //std::ofstream outfile ( filename );
+      
+      //outfile << "digraph G { \n";
+      //outfile << "node [ shape = point, color=black  ];\n";
+      //outfile << "edge [ color=red  ];\n";
+      
+      // LOOP THROUGH VERTICES AND GIVE THEM NAMES
+      std::map < V, int > vertex_to_index1;
+      std::map < V, int > vertex_to_index2;
+      
+      VI start, stop;
+      
+      
+      
+      typedef std::pair<int, int> int_pair;
+      std::set < int_pair > edges;
+      std::set < int_pair > transitive_edges;
+      
+      // LOOP THROUGH CMG EDGES
+      EI estart, estop;
+      //outfile << " subgraph cluster0 {\n color=blue; ";
+      
+      int i = 0;
+      for (boost::tie ( start, stop ) = cmg1 . Vertices ();
+           start != stop;
+           ++ start ) {
+        vertex_to_index1 [ *start ] = i;
+        //outfile << i << " [label=\""<< cmg1.CubeSet(*start).size() << "\"]\n";
+        ++ i;
+      }
+      int N = i;
+      
+      for (boost::tie ( estart, estop ) = cmg1 . Edges ();
+           estart != estop;
+           ++ estart ) {
+        V source = cmg1 . Source ( *estart );
+        V target = cmg1 . Target ( *estart );
+        int index_source = vertex_to_index1 [ source ];
+        int index_target = vertex_to_index1 [ target ];
+        edges . insert ( std::make_pair ( index_source, index_target ) );
+      }
+      // a kind of bad transitive closure algorithm (n^5, should be n^3, worry later)
+      BOOST_FOREACH ( int_pair edge, edges ) {
+        for ( int j = 0; j < N; ++ j ) {
+          bool left = false;
+          bool right = false;
+          BOOST_FOREACH ( int_pair edge2, edges ) {
+            if ( edge2 . first == edge . first && edge2 . second == j ) left = true;
+            if ( edge2 . first == j && edge2 . second == edge . second ) right = true;
+          }
+          if ( left && right ) transitive_edges . insert ( edge );
+        }
+      }
+      /*
+      BOOST_FOREACH ( int_pair edge, edges ) {
+        if ( transitive_edges . count ( edge ) == 0 )
+          outfile << edge . first << " -> " << edge . second << ";\n";
+      }
+       */
+      
+      edges . clear ();
+      transitive_edges . clear ();
+      
+      //outfile << " }\n subgraph cluster1 {\n color=blue;\n";
+      for (boost::tie ( start, stop ) = cmg2 . Vertices ();
+           start != stop;
+           ++ start ) {
+        vertex_to_index2 [ *start ] = i;
+        //outfile << i << " [label=\""<< cmg2.CubeSet(*start).size() << "\"]\n";
+        ++ i;
+      }
+      int M = i;
+      for (boost::tie ( estart, estop ) = cmg2 . Edges ();
+           estart != estop;
+           ++ estart ) {
+        V source = cmg2 . Source ( *estart );
+        V target = cmg2 . Target ( *estart );
+        int index_source = vertex_to_index2 [ source ];
+        int index_target = vertex_to_index2 [ target ];
+        edges . insert ( std::make_pair ( index_source, index_target ) );
+      }
+      
+      // a kind of bad transitive closure algorithm (n^5, should be n^3, worry later)
+      BOOST_FOREACH ( int_pair edge, edges ) {
+        for ( int j = N; j < M; ++ j ) {
+          bool left = false;
+          bool right = false;
+          BOOST_FOREACH ( int_pair edge2, edges ) {
+            if ( edge2 . first == edge . first && edge2 . second == j ) left = true;
+            if ( edge2 . first == j && edge2 . second == edge . second ) right = true;
+          }
+          if ( left && right ) transitive_edges . insert ( edge );
+        }
+      }
+      /*
+      BOOST_FOREACH ( int_pair edge, edges ) {
+        if ( transitive_edges . count ( edge ) == 0 )
+          outfile << edge . first << " -> " << edge . second << ";\n";
+      }
+       */
+      
+      // LOOP THROUGH CLUTCHING EDGES
+      typedef std::pair<V,V> VertexPair;
+      BOOST_FOREACH ( const VertexPair & edge, clutchings [ std::make_pair ( rep1, rep2 ) ] ) {
+        int index_source = vertex_to_index1 [ edge . first ];
+        int index_target = vertex_to_index2 [ edge . second ];
+        outfile << my_edge.first << "N" << index_source << " -> " << my_edge.second << "N" << index_target << ";\n";
+        
+      }
+#endif
+    } // if
+  } // boostforeach
   outfile << "}\n";
   outfile . close ();
 }
@@ -412,7 +550,7 @@ void Coordinator::finalize ( void ) {
   std::vector < std::vector < Toplex::Top_Cell > > data;
   continuation_classes . FillToVector ( &data );
   
-  save_continuation_graph ( param_toplex, data ); // put this puppy in a file
+  save_continuation_graph (); // put this puppy in a file
   
   BOOST_FOREACH ( std::vector < Toplex::Top_Cell > & eqv_class, data ) {
     std::cout << "CLASS: ";

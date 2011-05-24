@@ -13,6 +13,8 @@
 #include <boost/iterator_adaptors.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/map.hpp>
+#include <boost/serialization/set.hpp>
+
 #include "program/Configuration.h"
 #include "program/jobs/Compute_Conley_Morse_Graph4.h"
 #include "data_structures/UnionFind.hpp"
@@ -256,7 +258,9 @@ private:
  *  NOTE: *ret must be empty
  */
 template<class CMGraph, class Patch, class Toplex>
-void ProduceClutchingGraph(
+  void ProduceClutchingGraph( std::map < std::pair < size_t, size_t >, 
+                                         std::set < std::pair < typename CMGraph::Vertex, typename CMGraph::Vertex > >
+                                       > * clutch,
                            const Patch &patch,
                            std::vector<std::vector<typename Patch::ParamBoxDescriptor> > *ret) {
   typename Patch::ParamBoxIteratorPair param_boxes_iters;
@@ -274,9 +278,11 @@ void ProduceClutchingGraph(
       const CMGraph *graph2 = patch.GetCMGraph(p2);
       const Toplex *toplex1 = patch.GetToplex(p1);
       const Toplex *toplex2 = patch.GetToplex(p2);
+      std::set < std::pair < typename CMGraph::Vertex, typename CMGraph::Vertex > > singleclutch;
       //std::cout << "Calling ClutchingTwoGraphs...\n";
-      if (ClutchingTwoGraphs<CMGraph>(NULL, *graph1, *graph2, *toplex1, *toplex2))
+      if (ClutchingTwoGraphs<CMGraph>(&singleclutch, *graph1, *graph2, *toplex1, *toplex2))
         quotient_set.Union(p1, p2);
+      clutch -> insert ( std::make_pair ( std::make_pair ( p1, p2 ), singleclutch ) );
       //std::cout << "Returning.\n";
     }
   }
@@ -342,13 +348,16 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   
   start = clock ();
   
+  std::map < std::pair < size_t, size_t >, std::set < std::pair < typename CMGraph::Vertex, typename CMGraph::Vertex > > > clutch;
+  
   Patch<CMGraph, Toplex> patch(conley_morse_graphs, phase_space_toplexes, neighbour);
-  ProduceClutchingGraph<CMGraph, Patch<CMGraph, Toplex>, Toplex>(patch, &equivalent_classes);
+  ProduceClutchingGraph<CMGraph, Patch<CMGraph, Toplex>, Toplex>(&clutch, patch, &equivalent_classes);
 
   std::cout << "Job " << job_number << " finished Clutching. Time = " << (float)(clock() - start ) / (float) CLOCKS_PER_SEC << "\n";
 
   *result << job_number;
   *result << conley_morse_graphs;
+  //*result << clutch;
   *result << cell_names;
   *result << equivalent_classes;
 }
