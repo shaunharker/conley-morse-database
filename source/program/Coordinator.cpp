@@ -8,6 +8,8 @@
 #include "tools/lodepng/lodepng.h"
 #include <ctime>
 #include <fstream>
+#include <algorithm>
+#include "boost/foreach.hpp"
 
 Coordinator::Coordinator(int argc, char **argv) {
   int patch_stride = 1; // distance between center of patches in box-units
@@ -353,6 +355,53 @@ void Coordinator::Process(const Message &result) {
   return;
 }
 
+// temporary hack to get continuation graph, eventually to be promoted to database structure
+void save_continuation_graph ( const Toplex & toplex, 
+                               const std::vector < std::vector < Toplex::Top_Cell > > & data ) {
+  // First, convert the classes into sets of top cells 
+  std::vector < std::set < Toplex::Top_Cell > > classes ( data . size () );
+  for ( unsigned int i = 0; i < data . size (); ++ i ) {
+    std::insert_iterator < std::set < Toplex::Top_Cell > > ii ( classes [ i ], classes [ i ] . begin () );
+    std::copy ( data [ i ] . begin (), data [ i ] . end (), ii );
+  }
+  // Loop through cells in classes and form a transpose table
+  std::vector < int > included ( toplex . tree_size (), -1 );
+  for ( unsigned int i = 0; i < data . size (); ++ i ) {
+    BOOST_FOREACH ( Toplex::Top_Cell t, data [ i ] ) {
+      included [ t ] = i;
+    }
+  }
+  
+  std::set < std::pair < unsigned int, unsigned int > > edges;
+  // Loop through cells
+  typedef Toplex::iterator IT;
+  for ( IT it = toplex . begin (); it != toplex . end (); ++ it ) {
+    Top_Cell t = * it;
+    typedef std::vector < Toplex::Top_Cell > CellContainer;
+    std::vector < Toplex::Top_Cell > neighbors;
+    std::insert_iterator < CellContainer > ii ( neighbors, neighbors . begin () );
+    toplex . cover ( ii, toplex . geometry ( t ) );
+    BOOST_FOREACH ( Top_Cell s, neighbors ) {
+      if ( included [ s ] < included [ t ] ) {
+        edges . insert ( std::make_pair ( included [ s ], included [ t ] ) );
+      }
+    }
+  }
+  
+  // Now output the continuation graph to a file
+  std::ofstream outfile ("continuationgraph.gz");
+  outfile << "graph G {\n";
+  for ( unsigned int i = 0; i < data . size (); ++ i ) {
+    outfile << i << " [label=\"" << data [ i ] . size () << "\"];\n";
+  }
+  typedef std::pair < unsigned int, unsigned int > Edge; 
+  BOOST_FOREACH ( const Edge & edge, edges ) {
+    outfile << edge . first << " -- " << edge . second << ";\n";
+  }
+  outfile << "}\n";
+  outfile . close ();
+}
+
 void Coordinator::finalize ( void ) {
   std::cout << "Coordinate::finalize ()\n";
   
@@ -360,6 +409,15 @@ void Coordinator::finalize ( void ) {
   std::cout << "continuation classes so far:\n";
   std::vector < std::vector < Toplex::Top_Cell > > data;
   continuation_classes . FillToVector ( &data );
+  
+  save_continuation_graph ( param_toplex
+                           
+                           
+                           
+                           
+                           
+                           , data ); // put this puppy in a file
+  
   BOOST_FOREACH ( std::vector < Toplex::Top_Cell > & eqv_class, data ) {
     std::cout << "CLASS: ";
     for ( int i = 0; i < (int) eqv_class . size (); ++ i ) {
@@ -374,6 +432,8 @@ void Coordinator::finalize ( void ) {
   for ( int i = 0; i < (int) classes . size (); ++ i ) {
     std::cout << "  Size of class " << i << " is " << classes [ i ] . size () << "\n";
   }
+  
+  
   // Draw a parameter space picture if it is 2D.
   if ( PARAM_DIMENSION != 2 ) return;
   std::cout << "Drawing parameter space picture\n";
