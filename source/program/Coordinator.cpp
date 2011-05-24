@@ -258,6 +258,13 @@ void Coordinator::Process(const Message &result) {
   std::vector < std::vector <size_t> > equivalence_classes;
   result >> equivalence_classes;
 
+  // TEST DEBUG
+  /*
+  Conley_Morse_Graph & cmg = conley_morse_graphs [ 0 ];
+  if ( cmg . Edges () . first != cmg . Edges () . second )
+    std::cout << "NONTRIVIAL\n";
+  */
+  
   // Turn equivalence classes into a UnionFind structure (converting to topcells)
   UnionFind < Toplex::Top_Cell > new_continuation_info;
   BOOST_FOREACH ( std::vector < size_t > & eqv_class, equivalence_classes ) {
@@ -282,6 +289,9 @@ void Coordinator::Process(const Message &result) {
     clutchings [ std::make_pair ( cell_names [ cp . first . first ], cell_names [ cp . first . second ] ) ] = cp . second;
   }
 
+  // DEBUG
+  //save_continuation_graph ();
+  
   std::cout << "Coordinator::Process: Received result " << job_number << "\n";
   
   /// Increment jobs received counter
@@ -351,8 +361,8 @@ void Coordinator::save_continuation_graph ( void ) {
       VI start, stop;
       int j = 0;
       for (boost::tie ( start, stop ) = cmg . Vertices (); start != stop; ++ start ) {
-        vertex_to_index [ *start ] = i;
-        outfile << i << "N" << j << " [label=\""<< " " <<  /*cmg . CubeSet (*start) .size () <<*/ "\"]\n";
+        vertex_to_index [ *start ] = j;
+        outfile << "C" << i << "N" << j << " [label=\""<< " " <<  /*cmg . CubeSet (*start) .size () <<*/ "\"]\n";
         ++ j;
       }
       int N = cmg . NumVertices ();
@@ -368,6 +378,8 @@ void Coordinator::save_continuation_graph ( void ) {
         V target = cmg . Target ( *estart );
         int index_source = vertex_to_index [ source ];
         int index_target = vertex_to_index [ target ];
+        //std::cout << "looking for edge between " << index_source << " and " << index_target << "\n";
+
         if ( index_source != index_target ) // Cull the self-edges
           edges . insert ( std::make_pair ( index_source, index_target ) );
       }
@@ -390,7 +402,7 @@ void Coordinator::save_continuation_graph ( void ) {
       // PRINT OUT EDGES OF TRANSITIVE CLOSURE
       BOOST_FOREACH ( int_pair edge, edges ) {
         if ( transitive_edges . count ( edge ) == 0 )
-          outfile << i << "N" << edge . first << " -> " << i << "N" << edge . second << ";\n";
+          outfile << "C" << i << "N" << edge . first << " -> " << "C" << i << "N" << edge . second << ";\n";
       }
       
       edges . clear ();
@@ -402,7 +414,6 @@ void Coordinator::save_continuation_graph ( void ) {
     }
     
   }
-  
   
   // clutching edges
   outfile << "edge [dir=none,color=red];\n";
@@ -418,7 +429,7 @@ void Coordinator::save_continuation_graph ( void ) {
       CMG & cmg1 = graphs [ rep1 ];
       CMG & cmg2 = graphs [ rep2 ];
       
-      outfile << my_edge.first << "N" << 0 << " -> " << my_edge.second << "N" << 0 << " " << 
+      outfile << "C" << my_edge.first << "N" << 0 << " -> " << "C" << my_edge.second << "N" << 0 << " " << 
       "[ltail=cluster" << my_edge.first << ",lhead=cluster" << my_edge.second << "];\n";
 #if 0
       typedef CMG::Vertex V;
@@ -538,6 +549,7 @@ void Coordinator::save_continuation_graph ( void ) {
 #endif
     } // if
   } // boostforeach
+
   outfile << "}\n";
   outfile . close ();
 }
