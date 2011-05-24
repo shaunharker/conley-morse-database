@@ -392,10 +392,12 @@ void save_continuation_graph ( const Toplex & toplex,
   std::ofstream outfile ("continuationgraph.gz");
   outfile << "graph G {\n";
   for ( unsigned int i = 0; i < data . size (); ++ i ) {
+    if ( data [ i ] . size () > 1 )
     outfile << i << " [label=\"" << data [ i ] . size () << "\"];\n";
   }
   typedef std::pair < unsigned int, unsigned int > Edge; 
   BOOST_FOREACH ( const Edge & edge, edges ) {
+    if ( data [ edge . first ] . size () > 1 && data [ edge . second ] . size () > 1 )
     outfile << edge . first << " -- " << edge . second << ";\n";
   }
   outfile << "}\n";
@@ -410,13 +412,7 @@ void Coordinator::finalize ( void ) {
   std::vector < std::vector < Toplex::Top_Cell > > data;
   continuation_classes . FillToVector ( &data );
   
-  save_continuation_graph ( param_toplex
-                           
-                           
-                           
-                           
-                           
-                           , data ); // put this puppy in a file
+  save_continuation_graph ( param_toplex, data ); // put this puppy in a file
   
   BOOST_FOREACH ( std::vector < Toplex::Top_Cell > & eqv_class, data ) {
     std::cout << "CLASS: ";
