@@ -346,7 +346,8 @@ void Coordinator::save_continuation_graph ( void ) {
   outfile << "digraph G {\n";
   for ( unsigned int i = 0; i < data . size (); ++ i ) {
     if ( data [ i ] . size () > 1 ) {
-      outfile << "subgraph cluster" << i << " {\n"; //[label=\"" << data [ i ] . size () << "\"];\n";
+      outfile << "subgraph cluster" << i << " {\n"; 
+      outfile << "label=\"" << data [ i ] . size () << "\";\n";
       Top_Cell rep = continuation_classes . Representative ( data [ i ] [ 0 ] );
       // Make rep's CMG
       typedef Conley_Morse_Graph CMG;
