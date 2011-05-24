@@ -75,10 +75,12 @@ struct LeslieMap {
     interval x1 = interval (rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ]);
     
     /* Perform map computation */
-    //interval z = (parameter1 * x0 + parameter2 * x1 );
-    //interval y0 = z * exp ( (double) -0.1 * z);    
-    
+#ifdef FISHMODEL
+    interval z = (parameter1 * x0 + parameter2 * x1 );
+    interval y0 = z * exp ( (double) -0.1 * z);    
+#else
     interval y0 = (parameter1 * x0 + parameter2 * x1 ) * exp ( (double) -0.1 * (x0 + x1) );     
+#endif
     interval y1 = (double) 0.7 * x0;
     
     /* Write output */

@@ -14,12 +14,17 @@
 #include "data_structures/Conley_Morse_Graph.h"
 #include "toplexes/Adaptive_Cubical_Toplex.h"
 
-#define PARAMETER_BOXES 50
+#define PARAMETER_BOXES 128
 // HEADERS FOR ALGORITHMS
 #define MIN_PHASE_SUBDIVISIONS 12
 #define MAX_PHASE_SUBDIVISIONS 16
 #define SPACE_DIMENSION 2
 #define COMPLEXITY_LIMIT 10000
+
+// HEADER FOR MAP FILE
+#define FISHMODEL
+#include "maps/leslie.h"
+//#include "maps/fisheries.h"
 
 #define NEW_GRAPH_THEORY
 
@@ -29,9 +34,7 @@
 #include "program/jobs/Compute_Conley_Morse_Graph4.h"
 #endif
 
-// HEADER FOR MAP FILE
-#include "maps/leslie.h"
-//#include "maps/fisheries.h"
+
 
 // HEADERS FOR DEALING WITH PICTURES
 #include "tools/picture.h"
@@ -107,13 +110,13 @@ int main ( int argc, char * argv [] )
 
 Adaptive_Cubical::Geometric_Description initialize_phase_space_box ( const int bx, const int by ) {
   Adaptive_Cubical::Geometric_Description phase_space_box ( SPACE_DIMENSION , 0 , 10.1f  );
-  
+#ifndef FISHMODEL
   phase_space_box . lower_bounds [ 0 ] = 0.0;
   phase_space_box . upper_bounds [ 0 ] = 320.056;
 
   phase_space_box . lower_bounds [ 1 ] = 0.0;
   phase_space_box . upper_bounds [ 1 ] = 224.040;
-
+#endif
  
   return phase_space_box;
 }
