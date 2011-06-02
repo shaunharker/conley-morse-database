@@ -2,12 +2,11 @@
 
 CXX := mpicxx
 HOMEDIR := ..
-CAPDDIR := $(HOMEDIR)/capd
 CHOMPDIR := $(HOMEDIR)/chomp-rutgers
-BOOSTDIR := $(HOMEDIR)/boost_1_42_0
+BOOSTDIR := 
 LIBDIR = -L$(BOOSTDIR)/stage/lib/ -L$(CHOMPDIR)/lib/ -L/usr/X11/lib/
 LIBS = $(LIBDIR) -lboost_serialization -lchomp-rutgers -lX11
-CXXFLAGS := -O3 -m64 -Wall -I./include/ -I$(CAPDDIR)/include -I$(CHOMPDIR)/include -I$(INCLUDES) -Wno-deprecated -I$(BOOSTDIR) -ggdb
+CXXFLAGS := -O3 -m64 -Wall -I./include/ -I$(CHOMPDIR)/include -I$(INCLUDES) -Wno-deprecated -I$(BOOSTDIR) -ggdb
 
 
 # The last part is because the conley2 boost library is not up to date and I have

@@ -306,8 +306,6 @@ void Coordinator::Process(const Message &result) {
 }
 
 
-void Coordinator::save_continuation_graph ( void ) {
-
 // temporary hack to get continuation graph, eventually to be promoted to database structure
 void Coordinator::save_continuation_graph ( void ) {
   Toplex & toplex = param_toplex; // convenient
