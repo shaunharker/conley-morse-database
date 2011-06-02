@@ -305,6 +305,9 @@ void Coordinator::Process(const Message &result) {
   return;
 }
 
+
+void Coordinator::save_continuation_graph ( void ) {
+
 // temporary hack to get continuation graph, eventually to be promoted to database structure
 void Coordinator::save_continuation_graph ( void ) {
   Toplex & toplex = param_toplex; // convenient
@@ -344,6 +347,8 @@ void Coordinator::save_continuation_graph ( void ) {
   // Now output the continuation graph to a file
   std::ofstream outfile ("continuationgraph.gv");
   outfile << "digraph G {\n";
+  outfile << "compound=true;\n";
+  outfile << "node [shape=ellipse,width=.2,height=.2];\n";
   for ( unsigned int i = 0; i < data . size (); ++ i ) {
     if ( data [ i ] . size () > 1 ) {
       outfile << "subgraph cluster" << i << " {\n"; 
@@ -363,7 +368,7 @@ void Coordinator::save_continuation_graph ( void ) {
       int j = 0;
       for (boost::tie ( start, stop ) = cmg . Vertices (); start != stop; ++ start ) {
         vertex_to_index [ *start ] = j;
-        outfile << "C" << i << "N" << j << " [label=\""<< " " <<  /*cmg . CubeSet (*start) .size () <<*/ "\"]\n";
+        outfile << "C" << i << "N" << j << " [label=\"\"]\n";
         ++ j;
       }
       int N = cmg . NumVertices ();

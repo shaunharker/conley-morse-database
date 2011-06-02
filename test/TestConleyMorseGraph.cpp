@@ -14,7 +14,7 @@
 #include "data_structures/Conley_Morse_Graph.h"
 #include "toplexes/Adaptive_Cubical_Toplex.h"
 
-#define PARAMETER_BOXES 128
+#define PARAMETER_BOXES 50
 // HEADERS FOR ALGORITHMS
 #define MIN_PHASE_SUBDIVISIONS 12
 #define MAX_PHASE_SUBDIVISIONS 16
@@ -22,7 +22,7 @@
 #define COMPLEXITY_LIMIT 10000
 
 // HEADER FOR MAP FILE
-#define FISHMODEL
+//#define FISHMODEL
 #include "maps/leslie.h"
 //#include "maps/fisheries.h"
 

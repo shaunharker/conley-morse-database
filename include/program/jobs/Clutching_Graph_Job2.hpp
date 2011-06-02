@@ -10,10 +10,11 @@
 #include <vector>
 #include <ctime>
 #include <set>
-#include <boost/iterator_adaptors.hpp>
-#include <boost/serialization/vector.hpp>
-#include <boost/serialization/map.hpp>
-#include <boost/serialization/set.hpp>
+#include "boost/iterator_adaptors.hpp"
+#include "boost/iterator/counting_iterator.hpp"
+#include "boost/serialization/vector.hpp"
+#include "boost/serialization/map.hpp"
+#include "boost/serialization/set.hpp"
 
 #include "program/Configuration.h"
 #include "program/jobs/Compute_Conley_Morse_Graph4.h"
