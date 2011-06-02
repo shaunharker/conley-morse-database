@@ -4,7 +4,7 @@ CXX := mpicxx
 HOMEDIR := ..
 CHOMPDIR := $(HOMEDIR)/chomp-rutgers
 BOOSTDIR := 
-LIBDIR = -L$(BOOSTDIR)/stage/lib/ -L$(CHOMPDIR)/lib/ -L/usr/X11/lib/
+LIBDIR = -L/usr/local/lib -L$(CHOMPDIR)/lib/ -L/usr/X11/lib/
 LIBS = $(LIBDIR) -lboost_serialization -lchomp-rutgers -lX11
 CXXFLAGS := -O3 -m64 -Wall -I./include/ -I$(CHOMPDIR)/include -I$(INCLUDES) -Wno-deprecated -I$(BOOSTDIR) -ggdb
 
