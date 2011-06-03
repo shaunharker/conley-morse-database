@@ -1,20 +1,11 @@
-# makefile for CMDP project                                                                       
-
+# makefile for CMDP project 
 CXX := mpicxx
 HOMEDIR := ..
 CHOMPDIR := $(HOMEDIR)/chomp-rutgers
 BOOSTDIR := 
 LIBDIR = -L/usr/local/lib -L$(CHOMPDIR)/lib/ -L/usr/X11/lib/
-LIBS = $(LIBDIR) -lboost_serialization -lchomp-rutgers -lX11
+LIBS = $(LIBDIR) -Wl,-Bstatic -lboost_serialization -Wl,-Bdynamic -lchomp-rutgers -lX11
 CXXFLAGS := -O3 -m64 -Wall -I./include/ -I$(CHOMPDIR)/include -I$(INCLUDES) -Wno-deprecated -I$(BOOSTDIR) -ggdb
-
-
-# The last part is because the conley2 boost library is not up to date and I have
-# a new one installed TEMPORARILY.                                                
-# -m64 means we want to use 64 bit code                                                            
-# -O3 tells the compiler to try to use its most advanced optimizations                             
-# -Wall tells the compiler to turn on all warnings                                                 
-# -pg is for the profiler. REMOVE it for a final build.                                            
 
 CXX_STANDALONE := $(CXX) $(CXXFLAGS) $(LIBS)
 
