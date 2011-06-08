@@ -17,7 +17,7 @@
 #define PARAMETER_BOXES 50
 // HEADERS FOR ALGORITHMS
 #define MIN_PHASE_SUBDIVISIONS 12
-#define MAX_PHASE_SUBDIVISIONS 16
+#define MAX_PHASE_SUBDIVISIONS 12
 #define SPACE_DIMENSION 2
 #define COMPLEXITY_LIMIT 10000
 
@@ -118,6 +118,7 @@ Adaptive_Cubical::Geometric_Description initialize_phase_space_box ( const int b
   phase_space_box . upper_bounds [ 1 ] = 224.040;
 #endif
  
+  std::cout << "Phase Space = " << phase_space_box << "\n";
   return phase_space_box;
 }
 
@@ -138,7 +139,8 @@ Adaptive_Cubical::Geometric_Description initialize_parameter_space_box ( const i
   ( parameter_space_limits . upper_bounds [ 1 ] - parameter_space_limits . lower_bounds [ 1 ] ) * by / (float) PARAMETER_BOXES;
   parameter_box . upper_bounds [ 1 ] = parameter_space_limits . lower_bounds [ 1 ] + 
   ( parameter_space_limits . upper_bounds [ 1 ] - parameter_space_limits . lower_bounds [ 1 ] ) * ( by + 1.0 ) / (float) PARAMETER_BOXES;
-    
+  std::cout << "Parameter Box = " << parameter_box << "\n";
+
   return parameter_box;
 }
 

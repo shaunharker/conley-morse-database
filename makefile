@@ -4,7 +4,9 @@ HOMEDIR := ..
 CHOMPDIR := $(HOMEDIR)/chomp-rutgers
 BOOSTDIR := 
 LIBDIR = -L/usr/local/lib -L$(CHOMPDIR)/lib/ -L/usr/X11/lib/
-LIBS = $(LIBDIR) -Wl,-Bstatic -lboost_serialization -Wl,-Bdynamic -lchomp-rutgers -lX11
+#LIBS = $(LIBDIR) -Wl,-Bstatic -lboost_serialization -Wl,-Bdynamic -lchomp-rutgers -lX11
+LIBS = $(LIBDIR) -lboost_serialization -lchomp-rutgers -lX11
+
 CXXFLAGS := -O3 -m64 -Wall -I./include/ -I$(CHOMPDIR)/include -I$(INCLUDES) -Wno-deprecated -I$(BOOSTDIR) -ggdb
 
 CXX_STANDALONE := $(CXX) $(CXXFLAGS) $(LIBS)

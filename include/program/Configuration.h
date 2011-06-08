@@ -37,8 +37,8 @@ const Geometric_Description param_bounds ( PARAM_DIMENSION , std::vector<Real> (
 #ifndef COMPLEXITY_LIMIT
 #define COMPLEXITY_LIMIT 200000
 #endif
-const Real space_lower_bounds [PARAM_DIMENSION] = { 0.0, 0.0 };
-const Real space_upper_bounds [PARAM_DIMENSION] = { 320.056, 224.040 };
+const Real space_lower_bounds [SPACE_DIMENSION] = { 0.0, 0.0 };
+const Real space_upper_bounds [SPACE_DIMENSION] = { 320.056, 224.040 };
 
 const Geometric_Description space_bounds ( SPACE_DIMENSION , std::vector<Real> ( space_lower_bounds, 
                                                       space_lower_bounds + SPACE_DIMENSION ), 
