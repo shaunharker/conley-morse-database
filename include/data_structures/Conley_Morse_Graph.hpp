@@ -2,48 +2,98 @@
  *  Conley_Morse_Graph.hpp
  */
 
-/*
- *  Simple DFS is used.
- *  TODO: mark reached vertices.
+#include <utility>
+
+/** Create an empty graph */
+template<class CellSet_t, class ConleyIndex_t>
+ConleyMorseGraph<CellSet_t,ConleyIndex_t>::ConleyMorseGraph() {
+  num_vertices_ = 0;
+}
+
+/** Create a new vertex and return the descriptor of the vertex.
+ *  The vertex is not connected to anywhere.
+ *  An empty CellSet and ConleyIndex are allocated and
+ *  assigned to the vertex just after this function is called.
+ *  ("empty" objects mean the objects created by default-constructor.)
  */
-template<class CubeSet_t, class ConleyIndex_t>
-bool ConleyMorseGraph<CubeSet_t,ConleyIndex_t>::PathExists(
-    ConleyMorseGraph<CubeSet_t,ConleyIndex_t>::Vertex from,
-    ConleyMorseGraph<CubeSet_t,ConleyIndex_t>::Vertex to) const {
-  if (from == to)
-    return true;
-  BOOST_FOREACH (Edge edge, boost::out_edges(from, graph_)) {
-    Vertex next = boost::target(edge, graph_);
-    if (PathExists(next, to))
-      return true;
-  }
-  return false;
+template<class CellSet_t, class ConleyIndex_t>
+typename ConleyMorseGraph<CellSet_t,ConleyIndex_t>::Vertex 
+ConleyMorseGraph<CellSet_t,ConleyIndex_t>::
+ AddVertex() {
+  int v = num_vertices_ ++;
+   property_ . insert ( std::make_pair ( v, VertexData () ) );
+  return v;
 }
 
-template<class CubeSet_t, class ConleyIndex_t>
-typename ConleyMorseGraph<CubeSet_t,ConleyIndex_t>::OutEdgeIteratorPair
-ConleyMorseGraph<CubeSet_t,ConleyIndex_t>::OutEdges(
-    ConleyMorseGraph<CubeSet_t,ConleyIndex_t>::Vertex vertex) const {
-  typedef typename boost::graph_traits<Graph>::out_edge_iterator Iter;
-  boost::function<Vertex (Edge)> f =
-      boost::bind(&ConleyMorseGraph::Target, boost::ref(*this), _1);
-  Iter b, e;
-  tie(b, e) = boost::out_edges(vertex, graph_);
-  
-  return OutEdgeIteratorPair(boost::make_transform_iterator(b, f),
-                             boost::make_transform_iterator(e, f));
+/** Add a edge from the "from" vertex to the "to" vertex.
+ */
+template<class CellSet_t, class ConleyIndex_t>
+typename ConleyMorseGraph<CellSet_t,ConleyIndex_t>::Edge
+ConleyMorseGraph<CellSet_t,ConleyIndex_t>::
+AddEdge(Vertex from, Vertex to) {
+  return * edges_ . insert ( Edge (from, to) ) . first;
 }
 
-template<class CubeSet_t, class ConleyIndex_t>
-typename ConleyMorseGraph<CubeSet_t,ConleyIndex_t>::InEdgeIteratorPair
-ConleyMorseGraph<CubeSet_t,ConleyIndex_t>::InEdges(
-    ConleyMorseGraph<CubeSet_t,ConleyIndex_t>::Vertex vertex) const {
-  typedef typename boost::graph_traits<Graph>::in_edge_iterator Iter;
-  boost::function<Vertex (Edge)> f =
-      boost::bind(&ConleyMorseGraph::Source, boost::ref(*this), _1);
-  Iter b, e;
-  tie(b, e) = boost::in_edges(vertex, graph_);
-  
-  return InEdgeIteratorPair(boost::make_transform_iterator(b, f),
-                            boost::make_transform_iterator(e, f));
+/** Remove a "from"-"to" edge
+ *
+ *  NOTE: some edge iterators become invalid when you call this function 
+ */
+template<class CellSet_t, class ConleyIndex_t>
+void ConleyMorseGraph<CellSet_t,ConleyIndex_t>::
+ RemoveEdge(Vertex from, Vertex to) {
+  edges_ . erase ( Edge (from, to) );
 }
+
+/** return a number of vertices */
+template<class CellSet_t, class ConleyIndex_t>
+unsigned int ConleyMorseGraph<CellSet_t,ConleyIndex_t>::
+NumVertices() const {
+  return num_vertices_;
+}
+
+/** return a iterator pair to all vertices */
+template<class CellSet_t, class ConleyIndex_t>
+typename ConleyMorseGraph<CellSet_t,ConleyIndex_t>::VertexIteratorPair 
+ConleyMorseGraph<CellSet_t,ConleyIndex_t>::
+Vertices() const {
+  return VertexIteratorPair ( 0, num_vertices_ );
+}
+
+
+/** return a iterator pair to all edges */
+
+template<class CellSet_t, class ConleyIndex_t>
+typename ConleyMorseGraph<CellSet_t,ConleyIndex_t>::EdgeIteratorPair 
+ConleyMorseGraph<CellSet_t,ConleyIndex_t>::
+Edges() const {
+  return EdgeIteratorPair(edges_.begin(), edges_.end());
+}
+
+// PROPERTY ACCESS
+
+/** Get a Cellset of the vertex. */
+template<class CellSet_t, class ConleyIndex_t>
+CellSet_t & ConleyMorseGraph<CellSet_t,ConleyIndex_t>::
+CellSet(Vertex vertex) {
+  return property_[vertex].cell_set_;
+}
+template<class CellSet_t, class ConleyIndex_t>
+const CellSet_t & ConleyMorseGraph<CellSet_t,ConleyIndex_t>::
+CellSet(Vertex vertex) const {
+  return property_ . find ( vertex ) -> second . cell_set_;
+}
+
+/** Get a Conley-Index of the vertex. */
+template<class CellSet_t, class ConleyIndex_t>
+ConleyIndex_t & ConleyMorseGraph<CellSet_t,ConleyIndex_t>::
+ConleyIndex(Vertex vertex) {
+  return property_[vertex].conley_index_;
+}
+
+template<class CellSet_t, class ConleyIndex_t>
+const ConleyIndex_t & ConleyMorseGraph<CellSet_t,ConleyIndex_t>::
+ConleyIndex(Vertex vertex) const {
+  return property_ . find ( vertex ) -> second . conley_index_;
+}
+
+

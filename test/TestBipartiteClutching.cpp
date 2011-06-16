@@ -9,8 +9,8 @@
 
 // HEADERS FOR ALGORITHMS
 #define PHASEDEPTH 15
-#include "program/jobs/Compute_Conley_Morse_Graph3.h"
-#include "program/jobs/Clutching_Graph_Job2.h"
+#include "program/jobs/Compute_Conley_Morse_Graph.h"
+#include "program/jobs/Clutching_Graph_Job.h"
 
 // HEADER FOR MAP FILE
 #include "maps/leslie.h"
@@ -65,9 +65,9 @@ int main ( int argc, char * argv [] )
   CMG cmg1, cmg2;
   
   /* COMPUTE CONLEY MORSE GRAPHS */
-  Compute_Conley_Morse_Graph3 < CMG, Adaptive_Cubical::Toplex, Adaptive_Cubical::Toplex, LeslieMap >
+  Compute_Conley_Morse_Graph < CMG, Adaptive_Cubical::Toplex, Adaptive_Cubical::Toplex, LeslieMap >
     ( & cmg1, & phase_space1, parameter_box1 );
-  Compute_Conley_Morse_Graph3 < CMG, Adaptive_Cubical::Toplex, Adaptive_Cubical::Toplex, LeslieMap >
+  Compute_Conley_Morse_Graph < CMG, Adaptive_Cubical::Toplex, Adaptive_Cubical::Toplex, LeslieMap >
   ( & cmg2, & phase_space2, parameter_box2 );
   
   /* COMPUTE CLUTCHING RELATIONSHIP */
@@ -133,13 +133,13 @@ void DrawMorseSets ( const Toplex & phase_space, const CMG & conley_morse_graph,
   for (boost::tie ( it, stop ) = conley_morse_graph . Vertices ();
        it != stop;
        ++ it ) {
-    //draw_ascii_subset ( phase_space, conley_morse_graph . CubeSet ( * it ) );
+    //draw_ascii_subset ( phase_space, conley_morse_graph . CellSet ( * it ) );
     unsigned char Red = rand () % 255;
     unsigned char Green = rand () % 255;
     unsigned char Blue = rand () % 255;
     Picture * morse_picture = draw_picture ( Width, Height, 
                                             Red, Green, Blue, 
-                                            phase_space, conley_morse_graph . CubeSet ( *it ) );
+                                            phase_space, conley_morse_graph . CellSet ( *it ) );
     Picture * combination = combine_pictures ( Width, Height, *picture, *morse_picture );
     std::swap ( picture, combination );
     delete morse_picture;
@@ -245,7 +245,7 @@ void CreateClutchDotFile ( const CMG & cmg1, const CMG & cmg2, const ClutchingGr
        start != stop;
        ++ start ) {
     vertex_to_index1 [ *start ] = i;
-    outfile << i << " [label=\""<< cmg1.CubeSet(*start).size() << "\"]\n";
+    outfile << i << " [label=\""<< cmg1.CellSet(*start).size() << "\"]\n";
     ++ i;
   }
   int N = i;
@@ -284,7 +284,7 @@ void CreateClutchDotFile ( const CMG & cmg1, const CMG & cmg2, const ClutchingGr
        start != stop;
        ++ start ) {
     vertex_to_index2 [ *start ] = i;
-    outfile << i << " [label=\""<< cmg2.CubeSet(*start).size() << "\"]\n";
+    outfile << i << " [label=\""<< cmg2.CellSet(*start).size() << "\"]\n";
     ++ i;
   }
   int M = i;

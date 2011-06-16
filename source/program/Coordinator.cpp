@@ -378,8 +378,8 @@ void Coordinator::save_continuation_graph ( void ) {
       for (boost::tie ( estart, estop ) = cmg . Edges ();
            estart != estop;
            ++ estart ) {
-        V source = cmg . Source ( *estart );
-        V target = cmg . Target ( *estart );
+        V source = estart -> first;
+        V target = estart -> second;
         int index_source = vertex_to_index [ source ];
         int index_target = vertex_to_index [ target ];
         //std::cout << "looking for edge between " << index_source << " and " << index_target << "\n";
@@ -468,7 +468,7 @@ void Coordinator::save_continuation_graph ( void ) {
            start != stop;
            ++ start ) {
         vertex_to_index1 [ *start ] = i;
-        //outfile << i << " [label=\""<< cmg1.CubeSet(*start).size() << "\"]\n";
+        //outfile << i << " [label=\""<< cmg1.CellSet(*start).size() << "\"]\n";
         ++ i;
       }
       int N = i;
@@ -476,8 +476,8 @@ void Coordinator::save_continuation_graph ( void ) {
       for (boost::tie ( estart, estop ) = cmg1 . Edges ();
            estart != estop;
            ++ estart ) {
-        V source = cmg1 . Source ( *estart );
-        V target = cmg1 . Target ( *estart );
+        V source = estart -> first; 
+        V target = estart -> second;
         int index_source = vertex_to_index1 [ source ];
         int index_target = vertex_to_index1 [ target ];
         edges . insert ( std::make_pair ( index_source, index_target ) );
@@ -509,15 +509,15 @@ void Coordinator::save_continuation_graph ( void ) {
            start != stop;
            ++ start ) {
         vertex_to_index2 [ *start ] = i;
-        //outfile << i << " [label=\""<< cmg2.CubeSet(*start).size() << "\"]\n";
+        //outfile << i << " [label=\""<< cmg2.CellSet(*start).size() << "\"]\n";
         ++ i;
       }
       int M = i;
       for (boost::tie ( estart, estop ) = cmg2 . Edges ();
            estart != estop;
            ++ estart ) {
-        V source = cmg2 . Source ( *estart );
-        V target = cmg2 . Target ( *estart );
+        V source = estart -> first;
+        V target = estart -> second;
         int index_source = vertex_to_index2 [ source ];
         int index_target = vertex_to_index2 [ target ];
         edges . insert ( std::make_pair ( index_source, index_target ) );

@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <iterator>
 #include "boost/foreach.hpp"
+#include "boost/tuple/tuple.hpp"
 
 template < class Toplex, class CellContainer >
 Picture * draw_picture (const int Width, const int Height,
@@ -70,7 +71,7 @@ Picture * draw_morse_sets (const int Width, const int Height,
        it != stop;
        ++ it ) {
     // Draw the Morse Set
-    CellContainer const & my_subset = conley_morse_graph . CubeSet ( *it );
+    CellContainer const & my_subset = conley_morse_graph . CellSet ( *it );
     for ( typename CellContainer::const_iterator cellit = my_subset . begin (); 
          cellit != my_subset . end (); ++ cellit ) {
       typename Toplex::Geometric_Description box = my_toplex . geometry ( my_toplex . find ( *cellit ) );
@@ -94,7 +95,7 @@ Picture * draw_morse_sets (const int Width, const int Height,
     unsigned char Green = rand () % 255;
     unsigned char Blue = rand () % 255;
     // Draw the Morse Set
-    CellContainer const & my_subset = conley_morse_graph . CubeSet ( *it );
+    CellContainer const & my_subset = conley_morse_graph . CellSet ( *it );
     if ( my_subset . size () < 10 ) std::cout << "Small Morse Set " << count << ": ";
     ++ count;
 
@@ -212,7 +213,7 @@ Picture * draw_toplex_and_morse_sets (const int Width, const int Height,
     unsigned char Green = 255; // rand () % 255;
     unsigned char Blue = 255; //rand () % 255;
     // Draw the Morse Set
-    CellContainer const & my_subset = conley_morse_graph . CubeSet ( *it );
+    CellContainer const & my_subset = conley_morse_graph . CellSet ( *it );
     BOOST_FOREACH ( typename Toplex::Top_Cell cell, my_subset ) {
       typename Toplex::Geometric_Description box = my_toplex . geometry ( my_toplex . find ( cell ) );
       picture -> draw_square (Red, Green, Blue,
@@ -240,7 +241,7 @@ Picture * draw_toplex_and_morse_sets (const int Width, const int Height,
       default : break;
     }
     // Draw the Morse Set
-    CellContainer const & my_subset = conley_morse_graph . CubeSet ( *it );
+    CellContainer const & my_subset = conley_morse_graph . CellSet ( *it );
     BOOST_FOREACH ( typename Toplex::Top_Cell cell, my_subset ) {
       typename Toplex::Geometric_Description box = my_toplex . geometry ( my_toplex . find ( cell ) );
       picture -> draw_square (Red, Green, Blue,

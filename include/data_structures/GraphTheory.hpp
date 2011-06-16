@@ -167,7 +167,7 @@ void compute_morse_sets (std::vector< CellContainer > * output,
     for (unsigned int s = 0; s < output -> size (); ++ s ) {
       cmg_vertex_t new_vertex = MG -> AddVertex ();
       translate_to_cmg [ s ] = new_vertex;
-      MG -> CubeSet ( new_vertex ) = (*output) [ s ];
+      MG -> CellSet ( new_vertex ) = (*output) [ s ];
     }
     
     /* Produce Morse Graph Edges */

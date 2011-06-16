@@ -1,4 +1,0 @@
-/*
- *  Directed_Graph.cpp
- */
-

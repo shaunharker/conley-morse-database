@@ -4,10 +4,12 @@
 #ifndef CMDP_UNIONFIND
 #define CMDP_UNIONFIND
 
-#include <boost/foreach.hpp>
 #include <algorithm>
 #include <vector>
+#include <map> // hmm, shouldn't need this!!!!!
+#include <boost/foreach.hpp>
 #include <boost/iterator_adaptors.hpp>
+#include "boost/tuple/tuple.hpp"
 
 /** Quotient Set class.
  *  Holds all equivalent classes using union-find structure.
