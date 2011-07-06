@@ -17,22 +17,17 @@
 #define PARAMETER_BOXES 50
 // HEADERS FOR ALGORITHMS
 #define MIN_PHASE_SUBDIVISIONS 12
-#define MAX_PHASE_SUBDIVISIONS 12
-#define SPACE_DIMENSION 2
+#define MAX_PHASE_SUBDIVISIONS 16
+#define SPACE_DIMENSION 3
 #define COMPLEXITY_LIMIT 10000
 
 // HEADER FOR MAP FILE
-//#define FISHMODEL
+#define FISHMODEL
 #include "maps/leslie.h"
 //#include "maps/fisheries.h"
 
-#define NEW_GRAPH_THEORY
 
-#ifndef NEW_GRAPH_THEORY
-#include "program/jobs/Compute_Conley_Morse_Graph3.h"
-#else
-#include "program/jobs/Compute_Conley_Morse_Graph4.h"
-#endif
+#include "program/jobs/Compute_Conley_Morse_Graph.h"
 
 
 
@@ -41,11 +36,8 @@
 #include "tools/lodepng/lodepng.h"
 
 // TYPEDEFS
-#ifdef NEW_GRAPH_THEORY
 typedef std::vector < Adaptive_Cubical::Toplex::Top_Cell > CellContainer;
-#else
-typedef Adaptive_Cubical::Toplex::Subset CellContainer;
-#endif
+
 
 typedef ConleyMorseGraph < CellContainer , Conley_Index_t > CMG;
 
@@ -86,14 +78,10 @@ int main ( int argc, char * argv [] )
   CMG conley_morse_graph;
   
   /* COMPUTE CONLEY MORSE GRAPH */
-#ifdef NEW_GRAPH_THEORY
-  Compute_Conley_Morse_Graph4 < CMG, Adaptive_Cubical::Toplex, Adaptive_Cubical::Toplex, 
+  Compute_Conley_Morse_Graph < CMG, Adaptive_Cubical::Toplex, Adaptive_Cubical::Toplex, 
                               LeslieMap /*FishMap4*/ >
     ( & conley_morse_graph, & phase_space, parameter_box, true, false );
-#else
-  Compute_Conley_Morse_Graph3 < CMG, Adaptive_Cubical::Toplex, Adaptive_Cubical::Toplex, LeslieMap/*FishMap4*/ >
-  ( & conley_morse_graph, & phase_space, parameter_box, true, false );
-#endif
+
   
   stop = clock ();
   std::cout << "Total Time for Finding Morse Sets and reachability relation: " << 
@@ -109,7 +97,7 @@ int main ( int argc, char * argv [] )
 
 
 Adaptive_Cubical::Geometric_Description initialize_phase_space_box ( const int bx, const int by ) {
-  Adaptive_Cubical::Geometric_Description phase_space_box ( SPACE_DIMENSION , 0 , 10.1f  );
+  Adaptive_Cubical::Geometric_Description phase_space_box ( SPACE_DIMENSION , 0 , (double)4000.0/(double)2.718  );
 #ifndef FISHMODEL
   phase_space_box . lower_bounds [ 0 ] = 0.0;
   phase_space_box . upper_bounds [ 0 ] = 320.056;
@@ -124,10 +112,10 @@ Adaptive_Cubical::Geometric_Description initialize_phase_space_box ( const int b
 
 Adaptive_Cubical::Geometric_Description initialize_parameter_space_box ( const int bx, const int by ) {
   Adaptive_Cubical::Geometric_Description parameter_space_limits ( 2 , 0 , 300 );
-  parameter_space_limits . lower_bounds [ 0 ] = 8.0;
-  parameter_space_limits . upper_bounds [ 0 ] = 37.0;
-  parameter_space_limits . lower_bounds [ 1 ] = 3.0;
-  parameter_space_limits . upper_bounds [ 1 ] = 50.0;
+  parameter_space_limits . lower_bounds [ 0 ] = 0.0;//8.0;
+  parameter_space_limits . upper_bounds [ 0 ] = 0.0;//37.0;
+  parameter_space_limits . lower_bounds [ 1 ] = 0.0;//3.0;
+  parameter_space_limits . upper_bounds [ 1 ] = 0.0;//50.0;
   
   
   Adaptive_Cubical::Geometric_Description parameter_box ( 2 , 20.01 , 20.02 );
@@ -158,13 +146,13 @@ void DrawMorseSets ( const Toplex & phase_space, const CMG & conley_morse_graph 
   for (boost::tie ( it, stop ) = conley_morse_graph . Vertices ();
        it != stop;
        ++ it ) {
-    //draw_ascii_subset ( phase_space, conley_morse_graph . CubeSet ( * it ) );
+    //draw_ascii_subset ( phase_space, conley_morse_graph . CellSet ( * it ) );
     unsigned char Red = rand () % 255;
     unsigned char Green = rand () % 255;
     unsigned char Blue = rand () % 255;
     Picture * morse_picture = draw_picture ( Width, Height, 
                                             Red, Green, Blue, 
-                                            phase_space, conley_morse_graph . CubeSet ( *it ) );
+                                            phase_space, conley_morse_graph . CellSet ( *it ) );
     Picture * combination = combine_pictures ( Width, Height, *picture, *morse_picture );
     std::swap ( picture, combination );
     delete morse_picture;
@@ -202,7 +190,7 @@ void CreateDotFile ( const CMG & cmg ) {
   int i = 0;
   for (boost::tie ( start, stop ) = cmg . Vertices (); start != stop; ++ start ) {
     vertex_to_index [ *start ] = i;
-    outfile << i << " [label=\""<< cmg . CubeSet (*start) .size () << "\"]\n";
+    outfile << i << " [label=\""<< cmg . CellSet (*start) .size () << "\"]\n";
     ++ i;
   }
   int N = cmg . NumVertices ();
@@ -214,8 +202,8 @@ void CreateDotFile ( const CMG & cmg ) {
   for (boost::tie ( estart, estop ) = cmg . Edges ();
        estart != estop;
        ++ estart ) {
-    V source = cmg . Source ( *estart );
-    V target = cmg . Target ( *estart );
+    V source = estart -> first; 
+    V target = estart -> second; 
     int index_source = vertex_to_index [ source ];
     int index_target = vertex_to_index [ target ];
     if ( index_source != index_target ) // Cull the self-edges

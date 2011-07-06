@@ -18,7 +18,7 @@ all: Conley_Morse_Database
 .PHONY: TESTS
 TESTS: Test_Morse_Graph Test_Single_Box_Job
 
-DATABASE_OBJECTS = Conley_Morse_Database.o Message.o Communicator.o Worker.o Coordinator.o picture.o lodepng.o
+DATABASE_OBJECTS = Conley_Morse_Database.o Message.o Communicator.o Worker.o Coordinator.o Database.o picture.o lodepng.o
 
 Conley_Morse_Database: $(DATABASE_OBJECTS)
 	$(CXX_STANDALONE) $(DATABASE_OBJECTS) -o Conley_Morse_Database $(LIBS)

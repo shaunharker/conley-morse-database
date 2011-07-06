@@ -19,6 +19,7 @@
 #include "program/Configuration.h"
 #include "program/jobs/Compute_Conley_Morse_Graph.h"
 #include "data_structures/UnionFind.hpp"
+#include "data_structures/Database.h"
 
 /* Prefix Tree Structure Used in Clutching Algorithm */
 
@@ -82,23 +83,14 @@ public:
   }
 };
 
-/** Compute a relation between two C-M graph
- *
- *  Return true if given two graphs has a "same" structure
- *  on the level of C-M graph.
- *
- *  All pairs of intersected components of two graphs
- *  are added to pairs.
- * 
- *  NOTE: now infromation of edges is not used
- */
+/** Compute Clutching of Adjacent Parameter Boxes */
 
 template<class CMGraph, class Toplex>
-bool ClutchingTwoGraphs( std::set < std::pair < typename CMGraph::Vertex, typename CMGraph::Vertex > > * result,
-                        const CMGraph &graph1,
-                        const CMGraph &graph2,
-                        const Toplex &toplex1,
-                        const Toplex &toplex2 ) {
+void Clutching( ClutchingRecord * result,
+                const CMGraph &graph1,
+                const CMGraph &graph2,
+                const Toplex &toplex1,
+                const Toplex &toplex2 ) {
   unsigned long effort = 0;
   typedef typename CMGraph::Vertex Vertex;
   typedef std::vector<unsigned char> Prefix;
@@ -109,23 +101,23 @@ bool ClutchingTwoGraphs( std::set < std::pair < typename CMGraph::Vertex, typena
   std::stack < PrefixNode<Vertex> * > first_cells, second_cells;
   BOOST_FOREACH (Vertex v, graph1.Vertices()) {
     //std::cout << "Size of Cellset = " << graph1 . CellSet ( v ) . size () << "\n";
-
+    
     // CREEPY BUG ON CONLEY2 -- I SUSPECT SUBTLE COMPILER OPTIMIZATION BUG INTERACTING WITH BOOST_FOREACH
 #if 0
-    BOOST_FOREACH ( Top_Cell t, graph1 . CellSet ( v ) ) { // here
+    BOOST_FOREACH ( Top_Cell t, graph1 . CellSet ( v ) ) { }// here 
 #else
     for ( typename CellContainer::const_iterator it1 = graph1 . CellSet ( v ) . begin (), 
-          it2 = graph1 . CellSet ( v ) . end (); it1 != it2; ++ it1 ) {
+         it2 = graph1 . CellSet ( v ) . end (); it1 != it2; ++ it1 ) {
       Top_Cell t = *it1;
 #endif
-
+      
       Prefix p = toplex1 . prefix ( t );
       first_cells . push ( tree . insert ( p, v ) );
       ++ effort;
     }
   }
   //std::cout << "Building Prefix Tree 2.\n";
-
+  
   BOOST_FOREACH (Vertex v, graph2.Vertices()) {
     BOOST_FOREACH ( Top_Cell t, graph2 . CellSet ( v ) ) {
       Prefix p = toplex2 . prefix ( t );
@@ -136,7 +128,7 @@ bool ClutchingTwoGraphs( std::set < std::pair < typename CMGraph::Vertex, typena
   /* Climb from each item place in tree and record which pairs we get */
   std::set < std::pair < Vertex, Vertex > > bipartite_graph;
   //std::cout << "Climbing Prefix Tree 1.\n";
-
+  
   while ( not first_cells . empty () ) {
     ++ effort;
     PrefixNode < Vertex > * node = first_cells . top ();
@@ -164,7 +156,7 @@ bool ClutchingTwoGraphs( std::set < std::pair < typename CMGraph::Vertex, typena
     }
   }
   //std::cout << "Climbing Prefix Tree 2.\n";
-
+  
   // Now an exact repeat for the other case
   while ( not second_cells . empty () ) {
     ++ effort;
@@ -194,162 +186,79 @@ bool ClutchingTwoGraphs( std::set < std::pair < typename CMGraph::Vertex, typena
   }
   
   // Report matching information
-  if ( result != NULL ) *result = bipartite_graph;
-  
-  //std::cout << "Clutching effort = " << effort << "\n";
-  
-  // Now check to see if the clutching graph is indeed a matching
-  //std::cout << "Check for Match.\n";
-  std::set < Vertex > first_vertices, second_vertices;
-  if ( graph1 . NumVertices () != graph2 . NumVertices () ) return false;
-  typedef std::pair<Vertex,Vertex> VertexPair;
-  BOOST_FOREACH ( const VertexPair & vertex_pair, bipartite_graph ) {
-    if ( first_vertices . insert ( vertex_pair . first ) . second == false ) return false;
-    if ( second_vertices . insert ( vertex_pair . second ) . second == false ) return false;
+  BOOST_FOREACH ( const typename CMGraph::Edge & edge, bipartite_graph ) {
+    result -> clutch_ . push_back ( edge );
   }
-  return true;
+  
 }
-
-template<class CMGraph, class Toplex>
-class Patch {
-public:
-  typedef size_t ParamBoxDescriptor;
-  typedef boost::counting_iterator<size_t> ParamBoxIterator;
-  typedef std::vector<std::pair<size_t, size_t> > AdjParamPairs;
-  typedef std::pair<ParamBoxIterator, ParamBoxIterator> ParamBoxIteratorPair;
-  typedef AdjParamPairs::const_iterator AdjParamBoxIterator;
-  typedef std::pair<AdjParamBoxIterator, AdjParamBoxIterator> AdjParamBoxIteratorPair;
   
-  Patch(const std::vector<CMGraph> &cmgraphs,
-        const std::vector<Toplex> &toplexes,
-        const std::vector<std::vector <size_t> > &neighbours)
-  : cmgraphs_(cmgraphs),
-  toplexes_(toplexes) {
-    for (size_t i=0; i < neighbours.size(); i++) {
-      BOOST_FOREACH (size_t j, neighbours[i]) {
-        pairs_.push_back(std::pair<size_t, size_t>(i,j));
-      }
-    }
-  }
-  
-  /** Return a pointer to C-M Graph related to that paramter */
-  const CMGraph* GetCMGraph(ParamBoxDescriptor d) const {
-    return &cmgraphs_[d];
-  }
-  const Toplex* GetToplex(ParamBoxDescriptor d) const {
-    return &toplexes_[d];
-  }
-  
-  ParamBoxIteratorPair ParamBoxes() const {
-    return ParamBoxIteratorPair(boost::make_counting_iterator((size_t)0),
-                                boost::make_counting_iterator(cmgraphs_.size()));
-  }
-  
-  AdjParamBoxIteratorPair AdjecentBoxPairs() const {
-    return AdjParamBoxIteratorPair(pairs_.begin(), pairs_.end());
-  }
-private:
-  const std::vector<CMGraph> &cmgraphs_;
-  const std::vector<Toplex> &toplexes_;
-  AdjParamPairs pairs_;
-};
-
-/** Compute an equivalent classes and fill the result to "ret".
- *
- *  NOTE: *ret must be empty
- */
-template<class CMGraph, class Patch, class Toplex>
-  void ProduceClutchingGraph( std::map < std::pair < size_t, size_t >, 
-                                         std::set < std::pair < typename CMGraph::Vertex, typename CMGraph::Vertex > >
-                                       > * clutch,
-                           const Patch &patch,
-                           std::vector<std::vector<typename Patch::ParamBoxDescriptor> > *ret) {
-  typename Patch::ParamBoxIteratorPair param_boxes_iters;
-  typedef typename Patch::ParamBoxDescriptor ParamBoxDescriptor;
-  
-  param_boxes_iters = patch.ParamBoxes();
-  
-  UnionFind<ParamBoxDescriptor> quotient_set(param_boxes_iters.first,
-                                             param_boxes_iters.second);
-  
-  ParamBoxDescriptor p1, p2;
-  BOOST_FOREACH (boost::tie(p1, p2), patch.AdjecentBoxPairs()) {
-    if (!quotient_set.Find(p1, p2)) {
-      const CMGraph *graph1 = patch.GetCMGraph(p1);
-      const CMGraph *graph2 = patch.GetCMGraph(p2);
-      const Toplex *toplex1 = patch.GetToplex(p1);
-      const Toplex *toplex2 = patch.GetToplex(p2);
-      std::set < std::pair < typename CMGraph::Vertex, typename CMGraph::Vertex > > singleclutch;
-      //std::cout << "Calling ClutchingTwoGraphs...\n";
-      if (ClutchingTwoGraphs<CMGraph>(&singleclutch, *graph1, *graph2, *toplex1, *toplex2))
-        quotient_set.Union(p1, p2);
-      clutch -> insert ( std::make_pair ( std::make_pair ( p1, p2 ), singleclutch ) );
-      //std::cout << "Returning.\n";
-    }
-  }
-  
-  quotient_set.FillToVector(ret);
-  return;
-}
-
 /** Main function for clutching graph job.
  *
- *  This function is callled from worker, and compare graph structure
+ *  This function is called from worker, and compare graph structure
  *  for each two adjacent boxes.
  */
 template <class Toplex, class ParameterToplex, class ConleyIndex >
 void Clutching_Graph_Job ( Message * result , const Message & job ) {
-  size_t job_number;
-  std::vector<typename ParameterToplex::Geometric_Description> geometric_descriptions;
-  std::vector<std::vector<size_t> > neighbour;
-  
-
   typedef ConleyMorseGraph< std::vector < typename Toplex::Top_Cell >, ConleyIndex> CMGraph;
+  
+  // Read Job Message
 
+  size_t job_number;
   std::vector < typename Toplex::Top_Cell > cell_names;
+  std::vector<typename ParameterToplex::Geometric_Description> geometric_descriptions;
+  std::vector<std::pair<size_t, size_t> > adjacencies;
+  
   job >> job_number;
   job >> cell_names;
   job >> geometric_descriptions;
-  job >> neighbour;
+  job >> adjacencies;
   
-  const size_t N = geometric_descriptions.size();
+  // Prepare data structures
+  std::map < typename Toplex::Top_Cell, Toplex> phase_space_toplexes;  
+  std::map < typename Toplex::Top_Cell, CMGraph> conley_morse_graphs;
+  std::map < typename Toplex::Top_Cell, size_t > cell_index;
+  std::vector < ClutchingRecord > clutching_graphs;
   
-  std::vector<Toplex> phase_space_toplexes(geometric_descriptions.size());
-  
-  std::vector<CMGraph> conley_morse_graphs(geometric_descriptions.size());
-  std::vector<std::vector<size_t> > equivalent_classes;
-  
-  clock_t start = clock ();
-  
-  //std::cout << "ProduceClutchingGraph: The patch size is " << N << "\n";
-  
-  for (size_t n=0; n<N; n++) {
-    //std::cout << "Computing Conley Morse Graph for parameter box " << geometric_descriptions [ n ] << "\n";
-    clock_t start1 = clock ();
-    phase_space_toplexes[n].initialize(space_bounds);
 
-    Compute_Conley_Morse_Graph <CMGraph, Toplex, ParameterToplex, GeometricMap >
-    (&conley_morse_graphs[n],
-     &phase_space_toplexes[n],
-     geometric_descriptions[n], true, false);
-    std::cout << "Job " << job_number << " subtask done. Time = " << (float)(clock() - start1 ) / (float) CLOCKS_PER_SEC << "\n";
-    
+  // Compute Morse Graphs
+  for ( unsigned int i = 0; i < cell_names . size (); ++ i ) {
+    typename Toplex::Top_Cell cell = cell_names [ i ];
+    cell_index [ cell ] = i;
+    phase_space_toplexes [ cell ] . initialize(space_bounds);
+    Compute_Conley_Morse_Graph <CMGraph, Toplex, ParameterToplex, GeometricMap > 
+    ( & conley_morse_graphs  [ cell ],
+      & phase_space_toplexes [ cell ], 
+      geometric_descriptions [ i ], 
+      true, false);
   }
   
-  std::cout << "Job " << job_number << " finished CMG construction. Time = " << (float)(clock() - start ) / (float) CLOCKS_PER_SEC << "\n";
+  // Compute Clutching Graphs
+  typedef std::pair < size_t, size_t > Adjacency;
+  BOOST_FOREACH ( const Adjacency & A, adjacencies ) {
+    clutching_graphs . push_back ( ClutchingRecord () );
+    Clutching < CMGraph, Toplex > ( & clutching_graphs . back (),
+                                      conley_morse_graphs [ A . first ],
+                                      conley_morse_graphs [ A . second ],
+                                      phase_space_toplexes [ A . first ],
+                                      phase_space_toplexes [ A . second ] );
+  }
   
-  start = clock ();
+  // Create Database
+  Database database;
   
-  std::map < std::pair < size_t, size_t >, std::set < std::pair < typename CMGraph::Vertex, typename CMGraph::Vertex > > > clutch;
+  // Create Parameter Box Records
+  typedef std::pair < typename Toplex::Top_Cell, CMGraph > indexed_cmg_t;
+  BOOST_FOREACH ( const indexed_cmg_t & cmg, conley_morse_graphs ) {
+    database . insert ( ParameterBoxRecord (cmg . first, 
+                                            geometric_descriptions [ cell_index [ cmg.first ] ],   
+                                            cmg . second ) );
+  }
+  // Create Clutching Records
+  BOOST_FOREACH ( const ClutchingRecord & clutch, clutching_graphs ) {
+    database . insert ( clutch );
+  }
   
-  Patch<CMGraph, Toplex> patch(conley_morse_graphs, phase_space_toplexes, neighbour);
-  ProduceClutchingGraph<CMGraph, Patch<CMGraph, Toplex>, Toplex>(&clutch, patch, &equivalent_classes);
-
-  std::cout << "Job " << job_number << " finished Clutching. Time = " << (float)(clock() - start ) / (float) CLOCKS_PER_SEC << "\n";
-
+  // Return Result
   *result << job_number;
-  *result << conley_morse_graphs;
-  //*result << clutch;
-  *result << cell_names;
-  *result << equivalent_classes;
+  *result << database;
 }
