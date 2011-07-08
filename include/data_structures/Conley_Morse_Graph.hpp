@@ -3,6 +3,7 @@
  */
 
 #include <utility>
+#include "boost/foreach.hpp"
 
 /** Create an empty graph */
 template<class CellSet_t, class ConleyIndex_t>
@@ -68,6 +69,34 @@ ConleyMorseGraph<CellSet_t,ConleyIndex_t>::
 Edges() const {
   return EdgeIteratorPair(edges_.begin(), edges_.end());
 }
+
+template<class CellSet_t, class ConleyIndex_t>
+ConleyMorseGraph<CellSet_t,ConleyIndex_t>
+ConleyMorseGraph<CellSet_t,ConleyIndex_t>::
+Subgraph ( const std::set < Vertex > & vertices ) const {
+  ConleyMorseGraph result;
+  // Give proper number of vertices
+  result . num_vertices_ = vertices . size ();
+  std::map < Vertex, Vertex > lookup;
+  // reindex vertices
+  int i = 0;
+  BOOST_FOREACH ( Vertex v, vertices ) {
+    lookup [ v ] = i;
+    ++ i;
+  }
+  // Loop through edges and insert the ones with both endpoints in vertices
+  BOOST_FOREACH ( Edge e, edges_ ) {
+    if ( vertices . count ( e . first ) != 0 && vertices . count ( e . second ) != 0 ) {
+      result . AddEdge ( lookup [ e . first ], lookup [ e . second ] );
+    }
+  }
+  // Loop through vertices and copy properties
+  BOOST_FOREACH ( Vertex v, vertices ) {
+    result . property_ [ lookup [ v ] ] = property_ . find ( v ) -> second;
+  }
+  return result;
+}
+
 
 // PROPERTY ACCESS
 

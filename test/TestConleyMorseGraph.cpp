@@ -7,43 +7,41 @@
 #include <fstream>
 #include <ctime>
 #include <vector>
+#include <set>
+#include <map>
 
-//#define VISUALIZE_DEBUG
-//#define RGVISUALIZE_DEBUG
 // HEADERS FOR DATA STRUCTURES
 #include "data_structures/Conley_Morse_Graph.h"
 #include "toplexes/Adaptive_Cubical_Toplex.h"
+#include "program/jobs/Compute_Morse_Graph.h"
 
+// Number of parameter boxes wide
 #define PARAMETER_BOXES 50
-// HEADERS FOR ALGORITHMS
+
+// DEFINES FOR ALGORITHMS
+// These three control the subdivision scheme
 #define MIN_PHASE_SUBDIVISIONS 12
 #define MAX_PHASE_SUBDIVISIONS 16
-#define SPACE_DIMENSION 3
 #define COMPLEXITY_LIMIT 10000
+//#define JUSTIN //justin, uncomment this
+#define SPACE_DIMENSION 2
 
 // HEADER FOR MAP FILE
-#define FISHMODEL
 #include "maps/leslie.h"
-//#include "maps/fisheries.h"
-
-
-#include "program/jobs/Compute_Conley_Morse_Graph.h"
-
-
 
 // HEADERS FOR DEALING WITH PICTURES
 #include "tools/picture.h"
 #include "tools/lodepng/lodepng.h"
 
+using namespace Adaptive_Cubical;
+
 // TYPEDEFS
-typedef std::vector < Adaptive_Cubical::Toplex::Top_Cell > CellContainer;
-
-
+typedef std::vector < Toplex::Top_Cell > CellContainer;
 typedef ConleyMorseGraph < CellContainer , Conley_Index_t > CMG;
 
 // FUNCTION DECLARATIONS
-Adaptive_Cubical::Geometric_Description initialize_phase_space_box ( const int bx, const int by );
-Adaptive_Cubical::Geometric_Description initialize_parameter_space_box ( const int bx, const int by );
+Geometric_Description initialize_phase_space_box ( const int bx, const int by );
+Geometric_Description initialize_parameter_space_box ( const int bx, const int by );
 void DrawMorseSets ( const Toplex & phase_space, const CMG & cmg );
 void CreateDotFile ( const CMG & cmg );
 
@@ -58,29 +56,41 @@ int main ( int argc, char * argv [] )
   
   if ( argc != 3 ) {
     std::cout << "Usage: Supply 2 (not " << argc << ") arguments:\n";
-    std::cout << "Input two integers in [0, 64)\n";
+    std::cout << "Input two integers in [0, " << PARAMETER_BOXES << "\n";
     return 0;
   }
-  Adaptive_Cubical::Real bx = ( Adaptive_Cubical::Real ) atoi ( argv [ 1 ] ); //37.0;
-  Adaptive_Cubical::Real by = ( Adaptive_Cubical::Real ) atoi ( argv [ 2 ] ); //17.0;
+  Real bx = ( Real ) atoi ( argv [ 1 ] );
+  Real by = ( Real ) atoi ( argv [ 2 ] );
   
-  
+#ifndef JUSTIN
   /* INITIALIZE PHASE SPACE (create a single box, which will be subdivided later) */
-  Adaptive_Cubical::Toplex phase_space;
-  Adaptive_Cubical::Geometric_Description phase_box = initialize_phase_space_box (bx, by);
-
+  Toplex phase_space;
+  Geometric_Description phase_box = initialize_phase_space_box (bx, by);
   phase_space . initialize ( phase_box );
   
   /* INITIALIZE PARAMETER SPACE REGION */
-  Adaptive_Cubical::Geometric_Description parameter_box = initialize_parameter_space_box (bx, by);
+  Geometric_Description parameter_box = initialize_parameter_space_box (bx, by);
 
+  /* INITIALIZE MAP */
+  LeslieMap map ( parameter_box );
+
+#else
+  /* OVERRIDE (Justin, put your values in here */
+  Geometric_Description phase_box ( SPACE_DIMENSION , 0 , (double)4000.0/(double)2.718  );
+  Geometric_Description parameter_box ( 2 , (double) 0.0 , (double) 0.0 );
+  LeslieFishMap map ( parameter_box );
+#endif
+  
   /* INITIALIZE CONLEY MORSE GRAPH (create an empty one) */
   CMG conley_morse_graph;
-  
+
   /* COMPUTE CONLEY MORSE GRAPH */
-  Compute_Conley_Morse_Graph < CMG, Adaptive_Cubical::Toplex, Adaptive_Cubical::Toplex, 
-                              LeslieMap /*FishMap4*/ >
-    ( & conley_morse_graph, & phase_space, parameter_box, true, false );
+  Compute_Morse_Graph ( & conley_morse_graph, 
+                        & phase_space, 
+                        map, 
+                        MIN_PHASE_SUBDIVISIONS, 
+                        MAX_PHASE_SUBDIVISIONS, 
+                        COMPLEXITY_LIMIT );
 
   
   stop = clock ();
@@ -96,29 +106,25 @@ int main ( int argc, char * argv [] )
 } /* main */
 
 
-Adaptive_Cubical::Geometric_Description initialize_phase_space_box ( const int bx, const int by ) {
-  Adaptive_Cubical::Geometric_Description phase_space_box ( SPACE_DIMENSION , 0 , (double)4000.0/(double)2.718  );
-#ifndef FISHMODEL
+Geometric_Description initialize_phase_space_box ( const int bx, const int by ) {
+  Geometric_Description phase_space_box ( 2 );
   phase_space_box . lower_bounds [ 0 ] = 0.0;
   phase_space_box . upper_bounds [ 0 ] = 320.056;
-
   phase_space_box . lower_bounds [ 1 ] = 0.0;
   phase_space_box . upper_bounds [ 1 ] = 224.040;
-#endif
- 
-  std::cout << "Phase Space = " << phase_space_box << "\n";
+  //std::cout << "Phase Space = " << phase_space_box << "\n";
   return phase_space_box;
 }
 
-Adaptive_Cubical::Geometric_Description initialize_parameter_space_box ( const int bx, const int by ) {
-  Adaptive_Cubical::Geometric_Description parameter_space_limits ( 2 , 0 , 300 );
-  parameter_space_limits . lower_bounds [ 0 ] = 0.0;//8.0;
-  parameter_space_limits . upper_bounds [ 0 ] = 0.0;//37.0;
-  parameter_space_limits . lower_bounds [ 1 ] = 0.0;//3.0;
-  parameter_space_limits . upper_bounds [ 1 ] = 0.0;//50.0;
+Geometric_Description initialize_parameter_space_box ( const int bx, const int by ) {
+  Geometric_Description parameter_space_limits ( 2 );
+  parameter_space_limits . lower_bounds [ 0 ] = 8.0;
+  parameter_space_limits . upper_bounds [ 0 ] = 37.0;
+  parameter_space_limits . lower_bounds [ 1 ] = 3.0;
+  parameter_space_limits . upper_bounds [ 1 ] = 50.0;
   
   
-  Adaptive_Cubical::Geometric_Description parameter_box ( 2 , 20.01 , 20.02 );
+  Geometric_Description parameter_box ( 2 );
   parameter_box . lower_bounds [ 0 ] = parameter_space_limits . lower_bounds [ 0 ] + 
   ( parameter_space_limits . upper_bounds [ 0 ] - parameter_space_limits . lower_bounds [ 0 ] ) * bx / (float) PARAMETER_BOXES;
   parameter_box . upper_bounds [ 0 ] = parameter_space_limits . lower_bounds [ 0 ] + 
@@ -127,45 +133,21 @@ Adaptive_Cubical::Geometric_Description initialize_parameter_space_box ( const i
   ( parameter_space_limits . upper_bounds [ 1 ] - parameter_space_limits . lower_bounds [ 1 ] ) * by / (float) PARAMETER_BOXES;
   parameter_box . upper_bounds [ 1 ] = parameter_space_limits . lower_bounds [ 1 ] + 
   ( parameter_space_limits . upper_bounds [ 1 ] - parameter_space_limits . lower_bounds [ 1 ] ) * ( by + 1.0 ) / (float) PARAMETER_BOXES;
-  std::cout << "Parameter Box = " << parameter_box << "\n";
+  //std::cout << "Parameter Box = " << parameter_box << "\n";
 
   return parameter_box;
 }
 
 void DrawMorseSets ( const Toplex & phase_space, const CMG & conley_morse_graph ) {
   // Create a Picture
-  
   int Width =  256;
   int Height = 256;
-  
-  /*
-  Picture * picture = new Picture( Width, Height, 0.0, 0.0, 0.0, 0.0 ); // this assures I have the origin in current imp
-
-  typedef CMG::VertexIterator VI;
-  VI it, stop;
-  for (boost::tie ( it, stop ) = conley_morse_graph . Vertices ();
-       it != stop;
-       ++ it ) {
-    //draw_ascii_subset ( phase_space, conley_morse_graph . CellSet ( * it ) );
-    unsigned char Red = rand () % 255;
-    unsigned char Green = rand () % 255;
-    unsigned char Blue = rand () % 255;
-    Picture * morse_picture = draw_picture ( Width, Height, 
-                                            Red, Green, Blue, 
-                                            phase_space, conley_morse_graph . CellSet ( *it ) );
-    Picture * combination = combine_pictures ( Width, Height, *picture, *morse_picture );
-    std::swap ( picture, combination );
-    delete morse_picture;
-    delete combination;
-  }
-   */
   Picture * picture = draw_morse_sets<Toplex,CellContainer>( Width, Height, phase_space, conley_morse_graph );
   LodePNG_encode32_file( "morse_sets.png", picture -> bitmap, picture -> Width, picture -> Height);
   Picture * picture2 = draw_toplex <Toplex,CellContainer>( Width, Height, phase_space );
   LodePNG_encode32_file( "toplex.png", picture2 -> bitmap, picture2 -> Width, picture2 -> Height);
   Picture * picture3 = draw_toplex_and_morse_sets <Toplex,CellContainer>( Width, Height, phase_space, conley_morse_graph );
   LodePNG_encode32_file( "toplex_and_morse.png", picture3 -> bitmap, picture3 -> Width, picture3 -> Height);
-
   delete picture;
   delete picture2;
   delete picture3;

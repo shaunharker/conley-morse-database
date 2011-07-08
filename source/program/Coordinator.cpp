@@ -143,5 +143,5 @@ void Coordinator::Process(const Message &result) {
 
 void Coordinator::finalize ( void ) {
   std::cout << "Coordinate::finalize ()\n";
-  database . save ( "database.xml" );
+  database . save ( "database.cmdb" );
 }

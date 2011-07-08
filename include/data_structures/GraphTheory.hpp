@@ -123,11 +123,20 @@ compute_combinatorial_map (const std::vector < CellContainer > & sets,
   }
   /* Next, we compute the graph and store it via the indexing scheme. */
   BOOST_FOREACH ( const CellContainer & my_subset, sets ) {
+    bool debugflag = false;
+    if ( my_subset . size () == 4 ) debugflag = true;
     BOOST_FOREACH ( typename Toplex::Top_Cell domain_cell, my_subset ) {
       size_type source = graph . index ( domain_cell );    
       CellContainer image;
       std::insert_iterator < CellContainer > ii ( image, image . begin () );
       my_toplex . cover ( ii, f ( my_toplex . geometry ( domain_cell ) ) );
+      if ( 0 && debugflag ) {
+        std::cout << "f(" << my_toplex . geometry ( domain_cell ) << ") = \n";
+      
+        BOOST_FOREACH( typename Toplex::Top_Cell image_cell, image ) {
+          std::cout << "          " << my_toplex . geometry ( image_cell ) << "\n";
+        }
+      }
       graph . index ( & graph . adjacencies ( source ), image );
     } /* boost_foreach */
   } /* boost_foreach */
@@ -141,6 +150,7 @@ void compute_morse_sets (std::vector< CellContainer > * output,
    /* optional output */ MorseGraph * MG ) {
   typedef typename CombinatorialMap<Toplex,CellContainer>::size_type size_type;
   std::vector<std::vector< size_type > > untranslated;
+  output -> clear ();
   if ( MG == NULL ) {
     // The user doesn't want a Morse Graph.
     compute_strong_components ( &untranslated, G );

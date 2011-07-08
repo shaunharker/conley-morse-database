@@ -17,7 +17,7 @@
 #include "boost/serialization/set.hpp"
 
 #include "program/Configuration.h"
-#include "program/jobs/Compute_Conley_Morse_Graph.h"
+#include "program/jobs/Compute_Morse_Graph.h"
 #include "data_structures/UnionFind.hpp"
 #include "data_structures/Database.h"
 
@@ -222,14 +222,19 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
 
   // Compute Morse Graphs
   for ( unsigned int i = 0; i < cell_names . size (); ++ i ) {
+    //Prepare phase space and map
     typename Toplex::Top_Cell cell = cell_names [ i ];
     cell_index [ cell ] = i;
     phase_space_toplexes [ cell ] . initialize(space_bounds);
-    Compute_Conley_Morse_Graph <CMGraph, Toplex, ParameterToplex, GeometricMap > 
+    GeometricMap map ( geometric_descriptions [ i ] );
+    // perform computation
+    Compute_Morse_Graph 
     ( & conley_morse_graphs  [ cell ],
       & phase_space_toplexes [ cell ], 
-      geometric_descriptions [ i ], 
-      true, false);
+      map, 
+      MIN_PHASE_SUBDIVISIONS, 
+      MAX_PHASE_SUBDIVISIONS, 
+      COMPLEXITY_LIMIT);
   }
   
   // Compute Clutching Graphs

@@ -13,12 +13,7 @@
 //       be introduced on the next version (1.47) of Boost, when this issue is resolved.
 
 #include <boost/iterator/counting_iterator.hpp>
-
-
-
-
 #include <boost/serialization/serialization.hpp>
-
 #include <boost/version.hpp>
 
 // For now we use the old hash_set and hash_map 
@@ -97,6 +92,8 @@ class ConleyMorseGraph {
   
   /** return a iterator pair to all edges */
   EdgeIteratorPair Edges() const;
+  
+  ConleyMorseGraph Subgraph ( const std::set < Vertex > & vertices ) const;
   
   //// PROPERTY ACCESS
   
