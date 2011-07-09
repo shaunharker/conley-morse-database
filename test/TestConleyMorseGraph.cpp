@@ -64,9 +64,7 @@ int main ( int argc, char * argv [] )
   
 #ifndef JUSTIN
   /* INITIALIZE PHASE SPACE (create a single box, which will be subdivided later) */
-  Toplex phase_space;
   Geometric_Description phase_box = initialize_phase_space_box (bx, by);
-  phase_space . initialize ( phase_box );
   
   /* INITIALIZE PARAMETER SPACE REGION */
   Geometric_Description parameter_box = initialize_parameter_space_box (bx, by);
@@ -81,6 +79,9 @@ int main ( int argc, char * argv [] )
   LeslieFishMap map ( parameter_box );
 #endif
   
+  Toplex phase_space;
+  phase_space . initialize ( phase_box );
+
   /* INITIALIZE CONLEY MORSE GRAPH (create an empty one) */
   CMG conley_morse_graph;
 
