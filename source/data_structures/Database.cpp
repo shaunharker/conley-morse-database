@@ -3,6 +3,8 @@
 #include <iostream>
 
 #include <fstream>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
 
 #include "data_structures/Database.h"
 #include "boost/foreach.hpp"
@@ -42,7 +44,24 @@ void Database::insert ( const ClutchingRecord & record ) {
   clutch_records_ . insert ( record );
 }
 
+void Database::save ( const char * filename ) {
+  std::ofstream ofs(filename);
+  assert(ofs.good()); 
+  boost::archive::text_oarchive oa(ofs);
+  oa << * this;
+  ofs . close ();
+}
 
+void Database::load ( const char * filename ) {
+  std::ifstream ifs(filename);
+  boost::archive::text_iarchive ia(ifs);
+  // read class state from archive
+  ia >> *this;
+  ifs . close ();
+}
+
+
+#if 0
 /* need to use read and write, or else formatting */
 void Database::save ( const char * filename ) {
   // make an archive
@@ -132,3 +151,4 @@ void Database::load ( const char * filename ) {
   }
   
 }
+#endif
