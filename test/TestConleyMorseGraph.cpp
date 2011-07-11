@@ -53,7 +53,6 @@ int main ( int argc, char * argv [] )
   start = clock ();
   
   /* READ TWO INPUTS (which will give a parameter space box) */
-  
   if ( argc != 3 ) {
     std::cout << "Usage: Supply 2 (not " << argc << ") arguments:\n";
     std::cout << "Input two integers in [0, " << PARAMETER_BOXES << "\n";
@@ -65,10 +64,8 @@ int main ( int argc, char * argv [] )
 #ifndef JUSTIN
   /* INITIALIZE PHASE SPACE (create a single box, which will be subdivided later) */
   Geometric_Description phase_box = initialize_phase_space_box (bx, by);
-  
   /* INITIALIZE PARAMETER SPACE REGION */
   Geometric_Description parameter_box = initialize_parameter_space_box (bx, by);
-
   /* INITIALIZE MAP */
   LeslieMap map ( parameter_box );
 

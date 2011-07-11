@@ -13,7 +13,7 @@ CXX_STANDALONE := $(CXX) $(CXXFLAGS) $(LIBS)
 
 VPATH = ./source/data_structures:./source/program:./source/program/jobs:./source/distributed:./include/data_structures:./include/program:./include/program/jobs:./include/distributed:./test/:./source/tools/:./include/tools/:./source/tools/lodepng/:./include/tools/lodepng/
 
-all: Conley_Morse_Database
+all: Conley_Morse_Database PostProcessDatabase
 
 .PHONY: TESTS
 TESTS: Test_Morse_Graph Test_Single_Box_Job
@@ -22,6 +22,10 @@ DATABASE_OBJECTS = Conley_Morse_Database.o Message.o Communicator.o Worker.o Coo
 
 Conley_Morse_Database: $(DATABASE_OBJECTS)
 	$(CXX_STANDALONE) $(DATABASE_OBJECTS) -o Conley_Morse_Database $(LIBS)
+
+POSTPROCESSOBJECTS = PostProcessDatabase.o Database.o
+PostProcessDatabase: $(POSTPROCESSOBJECTS)
+	$(CXX_STANDALONE) $(POSTPROCESSOBJECTS) -o PostProcessDatabase $(LIBS)
 
 Test_Morse_Graph: Test_Morse_Graph.o
 	$(CXX_STANDALONE) Test_Morse_Graph.o -o $@ $(LIBS)

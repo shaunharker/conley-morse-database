@@ -30,6 +30,7 @@ struct GridElementRecord {
   std::vector < double > lower_bounds_;
   std::vector < double > upper_bounds_;
   GridElementRecord ( void );
+  GridElementRecord ( int dimension );
   template < class Geometric >
   GridElementRecord ( const Geometric & g );
   
