@@ -87,7 +87,10 @@ public:
   void insert ( const ClutchingRecord & record );
   void save ( const char * filename );
   void load ( const char * filename );
-
+  std::set < ParameterBoxRecord > & box_records ( void );
+  std::set < ClutchingRecord > & clutch_records ( void );
+  const std::set < ParameterBoxRecord > & box_records ( void ) const;
+  const std::set < ClutchingRecord > & clutch_records ( void ) const;
   template<class Archive>
   void serialize(Archive& ar, const unsigned int version) {
     ar & box_records_;

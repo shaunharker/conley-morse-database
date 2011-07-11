@@ -44,6 +44,20 @@ void Database::insert ( const ClutchingRecord & record ) {
   clutch_records_ . insert ( record );
 }
 
+
+std::set < ParameterBoxRecord > & Database::box_records ( void ) {
+  return box_records_;
+}
+std::set < ClutchingRecord > & Database::clutch_records ( void ) {
+  return clutch_records_;
+}
+const std::set < ParameterBoxRecord > & Database::box_records ( void ) const {
+  return box_records_;
+}
+const std::set < ClutchingRecord > & Database::clutch_records ( void ) const {
+  return clutch_records_;
+}
+
 void Database::save ( const char * filename ) {
   std::ofstream ofs(filename);
   assert(ofs.good()); 
@@ -59,7 +73,6 @@ void Database::load ( const char * filename ) {
   ia >> *this;
   ifs . close ();
 }
-
 
 #if 0
 /* need to use read and write, or else formatting */

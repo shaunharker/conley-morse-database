@@ -246,6 +246,8 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
                                       conley_morse_graphs [ A . second ],
                                       phase_space_toplexes [ A . first ],
                                       phase_space_toplexes [ A . second ] );
+    clutching_graphs . back () . id1_ = A . first;
+    clutching_graphs . back () . id2_ = A . second;
   }
   
   // Create Database
