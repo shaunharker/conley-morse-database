@@ -43,37 +43,38 @@ void Database::insert ( const ClutchingRecord & record ) {
 }
 
 
+/* need to use read and write, or else formatting */
 void Database::save ( const char * filename ) {
   // make an archive
-  std::ofstream ofs(filename, std::ios::out | std::ios::binary);
+  std::ofstream ofs(filename, std::ios::out /*| std::ios::binary*/);
   assert(ofs.good());
-  ofs << (int) box_records_ . size ();
+  ofs << (int) box_records_ . size () << " ";
   BOOST_FOREACH ( const ParameterBoxRecord & record, box_records_ ) {
-    ofs << record . id_;
-    ofs << record . num_morse_sets_;
-    ofs << record . ge_ . lower_bounds_ . size ();
+    ofs << record . id_ << " ";
+    ofs << record . num_morse_sets_ << " ";
+    ofs << record . ge_ . lower_bounds_ . size () << " ";
     BOOST_FOREACH ( double val, record . ge_ . lower_bounds_ ) {
-      ofs << val;
+      ofs << val << " ";
     }
     BOOST_FOREACH ( double val, record . ge_ . upper_bounds_ ) {
-      ofs << val;
+      ofs << val << " ";
     }    
-    ofs << (int) record . partial_order_ . size ();
+    ofs << (int) record . partial_order_ . size () << " ";
     typedef std::pair < int, int >  Edge;
     BOOST_FOREACH ( const Edge & edge, record . partial_order_ ) {
-      ofs << edge . first;
-      ofs << edge . second;
+      ofs << edge . first << " ";
+      ofs << edge . second << " ";
     }
   }
-  ofs << (int) clutch_records_ . size ();
+  ofs << (int) clutch_records_ . size () << " ";
   BOOST_FOREACH ( const ClutchingRecord & record, clutch_records_ ) {
-    ofs << record . id1_;
-    ofs << record . id2_;
-    ofs << (int) record . clutch_ . size ();
+    ofs << record . id1_ << " ";
+    ofs << record . id2_ << " ";
+    ofs << (int) record . clutch_ . size () << " ";
     typedef std::pair < int, int >  Edge;
     BOOST_FOREACH ( const Edge & edge, record . clutch_ ) {
-      ofs << edge . first;
-      ofs << edge . second;
+      ofs << edge . first << " ";
+      ofs << edge . second << " ";
     } 
   }
 }
@@ -81,7 +82,7 @@ void Database::save ( const char * filename ) {
 void Database::load ( const char * filename ) {
   typedef std::pair < int, int >  Edge;
   // open the archive
-  std::ifstream ifs(filename, std::ios::in | std::ios::binary);
+  std::ifstream ifs(filename, std::ios::in /*| std::ios::binary*/);
   if( not ifs.good() ) {
     std::cout << "Failed to open " << filename << "\n";
     exit ( 1 );
