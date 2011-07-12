@@ -16,12 +16,12 @@
 #include "program/jobs/Compute_Morse_Graph.h"
 
 // Number of parameter boxes wide
-#define PARAMETER_BOXES 50
+#define PARAMETER_BOXES 2048
 
 // DEFINES FOR ALGORITHMS
 // These three control the subdivision scheme
-#define MIN_PHASE_SUBDIVISIONS 12
-#define MAX_PHASE_SUBDIVISIONS 16
+#define MIN_PHASE_SUBDIVISIONS 17
+#define MAX_PHASE_SUBDIVISIONS 24
 #define COMPLEXITY_LIMIT 10000
 //#define JUSTIN //justin, uncomment this
 #define SPACE_DIMENSION 2
