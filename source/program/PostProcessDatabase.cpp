@@ -78,6 +78,8 @@ void ContinuationClutching ( const Database & database ) {
   std::map < int, int> color_choice;
   std::map < int, int> cont_class_pop;
   
+  // Loop through box records. 
+  //       Index the Box records, and create a union-find structure for morse sets and boxes
   BOOST_FOREACH ( const ParameterBoxRecord & record, database . box_records () ) {
     param_box_uf . Add ( record . id_ );
     for ( int i = 0; i < record . num_morse_sets_; ++ i ) {
@@ -86,6 +88,24 @@ void ContinuationClutching ( const Database & database ) {
     indexed_box_records [ record . id_ ] = record;
   }
 
+
+  // debug
+  BOOST_FOREACH ( const ClutchingRecord & record, database . clutch_records () ) {
+    BOOST_FOREACH ( const intpair & edge, record . clutch_ ) {
+      if ( indexed_box_records [ record . id1_ ] . num_morse_sets_ <= edge . first ||
+           indexed_box_records [ record . id2_ ] . num_morse_sets_ <= edge . second ) {
+        std::cout << "Clutching record (" << record . id1_ << ", " << record . id2_ << "):\n";
+        std::cout << "  Size of box " << record . id1_ << " is " << indexed_box_records [ record . id1_ ] . num_morse_sets_ << "\n";
+        std::cout << "  Size of box " << record . id2_ << " is " << indexed_box_records [ record . id2_ ] . num_morse_sets_ << "\n";
+        
+        std::cout << "  Edge = (" << edge.first << ", " << edge . second << ")\n";
+      }
+    }
+  }
+  
+  
+  // Loop through clutch records
+  //     Determine isomorphisms and perform unions based on results
   BOOST_FOREACH ( const ClutchingRecord & record, database . clutch_records () ) {
     if ( CheckIsomorphism (indexed_box_records [ record . id1_ ], 
                            indexed_box_records [ record . id2_ ], record ) ) {
@@ -97,10 +117,16 @@ void ContinuationClutching ( const Database & database ) {
     }
   }
 
+  typedef std::pair < intpair, intpair > Edge;
+  std::map < int, std::set < Edge > > mg_edges;
+  
   // count populations
   BOOST_FOREACH ( const ParameterBoxRecord & record, database . box_records () ) {
     int rep = param_box_uf . Representative ( record . id_ );
     if ( cont_class_pop . find ( rep ) == cont_class_pop . end () ) cont_class_pop [ rep ] = 0;
+    // prepare non-empty entries
+    if ( mg_edges . count ( rep ) == 0 ) mg_edges [ rep ] = std::set < Edge > ();
+
     ++ cont_class_pop [ rep ];
     // check for violations in assumption
     for ( int i = 0; i < record . num_morse_sets_; ++ i ) {
@@ -112,8 +138,6 @@ void ContinuationClutching ( const Database & database ) {
   }
   
   // Generate morse graph edges
-  typedef std::pair < intpair, intpair > Edge;
-  std::map < int, std::set < Edge > > mg_edges;
   BOOST_FOREACH ( const ParameterBoxRecord & record, database . box_records () ) {
     BOOST_FOREACH ( const intpair & edge, record . partial_order_ ) {
       int rep_id = param_box_uf . Representative ( record . id_ );
@@ -143,13 +167,7 @@ void ContinuationClutching ( const Database & database ) {
     BOOST_FOREACH ( const intpair & edge, record . clutch_ ) {
       intpair source = morse_set_uf . Representative ( intpair ( record . id1_, edge . first ) );
       intpair target = morse_set_uf . Representative ( intpair ( record . id2_, edge . second ) );
-      if ( source == target ) continue;
-      if ( source . first == target . first ) {
-        std::cout << "Interior clutching edge.\n";
-        std::cout << "(" << record . id1_ << ", " << edge . first << "), (" 
-                         << record . id2_ << ", " << edge . second << "\n";
-        continue;
-      }
+      if ( source . first == target . first ) continue;
       if ( source . first > target . first ) std::swap ( source, target );
       clutch_edges . insert ( Edge ( source, target ) );
     }
@@ -159,14 +177,19 @@ void ContinuationClutching ( const Database & database ) {
   
   // opening brace
   ofs << "digraph G {\n";
-  
-  int CUTOFF = 2;
+    
+  int CUTOFF = 0;
   // morse graphs
-  ofs << "node [label=\"\",width=.1,height=.1]";
+  ofs << "node [label=\"\",width=.1,height=.1]\n";
   BOOST_FOREACH ( const mg_edges_t & entry, mg_edges ) {
     if ( cont_class_pop [ entry . first ] < CUTOFF ) continue; // ignore small ones
+    if ( param_box_uf . Representative ( entry . first ) != entry . first ) std::cout << "Assumption violated\n";
+    
     ofs << " subgraph cluster" << entry . first << " {\n";
-    ofs << " label=\"" << cont_class_pop [ entry . first ] << "\";";
+    ofs << " label=\"" << cont_class_pop [ entry . first ] << "\";\n";
+    for ( int i = 0; i < indexed_box_records [ entry . first ] . num_morse_sets_; ++ i ) {
+      ofs << "node B" << entry . first << "N" << i << ";\n";
+    }
     BOOST_FOREACH ( const Edge & edge, entry . second ) {
       ofs << "B" << edge . first . first << "N" << edge . first . second;
       ofs << " -> ";
@@ -181,6 +204,8 @@ void ContinuationClutching ( const Database & database ) {
   BOOST_FOREACH ( const Edge & edge, clutch_edges ) {
     if ( cont_class_pop [ edge . first . first ] < CUTOFF ) continue; // ignore small ones
     if ( cont_class_pop [ edge . second . first ] < CUTOFF ) continue; // ignore small ones
+    
+    // write edge to file
     ofs << "B" << edge . first . first << "N" << edge . first . second;
     ofs << " -> ";
     ofs << "B" << edge . second . first << "N" << edge . second . second;

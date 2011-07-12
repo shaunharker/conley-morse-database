@@ -70,7 +70,7 @@ struct LeslieFishMap {
       interval z ( (double) 0, (double) 0 );
       for ( int i = 0; i < dim; ++ i ) z = z + coefficients [ i ] * input [ i ];
       output [ 0 ] = parameter1 * z * exp ( (double) -0.1 * z); 
-      for ( int i = 0; i < dim; ++ i ) output [ i ] = p * input [ i - 1 ];
+      for ( int i = 1; i < dim; ++ i ) output [ i ] = p * input [ i - 1 ];
   
       /* Write output */
       Adaptive_Cubical::Geometric_Description return_value ( dim );

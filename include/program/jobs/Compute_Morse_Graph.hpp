@@ -20,27 +20,37 @@ void Compute_Morse_Graph (Morse_Graph * MG, Toplex * phase_space, const Map & in
   std::insert_iterator < CellContainer > ii ( morse_sets . back (), morse_sets . back () . begin () );
   phase_space -> cover ( ii, phase_space -> bounds () );
   // Do Subdivisions
+#ifdef CMG_VERBOSE
   std::cout << "Subdivisions.\n";
+#endif
   for ( unsigned int depth = 0; depth < Min; ++ depth ) {  
+#ifdef CMG_VERBOSE
     std::cout << "Depth " << depth + 1 << ": ";
+#endif
     Graph G = compute_combinatorial_map ( morse_sets, * phase_space, interval_map );
     compute_morse_sets <Morse_Graph,Toplex,CellContainer> ( &morse_sets, G );
     BOOST_FOREACH ( CellContainer & morse_set, morse_sets ) subdivide ( phase_space, morse_set );
   }
   // Perform reachability analysis
+#ifdef CMG_VERBOSE
   std::cout << "Reachability Analysis.\n";
+#endif
   Graph G = compute_combinatorial_map<Toplex,Map,CellContainer> ( * phase_space , interval_map );
   compute_morse_sets<Morse_Graph,Toplex,CellContainer> ( &morse_sets, G, MG );
   
   // Eliminate Spurious Sets
+#ifdef CMG_VERBOSE
   std::cout << "Eliminate Spurious Sets.\n";
+#endif
   int mg_node = 0;
   std::set < int > subgraph_nodes;
   BOOST_FOREACH ( CellContainer & morse_set, morse_sets ) { 
     std::vector < CellContainer > spurious_sets;
     spurious_sets . push_back ( morse_set );
     for ( unsigned int d = Min; d < Max && not spurious_sets . empty (); ++ d ) {
+#ifdef CMG_VERBOSE
       std::cout << "Depth " << d << ": ";
+#endif
       Graph G = compute_combinatorial_map ( spurious_sets, * phase_space, interval_map );
       compute_morse_sets <Morse_Graph,Toplex,CellContainer> ( &spurious_sets, G );
       BOOST_FOREACH ( CellContainer & spur, spurious_sets ) {
@@ -52,11 +62,15 @@ void Compute_Morse_Graph (Morse_Graph * MG, Toplex * phase_space, const Map & in
       }
     }
     if ( not spurious_sets . empty () ) {
+#ifdef CMG_VERBOSE
       std::cout << "Not revealed to be spurious.\n";
+#endif
       phase_space -> coarsen ( morse_set );
       subgraph_nodes . insert ( mg_node );
     } else {
+#ifdef CMG_VERBOSE
       std::cout << "Revealed as spurious.\n";
+#endif
     }
     ++ mg_node;
   }

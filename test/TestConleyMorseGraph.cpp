@@ -15,6 +15,9 @@
 #include "toplexes/Adaptive_Cubical_Toplex.h"
 #include "program/jobs/Compute_Morse_Graph.h"
 
+// To get SCC chatter
+#define CMG_VERBOSE 
+
 // Number of parameter boxes wide
 #define PARAMETER_BOXES 2048
 

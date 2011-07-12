@@ -81,7 +81,8 @@ CoordinatorBase::State Coordinator::Prepare(Message *job) {
 
   /// Job number (job id) of job to be sent
   size_t job_number = num_jobs_sent_;
-  //std::cout << "Coordinator::Prepare: Preparing job " << job_number << "\n";
+  
+  std::cout << "Coordinator::Prepare: Preparing job " << job_number << "\n";
   
   /// Toplex with the patch to be sent
   Toplex_Subset patch_subset = PS_patches [job_number];
