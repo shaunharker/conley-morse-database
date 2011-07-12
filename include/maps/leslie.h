@@ -46,7 +46,6 @@ struct LeslieFishMap {
   std::vector < double > coefficients;
   LeslieFishMap ( const Adaptive_Cubical::Geometric_Description & rectangle ) {
     parameter1 = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ]);
-    parameter2 = interval (rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ]);
     coefficients . resize ( 10, (double) 0 );
     coefficients [ 0 ] = (double) 0;
     coefficients [ 1 ] = (double) 0;
