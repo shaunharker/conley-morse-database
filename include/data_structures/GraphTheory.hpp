@@ -84,7 +84,9 @@ compute_combinatorial_map (const Toplex & my_toplex,
                            const Map & f) {
   typedef typename Toplex::size_type size_type;
   CombinatorialMap<Toplex, CellContainer> graph ( my_toplex . tree_size () );
-  
+#ifdef CMG_VERBOSE
+  std::cout << "   Computing Full Combinatorial Map. Tree Size = " << my_toplex . tree_size () << "\n";
+#endif
   /* First, we develop an indexing system for the top cells in "sets" */
   // BoOST_FOREACH ( typename Toplex::Top_Cell cell, my_toplex ) {
 
@@ -114,7 +116,9 @@ compute_combinatorial_map (const std::vector < CellContainer > & sets,
                            const Map & f) {
   typedef typename Toplex::size_type size_type;
   CombinatorialMap<Toplex,CellContainer> graph ( my_toplex . tree_size () );
-
+#ifdef CMG_VERBOSE
+  std::cout << "   Computing partial Combinatorial Map. Tree Size = " << my_toplex . tree_size () << "\n";
+#endif
   /* First, we develop an indexing system for the top cells in "sets" */
   BOOST_FOREACH ( const CellContainer & my_subset, sets ) {
     BOOST_FOREACH ( typename Toplex::Top_Cell cell, my_subset ) {
@@ -213,7 +217,8 @@ void compute_strong_components (std::vector<std::vector<typename OutEdgeGraph::s
   lowlink_stack . push ( std::make_pair ( sentinel, sentinel ) ); // so there is always a top.
   // Main Loop
 #ifdef CMG_VERBOSE
-  std::cout << "SCC. N = " << N << ", sentinel = " << sentinel << "\n";
+  long num_edges = 0;
+  std::cout << "   Computing Strongly Connected Components.\n";
 #endif
   //std::cout << "sentinel = " << sentinel << "\n";
   for ( size_type root = 0; root < N; ++ root ) {
@@ -234,6 +239,9 @@ void compute_strong_components (std::vector<std::vector<typename OutEdgeGraph::s
         ++ current_index;
         // Learn adjacencies
         const std::vector<size_type> & children = G . adjacencies ( v );
+#ifdef CMG_VERBOSE
+        num_edges += children . size ();
+#endif
         // Work through children
         BOOST_FOREACH ( size_type w, children ) {
           ++ effort;
@@ -309,6 +317,9 @@ void compute_strong_components (std::vector<std::vector<typename OutEdgeGraph::s
       } // if visited
     } // while dfs stack non-empty
   } // while not all nodes explored
+#ifdef CMG_VERBOSE
+  std::cout << "       V = " << N << " E = " << num_edges << "  E/V = " << (double) num_edges / (double) N << "\n";
+#endif
   DEBUGPRINT std::cout << "SCC effort = " << effort << "\n";
 }
 
@@ -320,6 +331,9 @@ void compute_reachability ( std::vector < std::vector < unsigned int > > * outpu
                            const std::vector<typename Graph::size_type> & topological_sort ) {
   typedef typename Graph::size_type size_type;
   //size_type sentinel = G . sentinel ();
+#ifdef CMG_VERBOSE
+  std::cout << "   Computing Reachability Information.\n";
+#endif
   /* Count the Morse Sets */
   unsigned long effort = 0;
   //std::cout << "REACHABILITY.\n";

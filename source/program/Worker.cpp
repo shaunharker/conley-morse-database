@@ -4,6 +4,8 @@
 
 #include "program/Worker.h"
 #include "program/jobs/Clutching_Graph_Job.h"
+#include "program/jobs/Conley_Index_Job.h"
+
 #include "toplexes/Adaptive_Cubical_Toplex.h" /* For Toplex */
 #include "algorithms/Homology.h" /* for Conley_Index_t */
 
@@ -15,5 +17,14 @@ Worker::Worker(int argc, char **argv) {
 }
 
 void Worker::Work(Message * result, const Message &job) {
-  Clutching_Graph_Job < Toplex, Toplex, Conley_Index_t > ( result , job ); 
+  int stage;
+  job >> stage;
+  switch ( stage ) {
+    case 0 :
+      Clutching_Graph_Job < Toplex, Toplex, Conley_Index_t > ( result , job ); 
+      break;
+    case 1:
+      Conley_Index_Job < Toplex, Toplex, Conley_Index_t > ( result , job ); 
+      break;
+  }
 }

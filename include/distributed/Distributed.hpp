@@ -43,7 +43,7 @@ void WaitForWorker(Communicator *comm, Coordinator *coordinator,
 template<class Communicator, class Coordinator>
 void WaitForFreeWorker(Communicator *comm, Coordinator *coordinator,
                         std::deque<typename Communicator::Channel> *free_workers) {
-  for (;free_workers->empty();) {
+  while ( free_workers->empty() ) {
     WaitForWorker(comm, coordinator, free_workers);
   }
 }

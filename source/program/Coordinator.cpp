@@ -11,8 +11,21 @@
 
 #include "program/Coordinator.h"
 #include "program/Configuration.h"
+#include "data_structures/UnionFind.hpp"
 
 Coordinator::Coordinator(int argc, char **argv) {
+  StartMorseStage ();
+}
+
+/* * * * * * * * * * * * */
+/* Stage Initialization  */
+/* * * * * * * * * * * * */
+
+void Coordinator::StartMorseStage ( void ) {
+  stage = 0;
+  num_jobs_sent_ = 0;
+  num_jobs_received_ = 0;
+  
   int patch_stride = 1; // distance between center of patches in box-units
   // warning: currently only works if patch_stride is a power of two
   
@@ -44,10 +57,10 @@ Coordinator::Coordinator(int argc, char **argv) {
     std::vector < Real > coordinates ( PARAM_DIMENSION );
     std::vector < Real > lower_bounds ( PARAM_DIMENSION );
     std::vector < Real > upper_bounds ( PARAM_DIMENSION );
-
+    
     for (int dim = 0; dim < PARAM_DIMENSION; ++ dim ) {
       coordinates [ dim ] = param_bounds . lower_bounds [ dim ] 
-                            + ((Real) patch_stride) * side_length [ dim ] * ( (Real) 1.0 + (Real) ( value % limit ) );
+      + ((Real) patch_stride) * side_length [ dim ] * ( (Real) 1.0 + (Real) ( value % limit ) );
       lower_bounds [ dim ] = coordinates [ dim ] - ((Real) patch_stride) * side_length [ dim ] / (Real) 2.0;
       upper_bounds [ dim ] = coordinates [ dim ] + ((Real) patch_stride) * side_length [ dim ] / (Real) 2.0;
       value /= limit;
@@ -60,21 +73,104 @@ Coordinator::Coordinator(int argc, char **argv) {
     PS_patches . push_back (patch_subset);
   } /* for */
   num_jobs_ = PS_patches . size ();
-  num_jobs_sent_ = 0;
-  num_jobs_received_ = 0;
+
   std::cout << "Coordinator Constructed, there are " << num_jobs_ << " jobs.\n";
   //char c; std::cin >> c;
 }
 
-CoordinatorBase::State Coordinator::Prepare(Message *job) {
-  /// All jobs have finished
-  if (num_jobs_received_ == num_jobs_)
-    return kFinish;
+void Coordinator::StartConleyStage ( void ) {
+  stage = 1;
+  num_jobs_sent_ = 0;
+  num_jobs_received_ = 0;
 
+  // Goal is to create disjoint set data structure of equivalent morse sets
+  typedef std::pair<int, int> intpair;
+  typedef std::pair<int, int> ms_id; // morse_set id
+  UnionFind < ms_id > classes;
+  
+  /* Process Parameter Box Records */
+  BOOST_FOREACH ( const ParameterBoxRecord & record, database . box_records () ) {
+    for ( int i = 0; i < record . num_morse_sets_ ; ++ i ) {
+      classes . Add ( ms_id ( record . id_, i ) );
+    }
+  }
+  
+  /* Process all Clutching Records */
+  BOOST_FOREACH ( const ClutchingRecord & record, database . clutch_records () ) {
+    std::map < int, int > first;
+    std::map < int, int > second;
+    BOOST_FOREACH ( const intpair & line, record . clutch_ ) {
+      if ( first . find ( line . first ) == first . end () ) 
+        first [ line . first ] = 0;
+      if ( second . find ( line . second ) == second . end () ) 
+        second [ line . second ] = 0;
+      ++ first [ line . first ];
+      ++ second [ line . second ];
+    }
+    BOOST_FOREACH ( const intpair & line, record . clutch_ ) {
+      if ( first [ line . first ] == 1 && second [ line . second ] == 1 ) {
+        classes . Union ( ms_id ( record . id1_, line . first ), 
+                          ms_id ( record . id2_, line . second ) );
+      }
+    }
+  }
+  
+  
+  // Now the union-find structure is prepared.
+  /* TODO: use a small representative.
+  std::map < ms_id, ms_id > smallest_reps;
+  BOOST_FOREACH ( const ms_id & element, classes . Elements () ) {
+    ms_id rep = classes . Representative ( element );
+    if ( smallest_reps . find ( rep ) == smallest_reps . end () ) 
+      smallest_reps [ rep ] = element;
+    ms_id small = smallest_reps [ rep ];
+    
+  }
+  */
+  std::set < ms_id > work_items;
+  BOOST_FOREACH ( const ms_id & element, classes . Elements () ) {
+    if ( work_items . insert ( classes . Representative ( element ) ) . second == true )
+      conley_work_items . push_back ( element );
+  }
+  
+  num_jobs_ = conley_work_items . size ();
+}
+
+/* * * * * * * * * * * */
+/* Prepare Definitions */
+/* * * * * * * * * * * */
+
+CoordinatorBase::State Coordinator::Prepare(Message *job) {
+  
+  // All jobs have finished
+  if (num_jobs_received_ == num_jobs_) {
+    // The stage is complete. Move to next stage, if there is one.
+    if ( stage == 0 ) {
+      StartConleyStage ();
+    } else {
+      return kFinish;
+    }
+  }
+  
+  
   /// All jabs have been sent
   /// Still waiting for some jobs to finish
   if (num_jobs_sent_ == num_jobs_)
     return kPending;
+  
+  switch ( stage ) {
+    case 0 :
+      return MorsePrepare ( job );
+      break;
+    case 1 :
+      return ConleyPrepare ( job );
+      break;
+  }
+  
+  return kOK; // never reached
+}
+
+CoordinatorBase::State Coordinator::MorsePrepare(Message *job) {
 
   /// There are jobs to be processed
   // Prepare a new job and send it to process
@@ -114,6 +210,7 @@ CoordinatorBase::State Coordinator::Prepare(Message *job) {
   //std::cout << "Coordinator::Prepare: Sent job " << num_jobs_sent_ << "\n";
   
   // prepare the message with the job to be sent
+  *job << stage;
   *job << job_number;
   *job << cell_names;
   *job << geometric_descriptions;
@@ -126,7 +223,47 @@ CoordinatorBase::State Coordinator::Prepare(Message *job) {
   return kOK;
 }
 
+CoordinatorBase::State Coordinator::ConleyPrepare(Message *job) {
+  /// send the job
+  size_t job_number = num_jobs_sent_;
+  Toplex::Top_Cell cell = conley_work_items [ job_number ] . first;
+  Geometric_Description GD = param_toplex . geometry (param_toplex . find (cell));
+
+  *job << stage;
+  *job << job_number;
+  *job << GD;
+  *job << conley_work_items [ job_number ];
+  
+  /// Increment the jobs_sent counter
+  ++num_jobs_sent_;
+  
+  /// A new job was prepared and sent
+  return kOK;
+}
+
+/* * * * * * * * * * * */
+/* Process Definitions */
+/* * * * * * * * * * * */
+
 void Coordinator::Process(const Message &result) {
+  switch ( stage ) {
+    case 0:
+      MorseProcess ( result );
+      break;
+    case 1:
+      ConleyProcess ( result );
+      break;
+    default:
+      break;
+  }
+  /// Increment jobs received counter
+  ++num_jobs_received_;
+  // Are we done?
+  if ( num_jobs_received_ == num_jobs_ && stage == 1 ) finalize ();
+  return;
+}  
+  
+void Coordinator::MorseProcess(const Message &result) {
   /// Read the results from the result message
   size_t job_number;
   Database job_database;
@@ -135,12 +272,24 @@ void Coordinator::Process(const Message &result) {
   // Merge the results
   database . merge ( job_database );
   std::cout << "Coordinator::Process: Received result " << job_number << "\n";
-  /// Increment jobs received counter
-  ++num_jobs_received_;
-  // Are we done?
-  if ( num_jobs_received_ == num_jobs_ ) finalize ();
-  return;
+
 }
+
+void Coordinator::ConleyProcess(const Message &result) {
+  /// Read the results from the result message
+  size_t job_number;
+  Database job_database;
+  result >> job_number;
+  result >> job_database;
+  // Merge the results
+  database . merge ( job_database );
+  std::cout << "Coordinator::Process: Received result " << job_number << "\n";
+
+}
+
+/* * * * * * * * * * * */
+/* finalize definition */
+/* * * * * * * * * * * */
 
 void Coordinator::finalize ( void ) {
   std::cout << "Coordinate::finalize ()\n";

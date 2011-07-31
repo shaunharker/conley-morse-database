@@ -10,21 +10,21 @@
 #include <set>
 #include <map>
 
+// To get SCC chatter
+#define CMG_VERBOSE 
+
 // HEADERS FOR DATA STRUCTURES
 #include "data_structures/Conley_Morse_Graph.h"
 #include "toplexes/Adaptive_Cubical_Toplex.h"
 #include "program/jobs/Compute_Morse_Graph.h"
 
-// To get SCC chatter
-#define CMG_VERBOSE 
-
 // Number of parameter boxes wide
-#define PARAMETER_BOXES 2048
+#define PARAMETER_BOXES 50
 
 // DEFINES FOR ALGORITHMS
 // These three control the subdivision scheme
-#define MIN_PHASE_SUBDIVISIONS 17
-#define MAX_PHASE_SUBDIVISIONS 24
+#define MIN_PHASE_SUBDIVISIONS 12
+#define MAX_PHASE_SUBDIVISIONS 15
 #define COMPLEXITY_LIMIT 10000
 //#define JUSTIN //justin, uncomment this
 #define SPACE_DIMENSION 2

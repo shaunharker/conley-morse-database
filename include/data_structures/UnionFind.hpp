@@ -49,6 +49,9 @@ public:
   /* Copy all data to vector */
   void FillToVector(std::vector<std::vector<T> > *ret);
   
+  /* Access to elements as a set */
+  const std::set<T> & Elements ( void ) const;
+  
 private:
   struct Entry {
     T parent;
@@ -58,6 +61,7 @@ private:
     int rank; 
   };
   mutable std::map<T, Entry> tree_;
+  std::set < T > elements_;
 };
 
 template<class T>
@@ -108,6 +112,7 @@ T UnionFind<T>::Representative(T x) const {
 
 template<class T>
 void UnionFind<T>::Add(T x) {
+  elements_ . insert ( x );
   if (tree_.find(x) == tree_.end()) {
     tree_[x].rank = 1;
   }
@@ -151,6 +156,11 @@ void UnionFind<T>::FillToVector(std::vector<std::vector<T> > *ret) {
     if (key != rep)
       ret->at(k).push_back(key);
   }
+}
+
+template<class T>
+const std::set<T> & UnionFind<T>::Elements ( void ) const {
+  return elements_;
 }
 
 #endif

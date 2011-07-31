@@ -10,6 +10,7 @@
 #include "boost/foreach.hpp"
 
 
+// record constructors
 GridElementRecord::GridElementRecord ( void ) {}
 GridElementRecord::GridElementRecord ( int dimension ) {
   lower_bounds_ . resize ( dimension );
@@ -18,6 +19,7 @@ GridElementRecord::GridElementRecord ( int dimension ) {
 
 ParameterBoxRecord::ParameterBoxRecord ( void ) {}
 
+// record comparison
 bool ParameterBoxRecord::operator < ( const ParameterBoxRecord & rhs ) const {
   return id_ < rhs . id_;
 }
@@ -27,6 +29,12 @@ bool ClutchingRecord::operator < ( const ClutchingRecord & rhs ) const {
   return id1_ < rhs . id1_;
 }
 
+bool ConleyRecord::operator < ( const ConleyRecord & rhs ) const {
+  if ( id_ . first == rhs . id_ . first ) return id_ . second < rhs . id_ . second;
+  return id_ . first < rhs . id_ . first;
+}
+
+// database merging
 void Database::merge ( const Database & other ) {
   BOOST_FOREACH ( const ParameterBoxRecord & record, other . box_records_ ) {
     insert ( record );
@@ -34,8 +42,12 @@ void Database::merge ( const Database & other ) {
   BOOST_FOREACH ( const ClutchingRecord & record, other . clutch_records_ ) {
     insert ( record );
   }
+  BOOST_FOREACH ( const ConleyRecord & record, other . conley_records_ ) {
+    insert ( record );
+  }
 }
 
+// record insertion
 void Database::insert ( const ParameterBoxRecord & record ) {
   box_records_ . insert ( record );
 }
@@ -44,12 +56,19 @@ void Database::insert ( const ClutchingRecord & record ) {
   clutch_records_ . insert ( record );
 }
 
+void Database::insert ( const ConleyRecord & record ) {
+  conley_records_ . insert ( record );
+}
 
+// record access
 std::set < ParameterBoxRecord > & Database::box_records ( void ) {
   return box_records_;
 }
 std::set < ClutchingRecord > & Database::clutch_records ( void ) {
   return clutch_records_;
+}
+std::set < ConleyRecord > & Database::conley_records ( void ) {
+  return conley_records_;
 }
 const std::set < ParameterBoxRecord > & Database::box_records ( void ) const {
   return box_records_;
@@ -57,7 +76,11 @@ const std::set < ParameterBoxRecord > & Database::box_records ( void ) const {
 const std::set < ClutchingRecord > & Database::clutch_records ( void ) const {
   return clutch_records_;
 }
+const std::set < ConleyRecord > & Database::conley_records ( void ) const {
+  return conley_records_;
+}
 
+// file operations
 void Database::save ( const char * filename ) {
   std::ofstream ofs(filename);
   assert(ofs.good()); 

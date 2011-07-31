@@ -9,6 +9,8 @@
 #include <boost/serialization/set.hpp>
 #include <boost/serialization/utility.hpp>
 
+#include "algorithms/Homology.h"
+
 /* File Format.
  
  Parameter Box Record
@@ -47,7 +49,9 @@ struct ParameterBoxRecord {
   GridElementRecord ge_;
   int num_morse_sets_;
   //std::list < GridElementRecord > morse_set_tags_;
+  //std::vector < int > ms_sizes_;
   std::list < std::pair < int, int > > partial_order_;
+
   // Constructor
   ParameterBoxRecord ( void );
   template < class Geometric, class CMG >
@@ -76,25 +80,43 @@ struct ClutchingRecord {
   }
 };
 
+struct ConleyRecord {
+  std::pair < int, int > id_;
+  Conley_Index_t ci_;
+  bool operator < ( const ConleyRecord & rhs ) const;
+  friend class boost::serialization::access;
+  template<class Archive>
+  void serialize(Archive& ar, const unsigned int version) {
+    ar & id_;
+    ar & ci_;
+  }
+};
+
 class Database {
 private:
   friend class boost::serialization::access;
   std::set < ParameterBoxRecord > box_records_;
   std::set < ClutchingRecord > clutch_records_;
+  std::set < ConleyRecord > conley_records_;
+
 public:
   void merge ( const Database & other );
   void insert ( const ParameterBoxRecord & record );
   void insert ( const ClutchingRecord & record );
+  void insert ( const ConleyRecord & record );
   void save ( const char * filename );
   void load ( const char * filename );
   std::set < ParameterBoxRecord > & box_records ( void );
   std::set < ClutchingRecord > & clutch_records ( void );
+  std::set < ConleyRecord > & conley_records ( void );
   const std::set < ParameterBoxRecord > & box_records ( void ) const;
   const std::set < ClutchingRecord > & clutch_records ( void ) const;
+  const std::set < ConleyRecord > & conley_records ( void ) const;
   template<class Archive>
   void serialize(Archive& ar, const unsigned int version) {
     ar & box_records_;
     ar & clutch_records_;
+    ar & conley_records_;
   }
 };
 

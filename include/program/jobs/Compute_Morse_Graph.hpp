@@ -25,7 +25,7 @@ void Compute_Morse_Graph (Morse_Graph * MG, Toplex * phase_space, const Map & in
 #endif
   for ( unsigned int depth = 0; depth < Min; ++ depth ) {  
 #ifdef CMG_VERBOSE
-    std::cout << "Depth " << depth + 1 << ": ";
+    std::cout << "Depth " << depth << ": \n";
 #endif
     Graph G = compute_combinatorial_map ( morse_sets, * phase_space, interval_map );
     compute_morse_sets <Morse_Graph,Toplex,CellContainer> ( &morse_sets, G );
@@ -47,9 +47,10 @@ void Compute_Morse_Graph (Morse_Graph * MG, Toplex * phase_space, const Map & in
   BOOST_FOREACH ( CellContainer & morse_set, morse_sets ) { 
     std::vector < CellContainer > spurious_sets;
     spurious_sets . push_back ( morse_set );
+    if ( morse_set . size () < Comp )
     for ( unsigned int d = Min; d < Max && not spurious_sets . empty (); ++ d ) {
 #ifdef CMG_VERBOSE
-      std::cout << "Depth " << d << ": ";
+      std::cout << "Depth " << d << ": \n";
 #endif
       Graph G = compute_combinatorial_map ( spurious_sets, * phase_space, interval_map );
       compute_morse_sets <Morse_Graph,Toplex,CellContainer> ( &spurious_sets, G );
