@@ -1,7 +1,5 @@
 /// Construct and display a conley morse graph for a given dynamical system
 
-//#define VISUALIZE_DEBUG
-
 // STANDARD HEADERS
 #include <iostream>
 #include <fstream>
@@ -13,27 +11,14 @@
 // To get SCC chatter
 #define CMG_VERBOSE 
 
-#define VISUALIZE_DEBUG
-#define ILLUSTRATE
+//#define VISUALIZE_DEBUG
+//#define ILLUSTRATE
 
 // HEADERS FOR DATA STRUCTURES
 #include "data_structures/Conley_Morse_Graph.h"
 #include "toplexes/Adaptive_Cubical_Toplex.h"
 #include "program/jobs/Compute_Morse_Graph.h"
 
-// Number of parameter boxes wide
-#define PARAMETER_BOXES 50
-
-// DEFINES FOR ALGORITHMS
-// These three control the subdivision scheme
-#define MIN_PHASE_SUBDIVISIONS 12
-#define MAX_PHASE_SUBDIVISIONS 15
-#define COMPLEXITY_LIMIT 10000
-//#define JUSTIN //justin, uncomment this
-#define SPACE_DIMENSION 2
-
-// HEADER FOR MAP FILE
-#include "maps/leslie.h"
 
 // HEADERS FOR DEALING WITH PICTURES
 #include "tools/picture.h"
@@ -41,13 +26,88 @@
 
 using namespace Adaptive_Cubical;
 
+//////////////////////////////////////BEGIN USER EDIT//////////////////////////////////////////
+
+// MAP FUNCTION OBJECT
+#include "maps/simple_interval.h"   // for interval arithmetic
+
+struct LeslieMap {
+  
+  typedef simple_interval<double> interval;
+  
+  interval parameter1, parameter2;
+  
+  LeslieMap ( const Adaptive_Cubical::Geometric_Description & rectangle ) {
+    parameter1 = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ]);
+    parameter2 = interval (rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ]);
+    return;
+  }
+  Adaptive_Cubical::Geometric_Description operator () 
+  ( const Adaptive_Cubical::Geometric_Description & rectangle ) const {    
+    /* Read input */
+    interval x0 = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ]);
+    interval x1 = interval (rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ]);
+    
+    /* Perform map computation */
+    interval y0 = (parameter1 * x0 + parameter2 * x1 ) * exp ( (double) -0.1 * (x0 + x1) );     
+    interval y1 = (double) 0.7 * x0;
+    
+    /* Write output */
+    Adaptive_Cubical::Geometric_Description return_value ( 2 );
+    return_value . lower_bounds [ 0 ] = y0 . lower ();
+    return_value . upper_bounds [ 0 ] = y0 . upper ();
+    return_value . lower_bounds [ 1 ] = y1 . lower ();
+    return_value . upper_bounds [ 1 ] = y1 . upper ();
+
+    return return_value;
+  } 
+  
+};
+
+Geometric_Description initialize_phase_space_box ( void ) {
+  // Two dimensional phase space
+  // [0, 320.056] x [0.0, 224.040]
+  Geometric_Description phase_space_bounds ( 2 );
+  phase_space_bounds . lower_bounds [ 0 ] = 0.0;
+  phase_space_bounds . upper_bounds [ 0 ] = 320.056;
+  phase_space_bounds . lower_bounds [ 1 ] = 0.0;
+  phase_space_bounds . upper_bounds [ 1 ] = 224.040;
+  std::cout << "Phase Space Bounds = " << phase_space_bounds << "\n";
+  return phase_space_bounds;
+}
+
+Geometric_Description initialize_parameter_space_box ( const int bx, const int by ) {
+  // Two dimensional parameter space
+  // A box chosen from [8, 37] x [3, 50]
+  Geometric_Description parameter_space_limits ( 2 ); 
+  parameter_space_limits . lower_bounds [ 0 ] = 8.0; 
+  parameter_space_limits . upper_bounds [ 0 ] = 37.0;
+  parameter_space_limits . lower_bounds [ 1 ] = 3.0;
+  parameter_space_limits . upper_bounds [ 1 ] = 50.0;
+  
+  // Use command line arguments to choose a box from 50 x 50 choices.
+  int PARAMETER_BOXES = 50;
+  Geometric_Description parameter_box ( 2 );
+  parameter_box . lower_bounds [ 0 ] = parameter_space_limits . lower_bounds [ 0 ] + 
+  ( parameter_space_limits . upper_bounds [ 0 ] - parameter_space_limits . lower_bounds [ 0 ] ) * bx / (float) PARAMETER_BOXES;
+  parameter_box . upper_bounds [ 0 ] = parameter_space_limits . lower_bounds [ 0 ] + 
+  ( parameter_space_limits . upper_bounds [ 0 ] - parameter_space_limits . lower_bounds [ 0 ] ) * ( bx + 1.0 ) / (float) PARAMETER_BOXES;
+  parameter_box . lower_bounds [ 1 ] = parameter_space_limits . lower_bounds [ 1 ] + 
+  ( parameter_space_limits . upper_bounds [ 1 ] - parameter_space_limits . lower_bounds [ 1 ] ) * by / (float) PARAMETER_BOXES;
+  parameter_box . upper_bounds [ 1 ] = parameter_space_limits . lower_bounds [ 1 ] + 
+  ( parameter_space_limits . upper_bounds [ 1 ] - parameter_space_limits . lower_bounds [ 1 ] ) * ( by + 1.0 ) / (float) PARAMETER_BOXES;
+  std::cout << "Parameter Box Choice = " << parameter_box << "\n";
+  
+  return parameter_box;
+}
+
+////////////////////////////////////////END USER EDIT//////////////////////////////////////////
+
 // TYPEDEFS
 typedef std::vector < Toplex::Top_Cell > CellContainer;
 typedef ConleyMorseGraph < CellContainer , Conley_Index_t > CMG;
 
-// FUNCTION DECLARATIONS
-Geometric_Description initialize_phase_space_box ( const int bx, const int by );
-Geometric_Description initialize_parameter_space_box ( const int bx, const int by );
+// Declarations
 void DrawMorseSets ( const Toplex & phase_space, const CMG & cmg );
 void CreateDotFile ( const CMG & cmg );
 
@@ -61,30 +121,25 @@ int main ( int argc, char * argv [] )
   /* READ TWO INPUTS (which will give a parameter space box) */
   if ( argc != 3 ) {
     std::cout << "Usage: Supply 2 (not " << argc << ") arguments:\n";
-    std::cout << "Input two integers in [0, " << PARAMETER_BOXES << "\n";
+    std::cout << "Input two integers in [0, " << 50 << "\n";
     return 0;
   }
   Real bx = ( Real ) atoi ( argv [ 1 ] );
   Real by = ( Real ) atoi ( argv [ 2 ] );
   
-#ifndef JUSTIN
-  /* INITIALIZE PHASE SPACE (create a single box, which will be subdivided later) */
-  Geometric_Description phase_box = initialize_phase_space_box (bx, by);
-  /* INITIALIZE PARAMETER SPACE REGION */
+  /* SET PHASE SPACE REGION */
+  Geometric_Description phase_space_bounds = initialize_phase_space_box ();
+
+  /* SET PARAMETER SPACE REGION */
   Geometric_Description parameter_box = initialize_parameter_space_box (bx, by);
+
+  /* INITIALIZE PHASE SPACE */
+  Toplex phase_space;
+  phase_space . initialize ( phase_space_bounds );
+
   /* INITIALIZE MAP */
   LeslieMap map ( parameter_box );
-
-#else
-  /* OVERRIDE (Justin, put your values in here */
-  Geometric_Description phase_box ( SPACE_DIMENSION , 0 , (double)4000.0/(double)2.718  );
-  Geometric_Description parameter_box ( 2 , (double) 0.0 , (double) 0.0 );
-  LeslieFishMap map ( parameter_box );
-#endif
   
-  Toplex phase_space;
-  phase_space . initialize ( phase_box );
-
   /* INITIALIZE CONLEY MORSE GRAPH (create an empty one) */
   CMG conley_morse_graph;
 
@@ -92,9 +147,9 @@ int main ( int argc, char * argv [] )
   Compute_Morse_Graph ( & conley_morse_graph, 
                         & phase_space, 
                         map, 
-                        MIN_PHASE_SUBDIVISIONS, 
-                        MAX_PHASE_SUBDIVISIONS, 
-                        COMPLEXITY_LIMIT );
+                        12 /* MIN_PHASE_SUBDIVISIONS */, 
+                        15 /* MAX_PHASE_SUBDIVISIONS */, 
+                        10000 /* COMPLEXITY_LIMIT */ );
 
   
   stop = clock ();
@@ -109,38 +164,7 @@ int main ( int argc, char * argv [] )
   return 0;
 } /* main */
 
-
-Geometric_Description initialize_phase_space_box ( const int bx, const int by ) {
-  Geometric_Description phase_space_box ( 2 );
-  phase_space_box . lower_bounds [ 0 ] = 0.0;
-  phase_space_box . upper_bounds [ 0 ] = 320.056;
-  phase_space_box . lower_bounds [ 1 ] = 0.0;
-  phase_space_box . upper_bounds [ 1 ] = 224.040;
-  //std::cout << "Phase Space = " << phase_space_box << "\n";
-  return phase_space_box;
-}
-
-Geometric_Description initialize_parameter_space_box ( const int bx, const int by ) {
-  Geometric_Description parameter_space_limits ( 2 );
-  parameter_space_limits . lower_bounds [ 0 ] = 8.0;
-  parameter_space_limits . upper_bounds [ 0 ] = 37.0;
-  parameter_space_limits . lower_bounds [ 1 ] = 3.0;
-  parameter_space_limits . upper_bounds [ 1 ] = 50.0;
-  
-  
-  Geometric_Description parameter_box ( 2 );
-  parameter_box . lower_bounds [ 0 ] = parameter_space_limits . lower_bounds [ 0 ] + 
-  ( parameter_space_limits . upper_bounds [ 0 ] - parameter_space_limits . lower_bounds [ 0 ] ) * bx / (float) PARAMETER_BOXES;
-  parameter_box . upper_bounds [ 0 ] = parameter_space_limits . lower_bounds [ 0 ] + 
-  ( parameter_space_limits . upper_bounds [ 0 ] - parameter_space_limits . lower_bounds [ 0 ] ) * ( bx + 1.0 ) / (float) PARAMETER_BOXES;
-  parameter_box . lower_bounds [ 1 ] = parameter_space_limits . lower_bounds [ 1 ] + 
-  ( parameter_space_limits . upper_bounds [ 1 ] - parameter_space_limits . lower_bounds [ 1 ] ) * by / (float) PARAMETER_BOXES;
-  parameter_box . upper_bounds [ 1 ] = parameter_space_limits . lower_bounds [ 1 ] + 
-  ( parameter_space_limits . upper_bounds [ 1 ] - parameter_space_limits . lower_bounds [ 1 ] ) * ( by + 1.0 ) / (float) PARAMETER_BOXES;
-  //std::cout << "Parameter Box = " << parameter_box << "\n";
-
-  return parameter_box;
-}
+/* ----------------------------  OUTPUT FUNCTIONS ---------------------------- */
 
 void DrawMorseSets ( const Toplex & phase_space, const CMG & conley_morse_graph ) {
   // Create a Picture

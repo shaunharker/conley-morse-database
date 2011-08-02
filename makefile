@@ -33,6 +33,9 @@ Test_Morse_Graph: Test_Morse_Graph.o
 TestConleyMorseGraph: TestConleyMorseGraph.o picture.o lodepng.o
 	$(CXX_STANDALONE) TestConleyMorseGraph.o picture.o lodepng.o -o $@ $(LIBS)
 
+SingleCMG: SingleCMG.o picture.o lodepng.o
+	$(CXX_STANDALONE) SingleCMG.o picture.o lodepng.o -o $@ $(LIBS)
+
 TestBipartiteClutching: TestBipartiteClutching.o picture.o lodepng.o
 	$(CXX_STANDALONE) TestBipartiteClutching.o picture.o lodepng.o -o $@ $(LIBS)
 

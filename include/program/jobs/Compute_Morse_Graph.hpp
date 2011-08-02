@@ -6,6 +6,9 @@
 #include "boost/foreach.hpp"
 #include "data_structures/GraphTheory.h"
 
+#ifdef ILLUSTRATE
+#include "algorithms/Homology.h"
+#endif
 template < class Toplex, class CellContainer > 
 void subdivide ( Toplex & phase_space, CellContainer & morse_set );
 
@@ -68,6 +71,14 @@ void Compute_Morse_Graph (Morse_Graph * MG, Toplex * phase_space, const Map & in
 #endif
       phase_space -> coarsen ( morse_set );
       subgraph_nodes . insert ( mg_node );
+      // TODO REMOVE THIS
+#ifdef ILLUSTRATE
+      Conley_Index_t output;
+      Conley_Index ( &output,
+                     *phase_space, 
+                     morse_set,
+                     interval_map );
+#endif
     } else {
 #ifdef CMG_VERBOSE
       std::cout << "Revealed as spurious.\n";
