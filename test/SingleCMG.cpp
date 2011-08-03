@@ -10,7 +10,7 @@
 
 // To get SCC chatter
 #define CMG_VERBOSE 
-
+#define DO_CONLEY_INDEX
 //#define VISUALIZE_DEBUG
 //#define ILLUSTRATE
 
@@ -18,7 +18,6 @@
 #include "data_structures/Conley_Morse_Graph.h"
 #include "toplexes/Adaptive_Cubical_Toplex.h"
 #include "program/jobs/Compute_Morse_Graph.h"
-
 
 // HEADERS FOR DEALING WITH PICTURES
 #include "tools/picture.h"
@@ -67,7 +66,8 @@ struct LeslieMap {
 Geometric_Description initialize_phase_space_box ( void ) {
   // Two dimensional phase space
   // [0, 320.056] x [0.0, 224.040]
-  Geometric_Description phase_space_bounds ( 2 );
+  int phase_space_dimension = 2;
+  Geometric_Description phase_space_bounds ( phase_space_dimension );
   phase_space_bounds . lower_bounds [ 0 ] = 0.0;
   phase_space_bounds . upper_bounds [ 0 ] = 320.056;
   phase_space_bounds . lower_bounds [ 1 ] = 0.0;
@@ -79,7 +79,8 @@ Geometric_Description initialize_phase_space_box ( void ) {
 Geometric_Description initialize_parameter_space_box ( const int bx, const int by ) {
   // Two dimensional parameter space
   // A box chosen from [8, 37] x [3, 50]
-  Geometric_Description parameter_space_limits ( 2 ); 
+  int parameter_space_dimension = 2;
+  Geometric_Description parameter_space_limits ( parameter_space_dimension ); 
   parameter_space_limits . lower_bounds [ 0 ] = 8.0; 
   parameter_space_limits . upper_bounds [ 0 ] = 37.0;
   parameter_space_limits . lower_bounds [ 1 ] = 3.0;
@@ -87,7 +88,7 @@ Geometric_Description initialize_parameter_space_box ( const int bx, const int b
   
   // Use command line arguments to choose a box from 50 x 50 choices.
   int PARAMETER_BOXES = 50;
-  Geometric_Description parameter_box ( 2 );
+  Geometric_Description parameter_box ( parameter_space_dimension );
   parameter_box . lower_bounds [ 0 ] = parameter_space_limits . lower_bounds [ 0 ] + 
   ( parameter_space_limits . upper_bounds [ 0 ] - parameter_space_limits . lower_bounds [ 0 ] ) * bx / (float) PARAMETER_BOXES;
   parameter_box . upper_bounds [ 0 ] = parameter_space_limits . lower_bounds [ 0 ] + 
@@ -100,6 +101,10 @@ Geometric_Description initialize_parameter_space_box ( const int bx, const int b
   
   return parameter_box;
 }
+
+int MIN_PHASE_SUBDIVISIONS = 12;
+int MAX_PHASE_SUBDIVISIONS = 15;
+int COMPLEXITY_LIMIT = 10000;
 
 ////////////////////////////////////////END USER EDIT//////////////////////////////////////////
 
@@ -147,9 +152,9 @@ int main ( int argc, char * argv [] )
   Compute_Morse_Graph ( & conley_morse_graph, 
                         & phase_space, 
                         map, 
-                        12 /* MIN_PHASE_SUBDIVISIONS */, 
-                        15 /* MAX_PHASE_SUBDIVISIONS */, 
-                        10000 /* COMPLEXITY_LIMIT */ );
+                        MIN_PHASE_SUBDIVISIONS, 
+                        MAX_PHASE_SUBDIVISIONS, 
+                        COMPLEXITY_LIMIT );
 
   
   stop = clock ();
@@ -168,8 +173,8 @@ int main ( int argc, char * argv [] )
 
 void DrawMorseSets ( const Toplex & phase_space, const CMG & conley_morse_graph ) {
   // Create a Picture
-  int Width =  256;
-  int Height = 256;
+  int Width =  1024;
+  int Height = 1024;
   Picture * picture = draw_morse_sets<Toplex,CellContainer>( Width, Height, phase_space, conley_morse_graph );
   LodePNG_encode32_file( "morse_sets.png", picture -> bitmap, picture -> Width, picture -> Height);
   Picture * picture2 = draw_toplex <Toplex,CellContainer>( Width, Height, phase_space );

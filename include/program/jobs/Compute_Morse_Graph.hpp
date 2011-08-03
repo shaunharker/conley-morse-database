@@ -6,7 +6,7 @@
 #include "boost/foreach.hpp"
 #include "data_structures/GraphTheory.h"
 
-#ifdef ILLUSTRATE
+#ifdef DO_CONLEY_INDEX
 #include "algorithms/Homology.h"
 #endif
 template < class Toplex, class CellContainer > 
@@ -72,7 +72,7 @@ void Compute_Morse_Graph (Morse_Graph * MG, Toplex * phase_space, const Map & in
       phase_space -> coarsen ( morse_set );
       subgraph_nodes . insert ( mg_node );
       // TODO REMOVE THIS
-#ifdef ILLUSTRATE
+#ifdef DO_CONLEY_INDEX
       Conley_Index_t output;
       Conley_Index ( &output,
                      *phase_space, 
