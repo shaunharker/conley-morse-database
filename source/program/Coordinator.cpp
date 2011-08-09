@@ -153,7 +153,7 @@ CoordinatorBase::State Coordinator::Prepare(Message *job) {
   }
   
   
-  /// All jabs have been sent
+  /// All jobs have been sent
   /// Still waiting for some jobs to finish
   if (num_jobs_sent_ == num_jobs_)
     return kPending;
@@ -233,6 +233,8 @@ CoordinatorBase::State Coordinator::ConleyPrepare(Message *job) {
   *job << job_number;
   *job << GD;
   *job << conley_work_items [ job_number ];
+  
+  //std::cout << "Preparing conley job " << job_number << " with GD = " << GD << "\n";
   
   /// Increment the jobs_sent counter
   ++num_jobs_sent_;
