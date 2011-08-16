@@ -3,6 +3,7 @@
  */
 
 #include <iostream>
+#include <fstream>
 
 #include "boost/foreach.hpp"
 #include "boost/serialization/vector.hpp"
@@ -129,11 +130,16 @@ void Coordinator::StartConleyStage ( void ) {
   */
   std::set < ms_id > work_items;
   BOOST_FOREACH ( const ms_id & element, classes . Elements () ) {
-    if ( work_items . insert ( classes . Representative ( element ) ) . second == true )
-      conley_work_items . push_back ( element );
+    ms_id rep = classes . Representative ( element );
+    if ( work_items . insert ( rep ) . second == true )
+      conley_work_items . push_back ( rep );
   }
   
   num_jobs_ = conley_work_items . size ();
+  
+  std::ofstream outfile ( "conleystage.txt" );
+  outfile << "Number of conley jobs = " << num_jobs_ << "\n";
+  outfile . close ();
 }
 
 /* * * * * * * * * * * */
