@@ -139,6 +139,12 @@ void Coordinator::StartConleyStage ( void ) {
   
   std::ofstream outfile ( "conleystage.txt" );
   outfile << "Number of conley jobs = " << num_jobs_ << "\n";
+  
+  for ( int job_number = 0; job_number < num_jobs_; ++ job_number ) {
+  Toplex::Top_Cell cell = conley_work_items [ job_number ] . first;
+  Geometric_Description GD = param_toplex . geometry (param_toplex . find (cell));
+    outfile << "job number " << job_number << ", cell = " << cell << ", geo = " << GD << "\n";
+  }
   outfile . close ();
 }
 
