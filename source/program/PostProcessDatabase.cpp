@@ -278,7 +278,7 @@ public:
     // Number of Morse Sets
     std::cout << "   number of morse sets: " << indexed_box_records [ mgcc ] . num_morse_sets_ << "\n";
     // Morse Set Continuation Classes
-    std::cout << "   morse sets continuation classes: ";
+    std::cout << "   morse set s continuation classes: ";
     for ( int i = 0; i < indexed_box_records [ mgcc ] . num_morse_sets_; ++ i ) {
       intpair mscc ( mgcc, i );
       mscc = mscc_uf . Representative ( mscc );

@@ -2,6 +2,8 @@
  *  Coordinator.cpp
  */
 
+#define ENDSTAGE 0
+#include "program/Configuration.h"
 #include <iostream>
 #include <fstream>
 
@@ -11,7 +13,6 @@
 #include "boost/serialization/set.hpp"
 
 #include "program/Coordinator.h"
-#include "program/Configuration.h"
 #include "data_structures/UnionFind.hpp"
 
 Coordinator::Coordinator(int argc, char **argv) {
@@ -157,6 +158,7 @@ CoordinatorBase::State Coordinator::Prepare(Message *job) {
   // All jobs have finished
   if (num_jobs_received_ == num_jobs_) {
     // The stage is complete. Move to next stage, if there is one.
+    if ( stage == ENDSTAGE ) return kFinish;
     if ( stage == 0 ) {
       StartConleyStage ();
     } else {
@@ -273,7 +275,7 @@ void Coordinator::Process(const Message &result) {
   /// Increment jobs received counter
   ++num_jobs_received_;
   // Are we done?
-  if ( num_jobs_received_ == num_jobs_ && stage == 1 ) finalize ();
+  if ( num_jobs_received_ == num_jobs_ && stage == ENDSTAGE ) finalize ();
   return;
 }  
   

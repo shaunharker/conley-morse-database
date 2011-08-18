@@ -87,7 +87,7 @@ Geometric_Description initialize_parameter_space_box ( const int bx, const int b
   parameter_space_limits . upper_bounds [ 1 ] = 50.0;
   
   // Use command line arguments to choose a box from 50 x 50 choices.
-  int PARAMETER_BOXES = 50;
+  int PARAMETER_BOXES = 64;
   Geometric_Description parameter_box ( parameter_space_dimension );
   parameter_box . lower_bounds [ 0 ] = parameter_space_limits . lower_bounds [ 0 ] + 
   ( parameter_space_limits . upper_bounds [ 0 ] - parameter_space_limits . lower_bounds [ 0 ] ) * bx / (float) PARAMETER_BOXES;
@@ -103,7 +103,7 @@ Geometric_Description initialize_parameter_space_box ( const int bx, const int b
 }
 
 int MIN_PHASE_SUBDIVISIONS = 12;
-int MAX_PHASE_SUBDIVISIONS = 15;
+int MAX_PHASE_SUBDIVISIONS = 16;
 int COMPLEXITY_LIMIT = 10000;
 
 ////////////////////////////////////////END USER EDIT//////////////////////////////////////////
@@ -173,8 +173,8 @@ int main ( int argc, char * argv [] )
 
 void DrawMorseSets ( const Toplex & phase_space, const CMG & conley_morse_graph ) {
   // Create a Picture
-  int Width =  1024;
-  int Height = 1024;
+  int Width =  4096;
+  int Height = 4096;
   Picture * picture = draw_morse_sets<Toplex,CellContainer>( Width, Height, phase_space, conley_morse_graph );
   LodePNG_encode32_file( "morse_sets.png", picture -> bitmap, picture -> Width, picture -> Height);
   Picture * picture2 = draw_toplex <Toplex,CellContainer>( Width, Height, phase_space );
