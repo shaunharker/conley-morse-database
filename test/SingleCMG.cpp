@@ -10,7 +10,7 @@
 
 // To get SCC chatter
 #define CMG_VERBOSE 
-#define DO_CONLEY_INDEX
+//#define DO_CONLEY_INDEX
 //#define VISUALIZE_DEBUG
 //#define ILLUSTRATE
 
@@ -102,9 +102,9 @@ Geometric_Description initialize_parameter_space_box ( const int bx, const int b
   return parameter_box;
 }
 
-int MIN_PHASE_SUBDIVISIONS = 12;
-int MAX_PHASE_SUBDIVISIONS = 16;
-int COMPLEXITY_LIMIT = 10000;
+int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 12;
+int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 16;
+int SINGLECMG_COMPLEXITY_LIMIT = 10000;
 
 ////////////////////////////////////////END USER EDIT//////////////////////////////////////////
 
@@ -152,9 +152,9 @@ int main ( int argc, char * argv [] )
   Compute_Morse_Graph ( & conley_morse_graph, 
                         & phase_space, 
                         map, 
-                        MIN_PHASE_SUBDIVISIONS, 
-                        MAX_PHASE_SUBDIVISIONS, 
-                        COMPLEXITY_LIMIT );
+                        SINGLECMG_MIN_PHASE_SUBDIVISIONS, 
+                        SINGLECMG_MAX_PHASE_SUBDIVISIONS, 
+                        SINGLECMG_COMPLEXITY_LIMIT );
 
   
   stop = clock ();
