@@ -120,7 +120,7 @@ public:
 
 
   // METHODS
-  void QueryData ( const Database & database ) : database ( database ) {
+  QueryData ( const Database & database ) : database ( database ) {
     // Loop through box records. 
     //       Index the Box records, and create a union-find structure for morse sets and boxes
     BOOST_FOREACH ( const ParameterBoxRecord & record, database . box_records () ) {
@@ -213,8 +213,8 @@ public:
     
     // Generate Morse Graph Continuation Class neighbor information
     BOOST_FOREACH ( const ClutchingRecord & record, database . clutch_records () ) {
-      intpair source = mgcc_uf . Representative ( record . id1_ );
-      intpair target = mgcc_uf . Representative ( record . id2_ );
+      int source = mgcc_uf . Representative ( record . id1_ );
+      int target = mgcc_uf . Representative ( record . id2_ );
       mgcc_nb [ source ] . insert ( target );
       mgcc_nb [ target ] . insert ( source );
     }
@@ -310,6 +310,14 @@ int main ( int argc, char * argv [] ) {
   QueryData classdata ( database );
   classdata . save_clutching_graph ( "continuationclutch.gv" );
   
+  // Interact
+  while ( 1 ) {
+    int mgcc;
+    std::cout << "Enter a Continuation Class number (-1 to exit).\n >";
+    std::cin >> mgcc;
+    if ( mgcc < 0 ) break;
+    classdata . query_mgcc ( mgcc );
+  }  
   // Exit Program
   return 0;
 }
