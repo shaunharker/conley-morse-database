@@ -105,6 +105,8 @@ public:
   Database database;
   // Union-find structure store Morse Graph Continuation Classes
   UnionFind < int > mgcc_uf; 
+  // Set of mgcc Representatives
+  std::set < int > mgcc_rep;
   // Map keyed by mgcc representative to give mgcc reps of neighboring classes
   std::map < int, std::set < int > > mgcc_nb; // Morse Graph Continuation Class nbr
   // Union-find structure store Morse Set Continuation Classes
@@ -163,6 +165,7 @@ public:
     // count populations of morse graph continuation classes
     BOOST_FOREACH ( const ParameterBoxRecord & record, database . box_records () ) {
       int rep = mgcc_uf . Representative ( record . id_ );
+      mgcc_rep . insert ( rep );
       if ( cont_class_pop . find ( rep ) == cont_class_pop . end () ) cont_class_pop [ rep ] = 0;
       // prepare non-empty entries
       if ( mg_edges . count ( rep ) == 0 ) mg_edges [ rep ] = std::set < Edge > ();
@@ -265,6 +268,14 @@ public:
     ofs . close ();
   }
   
+  void list_mgcc ( void ) {
+    std::cout << "List of Morse Graph Continuation Class (MGCC) representatives:\n";
+    BOOST_FOREACH ( int rep, mgcc_rep ) {
+  	  std::cout << rep << " ";
+    }
+    std::cout << "\n";
+  }
+  
   void query_mgcc ( int mgcc ) {
     std::cout << "MGCC " << mgcc << "\n";
     // Number of parameter boxes
@@ -278,7 +289,7 @@ public:
     // Number of Morse Sets
     std::cout << "   number of morse sets: " << indexed_box_records [ mgcc ] . num_morse_sets_ << "\n";
     // Morse Set Continuation Classes
-    std::cout << "   morse set s continuation classes: ";
+    std::cout << "   morse set continuation classes: ";
     for ( int i = 0; i < indexed_box_records [ mgcc ] . num_morse_sets_; ++ i ) {
       intpair mscc ( mgcc, i );
       mscc = mscc_uf . Representative ( mscc );
@@ -287,6 +298,20 @@ public:
     std::cout << "\n";
     // Morse Graph
     
+  }
+  
+  void interact ( void ) {
+	  list_mgcc ();
+	  while ( 1 ) {
+	  	//std::string input;
+	  	//std::cin >> input;
+	  	
+	  	int mgcc;
+	  	std::cout << "Enter a Continuation Class number (-1 to exit).\n >";
+	  	std::cin >> mgcc;
+	  	if ( mgcc < 0 ) break;
+	  	query_mgcc ( mgcc );
+	  }  
   }
 };
 
@@ -311,13 +336,8 @@ int main ( int argc, char * argv [] ) {
   classdata . save_clutching_graph ( "continuationclutch.gv" );
   
   // Interact
-  while ( 1 ) {
-    int mgcc;
-    std::cout << "Enter a Continuation Class number (-1 to exit).\n >";
-    std::cin >> mgcc;
-    if ( mgcc < 0 ) break;
-    classdata . query_mgcc ( mgcc );
-  }  
+  classdata . interact ();
+  
   // Exit Program
   return 0;
 }
