@@ -61,7 +61,7 @@ using namespace Adaptive_Cubical;
 
 /* Parameter Space */
 #define PARAM_DIMENSION 2
-#define PARAM_SUBDIVISIONS 2
+#define PARAM_SUBDIVISIONS 6
 #define MAX_PATCH_SIZE 10
 
 const Real param_lower_bounds [PARAM_DIMENSION] = { 8.0, 3.0 };
@@ -77,7 +77,7 @@ const Geometric_Description param_bounds ( PARAM_DIMENSION , std::vector<Real> (
 #define SPACE_DIMENSION 2
 #endif
 #ifndef MIN_PHASE_SUBDIVISIONS
-#define MIN_PHASE_SUBDIVISIONS 8
+#define MIN_PHASE_SUBDIVISIONS 12
 #endif
 #ifndef MAX_PHASE_SUBDIVISIONS
 #define MAX_PHASE_SUBDIVISIONS 16

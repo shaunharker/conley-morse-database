@@ -2,7 +2,13 @@
  *  Coordinator.cpp
  */
 
+//set ENDSTAGE to 0 to avoid computing conley index records, set to 1 otherwise
+#ifdef NO_CONLEY_INDEX_IN_DATABASE
 #define ENDSTAGE 0
+#else
+#define ENDSTAGE 1 
+#endif
+
 #include "program/Configuration.h"
 #include <iostream>
 #include <fstream>

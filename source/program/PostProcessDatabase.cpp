@@ -103,28 +103,41 @@ public:
   
   // DATA
   Database database;
-  // Union-find structure store Morse Graph Continuation Classes
+  
+  /******* MGCC QUERY DATA ********/
+  /// Union-find structure store Morse Graph Continuation Classes
   UnionFind < int > mgcc_uf; 
-  // Set of mgcc Representatives
+  /// Set of mgcc Representatives
   std::set < int > mgcc_rep;
-  // Map keyed by mgcc representative to give mgcc reps of neighboring classes
+  /// Map keyed by mgcc representative to give mgcc reps of neighboring classes
   std::map < int, std::set < int > > mgcc_nb; // Morse Graph Continuation Class nbr
-  // Union-find structure store Morse Set Continuation Classes
-  UnionFind < intpair > mscc_uf;
-  // map to store parameter records by their id_ field
-  std::map < int, ParameterBoxRecord > indexed_box_records;
-  // map to store populations of continuation classes (keyed by id of mgcc_uf representative)
-  std::map < int, int> cont_class_pop;
-  // map to store morse graph edges (keyed by id of mgcc_uf representative)
+  /// Map keyed by mgcc representative to give parameter boxes (pb's) in mgcc
+  std::map < int, std::set < int > > mgcc_pb; // Morse Graph Continuation Class Parameter Boxes
+  /// map to store morse graph edges (keyed by id of mgcc_uf representative)
   std::map < int, std::set < Edge > > mg_edges;
-  // set of clutching edges between mscc_uf representatives
-  std::set < Edge > clutch_edges;
+  
+  /******* MSCC QUERY DATA ********/
+  /// Union-find structure store Morse Set Continuation Classes
+  UnionFind < intpair > mscc_uf;
+  /// Set of Morse Set Continuation Classes (by representatives)
+  std::set < intpair > mscc_rep; 
+  /// Map keyed by mscc representative to give parameter boxes (pb's) in mscc
+  std::map < intpair, std::set < int > > mscc_pb; // Morse Graph Continuation Class Parameter Boxes
+  /// Map keyed by mscc representative to give reps of mgcc's it is part of
+  std::map < intpair, std::set < int > > mscc_mgcc; // Morse Graph Continuation Class Parameter Boxes
 
+  /// set of clutching edges between mscc_uf representatives
+  std::set < Edge > clutch_edges;
+  
+  /******* PB QUERY DATA ********/
+  /// map to store parameter records by their id_ field
+  std::map < int, ParameterBoxRecord > indexed_box_records;
 
   // METHODS
   QueryData ( const Database & database ) : database ( database ) {
     // Loop through box records. 
     //       Index the Box records, and create a union-find structure for morse sets and boxes
+    // initializes mgcc_ug, mgcc_rep, mscc_uf, and creates indexed_box_records
     BOOST_FOREACH ( const ParameterBoxRecord & record, database . box_records () ) {
       mgcc_uf . Add ( record . id_ );
       for ( int i = 0; i < record . num_morse_sets_; ++ i ) {
@@ -132,25 +145,10 @@ public:
       }
       indexed_box_records [ record . id_ ] = record;
     }
-    
-    
-    // debug
-    BOOST_FOREACH ( const ClutchingRecord & record, database . clutch_records () ) {
-      BOOST_FOREACH ( const intpair & edge, record . clutch_ ) {
-        if ( indexed_box_records [ record . id1_ ] . num_morse_sets_ <= edge . first ||
-            indexed_box_records [ record . id2_ ] . num_morse_sets_ <= edge . second ) {
-          std::cout << "Clutching record (" << record . id1_ << ", " << record . id2_ << "):\n";
-          std::cout << "  Size of box " << record . id1_ << " is " << indexed_box_records [ record . id1_ ] . num_morse_sets_ << "\n";
-          std::cout << "  Size of box " << record . id2_ << " is " << indexed_box_records [ record . id2_ ] . num_morse_sets_ << "\n";
-          
-          std::cout << "  Edge = (" << edge.first << ", " << edge . second << ")\n";
-        }
-      }
-    }
-    
-    
+  
     // Loop through clutch records
     //     Determine isomorphisms and perform unions based on results
+    // finishes: mgcc_uf, mscc_uf, mgcc_rep, mscc_rep
     BOOST_FOREACH ( const ClutchingRecord & record, database . clutch_records () ) {
       if ( CheckIsomorphism (indexed_box_records [ record . id1_ ], 
                              indexed_box_records [ record . id2_ ], record ) ) {
@@ -162,25 +160,28 @@ public:
       }
     }
         
-    // count populations of morse graph continuation classes
+    // Prepare mgcc_rep, mgcc_pb, mscc_rep, mscc_pb, and mscc_mgcc
     BOOST_FOREACH ( const ParameterBoxRecord & record, database . box_records () ) {
-      int rep = mgcc_uf . Representative ( record . id_ );
-      mgcc_rep . insert ( rep );
-      if ( cont_class_pop . find ( rep ) == cont_class_pop . end () ) cont_class_pop [ rep ] = 0;
+      int mgrep = mgcc_uf . Representative ( record . id_ );
+      mgcc_rep . insert ( mgrep );
+      mgcc_pb [ mgrep ] . insert ( record . id_ ); // record the parameter box
       // prepare non-empty entries
-      if ( mg_edges . count ( rep ) == 0 ) mg_edges [ rep ] = std::set < Edge > ();
-      
-      ++ cont_class_pop [ rep ];
+      if ( mg_edges . count ( mgrep ) == 0 ) mg_edges [ mgrep ] = std::set < Edge > ();      
       // check for violations in assumption
       for ( int i = 0; i < record . num_morse_sets_; ++ i ) {
-        intpair rep = mscc_uf . Representative ( intpair ( record . id_ , i ) );
-        if ( rep . first == record . id_ && rep . second != i ) {
+        intpair morseset = intpair ( record . id_ , i );
+        intpair msrep = mscc_uf . Representative ( morseset );
+        mscc_rep . insert ( msrep ); 
+        mscc_pb [ msrep ] . insert ( record . id_ );
+        mscc_mgcc [ msrep ] . insert ( mgrep );
+        if ( msrep . first == record . id_ && msrep . second != i ) {
           std::cout << "Violation in assumptions.\n";
         }
       }
     }
     
-    // Generate morse graph edges
+    // Generate morse graph edges: 
+    // initializes mg_edges  (but does not perform transitive reduction)
     BOOST_FOREACH ( const ParameterBoxRecord & record, database . box_records () ) {
       BOOST_FOREACH ( const intpair & edge, record . partial_order_ ) {
         int rep_id = mgcc_uf . Representative ( record . id_ );
@@ -191,7 +192,8 @@ public:
       }
     }
     
-    // transitive reduction -- n^4 , should be n^3
+    // transitive reduction -- n^4 , should be n^3.
+    // finishes mg_edges
     BOOST_FOREACH ( mg_edges_t & entry , mg_edges ) {
       std::set < Edge > & graph = entry . second;
       std::set < Edge > newgraph = graph;
@@ -204,6 +206,7 @@ public:
     }
     
     // Generate clutching edges
+    // creates clutch_edges
     BOOST_FOREACH ( const ClutchingRecord & record, database . clutch_records () ) {
       BOOST_FOREACH ( const intpair & edge, record . clutch_ ) {
         intpair source = mscc_uf . Representative ( intpair ( record . id1_, edge . first ) );
@@ -229,15 +232,15 @@ public:
     // opening brace
     ofs << "digraph G {\n";
     
-    int CUTOFF = 0;
+    unsigned int CUTOFF = 0;
     // morse graphs
     ofs << "node [label=\"\",width=.1,height=.1]\n";
     BOOST_FOREACH ( const mg_edges_t & entry, mg_edges ) {
-      if ( cont_class_pop [ entry . first ] < CUTOFF ) continue; // ignore small ones
+      if ( mgcc_pb [ entry . first ] . size () < CUTOFF ) continue; // ignore small ones
       if ( mgcc_uf . Representative ( entry . first ) != entry . first ) std::cout << "Assumption violated\n";
       
       ofs << " subgraph cluster" << entry . first << " {\n";
-      ofs << " label=\"" << cont_class_pop [ entry . first ] << "\";\n";
+      ofs << " label=\"" << mgcc_pb [ entry . first ] . size () << "\";\n";
       for ( int i = 0; i < indexed_box_records [ entry . first ] . num_morse_sets_; ++ i ) {
         ofs << "node B" << entry . first << "N" << i << ";\n";
       }
@@ -253,8 +256,8 @@ public:
     //clutching edges
     ofs << "edge [color=red,dir=none];\n";
     BOOST_FOREACH ( const Edge & edge, clutch_edges ) {
-      if ( cont_class_pop [ edge . first . first ] < CUTOFF ) continue; // ignore small ones
-      if ( cont_class_pop [ edge . second . first ] < CUTOFF ) continue; // ignore small ones
+      if ( mgcc_pb [ edge . first . first ] . size ()< CUTOFF ) continue; // ignore small ones
+      if ( mgcc_pb [ edge . second . first ] . size () < CUTOFF ) continue; // ignore small ones
       
       // write edge to file
       ofs << "B" << edge . first . first << "N" << edge . first . second;
@@ -270,48 +273,111 @@ public:
   
   void list_mgcc ( void ) {
     std::cout << "List of Morse Graph Continuation Class (MGCC) representatives:\n";
-    BOOST_FOREACH ( int rep, mgcc_rep ) {
-  	  std::cout << rep << " ";
+    BOOST_FOREACH ( int mgrep, mgcc_rep ) {
+  	  std::cout << mgrep << " ";
+    }
+    std::cout << "\n";
+  }
+
+  void list_mscc ( void ) {
+    std::cout << "List of Morse Set Continuation Class (MSCC) representatives:\n";
+    BOOST_FOREACH ( int msrep, mgcc_rep ) {
+  	  std::cout << msrep << " ";
     }
     std::cout << "\n";
   }
   
   void query_mgcc ( int mgcc ) {
-    std::cout << "MGCC " << mgcc << "\n";
-    // Number of parameter boxes
-    std::cout << "   number of parameter boxes: " << cont_class_pop [ mgcc ] << "\n";
-    // Neighboring classes
-    std::cout << "   neighboring classes: ";
-    BOOST_FOREACH ( int nb, mgcc_nb [ mgcc ] ) {
-      std::cout << nb << " ";
-    }
+    // Data associated with MGCC
+    std::cout << "MGCC " << mgcc << " with representative ";
+    mgcc = mgcc_uf . Representative ( mgcc );
+    std::cout << mgcc << "\n";
+
+    // list of parameter boxes
+    std::cout << "   list of (" << mgcc_pb [ mgcc ] . size () << ") parameter boxes: ";
+    BOOST_FOREACH ( int pb, mgcc_pb [ mgcc ] ) std::cout << pb << " ";
     std::cout << "\n";
-    // Number of Morse Sets
-    std::cout << "   number of morse sets: " << indexed_box_records [ mgcc ] . num_morse_sets_ << "\n";
+
+    // Neighboring classes
+    std::cout << "   list of (" << mgcc_nb [ mgcc ] . size () << ") neighboring classes: ";
+    BOOST_FOREACH ( int nb, mgcc_nb [ mgcc ] ) std::cout << nb << " ";
+    std::cout << "\n";
+    
     // Morse Set Continuation Classes
-    std::cout << "   morse set continuation classes: ";
+    std::cout << "   list of (" << indexed_box_records [ mgcc ] . num_morse_sets_ << ") morse set continuation classes: ";
     for ( int i = 0; i < indexed_box_records [ mgcc ] . num_morse_sets_; ++ i ) {
       intpair mscc ( mgcc, i );
       mscc = mscc_uf . Representative ( mscc );
       std::cout << "(" << mscc . first << ", " << mscc . second << ") ";
     }
     std::cout << "\n";
+    
     // Morse Graph
+    std::cout << "   morse graph: ";
+    BOOST_FOREACH ( Edge edge, mg_edges [ mgcc ] ) {
+      intpair source = edge . first;
+      intpair target = edge . second;
+      std::cout << "(" << source . first << ", " << source . second << ")";
+      std::cout << "->";
+      std::cout << "(" << target . first << ", " << target . second << ")";
+      std::cout << " ";
+    }
+    std::cout << "\n";
+  }
+
+  void query_mscc ( intpair mscc ) {
+    // Data associated with MGCC
+    std::cout << "MSCC (" << mscc . first << ", " << mscc . second << ") " << " with representative ";
+    mscc = mscc_uf . Representative ( mscc );
+    std::cout << "(" << mscc . first << ", " << mscc . second << ")\n";
+    
+    // list of parameter boxes
+    std::cout << "   list of (" << mscc_pb [ mscc ] . size () << ") parameter boxes: ";
+    BOOST_FOREACH ( int pb, mscc_pb [ mscc ] ) std::cout << pb << " ";
+    std::cout << "\n";
+    
+    // list of morse graph continuation classes
+    std::cout << "   list of (" << mscc_mgcc [ mscc ] . size () << ") morse graph continuation classes boxes: ";
+    BOOST_FOREACH ( int mgcc, mscc_mgcc [ mscc ] ) std::cout << mgcc << " ";
+    std::cout << "\n"; 
+    
+    // conley index
     
   }
   
   void interact ( void ) {
-	  list_mgcc ();
-	  while ( 1 ) {
-	  	//std::string input;
-	  	//std::cin >> input;
-	  	
-	  	int mgcc;
-	  	std::cout << "Enter a Continuation Class number (-1 to exit).\n >";
-	  	std::cin >> mgcc;
-	  	if ( mgcc < 0 ) break;
-	  	query_mgcc ( mgcc );
-	  }  
+    list_mgcc ();
+    while ( 1 ) {
+      std::string input;
+      std::cout << "Enter mgcc or mscc\n";
+      std::cin >> input;
+      if ( input . compare ( "mgcc" ) ) {
+				int mgcc;
+				std::cout << "Enter a Morse Graph Continuation Class (MGCC) .\n";
+				std::cout << "\nparameter box # = ";
+				std::cin >> mgcc;
+				if ( mgcc < 0 ) break;
+        query_mgcc ( mgcc );
+      } 
+      
+      if ( input . compare ( "mscc" ) ) {
+				intpair mscc;
+				std::cout << "Enter a Morse Set Continuation Class (MSCC).\n";
+				std::cout << "\nparameter box # = ";
+				std::cin >> mscc . first ;
+				std::cout << "\nset # = ";
+				std::cin >> mscc . second ;
+				std::cout << "\n";
+				query_mscc ( mscc );
+			}
+			
+			if ( input . compare ( "exit" ) ) {
+				break;
+			}
+			if ( input . compare ( "quit" ) ) {
+				break;
+			}
+    }  
   }
 };
 
