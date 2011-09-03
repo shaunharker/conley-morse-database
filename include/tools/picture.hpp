@@ -48,7 +48,7 @@ Picture * draw_picture (const int Width, const int Height,
 } /* draw_bitmap */
 
 #include <cmath>
-#include "data_structures/Conley_Morse_Graph.h"
+#include "structures/Conley_Morse_Graph.h"
 #include "algorithms/Homology.h"
 
 template < class Toplex, class CellContainer >

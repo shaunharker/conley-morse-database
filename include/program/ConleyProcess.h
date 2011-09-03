@@ -3,7 +3,7 @@
 
 #include "delegator/delegator.h"
 
-#include "data_structures/Database.h"
+#include "structures/Database.h"
 
 #include "toplexes/Adaptive_Cubical_Toplex.h"
 using namespace Adaptive_Cubical;

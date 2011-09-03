@@ -6,7 +6,7 @@
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 
-#include "data_structures/Database.h"
+#include "structures/Database.h"
 #include "boost/foreach.hpp"
 
 

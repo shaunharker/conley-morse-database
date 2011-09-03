@@ -2,7 +2,7 @@
  *  Clutching_Graph_Job.hpp
  */
 
-#include "data_structures/Conley_Morse_Graph.h"
+#include "structures/Conley_Morse_Graph.h"
 #include <boost/foreach.hpp>
 #include <algorithm>
 #include <stack>
@@ -17,8 +17,8 @@
 
 #include "program/Configuration.h"
 #include "program/jobs/Compute_Morse_Graph.h"
-#include "data_structures/UnionFind.hpp"
-#include "data_structures/Database.h"
+#include "structures/UnionFind.hpp"
+#include "structures/Database.h"
 
 /* Prefix Tree Structure Used in Clutching Algorithm */
 

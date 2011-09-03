@@ -15,7 +15,7 @@
 //#define ILLUSTRATE
 
 // HEADERS FOR DATA STRUCTURES
-#include "data_structures/Conley_Morse_Graph.h"
+#include "structures/Conley_Morse_Graph.h"
 #include "toplexes/Adaptive_Cubical_Toplex.h"
 #include "program/jobs/Compute_Morse_Graph.h"
 

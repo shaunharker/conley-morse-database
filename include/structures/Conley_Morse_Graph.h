@@ -141,7 +141,7 @@ private:
 };
 
 #ifndef _DO_NOT_INCLUDE_HPP_
-#include "data_structures/Conley_Morse_Graph.hpp"
+#include "structures/Conley_Morse_Graph.hpp"
 #endif
 
 #endif

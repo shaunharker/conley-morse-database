@@ -10,7 +10,7 @@
 #include "program/Configuration.h"
 #include "program/ConleyProcess.h"
 #include "program/jobs/Conley_Index_Job.h"
-#include "data_structures/UnionFind.hpp"
+#include "structures/UnionFind.hpp"
 
 /* * * * * * * * * * * * */
 /* initialize definition */

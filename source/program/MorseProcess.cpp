@@ -10,7 +10,7 @@
 #include "program/Configuration.h"
 #include "program/MorseProcess.h"
 #include "program/jobs/Clutching_Graph_Job.h"
-#include "data_structures/UnionFind.hpp"
+#include "structures/UnionFind.hpp"
 
 /* * * * * * * * * * * * */
 /* initialize definition */

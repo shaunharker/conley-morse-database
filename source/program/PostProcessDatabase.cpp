@@ -6,8 +6,8 @@
 #include <iostream>
 #include <fstream>
 
-#include "data_structures/Database.h"
-#include "data_structures/UnionFind.hpp"
+#include "structures/Database.h"
+#include "structures/UnionFind.hpp"
 
 #include "boost/foreach.hpp"
 
