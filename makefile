@@ -16,8 +16,8 @@ INCS += -I./include/
 
 #libraries
 LIBS := -L$(CHOMP)/lib -lchomp-rutgers
-LIBS := -L$(BOOST)/lib -lboost_serialization
-LIBS := -L$(GRAPHICS)/lib -lX11
+LIBS += -L$(BOOST)/lib -lboost_serialization
+LIBS += -L$(GRAPHICS)/lib -lX11
 
 # directory to store build products
 OBJDIR := ./build
@@ -40,20 +40,24 @@ DATABASE += ./build/program/ConleyProcess.o
 DATABASE += ./build/program/MorseProcess.o 
 DATABASE += ./build/structures/Database.o 
 Conley_Morse_Database: $(DATABASE)
+	$(CC) $(LDFLAGS) $(DATABASE) -o $@
 
-POSTPROCESS := ./build/program/PostProcessDatabase.o 
+POSTPROCESS := ./build/test/PostProcessDatabase.o 
 POSTPROCESS += ./build/structures/Database.o
 PostProcessDatabase: $(POSTPROCESS)
+	$(CC) $(LDFLAGS) $(POSTPROCESS) -o $@
 
+SINGLECMG := ./build/test/SingleCMG.o 
+SINGLECMG += ./build/tools/picture.o 
+SINGLECMG += ./build/tools/lodepng/lodepng.o
+SingleCMG: $(SINGLECMG)
+	$(CC) $(LDFLAGS) $(SINGLECMG) -o $@
 
-#SINGLECMG := ./build/SingleCMG.o 
-#SINGLECMG += picture.o 
-#SINGLECMG += lodepng.o
-#SingleCMG: $(SINGLECMG)
-
-
-# Cleanup                                                                                                          
-
-.PHONY: clean
+# Cleanup
+ .PHONY: clean
 clean:
-	rm *.o
+	find . -name "*.o" -delete
+	rm Conley_Morse_Database
+	rm SingleCMG
+	rm PostProcessDatabase
+

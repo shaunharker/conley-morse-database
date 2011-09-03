@@ -4,7 +4,7 @@
 
 #include <vector>
 #include "boost/foreach.hpp"
-#include "structures/GraphTheory.h"
+#include "algorithms/GraphTheory.h"
 
 #ifdef DO_CONLEY_INDEX
 #include "algorithms/Homology.h"
