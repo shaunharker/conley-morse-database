@@ -61,7 +61,7 @@ using namespace Adaptive_Cubical;
 
 /* Parameter Space */
 #define PARAM_DIMENSION 2
-#define PARAM_SUBDIVISIONS 6
+#define PARAM_SUBDIVISIONS 2
 #define MAX_PATCH_SIZE 10
 
 const Real param_lower_bounds [PARAM_DIMENSION] = { 8.0, 3.0 };
@@ -77,10 +77,10 @@ const Geometric_Description param_bounds ( PARAM_DIMENSION , std::vector<Real> (
 #define SPACE_DIMENSION 2
 #endif
 #ifndef MIN_PHASE_SUBDIVISIONS
-#define MIN_PHASE_SUBDIVISIONS 12
+#define MIN_PHASE_SUBDIVISIONS 5
 #endif
 #ifndef MAX_PHASE_SUBDIVISIONS
-#define MAX_PHASE_SUBDIVISIONS 16
+#define MAX_PHASE_SUBDIVISIONS 8
 #endif
 #ifndef COMPLEXITY_LIMIT
 #define COMPLEXITY_LIMIT 10000
@@ -97,11 +97,6 @@ const Geometric_Description space_bounds ( SPACE_DIMENSION , std::vector<Real> (
 #include "maps/leslie.h"
 typedef LeslieMap GeometricMap;
 
-#endif
-
-
-#ifndef _DO_NOT_INCLUDE_HPP_
-#include "program/Configuration.hpp"
 #endif
 
 

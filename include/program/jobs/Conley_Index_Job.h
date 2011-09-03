@@ -5,7 +5,7 @@
 #ifndef _CMDP_CONLEY_INDEX_JOB_
 #define _CMDP_CONLEY_INDEX_JOB_
 
-#include "distributed/Message.h"
+#include "delegator/Message.h"
 
 template <class Toplex, class ParameterToplex, class ConleyIndex>
 void Conley_Index_Job ( Message * result , const Message & job ); 

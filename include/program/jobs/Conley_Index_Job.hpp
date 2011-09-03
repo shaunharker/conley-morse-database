@@ -2,6 +2,8 @@
  *  Conley_Index_Job.hpp
  */
 
+#include "program/Configuration.h"
+#include "program/jobs/Compute_Morse_Graph.h"
 #include "data_structures/Conley_Morse_Graph.h"
 #include "data_structures/Database.h"
 

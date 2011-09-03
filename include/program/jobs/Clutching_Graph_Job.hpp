@@ -3,7 +3,6 @@
  */
 
 #include "data_structures/Conley_Morse_Graph.h"
-#include "distributed/Message.h"
 #include <boost/foreach.hpp>
 #include <algorithm>
 #include <stack>
