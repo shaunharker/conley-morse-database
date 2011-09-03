@@ -149,7 +149,7 @@ Picture * draw_toplex (const int Width, const int Height,
     Picture::Real total_volume = ( bounds . upper_bounds [ 0 ] - bounds . lower_bounds [ 0 ] )*( bounds . upper_bounds [ 1 ] - bounds . lower_bounds [ 1 ] ) ;
     Picture::Real ratio = total_volume / volume;
     Picture::Real log_of_ratio = (16.0f - log ( ratio ) / log ( 4.0f) ) * 16.0f;
-    Red = Green = Blue = log_of_ratio;
+    Red = Green = Blue = (unsigned char) log_of_ratio;
     picture -> draw_square (Red, Green, Blue,
                                     box . lower_bounds [ 0 ],
                                     box . upper_bounds [ 0 ],
