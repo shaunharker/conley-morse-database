@@ -19,8 +19,6 @@ void Compute_Morse_Graph (Morse_Graph * CG,
                           const unsigned int Comp = 10000);
   
 
-#ifndef _DO_NOT_INCLUDE_HPP_
 #include "program/jobs/Compute_Morse_Graph.hpp"
-#endif
 
 #endif

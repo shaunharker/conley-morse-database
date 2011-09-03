@@ -140,8 +140,6 @@ private:
   }
 };
 
-#ifndef _DO_NOT_INCLUDE_HPP_
 #include "structures/Conley_Morse_Graph.hpp"
-#endif
 
 #endif

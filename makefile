@@ -14,19 +14,26 @@ INCS += -I$(BOOST)/include
 INCS += -I$(GRAPHICS)/include
 INCS += -I./include/
 
-#libraries
-LIBS := -L$(CHOMP)/lib -lchomp-rutgers
-LIBS += -L$(BOOST)/lib -lboost_serialization
-LIBS += -L$(GRAPHICS)/lib -lX11
+#libraries                                                                     
+LINKFLAGS := -L$(CHOMP)/lib
+LINKFLAGS += -L$(BOOST)/lib
+LINKFLAGS += -L$(GRAPHICS)/lib
+
+LINKLIBS := -lchomp-rutgers
+LINKLIBS += -lboost_serialization
+LINKLIBS += -lX11
+
 
 # directory to store build products
 OBJDIR := ./build
 SRCDIR := ./source
+
 # Variables "make" uses for implicit rules
 CC := mpicxx
 CXX := mpicxx
 CXXFLAGS := -O3 -m64 -ggdb $(INCS)
-LDFLAGS := $(LIBS)
+LDFLAGS := $(LINKFLAGS)
+LDLIBS := $(LINKLIBS)
 
 # pattern rule for compilation
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
@@ -40,24 +47,24 @@ DATABASE += ./build/program/ConleyProcess.o
 DATABASE += ./build/program/MorseProcess.o 
 DATABASE += ./build/structures/Database.o 
 Conley_Morse_Database: $(DATABASE)
-	$(CC) $(LDFLAGS) $(DATABASE) -o $@
+	$(CC) $(LDFLAGS) $(DATABASE) -o $@ $(LDLIBS)
 
 POSTPROCESS := ./build/test/PostProcessDatabase.o 
 POSTPROCESS += ./build/structures/Database.o
 PostProcessDatabase: $(POSTPROCESS)
-	$(CC) $(LDFLAGS) $(POSTPROCESS) -o $@
+	$(CC) $(LDFLAGS) $(POSTPROCESS) -o $@ $(LDLIBS)
 
 SINGLECMG := ./build/test/SingleCMG.o 
 SINGLECMG += ./build/tools/picture.o 
 SINGLECMG += ./build/tools/lodepng/lodepng.o
 SingleCMG: $(SINGLECMG)
-	$(CC) $(LDFLAGS) $(SINGLECMG) -o $@
+	$(CC) $(LDFLAGS) $(SINGLECMG) -o $@ $(LDLIBS)
 
 # Cleanup
  .PHONY: clean
 clean:
 	find . -name "*.o" -delete
-	rm Conley_Morse_Database
-	rm SingleCMG
-	rm PostProcessDatabase
+	rm -f Conley_Morse_Database
+	rm -f SingleCMG
+	rm -f PostProcessDatabase
 
