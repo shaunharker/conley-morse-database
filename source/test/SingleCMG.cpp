@@ -76,7 +76,7 @@ Geometric_Description initialize_phase_space_box ( void ) {
   return phase_space_bounds;
 }
 
-Geometric_Description initialize_parameter_space_box ( const int bx, const int by ) {
+Geometric_Description initialize_parameter_space_box ( const Real bx, const Real by ) {
   // Two dimensional parameter space
   // A box chosen from [8, 37] x [3, 50]
   int parameter_space_dimension = 2;
