@@ -12,7 +12,7 @@ INCS := -I$(CHOMP)/include
 INCS += -I$(CLUSTER)/include
 INCS += -I$(BOOST)/include
 INCS += -I$(GRAPHICS)/include
-INCS += -I./include/database/
+INCS += -I./include/
 
 #libraries                                                                     
 LINKFLAGS := -L$(CHOMP)/lib

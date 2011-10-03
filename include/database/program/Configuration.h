@@ -21,7 +21,7 @@
 
 
 /* Phase Space */
-#include "maps/leslie.h"
+#include "database/maps/leslie.h"
 typedef LeslieFishMap GeometricMap;
 #define SPACE_DIMENSION 3
 // subdivision rules
@@ -92,7 +92,7 @@ const Prism space_bounds ( SPACE_DIMENSION , std::vector<Real> ( space_lower_bou
                                                       space_upper_bounds + SPACE_DIMENSION ) );
 
 /* Map Choice */
-#include "maps/leslie.h"
+#include "database/maps/leslie.h"
 typedef LeslieMap GeometricMap;
 
 #endif

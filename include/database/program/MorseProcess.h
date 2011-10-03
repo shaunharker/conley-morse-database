@@ -5,7 +5,7 @@
 
 #include "delegator/delegator.h"
 
-#include "structures/Database.h"
+#include "database/structures/Database.h"
 
 #include "chomp/Toplex.h"
 

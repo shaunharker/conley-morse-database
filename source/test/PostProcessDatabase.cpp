@@ -6,12 +6,12 @@
 #include <iostream>
 #include <fstream>
 
-#include "structures/Database.h"
-#include "structures/UnionFind.hpp"
+#include "database/structures/Database.h"
+#include "database/structures/UnionFind.hpp"
 
 #include "boost/foreach.hpp"
 
-#include "tools/visualization.h"
+#include "chomp/Draw.h"
 
 bool CheckIsomorphism (const ParameterBoxRecord & r1, 
                        const ParameterBoxRecord & r2,
@@ -223,6 +223,19 @@ public:
       int target = mgcc_uf . Representative ( record . id2_ );
       mgcc_nb [ source ] . insert ( target );
       mgcc_nb [ target ] . insert ( source );
+    }
+    
+    // Examine Conley Index data
+    BOOST_FOREACH ( const ConleyRecord & record, database . conley_records () ) {
+      std::cout << "Examining conley record.\n";
+      intpair ms = record . id_;
+      ConleyIndex_t ci = record . ci_;
+      std::cout << "id = (" << ms . first << ", " << ms . second << ")\n";
+      for ( int i = 0; i < ci . data () . size (); ++ i ) {
+        std::cout << "The " << i << "th matrix:\n";
+        
+        print_matrix ( ci . data () [ i ] );
+      }
     }
   }
   

@@ -140,6 +140,6 @@ private:
   }
 };
 
-#include "structures/Conley_Morse_Graph.hpp"
+#include "database/structures/Conley_Morse_Graph.hpp"
 
 #endif

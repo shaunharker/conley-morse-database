@@ -10,6 +10,6 @@
 template <class Toplex, class ParameterToplex, class ConleyIndex>
 void Clutching_Graph_Job ( Message * result , const Message & job ); 
 
-#include "program/jobs/Clutching_Graph_Job.hpp"
+#include "database/program/jobs/Clutching_Graph_Job.hpp"
 
 #endif

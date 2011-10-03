@@ -5,7 +5,7 @@
 
 //#include <boost/numeric/interval.hpp>
 #include "chomp/Toplex.h"
-#include "maps/simple_interval.h"
+#include "database/maps/simple_interval.h"
 #include <vector>
 
 struct LeslieMap {

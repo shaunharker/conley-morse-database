@@ -120,6 +120,6 @@ public:
   }
 };
 
-#include "structures/Database.hpp"
+#include "database/structures/Database.hpp"
 
 #endif

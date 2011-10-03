@@ -7,10 +7,10 @@
 
 #include "boost/foreach.hpp"
 
-#include "program/Configuration.h"
-#include "program/MorseProcess.h"
-#include "program/jobs/Clutching_Graph_Job.h"
-#include "structures/UnionFind.hpp"
+#include "database/program/Configuration.h"
+#include "database/program/MorseProcess.h"
+#include "database/program/jobs/Clutching_Graph_Job.h"
+#include "database/structures/UnionFind.hpp"
 
 /* * * * * * * * * * * * */
 /* initialize definition */

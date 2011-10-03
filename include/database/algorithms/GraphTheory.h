@@ -61,6 +61,6 @@ void compute_reachability ( std::vector < std::vector < unsigned int > > * outpu
                            const Graph & G, 
                            const std::vector<typename Graph::size_type> & topological_sort );
 
-#include "algorithms/GraphTheory.hpp"
+#include "database/algorithms/GraphTheory.hpp"
 
 #endif

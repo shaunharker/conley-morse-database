@@ -4,10 +4,10 @@
 
 #include "chomp/ConleyIndex.h"
 
-#include "program/Configuration.h"
-#include "program/jobs/Compute_Morse_Graph.h"
-#include "structures/Conley_Morse_Graph.h"
-#include "structures/Database.h"
+#include "database/program/Configuration.h"
+#include "database/program/jobs/Compute_Morse_Graph.h"
+#include "database/structures/Conley_Morse_Graph.h"
+#include "database/structures/Database.h"
 
 template <class Toplex, class ParameterToplex >
 void Conley_Index_Job ( Message * result , const Message & job ) {

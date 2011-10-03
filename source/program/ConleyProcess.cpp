@@ -7,10 +7,10 @@
 
 #include "boost/foreach.hpp"
 
-#include "program/Configuration.h"
-#include "program/ConleyProcess.h"
-#include "program/jobs/Conley_Index_Job.h"
-#include "structures/UnionFind.hpp"
+#include "database/program/Configuration.h"
+#include "database/program/ConleyProcess.h"
+#include "database/program/jobs/Conley_Index_Job.h"
+#include "database/structures/UnionFind.hpp"
 
 /* * * * * * * * * * * * */
 /* initialize definition */

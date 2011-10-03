@@ -15,19 +15,20 @@
 //#define ILLUSTRATE
 
 // HEADERS FOR DATA STRUCTURES
-#include "structures/Conley_Morse_Graph.h"
 #include "chomp/Toplex.h"
-#include "program/jobs/Compute_Morse_Graph.h"
+
+#include "database/structures/Conley_Morse_Graph.h"
+#include "database/program/jobs/Compute_Morse_Graph.h"
 
 // HEADERS FOR DEALING WITH PICTURES
-#include "tools/picture.h"
-#include "tools/lodepng/lodepng.h"
+#include "database/tools/picture.h"
+#include "database/tools/lodepng/lodepng.h"
 
 
 //////////////////////////////////////BEGIN USER EDIT//////////////////////////////////////////
 
 // MAP FUNCTION OBJECT
-#include "maps/simple_interval.h"   // for interval arithmetic
+#include "database/maps/simple_interval.h"   // for interval arithmetic
 
 struct LeslieMap {
   

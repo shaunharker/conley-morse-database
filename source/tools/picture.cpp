@@ -2,7 +2,7 @@
 // tool for making 2D adaptive cubical complexes into .png files
 
 #include <iostream>
-#include "tools/picture.h"
+#include "database/tools/picture.h"
 
 /// Create a white 32-bit RGBA bitmap image of width Width and height Height
 /// Must free it later

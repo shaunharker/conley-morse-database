@@ -43,6 +43,6 @@ Picture * combine_pictures (const int Width, const int Height,
 
 
 
-#include "tools/picture.hpp"
+#include "database/tools/picture.hpp"
 
 #endif

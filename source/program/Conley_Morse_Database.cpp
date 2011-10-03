@@ -3,9 +3,9 @@
  */
 
 #include "delegator/delegator.h"  /* For Coordinator_Worker_Scheme<>() */
-#include "program/MorseProcess.h"
-#include "program/ConleyProcess.h"
-#include "program/Configuration.h"
+#include "database/program/MorseProcess.h"
+#include "database/program/ConleyProcess.h"
+#include "database/program/Configuration.h"
 
 //#define CMD_MORSE
 #define CMD_CONLEY
