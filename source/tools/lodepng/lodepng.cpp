@@ -30,7 +30,7 @@ The manual and changelog can be found in the header file "lodepng.h"
 Rename this file to lodepng.cpp to use it for C++, or to lodepng.c to use it for C.
 */
 
-#include "tools/lodepng/lodepng.h"
+#include "database/tools/lodepng/lodepng.h"
 
 #include <stdio.h>
 #include <stdlib.h>
