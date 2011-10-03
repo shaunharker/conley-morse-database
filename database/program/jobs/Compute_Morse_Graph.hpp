@@ -7,7 +7,7 @@
 #include "algorithms/GraphTheory.h"
 
 #ifdef DO_CONLEY_INDEX
-#include "algorithms/Homology.h"
+#include "chomp/ConleyIndex.h"
 #endif
 template < class Toplex, class CellContainer > 
 void subdivide ( Toplex & phase_space, CellContainer & morse_set );
@@ -73,8 +73,8 @@ void Compute_Morse_Graph (Morse_Graph * MG, Toplex * phase_space, const Map & in
       subgraph_nodes . insert ( mg_node );
       // TODO REMOVE THIS
 #ifdef DO_CONLEY_INDEX
-      Conley_Index_t output;
-      Conley_Index ( &output,
+      ConleyIndex_t output;
+      ConleyIndex ( &output,
                      *phase_space, 
                      morse_set,
                      interval_map );

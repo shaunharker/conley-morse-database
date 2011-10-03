@@ -1,7 +1,7 @@
 # makefile for CMDP project 
 # directories where prerequisites can be found
 HOMEDIR := ..
-CHOMP := $(HOMEDIR)/chomp-rutgers
+CHOMP := $(HOMEDIR)/newchomp
 CLUSTER := $(HOMEDIR)/cluster-delegator
 BOOST := /usr/local
 GRAPHICS := /usr/X11
@@ -19,8 +19,7 @@ LINKFLAGS := -L$(CHOMP)/lib
 LINKFLAGS += -L$(BOOST)/lib
 LINKFLAGS += -L$(GRAPHICS)/lib
 
-LINKLIBS := -lchomp-rutgers
-LINKLIBS += -lboost_serialization
+LINKLIBS := -lboost_serialization
 LINKLIBS += -lX11
 
 

@@ -4,7 +4,7 @@
 #define CMDP_LESLIEMAP_H
 
 //#include <boost/numeric/interval.hpp>
-#include "toplexes/Adaptive_Cubical_Toplex.h"
+#include "chomp/Toplex.h"
 #include "maps/simple_interval.h"
 #include <vector>
 
@@ -14,13 +14,13 @@ struct LeslieMap {
   
   interval parameter1, parameter2;
   
-  LeslieMap ( const Adaptive_Cubical::Geometric_Description & rectangle ) {
+  LeslieMap ( const Prism & rectangle ) {
     parameter1 = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ]);
     parameter2 = interval (rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ]);
     return;
   }
-  Adaptive_Cubical::Geometric_Description operator () 
-    ( const Adaptive_Cubical::Geometric_Description & rectangle ) const {    
+  Prism operator () 
+    ( const Prism & rectangle ) const {    
     /* Read input */
     interval x0 = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ]);
     interval x1 = interval (rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ]);
@@ -30,7 +30,7 @@ struct LeslieMap {
     interval y1 = (double) 0.7 * x0;
     
     /* Write output */
-    Adaptive_Cubical::Geometric_Description return_value ( 2 );
+    Prism return_value ( 2 );
     return_value . lower_bounds [ 0 ] = y0 . lower ();
     return_value . upper_bounds [ 0 ] = y0 . upper ();
     return_value . lower_bounds [ 1 ] = y1 . lower ();
@@ -44,7 +44,7 @@ struct LeslieFishMap {
   typedef simple_interval<double> interval;
   interval parameter1, parameter2;
   std::vector < double > coefficients;
-  LeslieFishMap ( const Adaptive_Cubical::Geometric_Description & rectangle ) {
+  LeslieFishMap ( const Prism & rectangle ) {
     parameter1 = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ]);
     coefficients . resize ( 10, (double) 0 );
     coefficients [ 0 ] = (double) 0;
@@ -54,8 +54,8 @@ struct LeslieFishMap {
     // justin, add more
     return;
   }
-  Adaptive_Cubical::Geometric_Description operator () 
-    (const Adaptive_Cubical::Geometric_Description & rectangle ) const {    
+  Prism operator () 
+    (const Prism & rectangle ) const {    
       /* Read input */
       int dim = rectangle . lower_bounds . size ();
       std::vector < interval > input ( dim );
@@ -73,7 +73,7 @@ struct LeslieFishMap {
       for ( int i = 1; i < dim; ++ i ) output [ i ] = p * input [ i - 1 ];
   
       /* Write output */
-      Adaptive_Cubical::Geometric_Description return_value ( dim );
+      Prism return_value ( dim );
       for ( int i = 0; i < dim; ++ i ) {
         return_value . lower_bounds [ i ] = output [ i ] . lower ();
         return_value . upper_bounds [ i ] = output [ i ] . upper ();

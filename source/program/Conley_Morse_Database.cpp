@@ -7,10 +7,14 @@
 #include "program/ConleyProcess.h"
 #include "program/Configuration.h"
 
+//#define CMD_MORSE
+#define CMD_CONLEY
 int main ( int argc, char * argv [] ) {
   delegator::Start ();
+#ifdef CMD_MORSE
 	delegator::Run < MorseProcess > (argc, argv); 
-#ifndef NO_CONLEY_INDEX_IN_DATABASE
+#endif
+#ifdef CMD_CONLEY
 	delegator::Run < ConleyProcess > (argc, argv);
 #endif	 
 	delegator::Stop ();

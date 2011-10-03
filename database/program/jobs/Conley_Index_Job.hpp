@@ -2,12 +2,14 @@
  *  Conley_Index_Job.hpp
  */
 
+#include "chomp/ConleyIndex.h"
+
 #include "program/Configuration.h"
 #include "program/jobs/Compute_Morse_Graph.h"
 #include "structures/Conley_Morse_Graph.h"
 #include "structures/Database.h"
 
-template <class Toplex, class ParameterToplex, class ConleyIndex>
+template <class Toplex, class ParameterToplex >
 void Conley_Index_Job ( Message * result , const Message & job ) {
   // Read job
   size_t job_number;
@@ -21,7 +23,7 @@ void Conley_Index_Job ( Message * result , const Message & job ) {
 
   // Compute Morse Graph
   typedef std::vector< typename Toplex::Top_Cell > Subset;
-  typedef ConleyMorseGraph< std::vector < typename Toplex::Top_Cell >, ConleyIndex> CMGraph;
+  typedef ConleyMorseGraph< std::vector < typename Toplex::Top_Cell >, ConleyIndex_t> CMGraph;
   CMGraph cmg;
   
   Toplex phase_space;
@@ -48,7 +50,7 @@ void Conley_Index_Job ( Message * result , const Message & job ) {
   // Compute Conley Index Record of Morse Set
   ConleyRecord record;
   record . id_ = ms;
-  Conley_Index ( & record . ci_, // Conley_Index_t
+  ConleyIndex ( & record . ci_, // ConleyIndex_t
                 phase_space, 
                 subset,
                 map );

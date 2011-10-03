@@ -49,13 +49,13 @@ Picture * draw_picture (const int Width, const int Height,
 
 #include <cmath>
 #include "structures/Conley_Morse_Graph.h"
-#include "algorithms/Homology.h"
+#include "chomp/ConleyIndex.h"
 
 template < class Toplex, class CellContainer >
 Picture * draw_morse_sets (const int Width, const int Height,
                            const Toplex & my_toplex, 
-                           const ConleyMorseGraph < CellContainer , Conley_Index_t > & conley_morse_graph ) {
-  typedef ConleyMorseGraph < CellContainer , Conley_Index_t > CMG;
+                           const ConleyMorseGraph < CellContainer , ConleyIndex_t > & conley_morse_graph ) {
+  typedef ConleyMorseGraph < CellContainer , ConleyIndex_t > CMG;
   typename Toplex::Geometric_Description bounds = my_toplex . bounds ();
   // Prepare variables for bounds finding loop
   Picture::Real x_min = bounds . upper_bounds [ 0 ];
@@ -165,8 +165,8 @@ Picture * draw_toplex (const int Width, const int Height,
 template < class Toplex, class CellContainer >
 Picture * draw_toplex_and_morse_sets (const int Width, const int Height,
                        const Toplex & my_toplex,
-                      const ConleyMorseGraph < CellContainer, Conley_Index_t > & conley_morse_graph ) {
-  typedef ConleyMorseGraph < CellContainer , Conley_Index_t > CMG;
+                      const ConleyMorseGraph < CellContainer, ConleyIndex_t > & conley_morse_graph ) {
+  typedef ConleyMorseGraph < CellContainer , ConleyIndex_t > CMG;
   typename Toplex::Geometric_Description bounds = my_toplex . bounds ();
   // Prepare variables for bounds finding loop
   Picture::Real x_min = bounds . lower_bounds [ 0 ];

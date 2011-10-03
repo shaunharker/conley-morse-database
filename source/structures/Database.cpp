@@ -91,6 +91,10 @@ void Database::save ( const char * filename ) {
 
 void Database::load ( const char * filename ) {
   std::ifstream ifs(filename);
+  if ( not ifs . good () ) {
+    std::cout << "Could not load " << filename << "\n";
+    exit ( 1 );
+  }
   boost::archive::text_iarchive ia(ifs);
   // read class state from archive
   ia >> *this;

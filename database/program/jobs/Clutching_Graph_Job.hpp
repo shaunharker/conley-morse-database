@@ -91,6 +91,7 @@ void Clutching( ClutchingRecord * result,
                 const Toplex &toplex1,
                 const Toplex &toplex2 ) {
   unsigned long effort = 0;
+  typedef typename Toplex::Top_Cell Top_Cell;
   typedef typename CMGraph::Vertex Vertex;
   typedef std::vector<unsigned char> Prefix;
   typedef typename CMGraph::CellContainer CellContainer;

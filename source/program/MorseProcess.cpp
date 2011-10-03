@@ -58,9 +58,11 @@ void MorseProcess::initialize ( void ) {
       value /= limit;
     }
     // Produce a geometric region impinging on the neighbors of the interior vertex
-    Geometric_Description patch_bounds (PARAM_DIMENSION, lower_bounds, upper_bounds);
+    Prism patch_bounds (PARAM_DIMENSION, lower_bounds, upper_bounds);
     // Cover the geometric region with top cells
-    Toplex_Subset patch_subset = param_toplex . cover ( patch_bounds );
+    Toplex_Subset patch_subset;
+    std::insert_iterator < Toplex_Subset > ii ( patch_subset, patch_subset . begin () );
+    param_toplex . cover ( ii, patch_bounds );
     // Add "patch_subset" to the growing vector of patches
     PS_patches . push_back (patch_subset);
   } /* for */
@@ -70,10 +72,10 @@ void MorseProcess::initialize ( void ) {
   //char c; std::cin >> c;
 }
 
-/* * * * * * * * * * */
-/* write definition  */
-/* * * * * * * * * * */
-int MorseProcess::write ( Message & job ) {
+/* * * * * * * * * * * */
+/* prepare definition  */
+/* * * * * * * * * * * */
+int MorseProcess::prepare ( Message & job ) {
   /// All jobs have been sent
   /// Still waiting for some jobs to finish
   if (num_jobs_sent_ == num_jobs_) return 1;
@@ -92,19 +94,21 @@ int MorseProcess::write ( Message & job ) {
   // Cell Name data (translate back into top-cell names from index number)
   std::vector < Toplex::Top_Cell > cell_names;
   // Geometric Description Data
-  std::vector < Geometric_Description > geometric_descriptions;
+  std::vector < Prism > Prisms;
   /// Adjacency information vector
   std::vector < std::pair < size_t, size_t > > adjacency_information;
   /// Find adjacency information for cells in the patch
   BOOST_FOREACH ( Toplex::Top_Cell cell_in_patch, patch_subset ) {
     // Find geometry of patch cell
-    Geometric_Description GD = param_toplex . geometry (param_toplex . find (cell_in_patch));
+    Prism GD = param_toplex . geometry (param_toplex . find (cell_in_patch));
     // Store the name of the patch cell
     cell_names . push_back ( cell_in_patch );
     // Store the geometric description of the patch cell
-    geometric_descriptions . push_back ( GD );
+    Prisms . push_back ( GD );
     // Find the cells in toplex which intersect patch cell
-    Toplex_Subset GD_Cover = param_toplex . cover ( GD );
+    Toplex_Subset GD_Cover;
+    std::insert_iterator < Toplex_Subset > ii ( GD_Cover, GD_Cover . begin () );
+    param_toplex . cover ( ii, GD );
     // Store the cells in the patch which intersect the patch cell as adjacency pairs
     BOOST_FOREACH ( Toplex::Top_Cell cell_in_cover, GD_Cover ) {
       if (( patch_subset . count (cell_in_cover) != 0 ) && cell_in_patch < cell_in_cover ) {
@@ -118,7 +122,7 @@ int MorseProcess::write ( Message & job ) {
   // prepare the message with the job to be sent
   job << job_number;
   job << cell_names;
-  job << geometric_descriptions;
+  job << Prisms;
   job << adjacency_information;
 
   /// Increment the jobs_sent counter
@@ -132,13 +136,13 @@ int MorseProcess::write ( Message & job ) {
 /* work definition */
 /* * * * * * * * * */
 void MorseProcess::work ( Message & result, const Message & job ) const {
-	Clutching_Graph_Job < Toplex, Toplex, Conley_Index_t > ( &result , job ); 
+	Clutching_Graph_Job < Toplex, Toplex, ConleyIndex_t > ( &result , job ); 
 }
 
-/* * * * * * * * * */
-/* read definition */
-/* * * * * * * * * */
-void MorseProcess::read(const Message &result) {
+/* * * * * * * * * * */
+/* accept definition */
+/* * * * * * * * * * */
+void MorseProcess::accept(const Message &result) {
   /// Read the results from the result message
   size_t job_number;
   Database job_database;

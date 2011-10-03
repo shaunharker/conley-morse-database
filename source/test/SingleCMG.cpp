@@ -16,14 +16,13 @@
 
 // HEADERS FOR DATA STRUCTURES
 #include "structures/Conley_Morse_Graph.h"
-#include "toplexes/Adaptive_Cubical_Toplex.h"
+#include "chomp/Toplex.h"
 #include "program/jobs/Compute_Morse_Graph.h"
 
 // HEADERS FOR DEALING WITH PICTURES
 #include "tools/picture.h"
 #include "tools/lodepng/lodepng.h"
 
-using namespace Adaptive_Cubical;
 
 //////////////////////////////////////BEGIN USER EDIT//////////////////////////////////////////
 
@@ -36,13 +35,13 @@ struct LeslieMap {
   
   interval parameter1, parameter2;
   
-  LeslieMap ( const Adaptive_Cubical::Geometric_Description & rectangle ) {
+  LeslieMap ( const Prism & rectangle ) {
     parameter1 = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ]);
     parameter2 = interval (rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ]);
     return;
   }
-  Adaptive_Cubical::Geometric_Description operator () 
-  ( const Adaptive_Cubical::Geometric_Description & rectangle ) const {    
+  Prism operator () 
+  ( const Prism & rectangle ) const {    
     /* Read input */
     interval x0 = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ]);
     interval x1 = interval (rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ]);
@@ -52,7 +51,7 @@ struct LeslieMap {
     interval y1 = (double) 0.7 * x0;
     
     /* Write output */
-    Adaptive_Cubical::Geometric_Description return_value ( 2 );
+    Prism return_value ( 2 );
     return_value . lower_bounds [ 0 ] = y0 . lower ();
     return_value . upper_bounds [ 0 ] = y0 . upper ();
     return_value . lower_bounds [ 1 ] = y1 . lower ();
@@ -63,11 +62,11 @@ struct LeslieMap {
   
 };
 
-Geometric_Description initialize_phase_space_box ( void ) {
+Prism initialize_phase_space_box ( void ) {
   // Two dimensional phase space
   // [0, 320.056] x [0.0, 224.040]
   int phase_space_dimension = 2;
-  Geometric_Description phase_space_bounds ( phase_space_dimension );
+  Prism phase_space_bounds ( phase_space_dimension );
   phase_space_bounds . lower_bounds [ 0 ] = 0.0;
   phase_space_bounds . upper_bounds [ 0 ] = 320.056;
   phase_space_bounds . lower_bounds [ 1 ] = 0.0;
@@ -76,11 +75,11 @@ Geometric_Description initialize_phase_space_box ( void ) {
   return phase_space_bounds;
 }
 
-Geometric_Description initialize_parameter_space_box ( const Real bx, const Real by ) {
+Prism initialize_parameter_space_box ( const Real bx, const Real by ) {
   // Two dimensional parameter space
   // A box chosen from [8, 37] x [3, 50]
   int parameter_space_dimension = 2;
-  Geometric_Description parameter_space_limits ( parameter_space_dimension ); 
+  Prism parameter_space_limits ( parameter_space_dimension ); 
   parameter_space_limits . lower_bounds [ 0 ] = 8.0; 
   parameter_space_limits . upper_bounds [ 0 ] = 37.0;
   parameter_space_limits . lower_bounds [ 1 ] = 3.0;
@@ -88,7 +87,7 @@ Geometric_Description initialize_parameter_space_box ( const Real bx, const Real
   
   // Use command line arguments to choose a box from 50 x 50 choices.
   int PARAMETER_BOXES = 64;
-  Geometric_Description parameter_box ( parameter_space_dimension );
+  Prism parameter_box ( parameter_space_dimension );
   parameter_box . lower_bounds [ 0 ] = parameter_space_limits . lower_bounds [ 0 ] + 
   ( parameter_space_limits . upper_bounds [ 0 ] - parameter_space_limits . lower_bounds [ 0 ] ) * bx / (float) PARAMETER_BOXES;
   parameter_box . upper_bounds [ 0 ] = parameter_space_limits . lower_bounds [ 0 ] + 
@@ -109,8 +108,8 @@ int SINGLECMG_COMPLEXITY_LIMIT = 10000;
 ////////////////////////////////////////END USER EDIT//////////////////////////////////////////
 
 // TYPEDEFS
-typedef std::vector < Toplex::Top_Cell > CellContainer;
-typedef ConleyMorseGraph < CellContainer , Conley_Index_t > CMG;
+typedef std::vector < GridElement > CellContainer;
+typedef ConleyMorseGraph < CellContainer , ConleyIndex_t > CMG;
 
 // Declarations
 void DrawMorseSets ( const Toplex & phase_space, const CMG & cmg );
@@ -133,10 +132,10 @@ int main ( int argc, char * argv [] )
   Real by = ( Real ) atoi ( argv [ 2 ] );
   
   /* SET PHASE SPACE REGION */
-  Geometric_Description phase_space_bounds = initialize_phase_space_box ();
+  Prism phase_space_bounds = initialize_phase_space_box ();
 
   /* SET PARAMETER SPACE REGION */
-  Geometric_Description parameter_box = initialize_parameter_space_box (bx, by);
+  Prism parameter_box = initialize_parameter_space_box (bx, by);
 
   /* INITIALIZE PHASE SPACE */
   Toplex phase_space;

@@ -20,12 +20,16 @@ void ConleyProcess::initialize ( void ) {
   std::cout << "ConleyProcess::initialize ()\n";
   database . load ( "database.cmdb" );
   
-    // Initialize parameter space bounds
+  database . conley_records () . clear ();
+  std::cout << "Loaded database.\n";
+  // Initialize parameter space bounds
   param_toplex . initialize (param_bounds);   /// Parameter space toplex
   for ( int i = 0; i < PARAM_SUBDIVISIONS; ++i ) { 
   	param_toplex . subdivide (); // subdivide every top cell
   }
   
+  std::cout << "Subdivided parameter toplex.\n";
+
   // Goal is to create disjoint set data structure of equivalent morse sets
   typedef std::pair<int, int> intpair;
   typedef std::pair<int, int> ms_id; // morse_set id
@@ -79,13 +83,19 @@ void ConleyProcess::initialize ( void ) {
   
   num_jobs_ = conley_work_items . size ();
   
+  std::cout << "Writing job list to conleystage.txt\n";
   std::ofstream outfile ( "conleystage.txt" );
+  //std::cout << "Number of conley jobs = " << num_jobs_ << "\n";
+  //std::cout << "conley_work_items_ . size () = " << conley_work_items . size () << "\n";
   outfile << "Number of conley jobs = " << num_jobs_ << "\n";
   
   for ( unsigned int job_number = 0; job_number < num_jobs_; ++ job_number ) {
+    //std::cout << "fetch cell from work item\n";
   	Toplex::Top_Cell cell = conley_work_items [ job_number ] . first;
-  	Geometric_Description GD = param_toplex . geometry (param_toplex . find (cell));
+    //std::cout << "Found " << cell << ", now we determine corresponding prism\n";
+  	Prism GD = param_toplex . geometry (param_toplex . find (cell));
     outfile << "job number " << job_number << ", cell = " << cell << ", geo = " << GD << "\n";
+    //std::cout << "job number " << job_number << ", cell = " << cell << ", geo = " << GD << "\n";
 
   }
   outfile . close ();
@@ -94,21 +104,25 @@ void ConleyProcess::initialize ( void ) {
 /* * * * * * * * * * */
 /* write definition  */
 /* * * * * * * * * * */
-int ConleyProcess::write ( Message & job ) {
+int ConleyProcess::prepare ( Message & job ) {
   
   // All jobs have already been sent.
+  std::cout << " ConleyProcess::prepare\n";
+  std::cout << " num_jobs_sent_ = " << num_jobs_sent_ << "\n";
+  std::cout << " num_jobs_ = " << num_jobs_ << "\n";
+  
   if (num_jobs_sent_ == num_jobs_) return 1; // Code 1: No more jobs.
   
   size_t job_number = num_jobs_sent_;
   Toplex::Top_Cell cell = conley_work_items [ job_number ] . first;
-  Geometric_Description GD = param_toplex . geometry (param_toplex . find (cell));
+  Prism GD = param_toplex . geometry (param_toplex . find (cell));
 
   job << job_number;
   job << GD;
   job << conley_work_items [ job_number ];
   
-  //std::cout << "Preparing conley job " << job_number 
-  //          << " with GD = " << GD << "\n";
+  std::cout << "Preparing conley job " << job_number 
+            << " with GD = " << GD << "\n";
   
   /// Increment the jobs_sent counter
   ++num_jobs_sent_;
@@ -121,13 +135,21 @@ int ConleyProcess::write ( Message & job ) {
 /* work definition */
 /* * * * * * * * * */
 void ConleyProcess::work ( Message & result, const Message & job ) const {
-  Conley_Index_Job < Toplex, Toplex, Conley_Index_t > ( &result , job ); 
+  Conley_Index_Job < Toplex, Toplex > ( &result , job ); 
+  // debug
+  /*
+  Database job_database;
+  size_t job_number;
+  job >> job_number;
+  result << job_number;
+  result << job_database;
+   */
 }
 
 /* * * * * * * * * */
 /* read definition */
 /* * * * * * * * * */
-void ConleyProcess::read(const Message &result) {
+void ConleyProcess::accept (const Message &result) {
   /// Read the results from the result message
   size_t job_number;
   Database job_database;
@@ -135,7 +157,7 @@ void ConleyProcess::read(const Message &result) {
   result >> job_database;
   // Merge the results
   database . merge ( job_database );
-  std::cout << "ConleyProcess::read: Received result " 
+  std::cout << "ConleyProcess::accept: Received result " 
             << job_number << "\n";
 }
 

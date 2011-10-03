@@ -7,7 +7,7 @@
 
 #include "delegator/Message.h"
 
-template <class Toplex, class ParameterToplex, class ConleyIndex>
+template <class Toplex, class ParameterToplex >
 void Conley_Index_Job ( Message * result , const Message & job ); 
 
 #include "program/jobs/Conley_Index_Job.hpp"

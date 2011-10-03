@@ -5,8 +5,7 @@
 
 #include "structures/Database.h"
 
-#include "toplexes/Adaptive_Cubical_Toplex.h"
-using namespace Adaptive_Cubical;
+#include "chomp/Toplex.h"
 
 /* * * * * * * * * * * * * * */
 /* ConleyProcess declaration */
@@ -14,9 +13,9 @@ using namespace Adaptive_Cubical;
 class ConleyProcess : public Coordinator_Worker_Process {
 public:
   void initialize ( void );
-  int  write ( Message & job );
+  int  prepare ( Message & job );
   void work ( Message & result, const Message & job ) const;
-  void read ( const Message &result );
+  void accept ( const Message &result );
   void finalize ( void ); 
 private:
   size_t num_jobs_;

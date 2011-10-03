@@ -9,7 +9,7 @@
 #include <boost/serialization/set.hpp>
 #include <boost/serialization/utility.hpp>
 
-#include "algorithms/Homology.h"
+#include "chomp/ConleyIndex.h"
 
 /* File Format.
  
@@ -82,7 +82,7 @@ struct ClutchingRecord {
 
 struct ConleyRecord {
   std::pair < int, int > id_;
-  Conley_Index_t ci_;
+  ConleyIndex_t ci_;
   bool operator < ( const ConleyRecord & rhs ) const;
   friend class boost::serialization::access;
   template<class Archive>

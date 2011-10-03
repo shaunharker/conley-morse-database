@@ -1,9 +1,10 @@
 /* Test Map */
+// Miro Kramar
 
 #ifndef CMDP_TESTMAP_H
 #define CMDP_TESTMAP_H
 
-#include "toplexes/Adaptive_Cubical_Toplex.h"
+#include "chomp/Toplex.h"
 #include <cmath>
 
 
@@ -28,7 +29,7 @@ public:
 	double Get(const  unsigned  int pos ) const { return data_[ pos ];}
 	void Set( const unsigned int pos, double value ){ data_[ pos ] = value;}
 	/* This will have to change when Geometric_Description changes */
-	void Mid_Point( const Adaptive_Cubical::Geometric_Description & rectangle ){
+	void Mid_Point( const Prism & rectangle ){
 		if ( data_ != NULL ) delete[] data_;
 		data_ = new double[ rectangle.lower_bounds.size() ];
 		for ( unsigned int dim = 0; dim < rectangle.lower_bounds.size(); ++dim ){
@@ -87,13 +88,13 @@ public:
 struct ComputationalMap{
 
 public:
-	Adaptive_Cubical::Geometric_Description parameters;
+	Prism parameters;
 
 	void Test( double x){};
 
 	/* Constructor loads the parameters */
 	ComputationalMap(){}
-	ComputationalMap( const Adaptive_Cubical::Geometric_Description & rectangle ) : parameters ( rectangle ) { }
+	ComputationalMap( const Prism & rectangle ) : parameters ( rectangle ) { }
 
 	void F( const Point & x, Point  &fx) const {
 		fx( 0 ) = LAMBDA * x( 0 ) * ( 1.0f - x( 0 ) );
@@ -121,16 +122,16 @@ ComputationalMap MyMap;
 
 public:
 	/* Is this the way we want to pass the parameters ? Probbly we want just cubes and we will mess with this*/
-	TestMap ( const Adaptive_Cubical::Geometric_Description & rectangle ) /*: MyMap ( rectangle )*/ { }
+	TestMap ( const Prism & rectangle ) /*: MyMap ( rectangle )*/ { }
 
 
 
-	Adaptive_Cubical::Geometric_Description operator () (
-    const Adaptive_Cubical::Geometric_Description & rectangle ) const {
+	Prism operator () (
+    const Prism & rectangle ) const {
 
 		
 		unsigned int dimension = rectangle.lower_bounds.size();
-		Adaptive_Cubical::Geometric_Description return_value ( dimension );
+		Prism return_value ( dimension );
 
 		/* I suppose that the box is a square */
 		double box_width = ( rectangle.upper_bounds[ 0 ] - rectangle.lower_bounds [ 0 ] ) / 2;
