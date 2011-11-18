@@ -5,6 +5,8 @@
 
 #include "database/structures/Database.h"
 
+#include "database/program/Configuration.h"
+
 #include "chomp/Toplex.h"
 
 /* * * * * * * * * * * * * * */
@@ -21,6 +23,7 @@ private:
   size_t num_jobs_;
   size_t num_jobs_sent_;
   Toplex param_toplex;
+  Configuration config;
   Database database;
   std::vector<std::pair<int, int> > conley_work_items;
 };

@@ -12,21 +12,29 @@
 #include "database/program/jobs/Clutching_Graph_Job.h"
 #include "database/structures/UnionFind.hpp"
 
+#include "ModelMap.h"
+
 /* * * * * * * * * * * * */
 /* initialize definition */
 /* * * * * * * * * * * * */
 void MorseProcess::initialize ( void ) {
+  
+  std::cout << "Attempting to load configuration...\n";
+  config . loadFromFile ( argv[1] );
+  std::cout << "Loaded configuration.\n";
+  
+  
   num_jobs_sent_ = 0;
   
   int patch_stride = 1; // distance between center of patches in box-units
   // warning: currently only works if patch_stride is a power of two
   
   // Initialize parameter space bounds
-  param_toplex . initialize (param_bounds);   /// Parameter space toplex
+  param_toplex . initialize ( config.PARAM_BOUNDS );   /// Parameter space toplex
   // Subdivide parameter space toplex
   Real scale = Real ( 1.0 );
   int num_across = 1; // The number of boxes across
-  for (int i = 0; i < PARAM_SUBDIVISIONS; ++i) {
+  for (int i = 0; i < config.PARAM_SUBDIV_DEPTH; ++i) {
     scale /= (Real) 2.0;
     num_across *= 2;
     param_toplex . subdivide (); // subdivide every top cell
@@ -35,30 +43,30 @@ void MorseProcess::initialize ( void ) {
   // Also, determine the number of interior vertices = (num_across/stride - 1)^dim
   int num_interior_vertices = 1;
   int limit = num_across / patch_stride - 1;
-  std::vector < Real > side_length ( PARAM_DIMENSION );
-  for (int dim = 0; dim < PARAM_DIMENSION; ++ dim ) {
+  std::vector < Real > side_length ( config.PARAM_DIM );
+  for (int dim = 0; dim < config.PARAM_DIM; ++ dim ) {
     num_interior_vertices *= limit;
-    side_length [ dim ] = scale * (param_bounds . upper_bounds [ dim ] -
-                                   param_bounds . lower_bounds [ dim ] );
+    side_length [ dim ] = scale * ( config.PARAM_BOUNDS . upper_bounds [ dim ] -
+                                    config.PARAM_BOUNDS . lower_bounds [ dim ] );
   }
   // Cover the toplex with patches so that each codimension-one interior cell is
   // interior to at least one of the patches.
   for ( int i = 0; i < num_interior_vertices; ++ i ) {
     // Acquire the coordinates of the ith interior vertex
     int value = i;
-    std::vector < Real > coordinates ( PARAM_DIMENSION );
-    std::vector < Real > lower_bounds ( PARAM_DIMENSION );
-    std::vector < Real > upper_bounds ( PARAM_DIMENSION );
+    std::vector < Real > coordinates ( config.PARAM_DIM );
+    std::vector < Real > lower_bounds ( config.PARAM_DIM );
+    std::vector < Real > upper_bounds ( config.PARAM_DIM );
     
-    for (int dim = 0; dim < PARAM_DIMENSION; ++ dim ) {
-      coordinates [ dim ] = param_bounds . lower_bounds [ dim ] 
+    for (int dim = 0; dim < config.PARAM_DIM; ++ dim ) {
+      coordinates [ dim ] = config . PARAM_BOUNDS . lower_bounds [ dim ] 
       + ((Real) patch_stride) * side_length [ dim ] * ( (Real) 1.0 + (Real) ( value % limit ) );
       lower_bounds [ dim ] = coordinates [ dim ] - ((Real) patch_stride) * side_length [ dim ] / (Real) 2.0;
       upper_bounds [ dim ] = coordinates [ dim ] + ((Real) patch_stride) * side_length [ dim ] / (Real) 2.0;
       value /= limit;
     }
     // Produce a geometric region impinging on the neighbors of the interior vertex
-    Prism patch_bounds (PARAM_DIMENSION, lower_bounds, upper_bounds);
+    Prism patch_bounds (config.PARAM_DIM, lower_bounds, upper_bounds);
     // Cover the geometric region with top cells
     Toplex_Subset patch_subset;
     std::insert_iterator < Toplex_Subset > ii ( patch_subset, patch_subset . begin () );
@@ -124,6 +132,10 @@ int MorseProcess::prepare ( Message & job ) {
   job << cell_names;
   job << Prisms;
   job << adjacency_information;
+  job << config.PHASE_SUBDIV_MIN;
+  job << config.PHASE_SUBDIV_MAX;
+  job << config.PHASE_SUBDIV_LIMIT;
+  job << config.PHASE_BOUNDS;
 
   /// Increment the jobs_sent counter
   ++num_jobs_sent_;
@@ -159,5 +171,7 @@ void MorseProcess::accept(const Message &result) {
 /* * * * * * * * * * * */
 void MorseProcess::finalize ( void ) {
   std::cout << "MorseProcess::finalize ()\n";
-  database . save ( "database.cmdb" );
+  std::string filestring ( argv[1] );
+  std::string appendstring ( "/database.mdb" );
+  database . save ( (filestring + appendstring) . c_str () );
 }

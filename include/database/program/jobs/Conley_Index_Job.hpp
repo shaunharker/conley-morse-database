@@ -15,9 +15,18 @@ void Conley_Index_Job ( Message * result , const Message & job ) {
   size_t job_number;
   typename Toplex::Geometric_Description geo;
   std::pair < int, int > ms;
+  int PHASE_SUBDIV_MIN;
+  int PHASE_SUBDIV_MAX;
+  int PHASE_SUBDIV_LIMIT;
+  Prism PHASE_BOUNDS;
+
   job >> job_number;
   job >> geo;
   job >> ms;
+  job >> PHASE_SUBDIV_MIN;
+  job >> PHASE_SUBDIV_MAX;
+  job >> PHASE_SUBDIV_LIMIT;
+  job >> PHASE_BOUNDS;
   
   //std::cout << "CIJ: job_number = " << job_number << "  (" << ms . first << ", " << ms . second << ")\n";
 
@@ -27,7 +36,7 @@ void Conley_Index_Job ( Message * result , const Message & job ) {
   CMGraph cmg;
   
   Toplex phase_space;
-  phase_space . initialize ( space_bounds );
+  phase_space . initialize ( PHASE_BOUNDS );
   
   //std::cout << "CIJ: geo = " << geo << "\n";
   
@@ -38,9 +47,9 @@ void Conley_Index_Job ( Message * result , const Message & job ) {
   Compute_Morse_Graph ( & cmg, 
                         & phase_space, 
                           map,
-                          MIN_PHASE_SUBDIVISIONS, 
-                          MAX_PHASE_SUBDIVISIONS, 
-                          COMPLEXITY_LIMIT );
+                          PHASE_SUBDIV_MIN, 
+                          PHASE_SUBDIV_MAX, 
+                          PHASE_SUBDIV_LIMIT );
   
   // Select Subset
   Subset subset = cmg . CellSet ( ms . second );

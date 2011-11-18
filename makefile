@@ -1,7 +1,7 @@
 # makefile for CMDP project 
 # directories where prerequisites can be found
 HOMEDIR := ..
-CHOMP := $(HOMEDIR)/newchomp
+CHOMP := ./
 CLUSTER := $(HOMEDIR)/cluster-delegator
 BOOST := /usr/local
 GRAPHICS := /usr/X11
@@ -13,6 +13,7 @@ INCS += -I$(CLUSTER)/include
 INCS += -I$(BOOST)/include
 INCS += -I$(GRAPHICS)/include
 INCS += -I./include/
+INCS += -I$(MODELDIR)
 
 #libraries                                                                     
 LINKFLAGS := -L$(CHOMP)/lib
@@ -39,7 +40,7 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 # List of targets
-all: Conley_Morse_Database SingleCMG PostProcessDatabase
+all: Conley_Morse_Database
 
 DATABASE := ./build/program/Conley_Morse_Database.o 
 DATABASE += ./build/program/ConleyProcess.o

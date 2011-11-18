@@ -12,19 +12,30 @@
 #include "database/program/jobs/Conley_Index_Job.h"
 #include "database/structures/UnionFind.hpp"
 
+#include "ModelMap.h"
+
 /* * * * * * * * * * * * */
 /* initialize definition */
 /* * * * * * * * * * * * */
 void ConleyProcess::initialize ( void ) {
+  
+
   num_jobs_sent_ = 0;
   std::cout << "ConleyProcess::initialize ()\n";
-  database . load ( "database.cmdb" );
   
+  std::cout << "Attempting to load configuration...\n";
+  config . loadFromFile ( argv[1] );
+  std::cout << "Loaded configuration.\n";
+  
+  std::string filestring ( argv[1] );
+  std::string appendstring ( "/database.mdb" );
+  database . load ( (filestring + appendstring) . c_str () );
+    
   database . conley_records () . clear ();
   std::cout << "Loaded database.\n";
   // Initialize parameter space bounds
-  param_toplex . initialize (param_bounds);   /// Parameter space toplex
-  for ( int i = 0; i < PARAM_SUBDIVISIONS; ++i ) { 
+  param_toplex . initialize (config.PARAM_BOUNDS);   /// Parameter space toplex
+  for ( int i = 0; i < config.PARAM_SUBDIV_DEPTH; ++i ) { 
   	param_toplex . subdivide (); // subdivide every top cell
   }
   
@@ -120,6 +131,10 @@ int ConleyProcess::prepare ( Message & job ) {
   job << job_number;
   job << GD;
   job << conley_work_items [ job_number ];
+  job << config.PHASE_SUBDIV_MIN;
+  job << config.PHASE_SUBDIV_MAX;
+  job << config.PHASE_SUBDIV_LIMIT;
+  job << config.PHASE_BOUNDS;
   
   std::cout << "Preparing conley job " << job_number 
             << " with GD = " << GD << "\n";
@@ -166,5 +181,8 @@ void ConleyProcess::accept (const Message &result) {
 /* * * * * * * * * * * */
 void ConleyProcess::finalize ( void ) {
   std::cout << "ConleyProcess::finalize ()\n";
-  database . save ( "database.cmdb" );
+  std::string filestring ( argv[1] );
+  std::string appendstring ( "/database.cmdb" );
+  database . save ( (filestring + appendstring) . c_str () );
+  
 }

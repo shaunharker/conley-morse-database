@@ -14,7 +14,7 @@ void subdivide ( Toplex & phase_space, CellContainer & morse_set );
 
 template < class Morse_Graph, class Toplex, class Map >
 void Compute_Morse_Graph (Morse_Graph * MG, Toplex * phase_space, const Map & interval_map,
-                          const unsigned int Min, const unsigned int Max, const unsigned int Comp) {
+                          const unsigned int Min, const unsigned int Max, const unsigned int Limit) {
   typedef std::vector<typename Toplex::Top_Cell> CellContainer;
   typedef CombinatorialMap<Toplex,CellContainer> Graph;
   std::vector < CellContainer > morse_sets;
@@ -50,7 +50,7 @@ void Compute_Morse_Graph (Morse_Graph * MG, Toplex * phase_space, const Map & in
   BOOST_FOREACH ( CellContainer & morse_set, morse_sets ) { 
     std::vector < CellContainer > spurious_sets;
     spurious_sets . push_back ( morse_set );
-    if ( morse_set . size () < Comp )
+    if ( morse_set . size () < Limit )
     for ( unsigned int d = Min; d < Max && not spurious_sets . empty (); ++ d ) {
 #ifdef CMG_VERBOSE
       std::cout << "Depth " << d << ": \n";
@@ -58,7 +58,7 @@ void Compute_Morse_Graph (Morse_Graph * MG, Toplex * phase_space, const Map & in
       Graph G = compute_combinatorial_map ( spurious_sets, * phase_space, interval_map );
       compute_morse_sets <Morse_Graph,Toplex,CellContainer> ( &spurious_sets, G );
       BOOST_FOREACH ( CellContainer & spur, spurious_sets ) {
-        if ( spur . size () > Comp ) { 
+        if ( spur . size () > Limit ) { 
           d = Max;
           break;
         }

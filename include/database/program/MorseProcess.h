@@ -8,6 +8,7 @@
 #include "database/structures/Database.h"
 
 #include "chomp/Toplex.h"
+#include "database/program/Configuration.h"
 
 /* * * * * * * * * * * * * * */
 /* MorseProcess declaration */
@@ -23,6 +24,7 @@ private:
   size_t num_jobs_;
   size_t num_jobs_sent_;
   Toplex param_toplex;
+  Configuration config;
   Database database;
   typedef boost::unordered_set<GridElement> Toplex_Subset;
   std::vector < Toplex_Subset > PS_patches; // morse_work_items

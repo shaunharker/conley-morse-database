@@ -207,11 +207,19 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   std::vector < typename Toplex::Top_Cell > cell_names;
   std::vector<typename ParameterToplex::Geometric_Description> geometric_descriptions;
   std::vector<std::pair<size_t, size_t> > adjacencies;
+  int PHASE_SUBDIV_MIN;
+  int PHASE_SUBDIV_MAX;
+  int PHASE_SUBDIV_LIMIT;
+  Prism PHASE_BOUNDS;
   
   job >> job_number;
   job >> cell_names;
   job >> geometric_descriptions;
   job >> adjacencies;
+  job >> PHASE_SUBDIV_MIN;
+  job >> PHASE_SUBDIV_MAX;
+  job >> PHASE_SUBDIV_LIMIT;
+  job >> PHASE_BOUNDS;
   
   // Prepare data structures
   std::map < typename Toplex::Top_Cell, Toplex> phase_space_toplexes;  
@@ -225,16 +233,16 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
     //Prepare phase space and map
     typename Toplex::Top_Cell cell = cell_names [ i ];
     cell_index [ cell ] = i;
-    phase_space_toplexes [ cell ] . initialize(space_bounds);
+    phase_space_toplexes [ cell ] . initialize ( PHASE_BOUNDS );
     GeometricMap map ( geometric_descriptions [ i ] );
     // perform computation
     Compute_Morse_Graph 
     ( & conley_morse_graphs  [ cell ],
       & phase_space_toplexes [ cell ], 
       map, 
-      MIN_PHASE_SUBDIVISIONS, 
-      MAX_PHASE_SUBDIVISIONS, 
-      COMPLEXITY_LIMIT);
+      PHASE_SUBDIV_MIN, 
+      PHASE_SUBDIV_MAX, 
+      PHASE_SUBDIV_LIMIT);
   }
   
   // Compute Clutching Graphs
