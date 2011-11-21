@@ -225,15 +225,6 @@ inline std::vector < unsigned char > Toplex::prefix ( const GridElement & cell )
   return result;
 } /* Adaptive_Cubical::Toplex::prefix */
 
-
-template < class InsertIterator > void 
-Toplex::children ( InsertIterator & ii, const GridElement & element ) const;
-
-/// umbrella ( std::vector < GridElement > & elements )
-///    Return the set of all GridElements whose every descendent is in "elements"
-template < class InsertIterator, class Container > void 
-Toplex::umbrella ( InsertIterator & ii, const Container & elements ) const;
-
 template < class InsertIterator > void 
 Toplex::children ( InsertIterator & ii, 
                    const GridElement & element ) const {
