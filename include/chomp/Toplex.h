@@ -227,16 +227,16 @@ inline std::vector < unsigned char > Toplex::prefix ( const GridElement & cell )
 
 
 template < class InsertIterator > void 
-children ( InsertIterator & ii, const GridElement & element ) const;
+Toplex::children ( InsertIterator & ii, const GridElement & element ) const;
 
 /// umbrella ( std::vector < GridElement > & elements )
 ///    Return the set of all GridElements whose every descendent is in "elements"
 template < class InsertIterator, class Container > void 
-umbrella ( InsertIterator & ii, const Container & elements ) const;
+Toplex::umbrella ( InsertIterator & ii, const Container & elements ) const;
 
 template < class InsertIterator > void 
-inline std::vector < GridElement > children ( InsertIterator & ii, 
-                                              const GridElement & element ) const {
+Toplex::children ( InsertIterator & ii, 
+                   const GridElement & element ) const {
   iterator cell_iterator = find ( element );
   Node * node_ptr = cell_iterator . node_;
   std::stack < Node * > nodes;
@@ -258,12 +258,12 @@ inline std::vector < GridElement > children ( InsertIterator & ii,
 }
 
 template < class InsertIterator, class Container > void 
-umbrella ( const Container & elements ) const {
+Toplex::umbrella ( const Container & elements ) const {
   std::vector<GridElement> result ( elements . begin (), elements . end () );
   boost::unordered_set < GridElement > umb;
   int N = result . size ();
   for ( int i = 0; i < N; ++ i ) {
-    element = result [ i ];
+    GridElement element = result [ i ];
     iterator cell_iterator = find ( element );
     Node * parent_node = find ( element ) . node_ -> parent_;
     if ( parent_node == NULL ) continue;
