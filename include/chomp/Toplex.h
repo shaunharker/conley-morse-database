@@ -47,11 +47,26 @@ public:
   ///   Return a vector with the prefix string of tree moves necessary to 
   ///   navigate to its leaf in the Toplex tree structure
   
-  std::vector < unsigned char > prefix ( const GridElement & GridElement ) const;
-  
+  std::vector < unsigned char > prefix ( const GridElement & element ) const;
+
+  /// children ( GridElement)
+  ///    Return an array of children GridElements,
+  ///    or else empty if the GridElement is not further subdivided.
+  template < class InsertIterator > void 
+  children ( InsertIterator & ii, const GridElement & element ) const;
+
+  /// umbrella ( std::vector < GridElement > & elements )
+  ///    Return the set of all GridElements whose every descendent is in "elements"
+  template < class InsertIterator, class Container > void 
+  umbrella ( InsertIterator & ii, const Container & elements ) const;
+
   /// cover
   template < class InsertIterator > void 
   cover ( InsertIterator & ii, const Prism & prism ) const;
+  
+  /// coarse cover   (whenever node containment, report parent, not children)
+  template < class InsertIterator > void 
+  coarseCover ( InsertIterator & ii, const Prism & geometric_region ) const;
   
   /// subdivide
   template < class InsertIterator > void 
@@ -210,6 +225,58 @@ inline std::vector < unsigned char > Toplex::prefix ( const GridElement & cell )
   return result;
 } /* Adaptive_Cubical::Toplex::prefix */
 
+
+template < class InsertIterator > void 
+children ( InsertIterator & ii, const GridElement & element ) const;
+
+/// umbrella ( std::vector < GridElement > & elements )
+///    Return the set of all GridElements whose every descendent is in "elements"
+template < class InsertIterator, class Container > void 
+umbrella ( InsertIterator & ii, const Container & elements ) const;
+
+template < class InsertIterator > void 
+inline std::vector < GridElement > children ( InsertIterator & ii, 
+                                              const GridElement & element ) const {
+  iterator cell_iterator = find ( element );
+  Node * node_ptr = cell_iterator . node_;
+  std::stack < Node * > nodes;
+  nodes . push ( node_ptr );
+  while ( not nodes . empty () ) {
+    Node * ptr = nodes . top ();
+    nodes . pop ();
+    if ( ptr -> dimension_ == 0 ) {
+      * ii ++ = ptr -> contents_;
+    } else {
+      if ( ptr -> left_ != NULL ) {
+        nodes . push ( ptr -> left_ );
+      }
+      if ( ptr -> right_ != NULL ) {
+        nodes . push ( ptr -> right_ );
+      }
+    }
+  }
+}
+
+template < class InsertIterator, class Container > void 
+umbrella ( const Container & elements ) const {
+  std::vector<GridElement> result ( elements . begin (), elements . end () );
+  boost::unordered_set < GridElement > umb;
+  int N = result . size ();
+  for ( int i = 0; i < N; ++ i ) {
+    element = result [ i ];
+    iterator cell_iterator = find ( element );
+    Node * parent_node = find ( element ) . node_ -> parent_;
+    if ( parent_node == NULL ) continue;
+    GridElement parent =  parent_node -> contents_;
+    if ( umb . insert ( parent ) . second ) {
+      result . push_back ( parent );
+      ++ N;
+    }
+  }
+  for ( int i = 0; i < N; ++ i ) * ii ++ = result [ i ];
+}
+
+
 inline Prism Toplex::geometry ( const const_iterator & cell_iterator ) const {
   Prism return_value ( dimension_, Real ( 0 ) );
   //std::cout << "geometry of " << cell_iterator . node_ << " (" << cell_iterator . node_ -> contents_ << ")\n";
@@ -332,6 +399,172 @@ inline void Toplex::cover ( InsertIterator & ii, const Prism & geometric_region 
       }
       
       if ( intersect_flag ) {
+        //std::cout << "Detected intersection.\n";
+        // Check if its a leaf.
+        if ( N -> left_ == NULL ) {
+          if ( N -> right_ == NULL ) {
+            // Here's what we are looking for.
+            * ii ++ = N -> contents_; // OUTPUT
+                                      //std::cout << "cover -- " << N -> contents_ << "\n";
+                                      // Issue the order to rise.
+                                      //std::cout << "Issue rise.\n";
+            state = 3;
+          } else {
+            // Issue the order to descend to the right.
+            //std::cout << "Issue descend right.\n";
+            state = 2;
+          } 
+        } else {
+          // Issue the order to descend to the left.   
+          //std::cout << "Issue descend left.\n";
+          state = 1;
+        }
+      } else {
+        // No intersection, issue order to rise.
+        //std::cout << "No intersection. \n";
+        //std::cout << "Issue Rise.\n";
+        state = 3;
+      } // intersection check complete
+    } // state 0
+    
+    if ( state == 1 ) {
+      // We have been ordered to descend to the left.
+      //std::cout << "Descend left.\n";
+      int div_dim = N -> dimension_;
+      NUB[div_dim] -= ( (NUB[div_dim]-NLB[div_dim]) >> 1 );
+      N = N -> left_;
+      state = 0;
+      continue;
+    } // state 1
+    
+    if ( state == 2 ) {
+      // We have been ordered to descend to the right.
+      //std::cout << "Descend right.\n";
+      int & div_dim = N -> dimension_;
+      NLB[div_dim] += ( (NUB[div_dim]-NLB[div_dim]) >> 1 );
+      N = N -> right_;
+      state = 0;
+      continue;
+    } // state 2
+    
+    if ( state == 3 ) {
+      // We have been ordered to rise.
+      //std::cout << "Rise.\n";
+      Node * P = N -> parent_;
+      // Can't rise if root.
+      if ( P == NULL ) break; // algorithm complete
+      int & div_dim = P -> dimension_;
+      if ( P -> left_ == N ) {
+        // This is a left child.
+        //std::cout << "We are rising from left.\n";
+        NUB[div_dim] += NUB[div_dim]-NLB[div_dim];
+        // If we rise from the left child, we order parent to go right.
+        state = 2;
+      } else {
+        // This is the right child.
+        //std::cout << "We are rising from right.\n";
+        NLB[div_dim] -= NUB[div_dim]-NLB[div_dim];
+        // If we rise from the right child, we order parent to rise.
+        state = 3;
+      }
+      N = P;
+    } // state 3
+    
+  } // while loop
+} // cover
+
+
+template < class InsertIterator >
+inline void Toplex::coarseCover ( InsertIterator & ii, const Prism & geometric_region ) const {
+  
+  /* Use a stack, not a queue, and do depth first search.
+   The advantage of this is that we can maintain the geometry during our Euler Tour.
+   We can maintain our geometry without any roundoff error if we use the standard box
+   [0,1]^d. To avoid having to translate to real coordinates at each leaf, we instead
+   convert the input to these standard coordinates, which we put into integers. */
+  
+  // Step 1. Convert input to standard coordinates. 
+  Prism region ( dimension_ );
+  static std::vector<uint64_t> LB ( dimension_);
+  static std::vector<uint64_t> UB ( dimension_);
+#define INTPHASEWIDTH (((uint64_t)1) << 60)
+  static Real bignum ( INTPHASEWIDTH );
+  for ( int dimension_index = 0; dimension_index < dimension_; ++ dimension_index ) {
+    region . lower_bounds [ dimension_index ] = 
+    (geometric_region . lower_bounds [ dimension_index ] - bounds_ . lower_bounds [ dimension_index ]) /
+    (bounds_ . upper_bounds [ dimension_index ] - bounds_ . lower_bounds [ dimension_index ]);
+    region . upper_bounds [ dimension_index ] = 
+    (geometric_region . upper_bounds [ dimension_index ] - bounds_ . lower_bounds [ dimension_index ]) /
+    (bounds_ . upper_bounds [ dimension_index ] - bounds_ . lower_bounds [ dimension_index ]);
+    
+    if ( region . upper_bounds [ dimension_index ] < Real ( 0 ) ) return;
+    if ( region . lower_bounds [ dimension_index ] > Real ( 1 ) ) return;
+    
+    if ( region . lower_bounds [ dimension_index ] < Real ( 0 ) ) 
+      region . lower_bounds [ dimension_index ] = Real ( 0 );
+    if ( region . lower_bounds [ dimension_index ] > Real ( 1 ) ) 
+      region . lower_bounds [ dimension_index ] = Real ( 1 );
+    LB [ dimension_index ] = (uint64_t) ( bignum * region . lower_bounds [ dimension_index ] );
+    if ( region . upper_bounds [ dimension_index ] < Real ( 0 ) ) 
+      region . upper_bounds [ dimension_index ] = Real ( 0 );
+    if ( region . upper_bounds [ dimension_index ] > Real ( 1 ) ) 
+      region . upper_bounds [ dimension_index ] = Real ( 1 );
+    UB [ dimension_index ] = (uint64_t) ( bignum * region . upper_bounds [ dimension_index ] );
+  }
+  
+  // Step 2. Perform DFS on the Toplex tree, recursing whenever we have intersection,
+  //         (or adding leaf to output when we have leaf intersection)
+  static std::vector<uint64_t> NLB ( dimension_);
+  static std::vector<uint64_t> NUB ( dimension_);
+  for ( int dimension_index = 0; dimension_index < dimension_; ++ dimension_index ) {
+    if ( LB [ dimension_index ] < (1 << 20) ) LB [ dimension_index ] = 0;
+    if ( LB [ dimension_index ] >= (1 << 20) ) LB [ dimension_index ] -= (1 << 20);
+    if ( UB [ dimension_index ] < (INTPHASEWIDTH - (1 << 20)) ) UB [ dimension_index ] += (1 << 20);
+    if ( UB [ dimension_index ] >= (INTPHASEWIDTH - (1 << 20)) ) UB [ dimension_index ] = INTPHASEWIDTH;
+    NLB [ dimension_index ] = 0;
+    NUB [ dimension_index ] = INTPHASEWIDTH;
+  }
+  //std::cout << "C\n";
+  
+  /* Strategy. 
+   We will take the Euler Tour using a 4-state machine.
+   There are Four states.
+   0 = Just Descended. Check for an intersection.
+   1 = Descend to the left
+   2 = Descend to right 
+   3 = Rise.
+   */
+  
+  Node * N = root_;
+  char state = 0; 
+  
+  //std::cout << "D\n";
+  
+  while ( 1 ) {
+    //std::cout << "Entering Loop, state = " << (int) state << "\n";
+    //std::cout << " N = " << N << "\n";
+    if ( state == 0 ) {
+      // If we have descended here, then we should check for intersection.
+      bool intersect_flag = true;
+      bool contain_flag = true;
+      for ( int d = 0; d < dimension_; ++ d ) {
+        if ( LB[d] > NUB[d] || UB[d] < NLB [d] ) {  // INTERSECTION CHECK
+          intersect_flag = false;
+          break;
+        }
+        if ( LB[d] > NLB[d] || UB[d] < NUB [d] ) {  // CONTAINMENT CHECK
+          contain_flag = false;
+        }
+      }
+      
+      if ( contain_flag ) {
+        // Here's what we are looking for.
+        * ii ++ = N -> contents_; // OUTPUT
+                                  //std::cout << "cover -- " << N -> contents_ << "\n";
+                                  // Issue the order to rise.
+                                  //std::cout << "Issue rise.\n";
+        state = 3;
+      } else if ( intersect_flag ) {
         //std::cout << "Detected intersection.\n";
         // Check if its a leaf.
         if ( N -> left_ == NULL ) {
