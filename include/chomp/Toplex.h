@@ -57,6 +57,7 @@ public:
 
   /// umbrella ( std::vector < GridElement > & elements )
   ///    Return the set of all GridElements whose every descendent is in "elements"
+  
   template < class InsertIterator, class Container > void 
   umbrella ( InsertIterator & ii, const Container & elements ) const;
 
@@ -249,7 +250,8 @@ Toplex::children ( InsertIterator & ii,
 }
 
 template < class InsertIterator, class Container > void 
-Toplex::umbrella ( const Container & elements ) const {
+Toplex::umbrella ( InsertIterator & ii, 
+                   const Container & elements ) const {
   std::vector<GridElement> result ( elements . begin (), elements . end () );
   boost::unordered_set < GridElement > umb;
   int N = result . size ();
