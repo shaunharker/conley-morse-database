@@ -5,6 +5,7 @@ CHOMP := ./
 CLUSTER := $(HOMEDIR)/cluster-delegator
 BOOST := /usr/local
 GRAPHICS := /usr/X11
+MODELDIR := ./   #user overrides this
 
 #includes
 HOMEDIR := ..

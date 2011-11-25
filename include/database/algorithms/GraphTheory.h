@@ -5,6 +5,8 @@
 
 #include <vector>
 
+#ifdef OLD_CMAP_METHOD
+
 /** class CombinatorialMap */
 template < class Toplex, class CellContainer >
 class CombinatorialMap {
@@ -47,6 +49,16 @@ template < class MorseGraph, class Toplex, class CellContainer >
 void compute_morse_sets (std::vector< CellContainer > * output, 
                          const CombinatorialMap<Toplex,CellContainer> & G, 
    /* optional output */ MorseGraph * MG = NULL);
+
+#else
+
+/** compute_morse_sets */
+template < class MorseGraph, class Graph, class CellContainer >
+void compute_morse_sets (std::vector< CellContainer > * output, 
+                         const Graph & G, 
+                         /* optional output */ MorseGraph * MG = NULL);
+
+#endif
 
 /** compute_strong_components */
 template < class OutEdgeGraph >

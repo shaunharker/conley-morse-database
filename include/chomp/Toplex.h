@@ -5,11 +5,16 @@
 #ifndef CHOMP_TOPLEX_H
 #define CHOMP_TOPLEX_H
 
+#include <vector>
+#include <stack>
+
 #include "chomp/Prism.h"
 #include "chomp/RelativePair.h"
 #include "chomp/CubicalComplex.h"
 #include "chomp/ToplexDetail.h"
 #include "chomp/BitmapSubcomplex.h"
+
+
 /**********
  * Toplex *
  **********/
@@ -55,6 +60,11 @@ public:
   template < class InsertIterator > void 
   children ( InsertIterator & ii, const GridElement & element ) const;
 
+  /// leaves ( GridElement )
+  template < class InsertIterator, class Container > void 
+  leaves ( InsertIterator & ii, 
+           const Container & elements ) const;
+  
   /// umbrella ( std::vector < GridElement > & elements )
   ///    Return the set of all GridElements whose every descendent is in "elements"
   
@@ -226,6 +236,43 @@ inline std::vector < unsigned char > Toplex::prefix ( const GridElement & cell )
   return result;
 } /* Adaptive_Cubical::Toplex::prefix */
 
+
+template < class InsertIterator > void 
+Toplex::children ( InsertIterator & ii, 
+                  const GridElement & element ) const {
+  iterator cell_iterator = find ( element );
+  Node * ptr = cell_iterator . node_;
+  if ( ptr -> left_ != NULL ) * ii ++ = ptr -> left_ -> contents_;
+  if ( ptr -> right_ != NULL ) * ii ++ = ptr -> right_ -> contents_; 
+}
+
+template < class InsertIterator, class Container > void 
+Toplex::leaves ( InsertIterator & ii, 
+                 const Container & elements ) const {
+  std::stack < Node * > nodes;
+  BOOST_FOREACH ( GridElement element, elements ) {
+    iterator cell_iterator = find ( element );
+    Node * node_ptr = cell_iterator . node_;
+    nodes . push ( node_ptr );
+  }
+  while ( not nodes . empty () ) {
+    Node * ptr = nodes . top ();
+    nodes . pop ();
+    if ( ptr -> left_ == NULL && ptr -> right_ == NULL ) {
+      * ii ++ = ptr -> contents_;
+    } else {
+      if ( ptr -> left_ != NULL ) {
+        nodes . push ( ptr -> left_ );
+      }
+      if ( ptr -> right_ != NULL ) {
+        nodes . push ( ptr -> right_ );
+      }
+    }
+  }
+}
+
+#if 0
+// oops, this isn't what i wanted, but maybe it could be useful later
 template < class InsertIterator > void 
 Toplex::children ( InsertIterator & ii, 
                    const GridElement & element ) const {
@@ -248,6 +295,7 @@ Toplex::children ( InsertIterator & ii,
     }
   }
 }
+#endif
 
 template < class InsertIterator, class Container > void 
 Toplex::umbrella ( InsertIterator & ii, 
@@ -550,12 +598,24 @@ inline void Toplex::coarseCover ( InsertIterator & ii, const Prism & geometric_r
         }
       }
       
-      if ( contain_flag ) {
+      if ( intersect_flag && contain_flag ) {
         // Here's what we are looking for.
+        // std::cout << "Detected containment.\n";
         * ii ++ = N -> contents_; // OUTPUT
-                                  //std::cout << "cover -- " << N -> contents_ << "\n";
+                                  // std::cout << "coarsecover -- " << N -> contents_ << "\n";
                                   // Issue the order to rise.
-                                  //std::cout << "Issue rise.\n";
+                                  // std::cout << "Issue rise.\n";
+        /*
+        for ( int d = 0; d < dimension_; ++ d ) {
+          std::cout << "[" << LB[d] << ", " << UB[d] << "] x ";
+        }
+        std::cout << "\n";
+        for ( int d = 0; d < dimension_; ++ d ) {
+          std::cout << "[" << NLB[d] << ", " << NUB[d] << "] x ";
+        }
+        std::cout << "\n";
+        */
+        
         state = 3;
       } else if ( intersect_flag ) {
         //std::cout << "Detected intersection.\n";
@@ -630,7 +690,7 @@ inline void Toplex::coarseCover ( InsertIterator & ii, const Prism & geometric_r
     } // state 3
     
   } // while loop
-} // cover
+} // coarseCover
 
 template < class InsertIterator > 
 inline void Toplex::subdivide ( InsertIterator & ii, GridElement divide_me ) {

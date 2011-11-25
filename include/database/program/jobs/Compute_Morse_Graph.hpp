@@ -6,6 +6,10 @@
 #include "boost/foreach.hpp"
 #include "database/algorithms/GraphTheory.h"
 
+#ifndef OLD_CMAP_METHOD
+#include "database/structures/MapGraph.h"
+#endif
+
 #ifdef DO_CONLEY_INDEX
 #include "chomp/ConleyIndex.h"
 #endif
@@ -16,7 +20,13 @@ template < class Morse_Graph, class Toplex, class Map >
 void Compute_Morse_Graph (Morse_Graph * MG, Toplex * phase_space, const Map & interval_map,
                           const unsigned int Min, const unsigned int Max, const unsigned int Limit) {
   typedef std::vector<typename Toplex::Top_Cell> CellContainer;
+  
+#ifdef OLD_CMAP_METHOD
   typedef CombinatorialMap<Toplex,CellContainer> Graph;
+#else
+  typedef MapGraph<Toplex,Map,CellContainer> Graph;
+#endif
+  
   std::vector < CellContainer > morse_sets;
   // Produce initial Morse Set
   morse_sets . push_back ( CellContainer () );
@@ -30,16 +40,32 @@ void Compute_Morse_Graph (Morse_Graph * MG, Toplex * phase_space, const Map & in
 #ifdef CMG_VERBOSE
     std::cout << "Depth " << depth << ": \n";
 #endif
+    
+#ifdef OLD_CMAP_METHOD
     Graph G = compute_combinatorial_map ( morse_sets, * phase_space, interval_map );
     compute_morse_sets <Morse_Graph,Toplex,CellContainer> ( &morse_sets, G );
+#else
+    Graph G ( morse_sets, * phase_space, interval_map );
+    compute_morse_sets <Morse_Graph,Graph,CellContainer> ( &morse_sets, G );
+#endif
+    
     BOOST_FOREACH ( CellContainer & morse_set, morse_sets ) subdivide ( phase_space, morse_set );
   }
   // Perform reachability analysis
 #ifdef CMG_VERBOSE
   std::cout << "Reachability Analysis.\n";
 #endif
-  Graph G = compute_combinatorial_map<Toplex,Map,CellContainer> ( * phase_space , interval_map );
+  
+#ifdef OLD_CMAP_METHOD
+  Graph G = compute_combinatorial_map < Toplex, Map, CellContainer > 
+    ( * phase_space, interval_map );
   compute_morse_sets<Morse_Graph,Toplex,CellContainer> ( &morse_sets, G, MG );
+
+#else
+  Graph G ( * phase_space, interval_map );
+  compute_morse_sets<Morse_Graph,Graph,CellContainer> ( &morse_sets, G, MG );
+#endif
+  
   
   // Eliminate Spurious Sets
 #ifdef CMG_VERBOSE
@@ -55,8 +81,15 @@ void Compute_Morse_Graph (Morse_Graph * MG, Toplex * phase_space, const Map & in
 #ifdef CMG_VERBOSE
       std::cout << "Depth " << d << ": \n";
 #endif
+      
+#ifdef OLD_CMAP_METHOD
       Graph G = compute_combinatorial_map ( spurious_sets, * phase_space, interval_map );
       compute_morse_sets <Morse_Graph,Toplex,CellContainer> ( &spurious_sets, G );
+#else
+      Graph G ( spurious_sets, * phase_space, interval_map );
+      compute_morse_sets <Morse_Graph,Graph,CellContainer> ( &spurious_sets, G );
+#endif
+      
       BOOST_FOREACH ( CellContainer & spur, spurious_sets ) {
         if ( spur . size () > Limit ) { 
           d = Max;

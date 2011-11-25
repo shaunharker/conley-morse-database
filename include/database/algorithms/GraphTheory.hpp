@@ -7,6 +7,8 @@
 
 #define DEBUGPRINT if(0)
 
+#ifdef OLD_CMAP_METHOD
+
 /* Combinatorial Map */
 template < class Toplex, class CellContainer >
 CombinatorialMap<Toplex,CellContainer>::CombinatorialMap ( const size_type N ) : sentinel_ ( N ) {
@@ -151,7 +153,7 @@ compute_combinatorial_map (const std::vector < CellContainer > & sets,
 template < class MorseGraph, class Toplex, class CellContainer >
 void compute_morse_sets (std::vector< CellContainer > * output, 
                          const CombinatorialMap<Toplex,CellContainer> & G, 
-   /* optional output */ MorseGraph * MG ) {
+                         /* optional output */ MorseGraph * MG ) {
   typedef typename CombinatorialMap<Toplex,CellContainer>::size_type size_type;
   std::vector<std::vector< size_type > > untranslated;
   output -> clear ();
@@ -195,6 +197,61 @@ void compute_morse_sets (std::vector< CellContainer > * output,
   
 }
 
+#else
+
+/* compute_morse_sets */
+template < class MorseGraph, class Graph, class CellContainer >
+void compute_morse_sets (std::vector< CellContainer > * output, 
+                         const Graph & G, 
+                         /* optional output */ MorseGraph * MG ) {
+  //std::cout << "compute_morse_sets new\n";
+  typedef typename Graph::size_type size_type;
+  std::vector<std::vector< size_type > > untranslated;
+  output -> clear ();
+  if ( MG == NULL ) {
+    // The user doesn't want a Morse Graph.
+    compute_strong_components ( &untranslated, G );
+    BOOST_FOREACH ( std::vector < size_type > & translate_me, untranslated ) {      
+      output -> push_back ( CellContainer () );
+      G . leaves ( & (output -> back ()), translate_me );
+    }
+  } else {
+    // The user wants us to determine reachability and provide a Morse Graph.
+    /* Produce Strong Components and Topological Sort */
+    std::vector< size_type > topological_sort;
+    compute_strong_components ( &untranslated, G, &topological_sort );
+    BOOST_FOREACH ( std::vector < size_type > & translate_me, untranslated ) {
+      output -> push_back ( CellContainer () );
+      G . leaves ( & (output -> back ()), translate_me );
+    }
+    /* Produce Reachability Information */
+    std::vector < std::vector < unsigned int > > reach_info;
+    compute_reachability ( & reach_info, untranslated, G, topological_sort );
+    
+    /* Produce Morse Graph Vertices */
+    typedef typename MorseGraph::Vertex cmg_vertex_t;
+    std::map < unsigned int, cmg_vertex_t > translate_to_cmg;
+    for (unsigned int s = 0; s < output -> size (); ++ s ) {
+      cmg_vertex_t new_vertex = MG -> AddVertex ();
+      translate_to_cmg [ s ] = new_vertex;
+      MG -> CellSet ( new_vertex ) = (*output) [ s ];
+    }
+    
+    /* Produce Morse Graph Edges */
+    for (unsigned int s = 0; s < reach_info . size (); ++ s ) {
+      BOOST_FOREACH ( unsigned int t, reach_info [ s ] ) {
+        MG -> AddEdge ( translate_to_cmg [ s ], translate_to_cmg [ t ] );
+      }
+    }
+    
+  } /* if-else */
+  
+}
+
+#endif
+
+
+
 /* compute_strong_components */
 template < class OutEdgeGraph >
 void compute_strong_components (std::vector<std::vector<typename OutEdgeGraph::size_type> > * output, 
@@ -206,7 +263,7 @@ void compute_strong_components (std::vector<std::vector<typename OutEdgeGraph::s
   typedef std::pair<size_type, size_type> Edge;
   const size_type sentinel = G . sentinel ();
   // Things that could be put in external memory
-  std::stack<Edge> dfs_stack;
+  std::deque<Edge> dfs_stack;
   std::stack<Edge> lowlink_stack;
   std::stack<size_type> component; 
   // internal memory objects
@@ -215,6 +272,10 @@ void compute_strong_components (std::vector<std::vector<typename OutEdgeGraph::s
   std::vector<bool> committed ( N, 0 );
   size_type current_index = 0;
   lowlink_stack . push ( std::make_pair ( sentinel, sentinel ) ); // so there is always a top.
+  
+  // DEBUG
+  int memoryuse = 0;
+  
   // Main Loop
 #ifdef CMG_VERBOSE
   long num_edges = 0;
@@ -223,11 +284,44 @@ void compute_strong_components (std::vector<std::vector<typename OutEdgeGraph::s
   //std::cout << "sentinel = " << sentinel << "\n";
   for ( size_type root = 0; root < N; ++ root ) {
     if ( index [ root ] != sentinel ) continue;
-    dfs_stack . push ( Edge ( sentinel, root ) );
+    dfs_stack . push_back ( Edge ( sentinel, root ) );
     while ( not dfs_stack . empty () ) {
-      Edge S = dfs_stack . top ();
+      // BEGIN MEMORY USAGE CHECK
+      int mem = dfs_stack . size () + lowlink_stack . size () + component . size ();
+      if ( mem / N > memoryuse ) {
+        memoryuse = mem / N;
+        std::cout << "memoryuse = " << memoryuse << "\n";
+      }
+      if ( dfs_stack . size () > 2 * N ) {
+        // clean dfs stack
+        // go backwards through dfs stack and 
+        // eliminate duplicates, keeping only the last occurring
+        // (here, duplicates means the target of the edge is the same)
+        // Reasoning: If a vertex appears as the target of two edges,
+        // the first appearance is definitely not the one in which
+        // we follow the edge; by the time we pop that edge, the vertex
+        // will have been explored. Thus, we can clean it.
+        std::vector < bool > dfs_clean_helper ( N, false );
+        std::deque < Edge > new_dfs_stack;
+        while ( not dfs_stack . empty () ) {
+          Edge copy_edge = dfs_stack . back ();
+          if ( dfs_clean_helper [ copy_edge . second ] ) {
+            dfs_stack . pop_back ();
+            continue;
+          } else {
+            dfs_clean_helper [ copy_edge . second ] = true;
+            new_dfs_stack . push_front ( dfs_stack . back () );
+            dfs_stack . pop_back ();
+          }
+        }
+        std::swap ( dfs_stack, new_dfs_stack );
+      }
+      // END MEMORY USAGE CHECK
+      
+      
+      Edge S = dfs_stack . back ();
       ++effort;
-      //std::cout << "Top = (" << dfs_stack . top () . first << ", " << dfs_stack . top () . second << ")\n";
+      //std::cout << "Top = (" << dfs_stack. back () . first << ", " << dfs_stack. back () . second << ")\n";
       size_type & v = S . second;
       if ( index [ v ] == sentinel ) {
         // FIRST VISIT
@@ -238,7 +332,7 @@ void compute_strong_components (std::vector<std::vector<typename OutEdgeGraph::s
         component . push ( v );
         ++ current_index;
         // Learn adjacencies
-        const std::vector<size_type> & children = G . adjacencies ( v );
+        std::vector<size_type> children = G . adjacencies ( v );
 #ifdef CMG_VERBOSE
         num_edges += children . size ();
 #endif
@@ -258,7 +352,7 @@ void compute_strong_components (std::vector<std::vector<typename OutEdgeGraph::s
             continue;
           }
           // Push the child onto the DFS stack
-          dfs_stack . push ( Edge ( v, w ) );
+          dfs_stack . push_back ( Edge ( v, w ) );
         }
         lowlink_stack . push ( Edge ( v, lowlink ) );
 
@@ -266,7 +360,7 @@ void compute_strong_components (std::vector<std::vector<typename OutEdgeGraph::s
         if ( lowlink_stack . top () . first != v ) {
           // THIRD VISIT OR LATER
           //std::cout << "Later visit to vertex " << v << ".\n";
-          dfs_stack . pop ();
+          dfs_stack . pop_back ();
           continue;
         }
         // SECOND VISIT.
@@ -283,7 +377,18 @@ void compute_strong_components (std::vector<std::vector<typename OutEdgeGraph::s
         //std::cout << "(Index, Lowlink) = " << index [ v ] << ", " << lowlink << "\n";
         // Now push the lowlink onto the stack for parent
         size_type & w = S . first; // Parent in DFS tree.
-        if ( w != sentinel ) lowlink_stack . push ( std::make_pair ( w, lowlink ) );
+        if ( w != sentinel ) {
+          if ( lowlink_stack . top () . first != w ) {
+            std::cout << "Failure in SCC algorithm theory\n";
+            exit ( 1 );
+          }
+          if ( lowlink_stack . top () . second == sentinel ) {
+            lowlink_stack . push ( std::make_pair ( w, lowlink ) ); 
+          } else {
+            size_type & change = lowlink_stack . top () . second;
+            change = std::min( lowlink, change ); 
+          }
+        }
         
         // Check if we have found an SCC
         if ( lowlink == index [ v ] ) {
@@ -311,9 +416,9 @@ void compute_strong_components (std::vector<std::vector<typename OutEdgeGraph::s
 
         }
         // If user wants topological sort, give it to them.
-        if ( topological_sort != NULL ) topological_sort -> push_back ( dfs_stack . top () . second );
+        if ( topological_sort != NULL ) topological_sort -> push_back ( dfs_stack. back () . second );
         // Pop the vertex from the dfs stack        
-        dfs_stack . pop ();
+        dfs_stack . pop_back ();
       } // if visited
     } // while dfs stack non-empty
   } // while not all nodes explored
@@ -398,7 +503,7 @@ void compute_reachability ( std::vector < std::vector < unsigned int > > * outpu
     //std::cout << "Loop through top sort \n";
     for ( size_type vi = topological_sort . size () - 1; vi != 0; -- vi ) {
       size_type v = topological_sort [ vi ];
-      const std::vector < size_type > & children = G . adjacencies ( v );
+      std::vector < size_type > children = G . adjacencies ( v ); // previously const &
       BOOST_FOREACH ( size_type w, children ) {
         ++ effort;
         morse_code [ w ] |= morse_code [ v ];
@@ -407,7 +512,7 @@ void compute_reachability ( std::vector < std::vector < unsigned int > > * outpu
     } // its okay to ignore 0
     {
     size_type v = topological_sort [ 0 ];
-    const std::vector < size_type > & children = G . adjacencies ( v );
+    std::vector < size_type > children = G . adjacencies ( v );
     BOOST_FOREACH ( size_type w, children ) {
       ++ effort;
       morse_code [ w ] |= morse_code [ v ];

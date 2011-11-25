@@ -1,5 +1,7 @@
 /// Construct and display a conley morse graph for a given dynamical system
 
+//#define OLD_CMAP_METHOD
+
 // STANDARD HEADERS
 #include <iostream>
 #include <fstream>
@@ -173,8 +175,8 @@ int main ( int argc, char * argv [] )
 
 void DrawMorseSets ( const Toplex & phase_space, const CMG & conley_morse_graph ) {
   // Create a Picture
-  int Width =  4096;
-  int Height = 4096;
+  int Width =  128;//4096;
+  int Height = 128;//4096;
   Picture * picture = draw_morse_sets<Toplex,CellContainer>( Width, Height, phase_space, conley_morse_graph );
   LodePNG_encode32_file( "morse_sets.png", picture -> bitmap, picture -> Width, picture -> Height);
   Picture * picture2 = draw_toplex <Toplex,CellContainer>( Width, Height, phase_space );
