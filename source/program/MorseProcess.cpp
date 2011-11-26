@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <ctime>
 
 #include "boost/foreach.hpp"
 
@@ -23,7 +24,8 @@ void MorseProcess::initialize ( void ) {
   config . loadFromFile ( argv[1] );
   std::cout << "Loaded configuration.\n";
   
-  
+  time_of_last_checkpoint = clock ();
+  progress_bar = 0;
   num_jobs_sent_ = 0;
   
   int patch_stride = 1; // distance between center of patches in box-units
@@ -164,6 +166,15 @@ void MorseProcess::accept(const Message &result) {
   database . merge ( job_database );
   std::cout << "MorseProcess::read: Received result " 
             << job_number << "\n";
+  ++ progress_bar;
+  
+  clock_t time = clock ();
+  if ( (time_of_last_checkpoint - time ) / CLOCKS_PER_SEC > 1.0f ) {
+    std::ofstream progress_file ( "progress.txt" );
+    progress_file << "Morse Process Progress: " << progress_bar << " / " << num_jobs_ << "\n";
+    progress_file . close ();
+    time_of_last_checkpoint = time;
+  }
 }
 
 /* * * * * * * * * * * */

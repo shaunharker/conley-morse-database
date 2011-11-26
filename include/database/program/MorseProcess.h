@@ -9,6 +9,7 @@
 
 #include "chomp/Toplex.h"
 #include "database/program/Configuration.h"
+#include <ctime>
 
 /* * * * * * * * * * * * * * */
 /* MorseProcess declaration */
@@ -28,6 +29,8 @@ private:
   Database database;
   typedef boost::unordered_set<GridElement> Toplex_Subset;
   std::vector < Toplex_Subset > PS_patches; // morse_work_items
+  int progress_bar;                         // progress bar
+  clock_t time_of_last_checkpoint;
 };
 
 #endif
