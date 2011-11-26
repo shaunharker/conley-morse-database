@@ -31,6 +31,8 @@ private:
   std::vector < Toplex_Subset > PS_patches; // morse_work_items
   int progress_bar;                         // progress bar
   clock_t time_of_last_checkpoint;
+  clock_t time_of_last_progress;
+
 };
 
 #endif

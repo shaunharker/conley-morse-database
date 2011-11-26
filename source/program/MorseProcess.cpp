@@ -25,6 +25,7 @@ void MorseProcess::initialize ( void ) {
   std::cout << "Loaded configuration.\n";
   
   time_of_last_checkpoint = clock ();
+  time_of_last_progress = clock ();
   progress_bar = 0;
   num_jobs_sent_ = 0;
   
@@ -171,12 +172,13 @@ void MorseProcess::accept(const Message &result) {
   clock_t time = clock ();
   if ( (float)(time - time_of_last_checkpoint ) / (float)CLOCKS_PER_SEC > 300.0f ) {
     finalize (); // doesn't end things, just saves a checkpoint.
+    time_of_last_checkpoint = time;
   }
-  if ( (float)(time - time_of_last_checkpoint ) / (float)CLOCKS_PER_SEC > 1.0f ) {
+  if ( (float)(time - time_of_last_progress ) / (float)CLOCKS_PER_SEC > 1.0f ) {
     std::ofstream progress_file ( "progress.txt" );
     progress_file << "Morse Process Progress: " << progress_bar << " / " << num_jobs_ << "\n";
     progress_file . close ();
-    time_of_last_checkpoint = time;
+    time_of_last_progress = time;
   }
 }
 
