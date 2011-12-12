@@ -104,8 +104,8 @@ Prism initialize_parameter_space_box ( const Real bx, const Real by ) {
   return parameter_box;
 }
 
-int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 18;
-int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 20;
+int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 12;
+int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 16;
 int SINGLECMG_COMPLEXITY_LIMIT = 10000;
 
 ////////////////////////////////////////END USER EDIT//////////////////////////////////////////
