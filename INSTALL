@@ -6,7 +6,7 @@ Note: If you are reading this, you likely
       have already done this, unless you are 
       browsing the source on the web.
 Details:
-  A) TYPE: svn checkout http://conley-morse-database.googlecode.com/svn/trunk/ conley-morse-database-read-only
+  A) TYPE: svn checkout http://conley-morse-database.googlecode.com/svn/trunk/ conley-morse-database
 
 (1) Install "cluster-delegator"
 Details:
