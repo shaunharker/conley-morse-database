@@ -288,7 +288,7 @@ void compute_strong_components (std::vector<std::vector<typename OutEdgeGraph::s
     while ( not dfs_stack . empty () ) {
       // BEGIN MEMORY USAGE CHECK
       int mem = dfs_stack . size () + lowlink_stack . size () + component . size ();
-      if ( mem / N > memoryuse ) {
+      if ( mem / (int)N > memoryuse ) {
         memoryuse = mem / N;
         std::cout << "memoryuse = " << memoryuse << "\n";
       }

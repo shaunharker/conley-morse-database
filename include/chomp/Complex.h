@@ -174,7 +174,7 @@ void finishedInserting ( void ) {                               \
 Cell indexToCell ( const Index i, const int dim ) const {       \
   return indexers_ [ dim ] . key ( i );                         \
 }                                                               \
-Cell cellToIndex ( const Cell & key, const int dim ) const {    \
+Index cellToIndex ( const Cell & key, const int dim ) const {    \
   return indexers_ [ dim ] . rank ( key );                      \
 }                                                               \
 void reindex ( std::vector<std::vector< Index > > & permute ) { \

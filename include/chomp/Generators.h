@@ -11,8 +11,8 @@
 
 #include "chomp/Complex.h"
 #include "chomp/Chain.h"
-#include "chomp/SmithNormalForm.h"
 #include "chomp/SparseMatrix.h"
+#include "chomp/SmithNormalForm.h"
 #include "chomp/MorseComplex.h"
 
 

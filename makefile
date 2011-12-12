@@ -32,7 +32,7 @@ SRCDIR := ./source
 # Variables "make" uses for implicit rules
 CC := mpicxx
 CXX := mpicxx
-CXXFLAGS := -O3 -m64 -ggdb $(INCS)
+CXXFLAGS := -O3 -m64 -Wall -ggdb $(INCS)
 LDFLAGS := $(LINKFLAGS)
 LDLIBS := $(LINKLIBS)
 
