@@ -43,10 +43,11 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 # List of targets
 all: Conley_Morse_Database
 
-DATABASE := ./build/program/Conley_Morse_Database.o 
+DATABASE := ./build/structures/Database.o
+DATABASE += ./build/program/Conley_Morse_Database.o 
 DATABASE += ./build/program/ConleyProcess.o
 DATABASE += ./build/program/MorseProcess.o 
-DATABASE += ./build/structures/Database.o 
+
 Conley_Morse_Database: $(DATABASE)
 	$(CC) $(LDFLAGS) $(DATABASE) -o $@ $(LDLIBS)
 

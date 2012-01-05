@@ -1,15 +1,14 @@
 #ifndef CMDB_MORSEPROCESS_H
 #define CMDB_MORSEPROCESS_H
 
-#include "boost/unordered_set.hpp"
-
-#include "delegator/delegator.h"
-
-#include "database/structures/Database.h"
-
-#include "chomp/Toplex.h"
-#include "database/program/Configuration.h"
+//#define SKELETONMETHOD
 #include <ctime>
+#include "boost/unordered_set.hpp"
+#include "delegator/delegator.h"
+#include "database/structures/Database.h"
+#include "database/program/Configuration.h"
+#include "chomp/Toplex.h"
+#include "chomp/CubicalComplex.h"
 
 /* * * * * * * * * * * * * * */
 /* MorseProcess declaration */
@@ -24,15 +23,19 @@ public:
 private:
   size_t num_jobs_;
   size_t num_jobs_sent_;
-  Toplex param_toplex;
   Configuration config;
   Database database;
-  typedef boost::unordered_set<GridElement> Toplex_Subset;
-  std::vector < Toplex_Subset > PS_patches; // morse_work_items
   int progress_bar;                         // progress bar
   clock_t time_of_last_checkpoint;
   clock_t time_of_last_progress;
-
+#ifdef SKELETONMETHOD
+  CubicalComplex param_complex;
+  std::vector<std::pair<Index, int> > jobs_;
+#else
+  Toplex param_toplex;
+  typedef boost::unordered_set<GridElement> Toplex_Subset;
+  std::vector < Toplex_Subset > PS_patches; // morse_work_items
+#endif
 };
 
 #endif

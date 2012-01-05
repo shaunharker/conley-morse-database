@@ -5,6 +5,7 @@
 #include <iostream>
 #include <fstream>
 #include <ctime>
+#include <cmath>
 
 #include "boost/foreach.hpp"
 
@@ -29,6 +30,45 @@ void MorseProcess::initialize ( void ) {
   progress_bar = 0;
   num_jobs_sent_ = 0;
   
+#ifdef SKELETONMETHOD
+  // Get width, length, height, etc... of parameter space.
+  std::vector<uint32_t> dimension_sizes ( config.PARAM_DIM,
+                                          1 << config.PARAM_SUBDIV_DEPTH);
+  // Count total number of "boxes" (volume) of parameter space.
+  uint32_t total = 1;
+  for ( int d = 0; d < config.PARAM_DIM; ++ d ) {
+    total *= dimension_sizes [ d ];
+  }
+  // Initialize a complex to represent parameter space.
+  param_complex . initialize ( dimension_sizes );
+  // We have to add all the cubes. This is a little silly,
+  // that there isn't a member function to do this yet.
+  std::vector<uint32_t> cube ( config.PARAM_DIM, 0 );
+  for ( long x = 0; x < total; ++ x ) {
+    param_complex . addFullCube ( cube );
+    bool carry = true;
+    for ( unsigned int d = 0; d < cube . size (); ++ d ) {
+      if ( not carry ) break;
+      if ( ++ cube [ d ] == dimension_sizes [ d ] ) {
+        cube [ d ] = 0;
+        carry = true;
+      } else {
+        carry = false;
+      }
+    }
+  }
+  // Now we set the bounds and finalize the complex (so it is indexed).
+  param_complex . bounds () = config.PARAM_BOUNDS;
+  param_complex . finalize ();
+
+
+  // Push all 1-cells for 1-skeleton calculation.
+  int dim = 1;
+  for ( Index i = 0; i < param_complex . size ( dim ); ++ i ) {
+    jobs_ . push_back ( std::make_pair ( i, dim ) );
+  }
+  num_jobs_ = jobs_ . size ();
+#else
   int patch_stride = 1; // distance between center of patches in box-units
   // warning: currently only works if patch_stride is a power of two
   
@@ -78,7 +118,7 @@ void MorseProcess::initialize ( void ) {
     PS_patches . push_back (patch_subset);
   } /* for */
   num_jobs_ = PS_patches . size ();
-
+#endif
   std::cout << "MorseProcess Constructed, there are " << num_jobs_ << " jobs.\n";
   //char c; std::cin >> c;
 }
@@ -99,6 +139,28 @@ int MorseProcess::prepare ( Message & job ) {
   
   std::cout << "MorseProcess::write: Preparing job " << job_number << "\n";
   
+#ifdef SKELETONMETHOD
+  // Cell Name data (translate back into complex index names from index number)
+  //    (Use param_complex.size(d-1) + i   for dim d > 0 indices.) 
+  // Geometric Description Data
+  // Adjacency information vector
+
+  std::vector < Index > cell_names;
+  std::vector < Prism > Prisms;
+  std::vector < std::pair < size_t, size_t > > adjacency_information;
+  
+  std::pair < Index, int > cell = jobs_ [ job_number ];
+  Prisms . push_back ( param_complex . geometry ( cell . first, cell . second ) );
+  Index job_cell_name =  param_complex . size ( cell . second - 1 ) + cell . first;
+  cell_names . push_back ( job_cell_name );
+  Chain bd = param_complex . boundary ( cell . first, cell . second );
+  BOOST_FOREACH ( const Term & t, bd () ) {
+    Prisms . push_back ( param_complex . geometry ( t . index (), cell . second - 1 ) );
+    Index sub_cell_name = param_complex . size ( cell . second - 2 ) + t . index ();
+    cell_names . push_back ( sub_cell_name );
+    adjacency_information . push_back ( std::make_pair ( job_cell_name, sub_cell_name ) );
+  }
+#else
   /// Toplex with the patch to be sent
   Toplex_Subset patch_subset = PS_patches [job_number];
 
@@ -127,7 +189,7 @@ int MorseProcess::prepare ( Message & job ) {
       }
     }
   }
-
+#endif
   //std::cout << "Coordinator::Prepare: Sent job " << num_jobs_sent_ << "\n";
   
   // prepare the message with the job to be sent

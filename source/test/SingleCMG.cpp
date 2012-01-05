@@ -12,9 +12,9 @@
 
 // To get SCC chatter
 #define CMG_VERBOSE 
-//#define DO_CONLEY_INDEX
-//#define VISUALIZE_DEBUG
-//#define ILLUSTRATE
+#define DO_CONLEY_INDEX
+#define VISUALIZE_DEBUG
+#define ILLUSTRATE
 
 // HEADERS FOR DATA STRUCTURES
 #include "chomp/Toplex.h"
@@ -32,13 +32,13 @@
 // MAP FUNCTION OBJECT
 #include "database/maps/simple_interval.h"   // for interval arithmetic
 
-struct LeslieMap {
+struct ModelMap {
   
   typedef simple_interval<double> interval;
   
   interval parameter1, parameter2;
   
-  LeslieMap ( const Prism & rectangle ) {
+  ModelMap ( const Prism & rectangle ) {
     parameter1 = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ]);
     parameter2 = interval (rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ]);
     return;
@@ -50,7 +50,7 @@ struct LeslieMap {
     interval x1 = interval (rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ]);
     
     /* Perform map computation */
-    interval y0 = (parameter1 * x0 + parameter2 * x1 ) * exp ( (double) -0.1 * (x0 + x1) );     
+    interval y0 = (parameter1 * x0 + parameter2 * x1 ) * pow(1.0 + 0.0016666*(x0 + x1) , -60.0);     
     interval y1 = (double) 0.7 * x0;
     
     /* Write output */
@@ -59,7 +59,6 @@ struct LeslieMap {
     return_value . upper_bounds [ 0 ] = y0 . upper ();
     return_value . lower_bounds [ 1 ] = y1 . lower ();
     return_value . upper_bounds [ 1 ] = y1 . upper ();
-
     return return_value;
   } 
   
@@ -128,7 +127,7 @@ int main ( int argc, char * argv [] )
   /* READ TWO INPUTS (which will give a parameter space box) */
   if ( argc != 3 ) {
     std::cout << "Usage: Supply 2 (not " << argc << ") arguments:\n";
-    std::cout << "Input two integers in [0, " << 50 << "\n";
+    std::cout << "Input two integers in [0, " << 64 << "\n";
     return 0;
   }
   Real bx = ( Real ) atoi ( argv [ 1 ] );
@@ -145,7 +144,7 @@ int main ( int argc, char * argv [] )
   phase_space . initialize ( phase_space_bounds );
 
   /* INITIALIZE MAP */
-  LeslieMap map ( parameter_box );
+  ModelMap map ( parameter_box );
   
   /* INITIALIZE CONLEY MORSE GRAPH (create an empty one) */
   CMG conley_morse_graph;
@@ -175,8 +174,8 @@ int main ( int argc, char * argv [] )
 
 void DrawMorseSets ( const Toplex & phase_space, const CMG & conley_morse_graph ) {
   // Create a Picture
-  int Width =  128;//4096;
-  int Height = 128;//4096;
+  int Width =  4096;
+  int Height = 4096;
   Picture * picture = draw_morse_sets<Toplex,CellContainer>( Width, Height, phase_space, conley_morse_graph );
   LodePNG_encode32_file( "morse_sets.png", picture -> bitmap, picture -> Width, picture -> Height);
   Picture * picture2 = draw_toplex <Toplex,CellContainer>( Width, Height, phase_space );
