@@ -168,15 +168,18 @@ inline Generators_t SmithGenerators ( const Complex & complex ) {
     
 		/* Insert the torsion generators */
 		for ( unsigned int torsion_index = 0; torsion_index < torsion_number; ++ torsion_index ) {
+      std::cout << "torsion_index = " << torsion_index << " and second_s = " << second_s << "\n";
+      std::cout << "smith_diagonal = \n";
+      print_matrix ( smith_diagonal );
 			generators [ betti_number + torsion_index ] . second = 
       smith_diagonal . read ( second_s + torsion_index + 1, 
                               second_s + torsion_index + 1);
 			Chain & generator_chain = generators [ betti_number + torsion_index ] . first;
       generator_chain . dimension () = d;
       for (Matrix::Index entry = second_U . column_begin ( second_s + torsion_index ); 
-           entry != G . end (); G . column_advance ( entry ) ) {
-        generator_chain += Term ( G . row ( entry ), 
-                                  G . read ( entry ) );
+           entry != second_U . end (); second_U . column_advance ( entry ) ) {
+        generator_chain += Term ( second_U . row ( entry ), 
+                                  second_U . read ( entry ) );
       } /* for */
       //std::cout << "Torsion Chain: (order = " << generator_chain << "\n";
 		}

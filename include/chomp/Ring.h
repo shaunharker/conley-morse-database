@@ -6,6 +6,8 @@
 #define CHOMP_RING_H
 
 #include <iostream>
+#include <boost/serialization/serialization.hpp>
+#include "Field.h"
 
 /*********************
  *      Ring         *
@@ -108,6 +110,12 @@ public:
   }
   
   friend std::ostream & operator << ( std::ostream & outstream, const Long & rhs );
+  
+  friend class boost::serialization::access;
+  template < class Archive >
+  void serialize ( Archive & ar , const unsigned int version ) {
+    ar & x;
+  }
 };
 
 inline std::ostream & operator << ( std::ostream & outstream, const Long & rhs ) {

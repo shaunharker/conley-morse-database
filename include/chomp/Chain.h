@@ -153,7 +153,8 @@ inline CustomChain<C> & operator *= ( CustomChain<C> & lhs,
 template < class C >
 inline CustomChain<C> operator * ( const CustomChain<C> & lhs, 
                                    const Ring & rhs ) {
-  CustomChain<C> result ( lhs . dimension () );
+  CustomChain<C> result;
+  result . dimension () = lhs . dimension ();
   BOOST_FOREACH ( Term term, lhs ()) {
     term . coef () *= rhs;
     result += term;
