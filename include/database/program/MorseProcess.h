@@ -1,7 +1,7 @@
 #ifndef CMDB_MORSEPROCESS_H
 #define CMDB_MORSEPROCESS_H
 
-//#define SKELETONMETHOD
+#define SKELETONMETHOD
 #include <ctime>
 #include "boost/unordered_set.hpp"
 #include "delegator/delegator.h"

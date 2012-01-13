@@ -145,6 +145,7 @@ inline void CoreductionDecomposer::decompose ( Complex & complex ) {
   
   // Initialize those structures. 
   for ( int d = 0; d <= D; ++ d ) {
+    std::cout << "Dim " << d << " has " << complex . size ( d ) << " cells.\n";
     for ( Index i = 0; i < complex . size ( d ); ++ i ) {
       std::pair < Index, int > candidate = std::make_pair ( i, d );
       if ( bd_count [ d ] [ i ] == 1 ) 
@@ -210,7 +211,7 @@ inline void CoreductionDecomposer::decompose ( Complex & complex ) {
         kings [ kd ] . push_back ( ki );
         CBDPROCESS ( ki, kd );
         CBDPROCESS ( qi, qd );
-        //std::cout << "pushing (" << qi << ", " << qd << ") -- (" << ki << ", " << kd << ")\n";
+        std::cout << "pushing (" << qi << ", " << qd << ") -- (" << ki << ", " << kd << ")\n";
       } 
     }
     
@@ -227,6 +228,8 @@ inline void CoreductionDecomposer::decompose ( Complex & complex ) {
       if ( not paired [ ad ] [ ai ] ) {
         CBDPROCESS ( ai, ad );
         aces [ ad ] . push_back ( ai );
+        std::cout << "pushing ace (" << ai << ", " << ad << ")\n";
+
       }
     }
   } /* while */

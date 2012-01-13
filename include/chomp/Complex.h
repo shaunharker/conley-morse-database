@@ -51,6 +51,8 @@ public:
     Chain output; coboundary ( &output, input, dim ); return output; 
   }
   Chain boundary ( const Chain & input ) const {
+    std::cout << "one arg bd\n";
+    std::cout << " the dimension of the chain is " << input . dimension () << "\n";
     Chain output; boundary ( &output, input ); return output; 
   }
   Chain coboundary ( const Chain & input ) const {

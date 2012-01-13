@@ -118,8 +118,8 @@ inline std::ostream & operator << ( std::ostream & outstream, const Long & rhs )
 //typedef Long Ring;
 #include "Field.h"
 
-//typedef Long Ring;
+typedef Long Ring;
 
-typedef Zp<2> Ring;
+//typedef Zp<2> Ring;
 
 #endif

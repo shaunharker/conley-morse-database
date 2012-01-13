@@ -66,7 +66,7 @@ public:
   int & dimension ( void ) { return dimension_; }
   const int & dimension ( void ) const { return dimension_; }
   CustomChain ( void ) {}
-  CustomChain ( size_type d ) : dimension_ ( d ) {}
+  //CustomChain ( size_type d ) : dimension_ ( d ) {}  SERIOUS GOTCHA! Was hijacking mistakes.
   Container & operator () ( void ) { return container_; }
   const Container & operator () ( void ) const { return container_; }
 };
@@ -164,7 +164,8 @@ inline CustomChain<C> operator * ( const CustomChain<C> & lhs,
 template < class C >
 inline CustomChain<C> operator * ( const Ring & lhs, 
                                    const CustomChain<C> & rhs ) {
-  CustomChain<C> result ( rhs . dimension () );
+  CustomChain<C> result;
+  result . dimension () = rhs . dimension ();
   BOOST_FOREACH ( Term term, rhs ()) {
     term . coef () *= lhs;
     result += term;
@@ -175,7 +176,8 @@ inline CustomChain<C> operator * ( const Ring & lhs,
 // These ones really don't seem like they should be used,
 // except perhaps as convenience functions.
 inline Chain operator + ( const Chain & lhs, const Chain & rhs ) {
-  Chain result ( lhs . dimension () );
+  Chain result;
+  result . dimension () = lhs . dimension ();
   BOOST_FOREACH ( const Term & term, lhs () ) {
     result += term;
   }
@@ -186,7 +188,8 @@ inline Chain operator + ( const Chain & lhs, const Chain & rhs ) {
 }
 
 inline Chain operator - ( const Chain & lhs, const Chain & rhs ) {
-  Chain result ( lhs . dimension () );
+  Chain result;
+  result . dimension () = lhs . dimension ();
   BOOST_FOREACH ( const Term & term, lhs ()) {
     result += term;
   }

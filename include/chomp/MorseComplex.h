@@ -218,14 +218,14 @@ BOOST_FOREACH ( const Term & t, chain () ) {                \
     } // for each king boundary
     
     // debug
-    if ( unit == Ring ( 0 ) ) {
+    if ( not invertible ( unit ) ) {
       // problem.
       std::cout << "Flow problem.\n";
       std::cout << "King: " << king << "\n";
       std::cout << "Queen: " << queen << "\n";
       std::cout << "bd(king) = " << king_bd << "\n";
       //exit ( 1 );
-    }
+    } //else { std::cout << unit << " "; }
     
     Ring factor = - queen_coef  / unit;
     (*gamma) += Term ( king, factor );
@@ -308,7 +308,7 @@ inline void MorseComplex::boundary ( Chain * output,
                                      int dim ) const {
   if ( boundary_cache_ [ dim ] . count ( input ) == 0 ) {
     boundary_cache_ [ dim ] [ input ] = 
-    lower ( base () . boundary ( indexToCell ( input, dim ) ) );
+    lower ( base () . boundary ( indexToCell ( input, dim ), dim ) );
   }
   *output = boundary_cache_ [ dim ] [ input ];
 }
@@ -322,7 +322,7 @@ inline void MorseComplex::coboundary ( Chain * output,
   exit ( 1 );
   if ( coboundary_cache_ [ dim ] . count ( input ) == 0 ) {
     coboundary_cache_ [ dim ] [ input ] = 
-    colower ( base () . coboundary ( indexToCell ( input, dim ) ) );
+    colower ( base () . coboundary ( indexToCell ( input, dim ), dim ) );
   }
   *output = coboundary_cache_ [ dim ] [ input ];
 }
