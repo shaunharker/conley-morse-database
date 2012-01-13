@@ -180,12 +180,13 @@ inline void SimplicialComplex::loadFromFile ( const char * FileName) {
 	}
 	input_file . close ();
 	
-	for ( unsigned int i = 0; i < max_simplices . size (); ++ i ) {
-		for ( unsigned int vi = 0; vi < max_simplices [ i ] . size (); ++ vi ) {
-			std::cout << max_simplices [ i ] [ vi ] << " ";
-		}
-		std::cout << "\n";
-	}
+  //DEBUG
+	// for ( unsigned int i = 0; i < max_simplices . size (); ++ i ) {
+	//	for ( unsigned int vi = 0; vi < max_simplices [ i ] . size (); ++ vi ) {
+	//		std::cout << max_simplices [ i ] [ vi ] << " ";
+	//	}
+	//	std::cout << "\n";
+	//}
 	
 	boost::unordered_set < Simplex > processed_;
 	std::queue < Simplex > work_q;

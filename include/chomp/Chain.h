@@ -93,6 +93,7 @@ inline std::ostream & operator << ( std::ostream & outstream, const CustomChain<
     }
     outstream << t;
   }
+  if ( first ) outstream << "0";
   return outstream;
 }
 
