@@ -249,6 +249,11 @@ void MorseProcess::accept(const Message &result) {
 /* * * * * * * * * * * */
 void MorseProcess::finalize ( void ) {
   std::cout << "MorseProcess::finalize ()\n";
+  
+  std::ofstream progress_file ( "progress.txt" );
+  progress_file << "Morse Process Progress: " << progress_bar << " / " << num_jobs_ << "\n";
+  progress_file . close ();
+
   std::string filestring ( argv[1] );
   std::string appendstring ( "/database.mdb" );
   database . save ( (filestring + appendstring) . c_str () );
