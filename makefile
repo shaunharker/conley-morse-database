@@ -30,8 +30,8 @@ OBJDIR := ./build
 SRCDIR := ./source
 
 # Variables "make" uses for implicit rules
-CC := g++ #mpicxx
-CXX := g++ #mpicxx
+CC := mpicxx
+CXX := mpicxx
 CXXFLAGS := -O3 -m64 -Wall -ggdb $(INCS)
 LDFLAGS := $(LINKFLAGS)
 LDLIBS := $(LINKLIBS)
