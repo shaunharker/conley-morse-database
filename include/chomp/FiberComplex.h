@@ -103,7 +103,7 @@ inline FiberComplex::FiberComplex
   closure ( A_image, * supercomplex_ );
   
   // Pick choose   (dirty: this makes sense only if A is empty )
-#if 1
+#if 0
   // DEBUG //////////////////////////////////////
   if ( X_image [ 0 ]. size () == 0 ) {
     std::cout << "FiberComplex failure. The fiber doesn't even have a single vertex.\n";

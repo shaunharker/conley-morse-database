@@ -100,15 +100,16 @@ RelativeMapHomology (RelativeMapHomology_t * output,
   
   //PRINT "computed domain_GridElements_X and _A\n";
 
-  for ( int d = 0; d <= D; ++ d ) {
-    std::cout << "The number of " << d << "-cells in domain_GridElements_X is " << 
-      domain_GridElements_X [ d ] . size () << "\n";
-    std::cout << "The number of " << d << "-cells in domain_GridElements_A is " << 
-    domain_GridElements_A [ d ] . size () << "\n";    
-  }
+
   // DEBUG //////////////////////////////////
-  MorseComplex debugcomplex ( domain );
-  MorseSanity ( debugcomplex );
+//  for ( int d = 0; d <= D; ++ d ) {
+//    std::cout << "The number of " << d << "-cells in domain_GridElements_X is " << 
+//    domain_GridElements_X [ d ] . size () << "\n";
+//    std::cout << "The number of " << d << "-cells in domain_GridElements_A is " << 
+//    domain_GridElements_A [ d ] . size () << "\n";    
+//  }
+//  MorseComplex debugcomplex ( domain );
+//  MorseSanity ( debugcomplex );
   //////////////////////////////////////////
                
   // Compute the homology generators
@@ -164,23 +165,23 @@ RelativeMapHomology (RelativeMapHomology_t * output,
       PRINT "RMH: Chain size = " << domain_generator () . size () << "\n";
       // Now lift it:
       BOOST_FOREACH ( const Term & t, domain_generator () ) {
-        std::cout << "Dealing with fiber (" << t . index () << ", " << d << ") (*)\n";
-        std::cout << "   Term is " << t << "\n";
+        //std::cout << "Dealing with fiber (" << t . index () << ", " << d << ") (*)\n";
+        //std::cout << "   Term is " << t << "\n";
         // Determine fiber
         boost::unordered_set < GridElement > X_nbs, A_nbs;
         
-        std::cout << "domain_GridElements_X [ " << d << " ] . size () = " << 
-        domain_GridElements_X [ d ] . size () << "\n";
+        //std::cout << "domain_GridElements_X [ " << d << " ] . size () = " << 
+        //domain_GridElements_X [ d ] . size () << "\n";
         
-        std::cout << "domain_GridElements_A [ " << d << " ] . size () = " << 
-        domain_GridElements_A [ d ] . size () << "\n";
+        //std::cout << "domain_GridElements_A [ " << d << " ] . size () = " << 
+        //domain_GridElements_A [ d ] . size () << "\n";
         
         X_nbs = domain_GridElements_X [ d ] [ t . index () ];
         A_nbs = domain_GridElements_A [ d ] [ t . index () ];    
         
         // DEBUG ///////////////////////
-        std::cout << "   X_nbs . size () = " << X_nbs . size () << "\n";
-        std::cout << "   A_nbs . size () = " << A_nbs . size () << "\n";
+        //std::cout << "   X_nbs . size () = " << X_nbs . size () << "\n";
+        //std::cout << "   A_nbs . size () = " << A_nbs . size () << "\n";
         ////////////////////////////////
         
         FiberComplex fiber ( X_nbs, A_nbs, full_domain, full_codomain, F );
