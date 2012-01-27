@@ -101,22 +101,21 @@ inline FiberComplex::FiberComplex
   // Find the algebraic closures of X and A
   closure ( X_image, * supercomplex_ );
   closure ( A_image, * supercomplex_ );
-
-  /*
-   // DEBUG
-  std::cout << "FiberComplex. Choose.\n";
-  for ( int d = 0; d <= D; ++ d ) {
-    std::cout << " size of X_image [ " << d << " = " << X_image [ d ] . size () << "\n";
-  }
-   */
   
   // Pick choose   (dirty: this makes sense only if A is empty )
-#if 0
+#if 1
   // DEBUG //////////////////////////////////////
   if ( X_image [ 0 ]. size () == 0 ) {
     std::cout << "FiberComplex failure. The fiber doesn't even have a single vertex.\n";
+    BOOST_FOREACH ( Index i, X_nbs ) {
+      std::cout << domain . geometry ( i, D ) << " --> " << F ( domain . geometry ( i, D ) ) << "\n";
+    }
+    std::cout << "Size of codomain: " << codomain . size () << "\n";
     for ( int d = 0; d <= D; ++ d ) {
       std::cout << " size of X_image [ " << d << " ] = " << X_image [ d ] . size () << "\n";
+    }
+    for ( int d = 0; d <= D; ++ d ) {
+      std::cout << " size of A_image [ " << d << " ] = " << A_image [ d ] . size () << "\n";
     }
     {
       ComplexVisualization * cv = new ComplexVisualization ( "Codomain Picture." );

@@ -22,6 +22,7 @@
 class Toplex {
 public:
   /* typedefs */
+  typedef GridElement value_type;
   typedef uint32_t size_type;
   typedef Toplex_const_iterator iterator;
   typedef iterator const_iterator;

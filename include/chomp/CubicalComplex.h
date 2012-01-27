@@ -64,7 +64,7 @@ public:
   fullCube ( const std::vector<uint32_t> & cube_coordinates ) const;
 
   /// fullCube
-  /// returns a list of "Cells" corresponding to the cube coordinates
+  /// returns a list of "Index"s corresponding to the cube coordinates
   std::vector < std::vector < Index > >
   fullCubeIndexes ( const std::vector<uint32_t> & cube_coordinates ) const;
   
@@ -83,7 +83,7 @@ public:
   /// cubeIndex. Get indexes of highest dimensional cells.
   Index cubeIndex ( const std::vector<uint32_t> & cube_coordinates ) const;
   std::vector<uint32_t> indexToCube ( Index i ) const;
-  std::vector<uint32_t> addressToCube ( Index i ) const;
+  std::vector<uint32_t> addressToCube ( uint64_t address ) const;
   
   /// low-level interface
   bool bitmap ( const uint64_t address ) const;
@@ -108,7 +108,7 @@ private:
 	//std::vector<bool> bitmap_;
   template < class InsertIterator >
   void coverHelper ( InsertIterator & ii,
-                     Index partial,
+                     uint64_t /* DANGER */ partial,
                      std::vector < uint32_t > low, 
                      std::vector < uint32_t > high,
                      int d ) const;
@@ -434,13 +434,19 @@ inline std::vector<uint32_t> CubicalComplex::indexToCube ( Index i ) const {
   return addressToCube ( address );
 }
 
-inline std::vector<uint32_t> CubicalComplex::addressToCube ( Index i ) const {
+inline std::vector<uint32_t> CubicalComplex::addressToCube ( uint64_t address ) const {
   int D = dimension ();
   std::vector<uint32_t> result ( D );
-  i >>= D;
+  address >>= D;
+  Index temp = address; //debug
   for ( int d = 0; d < D; ++ d ) {
-    int pos = i % dimension_sizes_ [ d ];
-    i /= dimension_sizes_ [ d ];
+    int pos = address % dimension_sizes_ [ d ];
+    address /= dimension_sizes_ [ d ];
+    // DEBUG
+    if ( pos == 0 ) {
+      std::cout << temp << "\n";
+      std::cout << dimension_sizes_ [ 0 ] << "\n";
+    }
     result [ d ] = pos - 1; // subtract 1 to ignore wrap layer
   }
   return result;
@@ -457,7 +463,7 @@ inline const Prism & CubicalComplex::bounds ( void ) const {
 template < class InsertIterator >
 void
 CubicalComplex::coverHelper ( InsertIterator & ii,
-                              Index partial,
+                              uint64_t /* DANGER */ partial,
                               std::vector < uint32_t > low, 
                               std::vector < uint32_t > high,
                               int d ) const {
@@ -549,9 +555,24 @@ inline Prism CubicalComplex::geometry ( Index i, int dim ) const {
         result . upper_bounds [ d ] = result . lower_bounds [ d ];
       bit <<= 1;
     }
+
     return result;
   }
   std::vector < uint32_t > cube = indexToCube ( i );
+  
+  // DEBUG
+  Prism result = geometryOfCube ( cube );
+  for ( int d = 0; d < D; ++ d ) {
+    if ( result . upper_bounds [ d ] > bounds () . upper_bounds [ d ] ) {
+      std::cout << "CubicalComplex::geometry ( " << i << ", " << dim << ")\n";
+      std::cout << result << "\n";
+      std::cout << size ( dim ) << "\n";
+      for ( int k = 0; k < D; ++ k ) std::cout << cube [ k ] << ", ";
+      std::cout << "\n";
+      abort ();
+    }
+    
+  }
   return geometryOfCube ( cube );
 }
 
