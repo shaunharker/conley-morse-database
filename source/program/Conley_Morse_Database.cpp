@@ -6,7 +6,7 @@
 #include "database/program/MorseProcess.h"
 #include "database/program/ConleyProcess.h"
 
-#define CMD_MORSE
+//#define CMD_MORSE
 #define CMD_CONLEY
 int main ( int argc, char * argv [] ) {
   delegator::Start ();

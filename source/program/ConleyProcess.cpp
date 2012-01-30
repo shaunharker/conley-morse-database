@@ -33,13 +33,6 @@ void ConleyProcess::initialize ( void ) {
     
   database . conley_records () . clear ();
   std::cout << "Loaded database.\n";
-  // Initialize parameter space bounds
-  param_toplex . initialize (config.PARAM_BOUNDS);   /// Parameter space toplex
-  for ( int i = 0; i < config.PARAM_SUBDIV_DEPTH; ++i ) { 
-  	param_toplex . subdivide (); // subdivide every top cell
-  }
-  
-  std::cout << "Subdivided parameter toplex.\n";
 
   // Goal is to create disjoint set data structure of equivalent morse sets
   typedef std::pair<int, int> intpair;
@@ -51,6 +44,8 @@ void ConleyProcess::initialize ( void ) {
     for ( int i = 0; i < record . num_morse_sets_ ; ++ i ) {
       classes . Add ( ms_id ( record . id_, i ) );
     }
+    param_boxes [ record . id_ ] . lower_bounds = record . ge_ . lower_bounds_;
+    param_boxes [ record . id_ ] . upper_bounds = record . ge_ . upper_bounds_;    
   }
   
   /* Process all Clutching Records */
@@ -102,13 +97,14 @@ void ConleyProcess::initialize ( void ) {
   
   for ( unsigned int job_number = 0; job_number < num_jobs_; ++ job_number ) {
     //std::cout << "fetch cell from work item\n";
-  	Toplex::Top_Cell cell = conley_work_items [ job_number ] . first;
-    //std::cout << "Found " << cell << ", now we determine corresponding prism\n";
-  	Prism GD = param_toplex . geometry (param_toplex . find (cell));
-    outfile << "job number " << job_number << ", cell = " << cell << ", geo = " << GD << "\n";
-    //std::cout << "job number " << job_number << ", cell = " << cell << ", geo = " << GD << "\n";
+    int pb_id = conley_work_items [ job_number ] . first;
+    std::cout << "Found " << pb_id << ", now we determine corresponding prism\n";
+  	Prism GD = param_boxes [ pb_id ]; 
+    outfile << "job number " << job_number << ", pb_id = " << pb_id << ", geo = " << GD << "\n";
+    std::cout << "job number " << job_number << ", pb_id = " << pb_id << ", geo = " << GD << "\n";
 
   }
+  std::cout << "Finished writing job list.\n";
   outfile . close ();
 }
 
@@ -125,8 +121,8 @@ int ConleyProcess::prepare ( Message & job ) {
   if (num_jobs_sent_ == num_jobs_) return 1; // Code 1: No more jobs.
   
   size_t job_number = num_jobs_sent_;
-  Toplex::Top_Cell cell = conley_work_items [ job_number ] . first;
-  Prism GD = param_toplex . geometry (param_toplex . find (cell));
+  int pb_id = conley_work_items [ job_number ] . first;
+  Prism GD = param_boxes [ pb_id ];
 
   job << job_number;
   job << GD;
