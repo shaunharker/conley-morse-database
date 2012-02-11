@@ -152,9 +152,9 @@ struct ModelMap {
     epsilon = interval (rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ]);
     delta = interval (rectangle . lower_bounds [ 2 ], rectangle . upper_bounds [ 2 ]);
     interval one ( 1.0, 1.0 );
-    coef0 = one + (-2.0)*epsilon;
-    coef1 = epsilon + (-1.0) * delta;
-    coef2 = epsilon + delta;
+    coef0 = (one + (-1.0)*epsilon);
+    coef1 = .5*(epsilon + (-1.0) * delta);
+    coef2 = .5*(epsilon + delta);
     std::cout << " a = " << a.lower() << " " << a.upper() << "\n";
     std::cout << " epsilon = " << epsilon.lower() << " " << epsilon.upper() << "\n";
     std::cout << " delta = " << delta.lower() << " " << delta.upper() << "\n";
@@ -231,12 +231,13 @@ Rect initialize_phase_space_box ( void ) {
 Rect initialize_parameter_space_box ( const Real bx, const Real by ) {
   // Three dimensional parameter space
   //parameter space = [.78125, .785625] [-.005, -.00125] [.06, .06]
+  //  use center point: 
   int parameter_space_dimension = 3;
   Rect parameter_box ( parameter_space_dimension ); 
-  parameter_box . lower_bounds [ 0 ] = .78125; 
-  parameter_box . upper_bounds [ 0 ] = .785625;
-  parameter_box . lower_bounds [ 1 ] = -.005;
-  parameter_box . upper_bounds [ 1 ] = -.00125;
+  parameter_box . lower_bounds [ 0 ] = .7834375; 
+  parameter_box . upper_bounds [ 0 ] = .7834375;
+  parameter_box . lower_bounds [ 1 ] = -0.003125;
+  parameter_box . upper_bounds [ 1 ] = -0.003125;
   parameter_box . lower_bounds [ 2 ] = .06;
   parameter_box . upper_bounds [ 2 ] = .06;
   std::cout << "parameter box = " << parameter_box << "\n";

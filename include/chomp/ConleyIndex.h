@@ -80,7 +80,11 @@ ConleyIndex ( ConleyIndex_t * output,
   std::insert_iterator<CellDictionary> Xc_ii ( X_cells, X_cells . begin () );
   BOOST_FOREACH ( Cell cell, S ) {
     S_cells . insert ( cell );
+#if 0
     Subset & image = G [ cell ] = Subset ();
+#else
+    Subset image = Subset ();
+#endif
     std::insert_iterator<Subset> image_ii ( image, image . end () );
     toplex . cover ( image_ii, F ( toplex . geometry ( toplex . find ( cell ) ) ) );
     std::copy ( image . begin (), image . end (), Xc_ii );
@@ -100,6 +104,7 @@ ConleyIndex ( ConleyIndex_t * output,
   } /* boost_foreach */ 
   
   /* Compute G for domain cells in A */
+#if 0
   // note: we restrict the ranges to A 
   BOOST_FOREACH ( Cell cell, A ) {
     Subset image;
@@ -112,6 +117,7 @@ ConleyIndex ( ConleyIndex_t * output,
     }
     
   } /* boost_foreach */  
+#endif
   stop = clock ();
   std::cout << "Conley Index computation prepared as relative map homology problem.\n";
   std::cout << "Elapsed time = " << (float) ( stop - start ) / (float) CLOCKS_PER_SEC << "\n";
