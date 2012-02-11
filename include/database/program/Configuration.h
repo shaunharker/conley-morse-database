@@ -22,7 +22,7 @@
 #include "ModelMap.h"
 typedef ModelMap GeometricMap;
 
-#include "chomp/Prism.h"
+#include "chomp/Rect.h"
 
 class Configuration {
 public:
@@ -33,14 +33,14 @@ public:
   /* Parameter Space */
   int PARAM_DIM;
   int PARAM_SUBDIV_DEPTH;
-  Prism PARAM_BOUNDS;
+  Rect PARAM_BOUNDS;
   
   /* Phase Space */
   int PHASE_DIM;
   int PHASE_SUBDIV_MIN;
   int PHASE_SUBDIV_MAX;
   int PHASE_SUBDIV_LIMIT;
-  Prism PHASE_BOUNDS; 
+  Rect PHASE_BOUNDS; 
   
   // Loading
   void loadFromFile ( const char * filename ) {

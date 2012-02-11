@@ -32,19 +32,20 @@
 // MAP FUNCTION OBJECT
 #include "database/maps/simple_interval.h"   // for interval arithmetic
 
+#ifdef FOURDIMLESLIE
 struct ModelMap {
   
   typedef simple_interval<double> interval;
   
   interval parameter1, parameter2;
   
-  ModelMap ( const Prism & rectangle ) {
+  ModelMap ( const Rect & rectangle ) {
     parameter1 = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ]);
     parameter2 = interval (rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ]);
     return;
   }
-  Prism operator () 
-  ( const Prism & rectangle ) const {    
+  Rect operator () 
+  ( const Rect & rectangle ) const {    
     /* Read input */
     interval x0 = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ]);
     interval x1 = interval (rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ]);
@@ -58,7 +59,7 @@ struct ModelMap {
     interval y3 = (double) 0.7 * x2;
     
     /* Write output */
-    Prism return_value ( 4 );
+    Rect return_value ( 4 );
     return_value . lower_bounds [ 0 ] = y0 . lower ();
     return_value . upper_bounds [ 0 ] = y0 . upper ();
     return_value . lower_bounds [ 1 ] = y1 . lower ();
@@ -72,44 +73,12 @@ struct ModelMap {
   
 };
 
-//struct ModelMap {
-//  
-//  typedef simple_interval<double> interval;
-//  
-//  interval parameter1, parameter2;
-//  
-//  ModelMap ( const Prism & rectangle ) {
-//    parameter1 = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ]);
-//    parameter2 = interval (rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ]);
-//    return;
-//  }
-//  Prism operator () 
-//  ( const Prism & rectangle ) const {    
-//    /* Read input */
-//    interval x0 = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ]);
-//    interval x1 = interval (rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ]);
-//    
-//    /* Perform map computation */
-//    interval y0 = (parameter1 * x0 + parameter2 * x1 ) * pow(1.0 + 0.0016666*(x0 + x1) , -60.0);     
-//    interval y1 = (double) 0.7 * x0;
-//    
-//    /* Write output */
-//    Prism return_value ( 2 );
-//    return_value . lower_bounds [ 0 ] = y0 . lower ();
-//    return_value . upper_bounds [ 0 ] = y0 . upper ();
-//    return_value . lower_bounds [ 1 ] = y1 . lower ();
-//    return_value . upper_bounds [ 1 ] = y1 . upper ();
-//    return return_value;
-//  } 
-//  
-//};
-
-Prism initialize_phase_space_box ( void ) {
+Rect initialize_phase_space_box ( void ) {
   // Two dimensional phase space
   // [0, 320.056] x [0.0, 224.040]
   //  int phase_space_dimension = 2;
   int phase_space_dimension = 4;
-  Prism phase_space_bounds ( phase_space_dimension );
+  Rect phase_space_bounds ( phase_space_dimension );
   phase_space_bounds . lower_bounds [ 0 ] = 0.0;
   phase_space_bounds . upper_bounds [ 0 ] = 300.0;
   phase_space_bounds . lower_bounds [ 1 ] = 0.0;
@@ -126,22 +95,22 @@ Prism initialize_phase_space_box ( void ) {
   return phase_space_bounds;
 }
 
-Prism initialize_parameter_space_box ( const Real bx, const Real by ) {
+Rect initialize_parameter_space_box ( const Real bx, const Real by ) {
   // Two dimensional parameter space
   // A box chosen from [8, 37] x [3, 50]
   int parameter_space_dimension = 2;
-  Prism parameter_space_limits ( parameter_space_dimension ); 
-//  parameter_space_limits . lower_bounds [ 0 ] = 8.0; 
-//  parameter_space_limits . upper_bounds [ 0 ] = 37.0;
-//  parameter_space_limits . lower_bounds [ 1 ] = 3.0;
-//  parameter_space_limits . upper_bounds [ 1 ] = 50.0;
+  Rect parameter_space_limits ( parameter_space_dimension ); 
+  //  parameter_space_limits . lower_bounds [ 0 ] = 8.0; 
+  //  parameter_space_limits . upper_bounds [ 0 ] = 37.0;
+  //  parameter_space_limits . lower_bounds [ 1 ] = 3.0;
+  //  parameter_space_limits . upper_bounds [ 1 ] = 50.0;
   parameter_space_limits . lower_bounds [ 0 ] = 13.0; 
   parameter_space_limits . upper_bounds [ 1 ] = 13.0;//17.0; 
   parameter_space_limits . lower_bounds [ 0 ] = 13.0; 
   parameter_space_limits . upper_bounds [ 1 ] = 13.0;//17.0; 
-  // Use command line arguments to choose a box from ? x ? choices.
+                                                     // Use command line arguments to choose a box from ? x ? choices.
   int PARAMETER_BOXES = 1000; //64
-  Prism parameter_box ( parameter_space_dimension );
+  Rect parameter_box ( parameter_space_dimension );
   parameter_box . lower_bounds [ 0 ] = parameter_space_limits . lower_bounds [ 0 ] + 
   ( parameter_space_limits . upper_bounds [ 0 ] - parameter_space_limits . lower_bounds [ 0 ] ) * bx / (float) PARAMETER_BOXES;
   parameter_box . upper_bounds [ 0 ] = parameter_space_limits . lower_bounds [ 0 ] + 
@@ -155,8 +124,201 @@ Prism initialize_parameter_space_box ( const Real bx, const Real by ) {
   return parameter_box;
 }
 
+#endif
+
+
+#define CYCLICLOGISTIC
+#ifdef CYCLICLOGISTIC
+// 3D EXAMPLE FROM IPPEI
+
+/*
+ phase space = [-1.1, 1.1]^3
+ parameter space = [.78125, .785625] [-.005, -.00125] [.06, .06]
+                       a               epsilon         delta
+ define f(x,a) = 1 - a * x^2
+ y0 = (1-epsilon*2)*f(x0, a) + (epsilon - delta)*f(x2, a) + (epsilon + delta)*f(x1,a)
+ y1 = (1-epsilon*2)*f(x1, a) + (epsilon - delta)*f(x0, a) + (epsilon + delta)*f(x2,a)
+ y2 = (1-epsilon*2)*f(x2, a) + (epsilon - delta)*f(x1, a) + (epsilon + delta)*f(x0,a)
+ 
+ */
+struct ModelMap {
+  
+  typedef simple_interval<double> interval;
+  
+  interval a, epsilon, delta;
+  interval coef0, coef1, coef2;
+  ModelMap ( const Rect & rectangle ) {
+    a = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ]);
+    epsilon = interval (rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ]);
+    delta = interval (rectangle . lower_bounds [ 2 ], rectangle . upper_bounds [ 2 ]);
+    interval one ( 1.0, 1.0 );
+    coef0 = one + (-2.0)*epsilon;
+    coef1 = epsilon + (-1.0) * delta;
+    coef2 = epsilon + delta;
+    std::cout << " a = " << a.lower() << " " << a.upper() << "\n";
+    std::cout << " epsilon = " << epsilon.lower() << " " << epsilon.upper() << "\n";
+    std::cout << " delta = " << delta.lower() << " " << delta.upper() << "\n";
+    std::cout << " coef0 = " << coef0.lower() << " " << coef0.upper() << "\n";
+    std::cout << " coef1 = " << coef1.lower() << " " << coef1.upper() << "\n";
+    std::cout << " coef2 = " << coef2.lower() << " " << coef2.upper() << "\n";
+   
+    return;
+  }
+  Rect operator () 
+  ( const Rect & rectangle ) const {    
+    /* Read input */
+    interval x0 = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ]);
+    interval x1 = interval (rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ]);
+    interval x2 = interval (rectangle . lower_bounds [ 2 ], rectangle . upper_bounds [ 2 ]);
+
+    /* Perform map computation */
+    interval one ( 1.0, 1.0 );
+    // Logistic maps.
+    interval f0 = one + (-1.0) * a * x0 * x0;
+    interval f1 = one + (-1.0) * a * x1 * x1;
+    interval f2 = one + (-1.0) * a * x2 * x2;
+
+    /*
+    std::cout << "f0 = " << f0.lower() << " " << f0.upper() << "\n";
+    std::cout << "f1 = " << f1.lower() << " " << f1.upper() << "\n";
+    std::cout << "f2 = " << f2.lower() << " " << f2.upper() << "\n";
+    std::cout << " coef0 = " << coef0.lower() << " " << coef0.upper() << "\n";
+    std::cout << " coef1 = " << coef1.lower() << " " << coef1.upper() << "\n";
+    std::cout << " coef2 = " << coef2.lower() << " " << coef2.upper() << "\n";
+    */
+    interval y0 = coef0*f0 + coef1*f2 + coef2*f1;
+    interval y1 = coef0*f1 + coef1*f0 + coef2*f2;
+    interval y2 = coef0*f2 + coef1*f1 + coef2*f0;
+
+    /*
+    std::cout << "y0 = " << y0.lower() << " " << y0.upper() << "\n";
+    std::cout << "y1 = " << y1.lower() << " " << y1.upper() << "\n";
+    std::cout << "y2 = " << y2.lower() << " " << y2.upper() << "\n";
+    */
+    
+    /* Write output */
+    Rect return_value ( 3 );
+    return_value . lower_bounds [ 0 ] = y0 . lower ();
+    return_value . upper_bounds [ 0 ] = y0 . upper ();
+    return_value . lower_bounds [ 1 ] = y1 . lower ();
+    return_value . upper_bounds [ 1 ] = y1 . upper ();
+    return_value . lower_bounds [ 2 ] = y2 . lower ();
+    return_value . upper_bounds [ 2 ] = y2 . upper ();
+    return return_value;
+  } 
+  
+};
+
+// you mean depth 9
+Rect initialize_phase_space_box ( void ) {
+  // Two dimensional phase space
+  //phase space = [-1.1, 1.1]^3
+  //parameter space = [.78125, .785625] [-.005, -.00125] [.06, .06]
+  
+  // [0, 320.056] x [0.0, 224.040]
+  int phase_space_dimension = 3;
+  Rect phase_space_bounds ( phase_space_dimension );
+  phase_space_bounds . lower_bounds [ 0 ] = -1.1;
+  phase_space_bounds . upper_bounds [ 0 ] = 1.1;
+  phase_space_bounds . lower_bounds [ 1 ] = -1.1;
+  phase_space_bounds . upper_bounds [ 1 ] = 1.1;
+  phase_space_bounds . lower_bounds [ 2 ] = -1.1;
+  phase_space_bounds . upper_bounds [ 2 ] = 1.1;
+  std::cout << "Phase Space Bounds = " << phase_space_bounds << "\n";
+  return phase_space_bounds;
+}
+
+Rect initialize_parameter_space_box ( const Real bx, const Real by ) {
+  // Three dimensional parameter space
+  //parameter space = [.78125, .785625] [-.005, -.00125] [.06, .06]
+  int parameter_space_dimension = 3;
+  Rect parameter_box ( parameter_space_dimension ); 
+  parameter_box . lower_bounds [ 0 ] = .78125; 
+  parameter_box . upper_bounds [ 0 ] = .785625;
+  parameter_box . lower_bounds [ 1 ] = -.005;
+  parameter_box . upper_bounds [ 1 ] = -.00125;
+  parameter_box . lower_bounds [ 2 ] = .06;
+  parameter_box . upper_bounds [ 2 ] = .06;
+  std::cout << "parameter box = " << parameter_box << "\n";
+  return parameter_box;
+}
+#endif
+
+#ifdef HENONEXAMPLE
+// HENON MAP EXAMPLE
+struct ModelMap {
+  
+  typedef simple_interval<double> interval;
+  
+  interval parameter1, parameter2;
+  
+  ModelMap ( const Rect & rectangle ) {
+    parameter1 = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ]);
+    parameter2 = interval (rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ]);
+    return;
+  }
+  Rect operator () 
+  ( const Rect & rectangle ) const {    
+    /* Read input */
+    interval x0 = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ]);
+    interval x1 = interval (rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ]);
+    
+    /* Perform map computation */
+    interval y0 = x1 + interval ( 1.0, 1.0 ) + interval(-1.0,-1.0) * parameter1 * x0 * x0;
+    interval y1 = parameter2 * x0;
+    
+    /* Write output */
+    Rect return_value ( 2 );
+    return_value . lower_bounds [ 0 ] = y0 . lower ();
+    return_value . upper_bounds [ 0 ] = y0 . upper ();
+    return_value . lower_bounds [ 1 ] = y1 . lower ();
+    return_value . upper_bounds [ 1 ] = y1 . upper ();
+    return return_value;
+  } 
+  
+};
+
+Rect initialize_phase_space_box ( void ) {
+  // Two dimensional phase space
+  // [0, 320.056] x [0.0, 224.040]
+  int phase_space_dimension = 2;
+  Rect phase_space_bounds ( phase_space_dimension );
+  phase_space_bounds . lower_bounds [ 0 ] = -2.0;
+  phase_space_bounds . upper_bounds [ 0 ] = 2.0;
+  phase_space_bounds . lower_bounds [ 1 ] = -2.0;
+  phase_space_bounds . upper_bounds [ 1 ] = 2.0;
+  std::cout << "Phase Space Bounds = " << phase_space_bounds << "\n";
+  return phase_space_bounds;
+}
+
+Rect initialize_parameter_space_box ( const Real bx, const Real by ) {
+  // Two dimensional parameter space
+  // A box chosen from [8, 37] x [3, 50]
+  int parameter_space_dimension = 2;
+  Rect parameter_space_limits ( parameter_space_dimension ); 
+  parameter_space_limits . lower_bounds [ 0 ] = 1.4; 
+  parameter_space_limits . upper_bounds [ 0 ] = 1.4;
+  parameter_space_limits . lower_bounds [ 1 ] = .3;
+  parameter_space_limits . upper_bounds [ 1 ] = .3;
+  // Use command line arguments to choose a box from ? x ? choices.
+  int PARAMETER_BOXES = 64;
+  Rect parameter_box ( parameter_space_dimension );
+  parameter_box . lower_bounds [ 0 ] = parameter_space_limits . lower_bounds [ 0 ] + 
+  ( parameter_space_limits . upper_bounds [ 0 ] - parameter_space_limits . lower_bounds [ 0 ] ) * bx / (float) PARAMETER_BOXES;
+  parameter_box . upper_bounds [ 0 ] = parameter_space_limits . lower_bounds [ 0 ] + 
+  ( parameter_space_limits . upper_bounds [ 0 ] - parameter_space_limits . lower_bounds [ 0 ] ) * ( bx + 1.0 ) / (float) PARAMETER_BOXES;
+  parameter_box . lower_bounds [ 1 ] = parameter_space_limits . lower_bounds [ 1 ] + 
+  ( parameter_space_limits . upper_bounds [ 1 ] - parameter_space_limits . lower_bounds [ 1 ] ) * by / (float) PARAMETER_BOXES;
+  parameter_box . upper_bounds [ 1 ] = parameter_space_limits . lower_bounds [ 1 ] + 
+  ( parameter_space_limits . upper_bounds [ 1 ] - parameter_space_limits . lower_bounds [ 1 ] ) * ( by + 1.0 ) / (float) PARAMETER_BOXES;
+  std::cout << "Parameter Box Choice = " << parameter_box << "\n";
+  
+  return parameter_box;
+}
+#endif
+
 int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 9;
-int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 9;
+int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 12;
 int SINGLECMG_COMPLEXITY_LIMIT = 10000;
 
 ////////////////////////////////////////END USER EDIT//////////////////////////////////////////
@@ -187,42 +349,14 @@ int main ( int argc, char * argv [] )
   Real by = ( Real ) atoi ( argv [ 2 ] );
   
   /* SET PHASE SPACE REGION */
-  Prism phase_space_bounds = initialize_phase_space_box ();
+  Rect phase_space_bounds = initialize_phase_space_box ();
 
   /* SET PARAMETER SPACE REGION */
-  Prism parameter_box = initialize_parameter_space_box (bx, by);
+  Rect parameter_box = initialize_parameter_space_box (bx, by);
 
   /* INITIALIZE PHASE SPACE */
   Toplex phase_space;
   phase_space . initialize ( phase_space_bounds );
-
-  /* sanity check *//*
-  RelativePair domain_pair;
-  typedef GridElement T;
-  std::vector < T > XE, AE;
-  typedef Toplex::iterator IT;
-  for ( IT it = phase_space . begin (), end = phase_space . end ();
-       it != end; ++ it ) {
-    //BOOST_FOREACH ( const T & t, phase_space ) {
-    XE . push_back ( * it );
-  }
-  phase_space . relativeComplex ( &domain_pair, XE, AE, 5 );
-  CubicalComplex & cc = domain_pair . base (); 
-  
-  int D = cc . dimension ();
-  for ( int d = 0; d < D; ++ d ) {
-    for ( Index i = 0; i < cc . size ( d ); ++ i ) {
-      Prism gd = cc . geometry ( i, d );
-      for ( int k = 0; k < D; ++ k ) {
-        if ( gd . lower_bounds [ k ] < 0.0
-            || gd . upper_bounds [ k ] > 300.0) {
-          // bad news.
-          std::cout << "(" << i << ", " << d << ") --> " << gd << "\n";
-        }
-      }
-    }
-  }
-                     */
   
   /* INITIALIZE MAP */
   ModelMap map ( parameter_box );

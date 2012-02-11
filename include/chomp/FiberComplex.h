@@ -30,12 +30,12 @@ private:
     return data_ [ d ] [ i ];
   }
 public:
-  template < class PrismMap >
+  template < class RectMap >
   FiberComplex ( const boost::unordered_set < Index > & X_nbs, 
                  const boost::unordered_set < Index > & A_nbs,
                  const CubicalComplex & domain,
                  CubicalComplex & codomain, 
-                 const PrismMap & F );
+                 const RectMap & F );
     
   virtual ~FiberComplex ( void ) {}; 
   
@@ -65,20 +65,20 @@ public:
     Chain output; project ( &output, input ); return output;
   }  
   
-  Prism geometry ( Index i, int dim ) const;
+  Rect geometry ( Index i, int dim ) const;
 
 };
 /********************
  *   DEFINITIONS    *
  ********************/
 
-template < class PrismMap >
+template < class RectMap >
 inline FiberComplex::FiberComplex
 ( const boost::unordered_set < Index > & X_nbs, 
   const boost::unordered_set < Index > & A_nbs,
   const CubicalComplex & domain,
   CubicalComplex & codomain, 
-  const PrismMap & F ) {
+  const RectMap & F ) {
   // Construct the fiber
   supercomplex_ = & codomain;
   int D = supercomplex_ -> dimension ();
@@ -122,8 +122,8 @@ inline FiberComplex::FiberComplex
       std::cout << "About to draw complex.\n";
       cv -> drawComplex ( codomain, 100 );
       BOOST_FOREACH ( Index i, X_nbs ) {
-        cv -> drawPrism ( domain . geometry ( i, D ), 200 );
-        cv -> drawPrism ( F ( domain . geometry ( i, D ) ) , 200 );
+        cv -> drawRect ( domain . geometry ( i, D ), 200 );
+        cv -> drawRect ( F ( domain . geometry ( i, D ) ) , 200 );
       }
       // explore a minute here
       cv -> explore ();
@@ -224,7 +224,7 @@ inline void FiberComplex::coboundary
   
 }
 
-inline Prism FiberComplex::geometry ( Index i, int dim ) const {
+inline Rect FiberComplex::geometry ( Index i, int dim ) const {
   //std::cout << "FiberComplex::geometry ( " << i << ", " << dim << ")\n";
   return supercomplex_ -> geometry ( indexToCell ( i, dim ), dim );
 }

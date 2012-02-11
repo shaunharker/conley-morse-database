@@ -99,7 +99,7 @@ void ConleyProcess::initialize ( void ) {
     //std::cout << "fetch cell from work item\n";
     int pb_id = conley_work_items [ job_number ] . first;
     std::cout << "Found " << pb_id << ", now we determine corresponding prism\n";
-  	Prism GD = param_boxes [ pb_id ]; 
+  	Rect GD = param_boxes [ pb_id ]; 
     outfile << "job number " << job_number << ", pb_id = " << pb_id << ", geo = " << GD << "\n";
     std::cout << "job number " << job_number << ", pb_id = " << pb_id << ", geo = " << GD << "\n";
 
@@ -122,7 +122,7 @@ int ConleyProcess::prepare ( Message & job ) {
   
   size_t job_number = num_jobs_sent_;
   int pb_id = conley_work_items [ job_number ] . first;
-  Prism GD = param_boxes [ pb_id ];
+  Rect GD = param_boxes [ pb_id ];
 
   job << job_number;
   job << GD;

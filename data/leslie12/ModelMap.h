@@ -4,7 +4,7 @@
 #define CMDP_LESLIEMAP_H
 
 //#include <boost/numeric/interval.hpp>
-#include "chomp/Prism.h"
+#include "chomp/Rect.h"
 #include "database/maps/simple_interval.h"
 #include <vector>
 
@@ -14,13 +14,13 @@ struct ModelMap {
   
   interval parameter1, parameter2;
   
-  ModelMap ( const Prism & rectangle ) {
+  ModelMap ( const Rect & rectangle ) {
     parameter1 = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ]);
     parameter2 = interval (rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ]);
     return;
   }
-  Prism operator () 
-    ( const Prism & rectangle ) const {    
+  Rect operator () 
+    ( const Rect & rectangle ) const {    
     /* Read input */
     interval x0 = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ]);
     interval x1 = interval (rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ]);
@@ -30,7 +30,7 @@ struct ModelMap {
     interval y1 = (double) 0.7 * x0;
     
     /* Write output */
-    Prism return_value ( 2 );
+    Rect return_value ( 2 );
     return_value . lower_bounds [ 0 ] = y0 . lower ();
     return_value . upper_bounds [ 0 ] = y0 . upper ();
     return_value . lower_bounds [ 1 ] = y1 . lower ();

@@ -14,7 +14,7 @@
 
 #include "chomp/Complex.h"
 #include "chomp/Chain.h"
-#include "chomp/Prism.h"
+#include "chomp/Rect.h"
 
 /*******************************
  *      CUBICAL COMPLEX        *
@@ -91,12 +91,12 @@ public:
   void erase ( const uint64_t address );
 
   /// geometric interface
-  Prism & bounds ( void );
-  const Prism & bounds ( void ) const;
-  template < class InsertIterator > void cover ( InsertIterator & ii, const Prism & p ) const; 
-  std::vector < Index > cover ( const Prism & p ) const;  
-  Prism geometry ( Index i, int dim ) const;
-  Prism geometryOfCube ( const std::vector < uint32_t > & cube ) const;
+  Rect & bounds ( void );
+  const Rect & bounds ( void ) const;
+  template < class InsertIterator > void cover ( InsertIterator & ii, const Rect & p ) const; 
+  std::vector < Index > cover ( const Rect & p ) const;  
+  Rect geometry ( Index i, int dim ) const;
+  Rect geometryOfCube ( const std::vector < uint32_t > & cube ) const;
 
 private:
   /* Cubical Complex */
@@ -104,7 +104,7 @@ private:
 	std::vector<uint64_t> jump_values_; 
   boost::unordered_set < uint64_t > cells_;
   uint64_t mask_;
-  Prism bounds_;
+  Rect bounds_;
 	//std::vector<bool> bitmap_;
   template < class InsertIterator >
   void coverHelper ( InsertIterator & ii,
@@ -452,11 +452,11 @@ inline std::vector<uint32_t> CubicalComplex::addressToCube ( uint64_t address ) 
   return result;
 }
 
-inline Prism & CubicalComplex::bounds ( void ) {
+inline Rect & CubicalComplex::bounds ( void ) {
   return bounds_;
 }
 
-inline const Prism & CubicalComplex::bounds ( void ) const {
+inline const Rect & CubicalComplex::bounds ( void ) const {
   return bounds_;
 }
 
@@ -478,7 +478,7 @@ CubicalComplex::coverHelper ( InsertIterator & ii,
       std::cout << cube [ k ] << " / " << dimension_sizes_ [ k ] << " ; ";
     }
     std::cout << "\n";
-    Prism geo = geometryOfCube ( cube );
+    Rect geo = geometryOfCube ( cube );
     std::cout << geo << "\n";
     */
 
@@ -497,7 +497,7 @@ CubicalComplex::coverHelper ( InsertIterator & ii,
 }
 
 template < class InsertIterator >
-void CubicalComplex::cover ( InsertIterator & ii, const Prism & p ) const {
+void CubicalComplex::cover ( InsertIterator & ii, const Rect & p ) const {
   //std::cout << ">>> CUBICAL COMPLEX: COVER ----: " << p << "\n";
   // Convert prism to scale of dimension sizes
   // Be careful about the padding.
@@ -523,16 +523,16 @@ void CubicalComplex::cover ( InsertIterator & ii, const Prism & p ) const {
   coverHelper ( ii, 0, low, high, D );
 }
 
-inline std::vector < Index > CubicalComplex::cover ( const Prism & p ) const {
+inline std::vector < Index > CubicalComplex::cover ( const Rect & p ) const {
   std::vector < Index > result;
   std::insert_iterator < std::vector < Index > > ii ( result, result . end () );
   cover ( ii, p );
   return result;
 }
 
-inline Prism CubicalComplex::geometryOfCube ( const std::vector < uint32_t > & cube ) const {
+inline Rect CubicalComplex::geometryOfCube ( const std::vector < uint32_t > & cube ) const {
   int D = dimension ();
-  Prism result ( D );
+  Rect result ( D );
   for ( int d = 0; d < D; ++ d ) {
     double lowbound = bounds () . lower_bounds [ d ];
     double highbound = bounds () . upper_bounds [ d ];
@@ -543,12 +543,12 @@ inline Prism CubicalComplex::geometryOfCube ( const std::vector < uint32_t > & c
   return result;
 }
 
-inline Prism CubicalComplex::geometry ( Index i, int dim ) const {
+inline Rect CubicalComplex::geometry ( Index i, int dim ) const {
   //std::cout << "CubicalComplex::geometry ( " << i << ", " << dim << ")\n";
   int D = dimension ();
   if ( dim < D ) {
     uint64_t address = indexToCell ( i, dim );
-    Prism result = geometryOfCube ( addressToCube ( address ) );
+    Rect result = geometryOfCube ( addressToCube ( address ) );
     uint64_t bit = 1;
     for ( int d = 0; d < D; ++ d ) {
       if ( not ( address & bit )  ) 
@@ -561,7 +561,7 @@ inline Prism CubicalComplex::geometry ( Index i, int dim ) const {
   std::vector < uint32_t > cube = indexToCube ( i );
   
   // DEBUG
-  Prism result = geometryOfCube ( cube );
+  Rect result = geometryOfCube ( cube );
   for ( int d = 0; d < D; ++ d ) {
     if ( result . upper_bounds [ d ] > bounds () . upper_bounds [ d ] ) {
       std::cout << "CubicalComplex::geometry ( " << i << ", " << dim << ")\n";

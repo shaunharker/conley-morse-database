@@ -18,7 +18,7 @@ void Conley_Index_Job ( Message * result , const Message & job ) {
   int PHASE_SUBDIV_MIN;
   int PHASE_SUBDIV_MAX;
   int PHASE_SUBDIV_LIMIT;
-  Prism PHASE_BOUNDS;
+  Rect PHASE_BOUNDS;
 
   job >> job_number;
   job >> geo;

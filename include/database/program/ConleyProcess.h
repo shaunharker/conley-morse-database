@@ -8,7 +8,7 @@
 #include "database/program/Configuration.h"
 
 #include "chomp/Toplex.h"
-#include "chomp/Prism.h"
+#include "chomp/Rect.h"
 
 /* * * * * * * * * * * * * * */
 /* ConleyProcess declaration */
@@ -29,7 +29,7 @@ private:
   // A Morse-Set ID is a pair<int,int> where first is the parameter box id, and
   // second is the number of the morse set within the parameter box.
   std::vector<std::pair<int, int> > conley_work_items;
-  std::map < int, Prism > param_boxes;
+  std::map < int, Rect > param_boxes;
 };
 
 #endif

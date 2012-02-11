@@ -8,7 +8,7 @@
 #include <vector>
 #include <stack>
 
-#include "chomp/Prism.h"
+#include "chomp/Rect.h"
 #include "chomp/RelativePair.h"
 #include "chomp/CubicalComplex.h"
 #include "chomp/ToplexDetail.h"
@@ -27,7 +27,7 @@ public:
   typedef Toplex_const_iterator iterator;
   typedef iterator const_iterator;
   typedef GridElement Top_Cell; //compatibility
-  typedef Prism Geometric_Description; // compatibility
+  typedef Rect Geometric_Description; // compatibility
   /* Basic Container Interface */
   void erase ( iterator erase_me );
   void clear ( void );
@@ -43,11 +43,11 @@ public:
   int dimension ( void ) const;
   
   /// bounds
-  Prism bounds ( void ) const;
+  Rect bounds ( void ) const;
 
   /// geometry
-  Prism geometry ( const GridElement & GridElement ) const;
-  Prism geometry ( const const_iterator & cell_iterator ) const;
+  Rect geometry ( const GridElement & GridElement ) const;
+  Rect geometry ( const const_iterator & cell_iterator ) const;
   
   /// prefix ( GridElement )
   ///   Return a vector with the prefix string of tree moves necessary to 
@@ -74,11 +74,11 @@ public:
 
   /// cover
   template < class InsertIterator > void 
-  cover ( InsertIterator & ii, const Prism & prism ) const;
+  cover ( InsertIterator & ii, const Rect & prism ) const;
   
   /// coarse cover   (whenever node containment, report parent, not children)
   template < class InsertIterator > void 
-  coarseCover ( InsertIterator & ii, const Prism & geometric_region ) const;
+  coarseCover ( InsertIterator & ii, const Rect & geometric_region ) const;
   
   /// subdivide
   template < class InsertIterator > void 
@@ -117,8 +117,8 @@ public:
                     int depth) const;
   // Construction
   Toplex ( void );
-  Toplex ( const Prism & outer_bounds_of_toplex );
-  void initialize ( const Prism & outer_bounds_of_toplex );
+  Toplex ( const Rect & outer_bounds_of_toplex );
+  void initialize ( const Rect & outer_bounds_of_toplex );
   ~Toplex ( void );
   
 private:
@@ -128,7 +128,7 @@ private:
   size_type tree_size_;
   std::vector < iterator > find_;
   Node * root_;
-  Prism bounds_;
+  Rect bounds_;
   int dimension_;
 };
 
@@ -207,7 +207,7 @@ inline int Toplex::dimension ( void ) const {
   return dimension_;
 } /* Adaptive_Cubical::Toplex::dimension */
 
-inline Prism Toplex::bounds ( void ) const {
+inline Rect Toplex::bounds ( void ) const {
   return bounds_;
 } /* Adaptive_Cubical::Toplex::bounds */
 
@@ -319,8 +319,8 @@ Toplex::umbrella ( InsertIterator & ii,
 }
 
 
-inline Prism Toplex::geometry ( const const_iterator & cell_iterator ) const {
-  Prism return_value ( dimension_, Real ( 0 ) );
+inline Rect Toplex::geometry ( const const_iterator & cell_iterator ) const {
+  Rect return_value ( dimension_, Real ( 0 ) );
   //std::cout << "geometry of " << cell_iterator . node_ << " (" << cell_iterator . node_ -> contents_ << ")\n";
   //std::cout << "root = " << root_ << "\n";
   /* Climb the tree */
@@ -356,13 +356,13 @@ inline Prism Toplex::geometry ( const const_iterator & cell_iterator ) const {
   return return_value;
 } /* Adaptive_Cubical::Toplex::geometry */
 
-inline Prism Toplex::geometry ( const GridElement & cell  ) const {
+inline Rect Toplex::geometry ( const GridElement & cell  ) const {
   return geometry ( find ( cell ) );
 } /* Adaptive_Cubical::Toplex::geometry */
 
 
 template < class InsertIterator >
-inline void Toplex::cover ( InsertIterator & ii, const Prism & geometric_region ) const {
+inline void Toplex::cover ( InsertIterator & ii, const Rect & geometric_region ) const {
   
   /* Use a stack, not a queue, and do depth first search.
    The advantage of this is that we can maintain the geometry during our Euler Tour.
@@ -371,7 +371,7 @@ inline void Toplex::cover ( InsertIterator & ii, const Prism & geometric_region 
    convert the input to these standard coordinates, which we put into integers. */
   
   // Step 1. Convert input to standard coordinates. 
-  Prism region ( dimension_ );
+  Rect region ( dimension_ );
   static std::vector<uint64_t> LB ( dimension_);
   static std::vector<uint64_t> UB ( dimension_);
 #define INTPHASEWIDTH (((uint64_t)1) << 60)
@@ -517,7 +517,7 @@ inline void Toplex::cover ( InsertIterator & ii, const Prism & geometric_region 
 
 
 template < class InsertIterator >
-inline void Toplex::coarseCover ( InsertIterator & ii, const Prism & geometric_region ) const {
+inline void Toplex::coarseCover ( InsertIterator & ii, const Rect & geometric_region ) const {
   
   /* Use a stack, not a queue, and do depth first search.
    The advantage of this is that we can maintain the geometry during our Euler Tour.
@@ -526,7 +526,7 @@ inline void Toplex::coarseCover ( InsertIterator & ii, const Prism & geometric_r
    convert the input to these standard coordinates, which we put into integers. */
   
   // Step 1. Convert input to standard coordinates. 
-  Prism region ( dimension_ );
+  Rect region ( dimension_ );
   static std::vector<uint64_t> LB ( dimension_);
   static std::vector<uint64_t> UB ( dimension_);
 #define INTPHASEWIDTH (((uint64_t)1) << 60)
@@ -942,7 +942,7 @@ inline void Toplex::relativeComplex ( RelativePair * pair,
   pair -> initialize ( &X, &XA, &A ); 
 }
 
-inline void Toplex::initialize ( const Prism & outer_bounds_of_toplex ) {
+inline void Toplex::initialize ( const Rect & outer_bounds_of_toplex ) {
   if ( root_ != NULL ) clear ();
   dimension_ = outer_bounds_of_toplex . lower_bounds . size ();
   bounds_ = outer_bounds_of_toplex;
@@ -962,7 +962,7 @@ inline Toplex::Toplex ( void ) {
   dimension_ = 0;
 } /* Adaptive_Cubical::Toplex::Toplex */
 
-inline Toplex::Toplex ( const Prism & outer_bounds_of_toplex ) {
+inline Toplex::Toplex ( const Rect & outer_bounds_of_toplex ) {
   end_ = const_iterator ( NULL );
   begin_ = end_;
   size_ = 0;

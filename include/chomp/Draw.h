@@ -133,11 +133,11 @@ inline void GraphicsWindow::rect (int color, int x, int y, int w, int h) {
 
 class ComplexVisualization : public GraphicsWindow {
 public:
-  typedef std::pair < Prism, int > Object;
+  typedef std::pair < Rect, int > Object;
   ComplexVisualization ( const char * title );
   void drawObject ( const Object & obj );
   void drawNow ( void );
-  void drawPrism ( const Prism & p, int color );
+  void drawRect ( const Rect & p, int color );
   template < class C >
   void drawCell ( const C & fiber, Index i, int d, int color );
   template < class C >
@@ -150,11 +150,11 @@ public:
   inline void drawRelativeComplex ( const P & pair, int color1, int color2 );
   void explore ( void );
 private:
-  bool rescale_cell ( Prism & bounds );
-  std::vector < std::pair < Prism, int > > cells_;
-  std::vector < std::pair < Prism, int > > special_cells_;
+  bool rescale_cell ( Rect & bounds );
+  std::vector < std::pair < Rect, int > > cells_;
+  std::vector < std::pair < Rect, int > > special_cells_;
 
-  Prism bounds_;
+  Rect bounds_;
 };
 
 
@@ -215,21 +215,21 @@ inline void ComplexVisualization::drawNow ( void ) {
 }
 
 
-inline void ComplexVisualization::drawPrism ( const Prism & p, int color ) {
+inline void ComplexVisualization::drawRect ( const Rect & p, int color ) {
   special_cells_  . push_back ( std::make_pair ( p, color ) );
 }
 
 template < class C >
 inline void ComplexVisualization::drawCell ( const C & fiber, Index i, int d, int color ) {
   //std::cout << "drawCell (" << i << ", " << d << ")\n";
-  Prism bounds = fiber . geometry ( i, d );
+  Rect bounds = fiber . geometry ( i, d );
   cells_ . push_back ( std::make_pair ( bounds, color ) );
 }
 
 
 template < class C >
 inline void ComplexVisualization::drawSpecialCell ( const C & fiber, Index i, int d, int color ) {
-  Prism bounds = fiber . geometry ( i, d );
+  Rect bounds = fiber . geometry ( i, d );
   special_cells_ . push_back ( std::make_pair ( bounds, color ) );
 }
 
@@ -296,7 +296,7 @@ inline void ComplexVisualization::explore ( void ) {
     bounds_ . upper_bounds [ 0 ] = 0.0f;
     bounds_ . upper_bounds [ 1 ] = 0.0f;
     BOOST_FOREACH ( const Object & object, cells_ ) {
-      Prism bounds = object . first;
+      Rect bounds = object . first;
       bounds_ . lower_bounds [ 0 ] = std::min ( bounds_ . lower_bounds [ 0 ], 
                                                 bounds . lower_bounds [ 0 ]);
       bounds_ . lower_bounds [ 1 ] = std::min ( bounds_ . lower_bounds [ 1 ], 

@@ -17,7 +17,7 @@
 
 #include "chomp/Complex.h"
 #include "chomp/Chain.h"
-#include "chomp/Prism.h"
+#include "chomp/Rect.h"
 
 /************************
  *      SIMPLEX					*

@@ -21,7 +21,7 @@
 
 typedef std::vector < SparseMatrix < Ring > > RelativeMapHomology_t;
 
-template < class Container, class PrismMap > int 
+template < class Container, class RectMap > int 
 RelativeMapHomology (RelativeMapHomology_t * output, 
                      const Toplex & source, 
                      const Container & XE, 
@@ -29,7 +29,7 @@ RelativeMapHomology (RelativeMapHomology_t * output,
                      const Toplex & target, 
                      const Container & YE, 
                      const Container & BE,
-                     const PrismMap & F,
+                     const RectMap & F,
                      int depth ) {
   // Create the Relative Complexes
   RelativePair domain_pair;

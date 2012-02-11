@@ -18,8 +18,8 @@ struct simple_interval {
   simple_interval ( void ) {}
   simple_interval ( Real lower_ ) : lower_(lower_), upper_(lower_) {}
   simple_interval ( Real lower_, Real upper_ ) : lower_(lower_), upper_(upper_) {}
-  Real lower ( void ) { return lower_; }
-  Real upper ( void ) { return upper_; }
+  Real lower ( void ) const { return lower_; }
+  Real upper ( void ) const { return upper_; }
 };
 
 template < class Real >
@@ -27,6 +27,7 @@ simple_interval<Real> operator * ( const Real lhs, const simple_interval<Real> &
   simple_interval<Real> result;
   result . lower_ = lhs * rhs . lower_;
   result . upper_ = lhs * rhs . upper_;
+  if ( result . lower_ > result . upper_ ) std::swap ( result.lower_, result.upper_ );
   return result;
 }
 
