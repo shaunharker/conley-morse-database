@@ -46,6 +46,9 @@ void Compute_Morse_Graph (Morse_Graph * MG, Toplex * phase_space, const Map & in
 #endif
     // TODO: think about eliminating this step (make sure you can!)
     // (Because you are forcing this analysis twice.)
+    // The problem is I might generate a couple spurious sets at reach stage if I do!
+    // Resolution: get a finer interface so I can ask for reachability without redoing morse
+    // theory. For now: ignore problem.
     Graph G ( morse_sets, * phase_space, interval_map );
     compute_morse_sets <Morse_Graph,Graph,CellContainer> ( &morse_sets, G );
     

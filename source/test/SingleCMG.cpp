@@ -32,6 +32,82 @@
 // MAP FUNCTION OBJECT
 #include "database/maps/simple_interval.h"   // for interval arithmetic
 
+#define TWODIMLESLIE
+#ifdef TWODIMLESLIE
+struct ModelMap {
+  
+  typedef simple_interval<double> interval;
+  
+  interval parameter1, parameter2;
+  
+  ModelMap ( const Rect & rectangle ) {
+    parameter1 = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ]);
+    parameter2 = interval (rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ]);
+    return;
+  }
+  Rect operator () 
+  ( const Rect & rectangle ) const {    
+    /* Read input */
+    interval x0 = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ]);
+    interval x1 = interval (rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ]);
+
+    /* Perform map computation */
+    interval y0 = (parameter1 * x0 + parameter2 * x1 ) * exp ( (double) -0.1 * (x0 + x1) );     
+    interval y1 = (double) 0.7 * x0;
+
+    
+    /* Write output */
+    Rect return_value ( 2 );
+    return_value . lower_bounds [ 0 ] = y0 . lower ();
+    return_value . upper_bounds [ 0 ] = y0 . upper ();
+    return_value . lower_bounds [ 1 ] = y1 . lower ();
+    return_value . upper_bounds [ 1 ] = y1 . upper ();
+    return return_value;
+  } 
+  
+};
+
+Rect initialize_phase_space_box ( void ) {
+  // Two dimensional phase space
+  // [0, 320.056] x [0.0, 224.040]
+  //  int phase_space_dimension = 2;
+  int phase_space_dimension = 2;
+  Rect phase_space_bounds ( phase_space_dimension );
+  phase_space_bounds . lower_bounds [ 0 ] = 0.0;
+  phase_space_bounds . upper_bounds [ 0 ] = 320.056;
+  phase_space_bounds . lower_bounds [ 1 ] = 0.0;
+  phase_space_bounds . upper_bounds [ 1 ] = 224.040;
+  std::cout << "Phase Space Bounds = " << phase_space_bounds << "\n";
+  return phase_space_bounds;
+}
+
+Rect initialize_parameter_space_box ( const Real bx, const Real by ) {
+  // Two dimensional parameter space
+  // A box chosen from [8, 37] x [3, 50]
+  int parameter_space_dimension = 2;
+  Rect parameter_space_limits ( parameter_space_dimension ); 
+  parameter_space_limits . lower_bounds [ 0 ] = 8.0; 
+  parameter_space_limits . upper_bounds [ 0 ] = 37.0;
+  parameter_space_limits . lower_bounds [ 1 ] = 3.0;
+  parameter_space_limits . upper_bounds [ 1 ] = 50.0;
+  int PARAMETER_BOXES = 64;
+  Rect parameter_box ( parameter_space_dimension );
+  parameter_box . lower_bounds [ 0 ] = parameter_space_limits . lower_bounds [ 0 ] + 
+  ( parameter_space_limits . upper_bounds [ 0 ] - parameter_space_limits . lower_bounds [ 0 ] ) * bx / (float) PARAMETER_BOXES;
+  parameter_box . upper_bounds [ 0 ] = parameter_space_limits . lower_bounds [ 0 ] + 
+  ( parameter_space_limits . upper_bounds [ 0 ] - parameter_space_limits . lower_bounds [ 0 ] ) * ( bx + 1.0 ) / (float) PARAMETER_BOXES;
+  parameter_box . lower_bounds [ 1 ] = parameter_space_limits . lower_bounds [ 1 ] + 
+  ( parameter_space_limits . upper_bounds [ 1 ] - parameter_space_limits . lower_bounds [ 1 ] ) * by / (float) PARAMETER_BOXES;
+  parameter_box . upper_bounds [ 1 ] = parameter_space_limits . lower_bounds [ 1 ] + 
+  ( parameter_space_limits . upper_bounds [ 1 ] - parameter_space_limits . lower_bounds [ 1 ] ) * ( by + 1.0 ) / (float) PARAMETER_BOXES;
+  std::cout << "Parameter Box Choice = " << parameter_box << "\n";
+  
+  return parameter_box;
+}
+
+#endif
+
+ 
 #ifdef FOURDIMLESLIE
 struct ModelMap {
   
@@ -127,7 +203,7 @@ Rect initialize_parameter_space_box ( const Real bx, const Real by ) {
 #endif
 
 
-#define CYCLICLOGISTIC
+//#define CYCLICLOGISTIC
 #ifdef CYCLICLOGISTIC
 // 3D EXAMPLE FROM IPPEI
 
@@ -231,13 +307,15 @@ Rect initialize_phase_space_box ( void ) {
 Rect initialize_parameter_space_box ( const Real bx, const Real by ) {
   // Three dimensional parameter space
   //parameter space = [.78125, .785625] [-.005, -.00125] [.06, .06]
+  // One example: 
+  // Another example: .787, -.018, .06
   //  use center point: 
   int parameter_space_dimension = 3;
   Rect parameter_box ( parameter_space_dimension ); 
-  parameter_box . lower_bounds [ 0 ] = .7834375; 
-  parameter_box . upper_bounds [ 0 ] = .7834375;
-  parameter_box . lower_bounds [ 1 ] = -0.003125;
-  parameter_box . upper_bounds [ 1 ] = -0.003125;
+  parameter_box . lower_bounds [ 0 ] = .787; 
+  parameter_box . upper_bounds [ 0 ] = .787;
+  parameter_box . lower_bounds [ 1 ] = -0.018;
+  parameter_box . upper_bounds [ 1 ] = -0.018;
   parameter_box . lower_bounds [ 2 ] = .06;
   parameter_box . upper_bounds [ 2 ] = .06;
   std::cout << "parameter box = " << parameter_box << "\n";
@@ -318,8 +396,8 @@ Rect initialize_parameter_space_box ( const Real bx, const Real by ) {
 }
 #endif
 
-int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 9;
-int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 12;
+int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 12;
+int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 16;
 int SINGLECMG_COMPLEXITY_LIMIT = 10000;
 
 ////////////////////////////////////////END USER EDIT//////////////////////////////////////////

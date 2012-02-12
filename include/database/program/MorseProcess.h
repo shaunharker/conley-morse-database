@@ -1,7 +1,7 @@
 #ifndef CMDB_MORSEPROCESS_H
 #define CMDB_MORSEPROCESS_H
 
-#define SKELETONMETHOD
+#define EDGEMETHOD
 #include <ctime>
 #include "boost/unordered_set.hpp"
 #include "delegator/delegator.h"
@@ -28,10 +28,12 @@ private:
   int progress_bar;                         // progress bar
   clock_t time_of_last_checkpoint;
   clock_t time_of_last_progress;
-#ifdef SKELETONMETHOD
+#if defined EDGEMETHOD || defined SKELETONMETHOD
   CubicalComplex param_complex;
-  std::vector<std::pair<Index, int> > jobs_;
-#else
+  typedef std::pair<Index,int> Cell;
+  std::vector< Cell > jobs_;
+#endif
+#ifdef PATCHMETHOD
   Toplex param_toplex;
   typedef boost::unordered_set<GridElement> Toplex_Subset;
   std::vector < Toplex_Subset > PS_patches; // morse_work_items

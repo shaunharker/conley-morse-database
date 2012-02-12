@@ -204,41 +204,41 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   // Read Job Message
 
   size_t job_number;
-  std::vector < typename Toplex::Top_Cell > cell_names;
-  std::vector<typename ParameterToplex::Geometric_Description> geometric_descriptions;
-  std::vector<std::pair<size_t, size_t> > adjacencies;
+  std::vector <size_t> box_names;
+  std::vector <Rect> box_geometries;
+  std::vector <std::pair<size_t, size_t> > box_adjacencies;
   int PHASE_SUBDIV_MIN;
   int PHASE_SUBDIV_MAX;
   int PHASE_SUBDIV_LIMIT;
   Rect PHASE_BOUNDS;
   
   job >> job_number;
-  job >> cell_names;
-  job >> geometric_descriptions;
-  job >> adjacencies;
+  job >> box_names;
+  job >> box_geometries;
+  job >> box_adjacencies;
   job >> PHASE_SUBDIV_MIN;
   job >> PHASE_SUBDIV_MAX;
   job >> PHASE_SUBDIV_LIMIT;
   job >> PHASE_BOUNDS;
   
   // Prepare data structures
-  std::map < typename Toplex::Top_Cell, Toplex> phase_space_toplexes;  
-  std::map < typename Toplex::Top_Cell, CMGraph> conley_morse_graphs;
-  std::map < typename Toplex::Top_Cell, size_t > cell_index;
+  std::map < size_t, Toplex> phase_space_toplexes;  
+  std::map < size_t, CMGraph> conley_morse_graphs;
+  std::map < size_t, size_t > box_index;
   std::vector < ClutchingRecord > clutching_graphs;
   
 
   // Compute Morse Graphs
-  for ( unsigned int i = 0; i < cell_names . size (); ++ i ) {
+  for ( unsigned int i = 0; i < box_names . size (); ++ i ) {
     //Prepare phase space and map
-    typename Toplex::Top_Cell cell = cell_names [ i ];
-    cell_index [ cell ] = i;
-    phase_space_toplexes [ cell ] . initialize ( PHASE_BOUNDS );
-    GeometricMap map ( geometric_descriptions [ i ] );
+    size_t box = box_names [ i ];
+    box_index [ box ] = i;
+    phase_space_toplexes [ box ] . initialize ( PHASE_BOUNDS );
+    GeometricMap map ( box_geometries [ i ] );
     // perform computation
     Compute_Morse_Graph 
-    ( & conley_morse_graphs  [ cell ],
-      & phase_space_toplexes [ cell ], 
+    ( & conley_morse_graphs  [ box ],
+      & phase_space_toplexes [ box ], 
       map, 
       PHASE_SUBDIV_MIN, 
       PHASE_SUBDIV_MAX, 
@@ -247,7 +247,7 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   
   // Compute Clutching Graphs
   typedef std::pair < size_t, size_t > Adjacency;
-  BOOST_FOREACH ( const Adjacency & A, adjacencies ) {
+  BOOST_FOREACH ( const Adjacency & A, box_adjacencies ) {
     clutching_graphs . push_back ( ClutchingRecord () );
     Clutching < CMGraph, Toplex > ( & clutching_graphs . back (),
                                       conley_morse_graphs [ A . first ],
@@ -262,10 +262,10 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   Database database;
   
   // Create Parameter Box Records
-  typedef std::pair < typename Toplex::Top_Cell, CMGraph > indexed_cmg_t;
+  typedef std::pair < size_t, CMGraph > indexed_cmg_t;
   BOOST_FOREACH ( const indexed_cmg_t & cmg, conley_morse_graphs ) {
     database . insert ( ParameterBoxRecord (cmg . first, 
-                                            geometric_descriptions [ cell_index [ cmg.first ] ],   
+                                            box_geometries [ box_index [ cmg.first ] ],   
                                             cmg . second ) );
   }
   // Create Clutching Records

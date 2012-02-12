@@ -30,10 +30,11 @@ void MorseProcess::initialize ( void ) {
   progress_bar = 0;
   num_jobs_sent_ = 0;
   
-#ifdef SKELETONMETHOD
+  // EDGEMETHOD AND SKELETON METHOD REPEAT CODE
+#if defined EDGEMETHOD || defined SKELETONMETHOD
   // Get width, length, height, etc... of parameter space.
   std::vector<uint32_t> dimension_sizes ( config.PARAM_DIM,
-                                          1 << config.PARAM_SUBDIV_DEPTH);
+                                         1 << config.PARAM_SUBDIV_DEPTH);
   // Count total number of "boxes" (volume) of parameter space.
   uint32_t total = 1;
   for ( int d = 0; d < config.PARAM_DIM; ++ d ) {
@@ -60,15 +61,20 @@ void MorseProcess::initialize ( void ) {
   // Now we set the bounds and finalize the complex (so it is indexed).
   param_complex . bounds () = config.PARAM_BOUNDS;
   param_complex . finalize ();
-
-
-  // Push all 1-cells for 1-skeleton calculation.
+  
+#ifdef EDGEMETHOD
+  int dim = 0;
+#endif
+#ifdef SKELETONMETHOD
   int dim = 1;
+#endif
   for ( Index i = 0; i < param_complex . size ( dim ); ++ i ) {
     jobs_ . push_back ( std::make_pair ( i, dim ) );
   }
   num_jobs_ = jobs_ . size ();
-#else
+#endif
+
+#ifdef PATCHMETHOD
   int patch_stride = 1; // distance between center of patches in box-units
   // warning: currently only works if patch_stride is a power of two
   
@@ -137,47 +143,57 @@ int MorseProcess::prepare ( Message & job ) {
   /// Job number (job id) of job to be sent
   size_t job_number = num_jobs_sent_;
   
-  std::cout << "MorseProcess::write: Preparing job " << job_number << "\n";
+  std::cout << "MorseProcess::prepare: Preparing job " << job_number << "\n";
+  
+  /// Variables needed for job.
+  // Cell Name data (translate back into top-cell names from index number)
+  std::vector < size_t > box_names;
+  // Geometric Description Data
+  std::vector < Rect > box_geometries;
+  /// Adjacency information vector
+  std::vector < std::pair < size_t, size_t > > box_adjacencies;
+#ifdef EDGEMETHOD
+  std::pair < Index, int > cell = jobs_ [ job_number ];
+  Chain cbd = param_complex . coboundary ( cell . first, cell . second ); //cell.second==0
+  BOOST_FOREACH ( const Term & t, cbd () ) {
+    box_geometries . push_back ( param_complex . geometry ( t . index (), cell . second + 1 ) );
+    Index edge_name = param_complex . size ( cell . second ) + t . index ();
+    box_names . push_back ( edge_name );
+  }
+  for ( unsigned int i = 0; i < box_names . size (); ++ i ) {
+    for ( unsigned int j = i + 1; j < box_names . size (); ++ j ) {
+      box_adjacencies . push_back ( std::make_pair ( box_names [ i ], box_names [ j ] ) );
+    }
+  }
+#endif
   
 #ifdef SKELETONMETHOD
-  // Cell Name data (translate back into complex index names from index number)
-  //    (Use param_complex.size(d-1) + i   for dim d > 0 indices.) 
-  // Geometric Description Data
-  // Adjacency information vector
-
-  std::vector < Index > cell_names;
-  std::vector < Rect > Rects;
-  std::vector < std::pair < size_t, size_t > > adjacency_information;
-  
   std::pair < Index, int > cell = jobs_ [ job_number ];
-  Rects . push_back ( param_complex . geometry ( cell . first, cell . second ) );
+  box_geometries . push_back ( param_complex . geometry ( cell . first, cell . second ) );
   Index job_cell_name =  param_complex . size ( cell . second - 1 ) + cell . first;
-  cell_names . push_back ( job_cell_name );
+  box_names . push_back ( job_cell_name );
   Chain bd = param_complex . boundary ( cell . first, cell . second );
   BOOST_FOREACH ( const Term & t, bd () ) {
-    Rects . push_back ( param_complex . geometry ( t . index (), cell . second - 1 ) );
+    box_geometries . push_back ( param_complex . geometry ( t . index (), cell . second - 1 ) );
     Index sub_cell_name = param_complex . size ( cell . second - 2 ) + t . index ();
-    cell_names . push_back ( sub_cell_name );
-    adjacency_information . push_back ( std::make_pair ( job_cell_name, sub_cell_name ) );
+    box_names . push_back ( sub_cell_name );
+    box_adjacencies . push_back ( std::make_pair ( job_cell_name, sub_cell_name ) );
   }
-#else
+#endif
+  
+#ifdef PATCHMETHOD
   /// Toplex with the patch to be sent
   Toplex_Subset patch_subset = PS_patches [job_number];
 
-  // Cell Name data (translate back into top-cell names from index number)
-  std::vector < Toplex::Top_Cell > cell_names;
-  // Geometric Description Data
-  std::vector < Rect > Rects;
-  /// Adjacency information vector
-  std::vector < std::pair < size_t, size_t > > adjacency_information;
+
   /// Find adjacency information for cells in the patch
   BOOST_FOREACH ( Toplex::Top_Cell cell_in_patch, patch_subset ) {
     // Find geometry of patch cell
     Rect GD = param_toplex . geometry (param_toplex . find (cell_in_patch));
     // Store the name of the patch cell
-    cell_names . push_back ( cell_in_patch );
+    box_names . push_back ( cell_in_patch );
     // Store the geometric description of the patch cell
-    Rects . push_back ( GD );
+    box_geometries . push_back ( GD );
     // Find the cells in toplex which intersect patch cell
     Toplex_Subset GD_Cover;
     std::insert_iterator < Toplex_Subset > ii ( GD_Cover, GD_Cover . begin () );
@@ -185,7 +201,7 @@ int MorseProcess::prepare ( Message & job ) {
     // Store the cells in the patch which intersect the patch cell as adjacency pairs
     BOOST_FOREACH ( Toplex::Top_Cell cell_in_cover, GD_Cover ) {
       if (( patch_subset . count (cell_in_cover) != 0 ) && cell_in_patch < cell_in_cover ) {
-        adjacency_information . push_back ( std::make_pair ( cell_in_patch, cell_in_cover ) );
+        box_adjacencies . push_back ( std::make_pair ( cell_in_patch, cell_in_cover ) );
       }
     }
   }
@@ -194,9 +210,9 @@ int MorseProcess::prepare ( Message & job ) {
   
   // prepare the message with the job to be sent
   job << job_number;
-  job << cell_names;
-  job << Rects;
-  job << adjacency_information;
+  job << box_names;
+  job << box_geometries;
+  job << box_adjacencies;
   job << config.PHASE_SUBDIV_MIN;
   job << config.PHASE_SUBDIV_MAX;
   job << config.PHASE_SUBDIV_LIMIT;
