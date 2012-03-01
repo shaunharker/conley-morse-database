@@ -45,7 +45,7 @@ all: Conley_Morse_Database
 
 DATABASE := ./build/structures/Database.o
 DATABASE += ./build/program/Conley_Morse_Database.o 
-DATABASE += ./build/program/ConleyProcess.o
+#DATABASE += ./build/program/ConleyProcess.o
 DATABASE += ./build/program/MorseProcess.o 
 
 Conley_Morse_Database: $(DATABASE)

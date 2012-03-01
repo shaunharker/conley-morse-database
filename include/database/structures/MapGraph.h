@@ -108,67 +108,21 @@ template < class Toplex, class Map, class CellContainer >
 std::vector<typename MapGraph<Toplex,Map,CellContainer>::size_type>
 MapGraph<Toplex,Map,CellContainer>::
 adjacencies ( const size_type & source ) const {
-  //std::cout << "Computing adjacencies of vertex " << source << "\n";
   std::vector < size_type > result;
   Vertex domain_cell = lookup ( source );
-  //std::cout << " This is grid element " << domain_cell << "\n";
   CellContainer children;
   std::insert_iterator < CellContainer > cii ( children, children . begin () );
   toplex_ . children ( cii, domain_cell );
   if ( children . empty () ) {
-    //std::cout << "It is a leaf, so we do a computation.\n";
     CellContainer image;
     std::insert_iterator < CellContainer > ii ( image, image . begin () );
-    toplex_ . coarseCover ( ii, f_ ( toplex_ . geometry ( domain_cell ) ) );
-
-    /*
-    CellContainer imageleaves;
-    CellContainer debugimage;
-    CellContainer debugleaves;
-    std::insert_iterator < CellContainer > lii ( imageleaves, imageleaves . begin () );
-    std::insert_iterator < CellContainer > dii ( debugimage, debugimage . begin () );
-    std::insert_iterator < CellContainer > ldii ( debugleaves, debugimage . begin () );
-
-    toplex_ . cover ( dii, f_ ( toplex_ . geometry ( domain_cell ) ) );
-    toplex_ . leaves ( lii, image );
-    toplex_ . leaves ( ldii, debugimage );
-    
-    std::cout << " ------------------n";
-    std::cout << "Usual image:\n";
-    BOOST_FOREACH ( GridElement g, debugimage ) {
-      std::cout << g << " ";
-    }
-    std::cout << "\n";
-    
-    std::cout << "Coarse image:\n";
-    BOOST_FOREACH ( GridElement g, image ) {
-      std::cout << g << " ";
-    }
-    std::cout << "\n";
-    
-    std::cout << "Leaves of coarse image:\n";
-    BOOST_FOREACH ( GridElement g, imageleaves ) {
-      std::cout << g << " ";
-    }
-    std::cout << "\n";
-
-    std::cout << "Leaves of usual image:\n";
-    BOOST_FOREACH ( GridElement g, debugleaves ) {
-      std::cout << g << " ";
-    }
-    std::cout << "\n";
-    */
+    toplex_ . cover ( ii, f_ ( toplex_ . geometry ( domain_cell ) ) ); // here is the work
     index ( & result, image );
   } else {
-    //std::cout << "It is not a leaf, so we give the children.\n";
     index ( & result, children ); 
   }
-  //char c;
-  //std::cin >> c;
-  //std::cout << "Adjacency computation complete.\n";
   return result; 
 }
-
 
 template < class Toplex, class Map, class CellContainer >
 typename MapGraph<Toplex,Map,CellContainer>::size_type 

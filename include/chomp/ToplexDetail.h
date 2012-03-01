@@ -6,6 +6,7 @@
 #define CHOMP_TOPLEXDETAIL_H
 
 typedef uint32_t GridElement;
+
 /***************
  * struct Node *
  ***************/
@@ -38,7 +39,7 @@ public:
   typedef GridElement value_type;
   typedef GridElement * pointer;
   typedef std::ptrdiff_t difference_type;
-  typedef GridElement & reference;
+  typedef const GridElement & reference;
   
   Toplex_const_iterator ( void );
   Toplex_const_iterator ( Node * node );

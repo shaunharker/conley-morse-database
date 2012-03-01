@@ -2,8 +2,8 @@
 // Shaun Harker
 // 9/26/11
 
-#ifndef CHOMP_PRISM_H
-#define CHOMP_PRISM_H
+#ifndef CHOMP_RECT_H
+#define CHOMP_RECT_H
 
 #include <iostream>
 #include <vector>
@@ -33,6 +33,16 @@ public:
   Rect ( unsigned int size, const std::vector<Real> & lower_values, const std::vector<Real> & upper_values )
   { lower_bounds = lower_values;
     upper_bounds = upper_values; }
+  Rect ( const std::vector<Real> & point ) {
+    lower_bounds = point;
+    upper_bounds = point;
+  }
+  
+  void init_from_point ( const std::vector<Real> & point ) {
+    lower_bounds = point;
+    upper_bounds = point;
+  }
+
   bool intersects ( const Rect & other ) const;
 private: 
   friend class boost::serialization::access; 

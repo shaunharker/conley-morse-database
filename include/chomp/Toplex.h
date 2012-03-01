@@ -9,11 +9,11 @@
 #include <stack>
 
 #include "chomp/Rect.h"
+#include "chomp/Prism.h"
 #include "chomp/RelativePair.h"
 #include "chomp/CubicalComplex.h"
 #include "chomp/ToplexDetail.h"
 #include "chomp/BitmapSubcomplex.h"
-
 
 /**********
  * Toplex *
@@ -43,7 +43,7 @@ public:
   int dimension ( void ) const;
   
   /// bounds
-  Rect bounds ( void ) const;
+  const Rect & bounds ( void ) const;
 
   /// geometry
   Rect geometry ( const GridElement & GridElement ) const;
@@ -74,7 +74,11 @@ public:
 
   /// cover
   template < class InsertIterator > void 
-  cover ( InsertIterator & ii, const Rect & prism ) const;
+  cover ( InsertIterator & ii, const Rect & r ) const;
+
+  /// cover   (prism version)
+  template < class InsertIterator > void 
+  cover ( InsertIterator & ii, const Prism & p ) const;
   
   /// coarse cover   (whenever node containment, report parent, not children)
   template < class InsertIterator > void 
@@ -207,7 +211,7 @@ inline int Toplex::dimension ( void ) const {
   return dimension_;
 } /* Adaptive_Cubical::Toplex::dimension */
 
-inline Rect Toplex::bounds ( void ) const {
+inline const Rect & Toplex::bounds ( void ) const {
   return bounds_;
 } /* Adaptive_Cubical::Toplex::bounds */
 
@@ -361,9 +365,15 @@ inline Rect Toplex::geometry ( const GridElement & cell  ) const {
 } /* Adaptive_Cubical::Toplex::geometry */
 
 
+// TODO:
+// I have three cover routines below.
+// The first two should be made into one, with a template parameter
+// The third I don't know what to do with yet. Will the coarse cover idea pan out?
+
 template < class InsertIterator >
 inline void Toplex::cover ( InsertIterator & ii, const Rect & geometric_region ) const {
-  
+  //std::cout << "Rect version of Cover\n";
+
   /* Use a stack, not a queue, and do depth first search.
    The advantage of this is that we can maintain the geometry during our Euler Tour.
    We can maintain our geometry without any roundoff error if we use the standard box
@@ -404,10 +414,10 @@ inline void Toplex::cover ( InsertIterator & ii, const Rect & geometric_region )
   static std::vector<uint64_t> NLB ( dimension_);
   static std::vector<uint64_t> NUB ( dimension_);
   for ( int dimension_index = 0; dimension_index < dimension_; ++ dimension_index ) {
-    if ( LB [ dimension_index ] < (1 << 20) ) LB [ dimension_index ] = 0;
-    if ( LB [ dimension_index ] >= (1 << 20) ) LB [ dimension_index ] -= (1 << 20);
-    if ( UB [ dimension_index ] < (INTPHASEWIDTH - (1 << 20)) ) UB [ dimension_index ] += (1 << 20);
-    if ( UB [ dimension_index ] >= (INTPHASEWIDTH - (1 << 20)) ) UB [ dimension_index ] = INTPHASEWIDTH;
+    //if ( LB [ dimension_index ] < (1 << 20) ) LB [ dimension_index ] = 0;
+    //if ( LB [ dimension_index ] >= (1 << 20) ) LB [ dimension_index ] -= (1 << 20);
+    //if ( UB [ dimension_index ] < (INTPHASEWIDTH - (1 << 20)) ) UB [ dimension_index ] += (1 << 20);
+    //if ( UB [ dimension_index ] >= (INTPHASEWIDTH - (1 << 20)) ) UB [ dimension_index ] = INTPHASEWIDTH;
     NLB [ dimension_index ] = 0;
     NUB [ dimension_index ] = INTPHASEWIDTH;
   }
@@ -515,6 +525,134 @@ inline void Toplex::cover ( InsertIterator & ii, const Rect & geometric_region )
   } // while loop
 } // cover
 
+template < class InsertIterator >
+inline void Toplex::cover ( InsertIterator & ii, const Prism & P ) const {
+  //std::cout << "Prism version of Cover\n";
+  static Rect G ( dimension_ );
+
+  /* Use a stack, not a queue, and do depth first search.
+   The advantage of this is that we can maintain the geometry during our Euler Tour.
+   We can maintain our geometry without any roundoff error if we use the standard box
+   [0,1]^d. To avoid having to translate to real coordinates at each leaf, we instead
+   convert the input to these standard coordinates, which we put into integers. */
+  
+  // Step 1. Convert input to standard coordinates. 
+  
+#define INTPHASEWIDTH (((uint64_t)1) << 60)
+  
+  // Step 2. Perform DFS on the Toplex tree, recursing whenever we have intersection,
+  //         (or adding leaf to output when we have leaf intersection)
+  static std::vector<uint64_t> NLB ( dimension_);
+  static std::vector<uint64_t> NUB ( dimension_);
+  for ( int dimension_index = 0; dimension_index < dimension_; ++ dimension_index ) {
+    NLB [ dimension_index ] = 0;
+    NUB [ dimension_index ] = INTPHASEWIDTH;
+  }
+  //std::cout << "Cover\n";
+  
+  /* Strategy. 
+   We will take the Euler Tour using a 4-state machine.
+   There are Four states.
+   0 = Just Descended. Check for an intersection.
+   1 = Descend to the left
+   2 = Descend to right 
+   3 = Rise.
+   */
+  
+  Node * N = root_;
+  char state = 0; 
+  
+  //std::cout << "Above main loop.\n";
+
+  while ( 1 ) {
+    //std::cout << "Entering Loop, state = " << (int) state << "\n";
+    //std::cout << " N = " << N << "\n";
+    if ( state == 0 ) {
+      // If we have descended here, then we should check for intersection.
+      
+      // INTERSECTION CHECK
+      for ( int d = 0; d < dimension_; ++ d ) {
+        G . lower_bounds [ d ] = bounds () . lower_bounds [ d ] +
+        (bounds () . upper_bounds [ d ] - bounds () . lower_bounds [ d ] ) * ( (Real) NLB [ d ] / (Real) INTPHASEWIDTH );
+        G . upper_bounds [ d ] = bounds () . lower_bounds [ d ] +
+        (bounds () . upper_bounds [ d ] - bounds () . lower_bounds [ d ] ) * ( (Real) NUB [ d ] / (Real) INTPHASEWIDTH );
+      }
+      
+      //std::cout << "checking intersection:\n";
+      if ( P . intersects ( G ) ) {
+        //std::cout << "Detected intersection.\n";
+        // Check if its a leaf.
+        if ( N -> left_ == NULL ) {
+          if ( N -> right_ == NULL ) {
+            // Here's what we are looking for.
+            * ii ++ = N -> contents_; // OUTPUT
+                                      //std::cout << "cover -- " << N -> contents_ << "\n";
+                                      // Issue the order to rise.
+                                      //std::cout << "Issue rise.\n";
+            state = 3;
+          } else {
+            // Issue the order to descend to the right.
+            //std::cout << "Issue descend right.\n";
+            state = 2;
+          } 
+        } else {
+          // Issue the order to descend to the left.   
+          //std::cout << "Issue descend left.\n";
+          state = 1;
+        }
+      } else {
+        // No intersection, issue order to rise.
+        //std::cout << "No intersection. \n";
+        //std::cout << "Issue Rise.\n";
+        state = 3;
+      } // intersection check complete
+    } // state 0
+    
+    if ( state == 1 ) {
+      // We have been ordered to descend to the left.
+      //std::cout << "Descend left.\n";
+      int div_dim = N -> dimension_;
+      NUB[div_dim] -= ( (NUB[div_dim]-NLB[div_dim]) >> 1 );
+      N = N -> left_;
+      state = 0;
+      continue;
+    } // state 1
+    
+    if ( state == 2 ) {
+      // We have been ordered to descend to the right.
+      //std::cout << "Descend right.\n";
+      int & div_dim = N -> dimension_;
+      NLB[div_dim] += ( (NUB[div_dim]-NLB[div_dim]) >> 1 );
+      N = N -> right_;
+      state = 0;
+      continue;
+    } // state 2
+    
+    if ( state == 3 ) {
+      // We have been ordered to rise.
+      //std::cout << "Rise.\n";
+      Node * P = N -> parent_;
+      // Can't rise if root.
+      if ( P == NULL ) break; // algorithm complete
+      int & div_dim = P -> dimension_;
+      if ( P -> left_ == N ) {
+        // This is a left child.
+        //std::cout << "We are rising from left.\n";
+        NUB[div_dim] += NUB[div_dim]-NLB[div_dim];
+        // If we rise from the left child, we order parent to go right.
+        state = 2;
+      } else {
+        // This is the right child.
+        //std::cout << "We are rising from right.\n";
+        NLB[div_dim] -= NUB[div_dim]-NLB[div_dim];
+        // If we rise from the right child, we order parent to rise.
+        state = 3;
+      }
+      N = P;
+    } // state 3
+    
+  } // while loop
+} // cover
 
 template < class InsertIterator >
 inline void Toplex::coarseCover ( InsertIterator & ii, const Rect & geometric_region ) const {

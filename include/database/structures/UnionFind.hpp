@@ -6,7 +6,9 @@
 
 #include <algorithm>
 #include <vector>
-#include <map> // hmm, shouldn't need this!!!!!
+#include <boost/unordered_map.hpp> // hmm, shouldn't need this!!!!!
+#include <boost/unordered_set.hpp> // hmm, shouldn't need this!!!!!
+
 #include <boost/foreach.hpp>
 #include <boost/iterator_adaptors.hpp>
 #include "boost/tuple/tuple.hpp"
@@ -50,7 +52,7 @@ public:
   void FillToVector(std::vector<std::vector<T> > *ret);
   
   /* Access to elements as a set */
-  const std::set<T> & Elements ( void ) const;
+  const boost::unordered_set<T> & Elements ( void ) const;
   
 private:
   struct Entry {
@@ -60,8 +62,8 @@ private:
      */
     int rank; 
   };
-  mutable std::map<T, Entry> tree_;
-  std::set < T > elements_;
+  mutable boost::unordered_map<T, Entry> tree_;
+  boost::unordered_set < T > elements_;
 };
 
 template<class T>
@@ -136,10 +138,10 @@ void UnionFind<T>::FillToVector(std::vector<std::vector<T> > *ret) {
   Entry entry;
   T key;
 
-  std::map<T, size_t> roots;
-  typename std::map<T, size_t>::iterator it;
+  boost::unordered_map<T, size_t> roots;
+  typename boost::unordered_map<T, size_t>::iterator it;
   bool inserted;
-  typedef typename std::map<T, size_t>::value_type vtype;
+  typedef typename boost::unordered_map<T, size_t>::value_type vtype;
   size_t n = 0;
   
   BOOST_FOREACH (boost::tie(key, entry), tree_) {
@@ -159,7 +161,7 @@ void UnionFind<T>::FillToVector(std::vector<std::vector<T> > *ret) {
 }
 
 template<class T>
-const std::set<T> & UnionFind<T>::Elements ( void ) const {
+const boost::unordered_set<T> & UnionFind<T>::Elements ( void ) const {
   return elements_;
 }
 

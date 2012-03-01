@@ -28,6 +28,7 @@ public:
   Decomposer ( Complex & complex ) {
     complex_ = &complex;
   }
+  virtual ~Decomposer ( void ) {}
 };
 
 #endif

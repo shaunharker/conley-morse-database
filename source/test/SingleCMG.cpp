@@ -12,7 +12,7 @@
 
 // To get SCC chatter
 #define CMG_VERBOSE 
-#define DO_CONLEY_INDEX
+//#define DO_CONLEY_INDEX
 #define VISUALIZE_DEBUG
 #define ILLUSTRATE
 
@@ -30,7 +30,52 @@
 //////////////////////////////////////BEGIN USER EDIT//////////////////////////////////////////
 
 // MAP FUNCTION OBJECT
+#include <cmath>
 #include "database/maps/simple_interval.h"   // for interval arithmetic
+#include "chomp/Rect.h"
+#include "chomp/Prism.h"
+
+//#define PRISMLESLIE
+#ifdef PRISMLESLIE
+#include "data/leslie12prism/ModelMap.h"
+Rect initialize_phase_space_box ( void ) {
+  // Two dimensional phase space
+  // [0, 320.056] x [0.0, 224.040]
+  //  int phase_space_dimension = 2;
+  int phase_space_dimension = 2;
+  Rect phase_space_bounds ( phase_space_dimension );
+  phase_space_bounds . lower_bounds [ 0 ] = 0.0;
+  phase_space_bounds . upper_bounds [ 0 ] = 320.056;
+  phase_space_bounds . lower_bounds [ 1 ] = 0.0;
+  phase_space_bounds . upper_bounds [ 1 ] = 224.040;
+  std::cout << "Phase Space Bounds = " << phase_space_bounds << "\n";
+  return phase_space_bounds;
+}
+
+Rect initialize_parameter_space_box ( const Real bx, const Real by ) {
+  // Two dimensional parameter space
+  // A box chosen from [8, 37] x [3, 50]
+  int parameter_space_dimension = 2;
+  Rect parameter_space_limits ( parameter_space_dimension ); 
+  parameter_space_limits . lower_bounds [ 0 ] = 8.0; 
+  parameter_space_limits . upper_bounds [ 0 ] = 37.0;
+  parameter_space_limits . lower_bounds [ 1 ] = 3.0;
+  parameter_space_limits . upper_bounds [ 1 ] = 50.0;
+  int PARAMETER_BOXES = 64;
+  Rect parameter_box ( parameter_space_dimension );
+  parameter_box . lower_bounds [ 0 ] = parameter_space_limits . lower_bounds [ 0 ] + 
+  ( parameter_space_limits . upper_bounds [ 0 ] - parameter_space_limits . lower_bounds [ 0 ] ) * bx / (float) PARAMETER_BOXES;
+  parameter_box . upper_bounds [ 0 ] = parameter_space_limits . lower_bounds [ 0 ] + 
+  ( parameter_space_limits . upper_bounds [ 0 ] - parameter_space_limits . lower_bounds [ 0 ] ) * ( bx + 1.0 ) / (float) PARAMETER_BOXES;
+  parameter_box . lower_bounds [ 1 ] = parameter_space_limits . lower_bounds [ 1 ] + 
+  ( parameter_space_limits . upper_bounds [ 1 ] - parameter_space_limits . lower_bounds [ 1 ] ) * by / (float) PARAMETER_BOXES;
+  parameter_box . upper_bounds [ 1 ] = parameter_space_limits . lower_bounds [ 1 ] + 
+  ( parameter_space_limits . upper_bounds [ 1 ] - parameter_space_limits . lower_bounds [ 1 ] ) * ( by + 1.0 ) / (float) PARAMETER_BOXES;
+  std::cout << "Parameter Box Choice = " << parameter_box << "\n";
+  
+  return parameter_box;
+}
+#endif
 
 #define TWODIMLESLIE
 #ifdef TWODIMLESLIE
@@ -38,11 +83,11 @@ struct ModelMap {
   
   typedef simple_interval<double> interval;
   
-  interval parameter1, parameter2;
+  interval p0, p1;
   
   ModelMap ( const Rect & rectangle ) {
-    parameter1 = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ]);
-    parameter2 = interval (rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ]);
+    p0 = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ]);
+    p1 = interval (rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ]);
     return;
   }
   Rect operator () 
@@ -52,17 +97,17 @@ struct ModelMap {
     interval x1 = interval (rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ]);
 
     /* Perform map computation */
-    interval y0 = (parameter1 * x0 + parameter2 * x1 ) * exp ( (double) -0.1 * (x0 + x1) );     
-    interval y1 = (double) 0.7 * x0;
+    interval y0 = (p0 * x0 + p1 * x1 ) * exp ( -0.1 * (x0 + x1) );     
+    interval y1 = 0.7 * x0;
 
-    
     /* Write output */
-    Rect return_value ( 2 );
-    return_value . lower_bounds [ 0 ] = y0 . lower ();
-    return_value . upper_bounds [ 0 ] = y0 . upper ();
-    return_value . lower_bounds [ 1 ] = y1 . lower ();
-    return_value . upper_bounds [ 1 ] = y1 . upper ();
-    return return_value;
+    Rect r ( 2 );
+    r . lower_bounds [ 0 ] = y0 . lower ();
+    r . upper_bounds [ 0 ] = y0 . upper ();
+    r . lower_bounds [ 1 ] = y1 . lower ();
+    r . upper_bounds [ 1 ] = y1 . upper ();
+
+    return r;
   } 
   
 };
@@ -461,6 +506,7 @@ int main ( int argc, char * argv [] )
 
   /* OUTPUT MORSE GRAPH */
   CreateDotFile ( conley_morse_graph );
+  
   return 0;
 } /* main */
 

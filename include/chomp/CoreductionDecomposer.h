@@ -61,6 +61,8 @@ public:
   CoreductionDecomposer ( Complex & complex ) : Decomposer(complex) {
     decompose ( complex );
   }
+  
+  virtual ~CoreductionDecomposer ( void ) {}
 };
 
 /****************
