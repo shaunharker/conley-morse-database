@@ -35,6 +35,8 @@
 #include "chomp/Rect.h"
 #include "chomp/Prism.h"
 
+#define TWODIMLESLIE
+
 
 //#define VANDERPOL 
 #ifdef VANDERPOL
@@ -63,7 +65,7 @@ Rect initialize_parameter_space_box ( const Real bx, const Real by ) {
 #endif
 
 
-#define LORENZ
+//#define LORENZ
 #ifdef LORENZ
 #include "database/maps/LorenzMap.h"
 typedef LorenzMap ModelMap;
@@ -209,7 +211,6 @@ Rect initialize_parameter_space_box ( const Real bx, const Real by ) {
 }
 #endif
 
-//#define TWODIMLESLIE
 #ifdef TWODIMLESLIE
 struct ModelMap {
   
@@ -573,8 +574,8 @@ Rect initialize_parameter_space_box ( const Real bx, const Real by ) {
 }
 #endif
 
-int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 2;//12;
-int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 4;//16;
+int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 12;
+int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 16;
 int SINGLECMG_COMPLEXITY_LIMIT = 9000;
 
 ////////////////////////////////////////END USER EDIT//////////////////////////////////////////
