@@ -2,6 +2,7 @@
 # directories where prerequisites can be found
 HOMEDIR := ..
 CHOMP := ./
+CAPD := ../capd/
 CLUSTER := $(HOMEDIR)/cluster-delegator
 BOOST := /usr/local
 GRAPHICS := /usr/X11
@@ -10,6 +11,7 @@ MODELDIR := ./   #user overrides this
 #includes
 HOMEDIR := ..
 INCS := -I$(CHOMP)/include
+INCS := -I$(CAPD)/include
 INCS += -I$(CLUSTER)/include
 INCS += -I$(BOOST)/include
 INCS += -I$(GRAPHICS)/include
@@ -20,10 +22,11 @@ INCS += -I$(MODELDIR)
 LINKFLAGS := -L$(CHOMP)/lib
 LINKFLAGS += -L$(BOOST)/lib
 LINKFLAGS += -L$(GRAPHICS)/lib
+LINKFLAGS += -L$(CAPD)/lib
 
 LINKLIBS := -lboost_serialization
 LINKLIBS += -lX11
-
+LINKLIBS += -lcapd
 
 # directory to store build products
 OBJDIR := ./build

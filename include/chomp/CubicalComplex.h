@@ -426,7 +426,7 @@ inline Index CubicalComplex::cubeIndex ( const std::vector<uint32_t> & cube_coor
 	uint64_t full_cube_number = 0;
 	for ( int d = 0; d < dimension (); ++ d ) 
 		full_cube_number += jump_values_ [d] * ( (uint64_t) cube_coordinates [d] + 1 ); // lower-left buffer +1
-  return cellToIndex ( full_cube_number << dimension () + mask_, dimension () );
+  return cellToIndex ( (full_cube_number << dimension ()) + mask_, dimension () );
 }
 
 inline std::vector<uint32_t> CubicalComplex::indexToCube ( Index i ) const {
