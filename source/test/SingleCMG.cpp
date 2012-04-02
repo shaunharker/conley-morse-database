@@ -35,8 +35,13 @@
 #include "chomp/Rect.h"
 #include "chomp/Prism.h"
 
-#define TWODIMLESLIE
+// choose example
+//#define TWODIMLESLIE
+#define PRISMLESLIE
 
+int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 12;
+int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 16;
+int SINGLECMG_COMPLEXITY_LIMIT = 10000;
 
 //#define VANDERPOL 
 #ifdef VANDERPOL
@@ -169,7 +174,6 @@ Rect initialize_parameter_space_box ( const Real bx, const Real by ) {
 #endif
 
 
-//#define PRISMLESLIE
 #ifdef PRISMLESLIE
 #include "data/leslie12prism/ModelMap.h"
 Rect initialize_phase_space_box ( void ) {
@@ -573,10 +577,6 @@ Rect initialize_parameter_space_box ( const Real bx, const Real by ) {
   return parameter_box;
 }
 #endif
-
-int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 12;
-int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 16;
-int SINGLECMG_COMPLEXITY_LIMIT = 9000;
 
 ////////////////////////////////////////END USER EDIT//////////////////////////////////////////
 

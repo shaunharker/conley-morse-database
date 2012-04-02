@@ -20,6 +20,8 @@ struct simple_interval {
   simple_interval ( Real lower_, Real upper_ ) : lower_(lower_), upper_(upper_) {}
   Real lower ( void ) const { return lower_; }
   Real upper ( void ) const { return upper_; }
+  Real mid ( void ) const { return (upper_ + lower_) / 2.0; }
+  Real radius ( void ) const { return (upper_ - lower_) / 2.0; }
 };
 
 template < class Real >
@@ -27,6 +29,15 @@ simple_interval<Real> operator * ( const Real lhs, const simple_interval<Real> &
   simple_interval<Real> result;
   result . lower_ = lhs * rhs . lower_;
   result . upper_ = lhs * rhs . upper_;
+  if ( result . lower_ > result . upper_ ) std::swap ( result.lower_, result.upper_ );
+  return result;
+}
+
+template < class Real >
+simple_interval<Real> operator * ( const simple_interval<Real> & lhs, Real rhs ) {
+  simple_interval<Real> result;
+  result . lower_ = rhs * lhs . lower_;
+  result . upper_ = rhs * lhs . upper_;
   if ( result . lower_ > result . upper_ ) std::swap ( result.lower_, result.upper_ );
   return result;
 }
@@ -66,6 +77,34 @@ simple_interval<Real> operator + ( const simple_interval<Real> & lhs, const Real
   result . upper_ = lhs . upper_ + rhs;
   return result;
 }
+
+template < class Real >
+simple_interval<Real> operator - ( const simple_interval<Real> & lhs, const simple_interval<Real> & rhs ) {
+  simple_interval<Real> result;
+  result . lower_ = lhs . lower_ - rhs . lower_;
+  result . upper_ = lhs . upper_ - rhs . upper_;
+  if ( result . lower_ > result . upper_ ) std::swap ( result.lower_, result.upper_ );
+  return result;  
+}
+
+template < class Real >
+simple_interval<Real> operator - ( const Real lhs, const simple_interval<Real> & rhs ) {
+  simple_interval<Real> result;
+  result . lower_ = lhs - rhs . lower_;
+  result . upper_ = lhs - rhs . upper_;
+  if ( result . lower_ > result . upper_ ) std::swap ( result.lower_, result.upper_ );
+  return result;  
+}
+
+template < class Real >
+simple_interval<Real> operator - ( const simple_interval<Real> & lhs, const Real rhs ) {
+  simple_interval<Real> result;
+  result . lower_ = lhs . lower_ - rhs;
+  result . upper_ = lhs . upper_ - rhs;
+  if ( result . lower_ > result . upper_ ) std::swap ( result.lower_, result.upper_ );
+  return result;
+}
+
 
 template < class Real >
 simple_interval<Real> pow ( const simple_interval<Real> & base, const Real exponent ) {
