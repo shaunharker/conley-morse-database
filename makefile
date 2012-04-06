@@ -73,3 +73,12 @@ clean:
 	rm -f SingleCMG
 	rm -f PostProcessDatabase
 
+# Create build directories
+.PHONY: build-dirs
+dirs:
+	mkdir build
+	mkdir build/program
+	mkdir build/structures
+	mkdir build/test
+	mkdir build/tools
+	mkdir build/tools/lodepng
