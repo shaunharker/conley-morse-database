@@ -17,6 +17,8 @@
 #include "chomp/VectorIndexer.h"
 #include "chomp/SparseMatrix.h"
 
+namespace chomp {
+  
 class Complex {
 protected:
   int dimension_;
@@ -111,6 +113,8 @@ inline void BoundaryMatrix ( SparseMatrix < Ring > * output_matrix,
     }
   } /* for */
 } 
+
+} // namespace chomp
 
 ///  CHOMP_COMPLEX(Cell) Macro
 ///  This provides several pre-written functions to a class 

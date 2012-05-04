@@ -12,7 +12,7 @@
 
 // To get SCC chatter
 #define CMG_VERBOSE 
-//#define DO_CONLEY_INDEX
+#define DO_CONLEY_INDEX
 #define VISUALIZE_DEBUG
 #define ILLUSTRATE
 
@@ -35,9 +35,11 @@
 #include "chomp/Rect.h"
 #include "chomp/Prism.h"
 
+using namespace chomp;
+
 // choose example
-//#define TWODIMLESLIE
-#define PRISMLESLIE
+#define TWODIMLESLIE
+//#define PRISMLESLIE
 
 int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 12;
 int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 16;
@@ -614,10 +616,6 @@ int main ( int argc, char * argv [] )
   /* INITIALIZE PHASE SPACE */
   Toplex phase_space;
   phase_space . initialize ( phase_space_bounds );
-  phase_space . subdivide ();
-  phase_space . subdivide ();
-  phase_space . subdivide ();
-  phase_space . subdivide ();
   
   /* INITIALIZE MAP */
   ModelMap map ( parameter_box );

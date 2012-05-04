@@ -7,6 +7,8 @@
 
 #include <vector>
 
+namespace chomp {
+
 // both K and M are unsigned integer types here
 template < class K, class M >
 class VectorIndexer {
@@ -69,5 +71,6 @@ VectorIndexer<K,M>::reindex ( const std::vector < Mapped > & permute ) {
   }
   initialize ( new_keys );
 }
-
+} // namespace chomp
+  
 #endif

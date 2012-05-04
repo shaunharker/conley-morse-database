@@ -8,6 +8,7 @@
 #include <iostream>
 #include <boost/serialization/serialization.hpp>
 
+namespace chomp {
 /**********************
  * FINITE FIELD CLASS *
  **********************/
@@ -147,5 +148,8 @@ template < Prime p >
 inline Zp<p> operator / (const Zp<p> & lhs, const Zp<p> & rhs) {
 	return lhs * inverse ( rhs );
 }
+  
+} // namespace chomp
+
 
 #endif

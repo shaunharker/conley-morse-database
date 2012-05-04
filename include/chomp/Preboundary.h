@@ -8,6 +8,8 @@
 #include "chomp/Chain.h"
 #include "chomp/Matrix.h"
 
+namespace chomp {
+  
 /// Compute a preboundary of a chain in a complex
 /// method: turn into an algebra problem, use Smith Normal Form.
 inline Chain SmithPreboundary ( const Chain & input, 
@@ -46,5 +48,6 @@ inline Chain SmithPreboundary ( const Chain & input,
   return return_value;
 }
 
+} // namespace chomp
 
 #endif

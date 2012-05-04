@@ -8,6 +8,8 @@
 #include <vector>
 #include "boost/unordered_map.hpp"
 
+namespace chomp {
+  
 template < class K, class M >
 class HashIndexer {
 public:
@@ -68,5 +70,7 @@ HashIndexer<K,M>::reindex ( const std::vector < Mapped > & permute ) {
   }
   initialize ( new_keys );
 }
+
+} // namespace chomp
 
 #endif

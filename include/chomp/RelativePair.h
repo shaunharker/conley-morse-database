@@ -9,6 +9,8 @@
 #include "chomp/CubicalComplex.h"
 #include "chomp/BitmapSubcomplex.h"
 
+namespace chomp {
+
 class RelativePair {
 private:
   CubicalComplex * base_;
@@ -38,5 +40,7 @@ public:
   const BitmapSubcomplex & relative ( void ) const { return *relative_; }
 
 };
+} // namespace chomp
+
 
 #endif

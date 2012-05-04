@@ -10,6 +10,8 @@
 #include "chomp/Complex.h"
 #include "chomp/SmithNormalForm.h"
 
+namespace chomp {
+  
 Matrix chainsToMatrix ( const std::vector < Chain > & chains, 
                         const Complex & complex,
                         int dim );
@@ -91,5 +93,7 @@ inline Matrix SmithSolve ( const Matrix & A, const Matrix & B ) {
   Matrix X = Vinv * Y;
   return X;
 }
+
+} // namespace chomp
 
 #endif

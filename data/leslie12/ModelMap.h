@@ -9,7 +9,7 @@
 #include <vector>
 
 struct ModelMap {
-  
+  typedef chomp::Rect Rect;
   typedef simple_interval<double> interval;
   
   interval parameter1, parameter2;

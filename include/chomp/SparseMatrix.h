@@ -27,6 +27,8 @@
 
 #define HASH_SWITCH 10
 
+namespace chomp {
+
 //int number_of_pivots = 0;
 
 // Sparse Matrix Data Structure
@@ -1098,5 +1100,6 @@ void Submatrix (SparseMatrix<R> * B,
   } // for
 }
 
+} // namespace chomp
 
 #endif

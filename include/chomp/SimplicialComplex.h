@@ -19,6 +19,8 @@
 #include "chomp/Chain.h"
 #include "chomp/Rect.h"
 
+namespace chomp {
+
 /************************
  *      SIMPLEX					*
  ************************/
@@ -282,6 +284,9 @@ inline void SimplicialComplex::generateCoboundaryData ( void ) {
 		}
 	}
 }
+  
+} // namespace chomp
+
 
 #endif
 

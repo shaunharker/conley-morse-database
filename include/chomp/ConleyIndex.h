@@ -13,6 +13,8 @@
 #include <boost/serialization/serialization.hpp>
 #include <boost/serialization/vector.hpp>
 
+namespace chomp { 
+  
 class ConleyIndex_t {
 private:
   std::vector < SparseMatrix < Ring > >  data_;
@@ -160,5 +162,6 @@ inline const bool & ConleyIndex_t::undefined ( void ) const {
   return undefined_;
 } /* ConleyIndex_t::undefined */
 
+} // namespace chomp
 
 #endif

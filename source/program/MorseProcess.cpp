@@ -14,13 +14,17 @@
 #include "database/program/jobs/Clutching_Graph_Job.h"
 #include "database/structures/UnionFind.hpp"
 
+#include "chomp/Rect.h"
+#include "chomp/Complex.h"
+#include "chomp/Chain.h"
+
 #include "ModelMap.h"
 
 /* * * * * * * * * * * * */
 /* initialize definition */
 /* * * * * * * * * * * * */
 void MorseProcess::initialize ( void ) {
-  
+  using namespace chomp;
   std::cout << "Attempting to load configuration...\n";
   config . loadFromFile ( argv[1] );
   std::cout << "Loaded configuration.\n";
@@ -133,6 +137,7 @@ void MorseProcess::initialize ( void ) {
 /* prepare definition  */
 /* * * * * * * * * * * */
 int MorseProcess::prepare ( Message & job ) {
+  using namespace chomp;
   /// All jobs have been sent
   /// Still waiting for some jobs to finish
   if (num_jobs_sent_ == num_jobs_) return 1;
@@ -229,6 +234,7 @@ int MorseProcess::prepare ( Message & job ) {
 /* work definition */
 /* * * * * * * * * */
 void MorseProcess::work ( Message & result, const Message & job ) const {
+  using namespace chomp;
 	Clutching_Graph_Job < Toplex, Toplex, ConleyIndex_t > ( &result , job ); 
 }
 
@@ -236,6 +242,7 @@ void MorseProcess::work ( Message & result, const Message & job ) const {
 /* accept definition */
 /* * * * * * * * * * */
 void MorseProcess::accept(const Message &result) {
+  using namespace chomp;
   /// Read the results from the result message
   size_t job_number;
   Database job_database;
@@ -264,6 +271,7 @@ void MorseProcess::accept(const Message &result) {
 /* finalize definition */
 /* * * * * * * * * * * */
 void MorseProcess::finalize ( void ) {
+  using namespace chomp;
   std::cout << "MorseProcess::finalize ()\n";
   
   std::ofstream progress_file ( "progress.txt" );

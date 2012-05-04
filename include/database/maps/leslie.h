@@ -9,7 +9,7 @@
 #include <vector>
 
 struct LeslieMap {
-  
+  using namespace chomp;
   typedef simple_interval<double> interval;
   
   interval parameter1, parameter2;
@@ -41,6 +41,7 @@ struct LeslieMap {
 };
 
 struct LeslieFishMap {
+  using namespace chomp;
   typedef simple_interval<double> interval;
   interval parameter1, parameter2;
   std::vector < double > coefficients;

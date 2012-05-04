@@ -8,6 +8,8 @@
 #include "chomp/Complex.h"
 #include "chomp/Chain.h"
 
+namespace chomp {
+
 /// Subcomplex.
 /// Currently this isn't a true complex
 /// as it doesn't support "enumeration"
@@ -114,4 +116,7 @@ inline void Subcomplex::coboundary
             supercomplex_ -> coboundary ( include ( input_chain ) ) );
 
 }
+  
+} // namespace chomp
+
 #endif

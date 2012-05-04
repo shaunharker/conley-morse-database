@@ -8,6 +8,8 @@
 #include "chomp/Complex.h"
 
 
+namespace chomp {
+  
 /**************
  * Decomposer *
  **************/
@@ -30,5 +32,7 @@ public:
   }
   virtual ~Decomposer ( void ) {}
 };
+
+} // namespace chomp
 
 #endif

@@ -7,6 +7,8 @@
 
 #include "chomp/SparseMatrix.h"
 
+namespace chomp {
+
 /// SmithNormalForm
 /// Input: A
 /// Produce matrices U, Uinv, V, Vinv, and D
@@ -606,4 +608,7 @@ void SmithNormalForm (SparseMatrix<R> * U,
   //std::cout << "Total number of pivot moves: " << number_of_pivots << "\n";
 #endif
 }
+  
+} // namespace chomp
+
 #endif

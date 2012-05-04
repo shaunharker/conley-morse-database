@@ -19,6 +19,8 @@
 
 #define PRINT if ( 1 ) std::cout <<
 
+namespace chomp {
+
 typedef std::vector < SparseMatrix < Ring > > RelativeMapHomology_t;
 
 template < class Container, class RectMap > int 
@@ -303,4 +305,7 @@ RelativeMapHomology (RelativeMapHomology_t * output,
   PRINT "RMH: Returning.\n";
   return 0;
 }
+  
+} // namespace chomp
+
 #endif

@@ -15,6 +15,8 @@
 
 #include "chomp/Ring.h"
 
+namespace chomp {
+
 /*********************
  *      Index        *
  *********************/
@@ -219,4 +221,6 @@ inline Chain simplify ( const Chain & chain ) {
   result . dimension () = chain . dimension ();
   return result;
 }
+  
+} // namespace chomp
 #endif

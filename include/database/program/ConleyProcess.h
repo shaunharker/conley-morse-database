@@ -23,13 +23,13 @@ public:
 private:
   size_t num_jobs_;
   size_t num_jobs_sent_;
-  Toplex param_toplex;
+  chomp::Toplex param_toplex;
   Configuration config;
   Database database;
   // A Morse-Set ID is a pair<int,int> where first is the parameter box id, and
   // second is the number of the morse set within the parameter box.
   std::vector<std::pair<int, int> > conley_work_items;
-  std::map < int, Rect > param_boxes;
+  std::map < int, chomp::Rect > param_boxes;
 };
 
 #endif

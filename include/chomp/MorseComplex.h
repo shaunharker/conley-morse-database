@@ -17,6 +17,8 @@
 #include "chomp/Decomposer.h"
 #include "chomp/CoreductionDecomposer.h"
 
+namespace chomp {
+  
 class MorseComplex : public Complex {
 
 public:      
@@ -326,5 +328,7 @@ inline void MorseComplex::coboundary ( Chain * output,
   }
   *output = coboundary_cache_ [ dim ] [ input ];
 }
+
+} // namespace chomp
 
 #endif

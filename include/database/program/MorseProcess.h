@@ -29,13 +29,13 @@ private:
   clock_t time_of_last_checkpoint;
   clock_t time_of_last_progress;
 #if defined EDGEMETHOD || defined SKELETONMETHOD
-  CubicalComplex param_complex;
-  typedef std::pair<Index,int> Cell;
+  chomp::CubicalComplex param_complex;
+  typedef std::pair<chomp::Index,int> Cell;
   std::vector< Cell > jobs_;
 #endif
 #ifdef PATCHMETHOD
-  Toplex param_toplex;
-  typedef boost::unordered_set<GridElement> Toplex_Subset;
+  chomp::Toplex param_toplex;
+  typedef boost::unordered_set<chomp::GridElement> Toplex_Subset;
   std::vector < Toplex_Subset > PS_patches; // morse_work_items
 #endif
 };

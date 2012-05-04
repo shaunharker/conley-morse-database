@@ -6,6 +6,7 @@
 #include "boost/foreach.hpp"
 #include "database/algorithms/GraphTheory.h"
 #include "database/structures/MapGraph.h"
+#include <ctime>
 
 #ifdef DO_CONLEY_INDEX
 #include "chomp/ConleyIndex.h"
@@ -16,6 +17,7 @@ void subdivide ( Toplex & phase_space, CellContainer & morse_set );
 template < class Morse_Graph, class Toplex, class Map >
 void Compute_Morse_Graph (Morse_Graph * MG, Toplex * phase_space, const Map & interval_map,
                           const unsigned int Min, const unsigned int Max, const unsigned int Limit) {
+  using namespace chomp;
   typedef std::vector<typename Toplex::Top_Cell> CellContainer;
   typedef MapGraph<Toplex,Map,CellContainer> Graph;  
   std::vector < CellContainer > morse_sets;
@@ -26,6 +28,7 @@ void Compute_Morse_Graph (Morse_Graph * MG, Toplex * phase_space, const Map & in
   
   // Do Subdivisions
 #ifdef CMG_VERBOSE
+  clock_t start = clock ();
   std::cout << "Subdivisions.\n";
 #endif
   for ( unsigned int depth = 0; depth < Min; ++ depth ) {  
@@ -34,6 +37,15 @@ void Compute_Morse_Graph (Morse_Graph * MG, Toplex * phase_space, const Map & in
 #endif
     Graph G ( morse_sets, * phase_space, interval_map );
     compute_morse_sets <Morse_Graph,Graph,CellContainer> ( &morse_sets, G );
+#ifdef CMG_VERBOSE
+    std::cout << "   Time Elapsed: " << (double)(clock() - start)/(double)CLOCKS_PER_SEC << "\n";
+    std::cout << "   Number of Morse Sets: " << morse_sets . size () << "\n";
+    std::cout << "   Sizes of Morse Sets: ";
+    BOOST_FOREACH ( CellContainer & morse_set, morse_sets ) 
+    std::cout << " " << morse_set . size ();
+    std::cout << "...\n";
+#endif
+    
     BOOST_FOREACH ( CellContainer & morse_set, morse_sets ) subdivide ( phase_space, morse_set );
   }
   
@@ -41,24 +53,38 @@ void Compute_Morse_Graph (Morse_Graph * MG, Toplex * phase_space, const Map & in
   
   // Eliminate Spurious Sets
   {
-#ifdef CMG_VERBOSE
-    std::cout << "Eliminate Spurious Sets.\n";
-#endif
+
     // TODO: think about eliminating this step (make sure you can!)
     // (Because you are forcing this analysis twice.)
     // The problem is I might generate a couple spurious sets at reach stage if I do!
     // Resolution: get a finer interface so I can ask for reachability without redoing morse
     // theory. For now: ignore problem.
+
+#ifdef CMG_VERBOSE
+    std::cout << "Depth: " << Min << " (final)\n";
+#endif
     Graph G ( morse_sets, * phase_space, interval_map );
     compute_morse_sets <Morse_Graph,Graph,CellContainer> ( &morse_sets, G );
+   
+#ifdef CMG_VERBOSE
+    std::cout << "   Time Elapsed: " << (double)(clock() - start)/(double)CLOCKS_PER_SEC << "\n";
+    std::cout << "   Number of Morse Sets: " << morse_sets . size () << "\n";
+    std::cout << "   Sizes of Morse Sets: ";
+    BOOST_FOREACH ( CellContainer & morse_set, morse_sets ) 
+    std::cout << " " << morse_set . size ();
+    std::cout << "...\n";
+#endif
     
+#ifdef CMG_VERBOSE
+    std::cout << "Eliminate Spurious Sets.\n";
+#endif
     BOOST_FOREACH ( CellContainer & morse_set, morse_sets ) { 
       std::vector < CellContainer > spurious_sets;
       spurious_sets . push_back ( morse_set );
       if ( morse_set . size () < Limit )
         for ( unsigned int d = Min; d < Max && not spurious_sets . empty (); ++ d ) {
 #ifdef CMG_VERBOSE
-          std::cout << "Depth " << d << ": \n";
+          //    std::cout << "Depth " << d << ": \n";
 #endif
           Graph G ( spurious_sets, * phase_space, interval_map );
           compute_morse_sets <Morse_Graph,Graph,CellContainer> ( &spurious_sets, G );
@@ -73,7 +99,7 @@ void Compute_Morse_Graph (Morse_Graph * MG, Toplex * phase_space, const Map & in
         }
       if ( not spurious_sets . empty () ) {
 #ifdef CMG_VERBOSE
-        std::cout << "Not revealed to be spurious.\n";
+        //  std::cout << "Not revealed to be spurious.\n";
 #endif
         phase_space -> coarsen ( morse_set );
 #ifdef DO_CONLEY_INDEX
@@ -85,7 +111,7 @@ void Compute_Morse_Graph (Morse_Graph * MG, Toplex * phase_space, const Map & in
 #endif
       } else {
 #ifdef CMG_VERBOSE
-        std::cout << "Revealed as spurious.\n";
+        // std::cout << "Revealed as spurious.\n";
 #endif
       }
     }

@@ -9,6 +9,8 @@
 #include <boost/serialization/serialization.hpp>
 #include "Field.h"
 
+namespace chomp {
+
 /*********************
  *      Ring         *
  *********************/
@@ -132,4 +134,7 @@ inline std::ostream & operator << ( std::ostream & outstream, const Long & rhs )
 //typedef Long Ring;
 typedef Zp<2> Ring;
 #endif
+  
+} // namespace chomp
+
 #endif

@@ -13,7 +13,9 @@
 #define PRISM_MAP
 
 struct ModelMap {
-  
+  typedef chomp::Prism Prism;
+  typedef chomp::Rect Rect;
+  typedef chomp::uVector uVector;
   typedef simple_interval<double> interval;
   
   interval p0, p1;
@@ -60,7 +62,7 @@ struct ModelMap {
 
     // Calculate image center point c = f(c0)
     interval a = p0 * c0(0) + p1 * c0(1);
-    Real e = exp ( -0.1 * (c0(0) + c0(1)) );
+    double e = exp ( -0.1 * (c0(0) + c0(1)) );
                   
     interval fx = a * e; //( p0 * c0(0) + p1 * c0(1) ) 
                          //* exp ( -0.1 * (c0(0) + c0(1)) );

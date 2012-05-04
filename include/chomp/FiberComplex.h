@@ -19,6 +19,8 @@
 // debug
 #include "chomp/Draw.h"
 
+namespace chomp { 
+  
 class FiberComplex : public Complex {
 public:
 CHOMP_COMPLEX(Index,HashIndexer)
@@ -229,5 +231,6 @@ inline Rect FiberComplex::geometry ( Index i, int dim ) const {
   return supercomplex_ -> geometry ( indexToCell ( i, dim ), dim );
 }
 
+} // namespace chomp
 
 #endif

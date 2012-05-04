@@ -19,6 +19,8 @@
 
 #include "chomp/Chain.h"
 
+namespace chomp {
+  
 class GraphicsWindow {
 public:
   GraphicsWindow( const char * title );
@@ -356,4 +358,7 @@ inline void ComplexVisualization::explore ( void ) {
 
   }
 }
+  
+} // namespace chomp
+
 #endif

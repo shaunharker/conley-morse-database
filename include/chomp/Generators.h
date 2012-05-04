@@ -15,7 +15,8 @@
 #include "chomp/SmithNormalForm.h"
 #include "chomp/MorseComplex.h"
 
-
+namespace chomp {
+  
 /*************************
  *    DECLARATIONS       *
  *************************/
@@ -241,5 +242,7 @@ inline Generators_t MorseGenerators ( Complex & complex ) {
   } /* for */
   return return_value;
 } 
+
+} // namespace chomp
 
 #endif

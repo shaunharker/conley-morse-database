@@ -12,13 +12,15 @@
 #include "database/program/jobs/Conley_Index_Job.h"
 #include "database/structures/UnionFind.hpp"
 
+#include "chomp/Rect.h"
+
 #include "ModelMap.h"
 
 /* * * * * * * * * * * * */
 /* initialize definition */
 /* * * * * * * * * * * * */
 void ConleyProcess::initialize ( void ) {
-  
+  using namespace chomp;
 
   num_jobs_sent_ = 0;
   std::cout << "ConleyProcess::initialize ()\n";
@@ -112,7 +114,7 @@ void ConleyProcess::initialize ( void ) {
 /* write definition  */
 /* * * * * * * * * * */
 int ConleyProcess::prepare ( Message & job ) {
-  
+  using namespace chomp;
   // All jobs have already been sent.
   std::cout << " ConleyProcess::prepare\n";
   std::cout << " num_jobs_sent_ = " << num_jobs_sent_ << "\n";

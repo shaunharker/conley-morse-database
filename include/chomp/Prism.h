@@ -30,6 +30,9 @@ namespace ublas = boost::numeric::ublas;
 #include <boost/numeric/ublas/lu.hpp>
 #include <boost/numeric/ublas/io.hpp>
 namespace ublas = boost::numeric::ublas;
+
+namespace chomp {
+
 /* Matrix inversion routine.
  Uses lu_factorize and lu_substitute in uBLAS to invert a matrix */
 template<class T>
@@ -170,5 +173,7 @@ inline std::ostream & operator << ( std::ostream & output_stream, const Prism & 
   output_stream << " A = " << print_me . A << ", c = " << print_me . c << "\n";
   return output_stream;
 } 
+
+} // namespace chomp
 
 #endif

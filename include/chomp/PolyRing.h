@@ -10,6 +10,8 @@
 
 #include "chomp/Field.h"
 
+namespace chomp {
+  
 template < class Field >
 class PolyRing {
 private:
@@ -216,5 +218,7 @@ template < class Field >
 bool operator < (const PolyRing<Field> & lhs, const PolyRing<Field> & rhs) {
 	return lhs . degree () < rhs . degree ();
 }
+
+} // namespace chomp
 
 #endif

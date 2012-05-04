@@ -82,7 +82,7 @@ struct ClutchingRecord {
 
 struct ConleyRecord {
   std::pair < int, int > id_;
-  ConleyIndex_t ci_;
+  chomp::ConleyIndex_t ci_;
   bool operator < ( const ConleyRecord & rhs ) const;
   friend class boost::serialization::access;
   template<class Archive>

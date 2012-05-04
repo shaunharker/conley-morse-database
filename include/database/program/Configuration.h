@@ -26,6 +26,7 @@ typedef ModelMap GeometricMap;
 
 class Configuration {
 public:
+  typedef chomp::Rect Rect;
   // Model, name and description
   std::string MODEL_NAME;
   std::string MODEL_DESC;

@@ -16,6 +16,9 @@
 #include "chomp/Chain.h"
 #include "chomp/Rect.h"
 
+
+namespace chomp {
+  
 /*******************************
  *      CUBICAL COMPLEX        *
  *******************************/
@@ -48,6 +51,11 @@ public:
   /// To use, use calls "initialize" with a desired bitmap size, then
   /// addFullCube and removeFullCube, and finishes by calling "finalize"
   
+  /// Important note on "bitmap" in this implementation:
+  /// we use a hash-table implementation, so there is no actual
+  /// bitmap in memory. rather, there is an interface which 
+  /// simulates a bitmap using the "bitmap", "insert", and "erase" methods
+  
   /// initialize.
   ///  Initializes bitmap so that the complex may contain a full cubical complex
   /// which full cubes (0,0,...,0) to (sizes[0] - 1, sizes[1] - 1, ... , sizes [ dimension - 1] - 1).
@@ -72,6 +80,8 @@ public:
   /// Adds the full cube (3^d cells) indicated by "cube_coordinates". */
   void addFullCube ( const std::vector<uint32_t> & cube_coordinates );
 
+  /// insertRect -- see geometric interface
+  
   /// removeFullCube.
   /// Remove the full cube (3^d cells) indicated by "cube_coordinates" 
   void removeFullCube ( const std::vector<uint32_t> & cube_coordinates );
@@ -93,11 +103,18 @@ public:
   /// geometric interface
   Rect & bounds ( void );
   const Rect & bounds ( void ) const;
+  
+  // cover: returns indexes of inserted cells
   template < class InsertIterator > void cover ( InsertIterator & ii, const Rect & p ) const; 
   std::vector < Index > cover ( const Rect & p ) const;  
+  
+  // insertRect -- adds full cubes to cover p
+  void insertRect ( const Rect & p ); 
+
+  // geometry and geometryOfCube: give floating point bounds of geometric incarnation of cell
   Rect geometry ( Index i, int dim ) const;
   Rect geometryOfCube ( const std::vector < uint32_t > & cube ) const;
-
+  
 private:
   /* Cubical Complex */
 	std::vector<uint32_t> dimension_sizes_; 
@@ -109,9 +126,13 @@ private:
   template < class InsertIterator >
   void coverHelper ( InsertIterator & ii,
                      uint64_t /* DANGER */ partial,
-                     std::vector < uint32_t > low, 
-                     std::vector < uint32_t > high,
+                     const std::vector < uint32_t > & low, 
+                     const std::vector < uint32_t > & high,
                      int d ) const;
+  void insertRectHelper (std::vector < uint32_t > & selected,
+                    const std::vector < uint32_t > & low, 
+                    const std::vector < uint32_t > & high,
+                         int d );
 };
 
 /*******************************
@@ -464,8 +485,8 @@ template < class InsertIterator >
 void
 CubicalComplex::coverHelper ( InsertIterator & ii,
                               uint64_t /* DANGER */ partial,
-                              std::vector < uint32_t > low, 
-                              std::vector < uint32_t > high,
+                              const std::vector < uint32_t > & low, 
+                              const std::vector < uint32_t > & high,
                               int d ) const {
   //std::cout << d << ": coverHelper " << partial << "\n";
   if ( d == 0 ) {
@@ -530,6 +551,46 @@ inline std::vector < Index > CubicalComplex::cover ( const Rect & p ) const {
   return result;
 }
 
+inline void
+CubicalComplex::insertRectHelper (std::vector < uint32_t > & selected,
+                                  const std::vector < uint32_t > & low, 
+                                  const std::vector < uint32_t > & high,
+                                  int d ) {
+  if ( d == dimension () ) {
+   addFullCube ( selected ); 
+  } else {
+    for ( uint32_t x = low [ d ]; x <= high [ d ]; ++ x ) {
+      selected [ d ] = x;
+      insertRectHelper ( selected, low, high, d + 1 ); 
+    }
+  }
+                              
+}
+
+inline void CubicalComplex::insertRect ( const Rect & p ) {
+  //std::cout << ">>> CUBICAL COMPLEX: COVER ----: " << p << "\n";
+  // Convert prism to scale of dimension sizes
+  // Be careful about the padding.
+  int D = dimension ();
+  std::vector < uint32_t > low ( D );
+  std::vector < uint32_t > high ( D );
+  for ( int d = 0; d < D; ++ d ) {
+    double lowbound = bounds () . lower_bounds [ d ];
+    double highbound = bounds () . upper_bounds [ d ];
+    double scale = ( (double) (dimension_sizes_ [ d ] - 2) ) / (highbound - lowbound);
+    double lower = p . lower_bounds [ d ] - lowbound;
+    if ( lower < 0 ) lower = 0;
+    if ( lower + lowbound > highbound ) lower = highbound;
+    double upper = p . upper_bounds [ d ] - lowbound;
+    if ( upper < 0 ) upper = 0;
+    if ( upper + lowbound > highbound ) upper = highbound;
+    low [ d ] = (uint32_t) ( scale * lower );
+    high [ d ] = (uint32_t) ( scale * upper );
+  }
+  std::vector < uint32_t > selected = low;
+  insertRectHelper ( selected, low, high, 0 );
+}
+
 inline Rect CubicalComplex::geometryOfCube ( const std::vector < uint32_t > & cube ) const {
   int D = dimension ();
   Rect result ( D );
@@ -555,7 +616,7 @@ inline Rect CubicalComplex::geometry ( Index i, int dim ) const {
         result . upper_bounds [ d ] = result . lower_bounds [ d ];
       bit <<= 1;
     }
-
+    
     return result;
   }
   std::vector < uint32_t > cube = indexToCube ( i );
@@ -575,6 +636,8 @@ inline Rect CubicalComplex::geometry ( Index i, int dim ) const {
   }
   return geometryOfCube ( cube );
 }
+
+} // namespace chomp
 
 #endif
 

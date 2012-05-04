@@ -54,7 +54,8 @@ Picture * draw_picture (const int Width, const int Height,
 template < class Toplex, class CellContainer >
 Picture * draw_morse_sets (const int Width, const int Height,
                            const Toplex & my_toplex, 
-                           const ConleyMorseGraph < CellContainer , ConleyIndex_t > & conley_morse_graph ) {
+                           const ConleyMorseGraph < CellContainer , chomp::ConleyIndex_t > & conley_morse_graph ) {
+  using namespace chomp;
   typedef ConleyMorseGraph < CellContainer , ConleyIndex_t > CMG;
   typename Toplex::Geometric_Description bounds = my_toplex . bounds ();
   // Prepare variables for bounds finding loop
@@ -165,7 +166,8 @@ Picture * draw_toplex (const int Width, const int Height,
 template < class Toplex, class CellContainer >
 Picture * draw_toplex_and_morse_sets (const int Width, const int Height,
                        const Toplex & my_toplex,
-                      const ConleyMorseGraph < CellContainer, ConleyIndex_t > & conley_morse_graph ) {
+                                      const ConleyMorseGraph < CellContainer, chomp::ConleyIndex_t > & conley_morse_graph ) {
+  using namespace chomp;
   typedef ConleyMorseGraph < CellContainer , ConleyIndex_t > CMG;
   typename Toplex::Geometric_Description bounds = my_toplex . bounds ();
   // Prepare variables for bounds finding loop

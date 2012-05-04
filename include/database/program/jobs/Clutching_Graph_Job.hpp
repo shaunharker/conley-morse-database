@@ -20,6 +20,8 @@
 #include "database/structures/UnionFind.hpp"
 #include "database/structures/Database.h"
 
+#include "chomp/Rect.h"
+
 /* Prefix Tree Structure Used in Clutching Algorithm */
 
 template < class T >
@@ -205,12 +207,12 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
 
   size_t job_number;
   std::vector <size_t> box_names;
-  std::vector <Rect> box_geometries;
+  std::vector < chomp::Rect > box_geometries;
   std::vector <std::pair<size_t, size_t> > box_adjacencies;
   int PHASE_SUBDIV_MIN;
   int PHASE_SUBDIV_MAX;
   int PHASE_SUBDIV_LIMIT;
-  Rect PHASE_BOUNDS;
+  chomp::Rect PHASE_BOUNDS;
   
   job >> job_number;
   job >> box_names;

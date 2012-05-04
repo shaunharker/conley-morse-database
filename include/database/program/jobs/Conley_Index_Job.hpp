@@ -11,6 +11,7 @@
 
 template <class Toplex, class ParameterToplex >
 void Conley_Index_Job ( Message * result , const Message & job ) {
+  using namespace chomp;
   // Read job
   size_t job_number;
   typename Toplex::Geometric_Description geo;

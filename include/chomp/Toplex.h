@@ -15,6 +15,8 @@
 #include "chomp/ToplexDetail.h"
 #include "chomp/BitmapSubcomplex.h"
 
+namespace chomp {
+
 /**********
  * Toplex *
  **********/
@@ -1113,5 +1115,7 @@ inline Toplex::Toplex ( const Rect & outer_bounds_of_toplex ) {
 inline Toplex::~Toplex ( void ) {
   if ( root_ != NULL ) delete root_;
 } /* Adaptive_Cubical::Toplex::~Toplex */
+
+} // namespace chomp
 
 #endif

@@ -10,6 +10,8 @@
 #include <vector>
 #include "boost/unordered_set.hpp"
 
+namespace chomp {
+  
 inline void closure 
 ( std::vector < boost::unordered_set < Index > > & cells,
   const Complex & complex ) {
@@ -23,5 +25,7 @@ inline void closure
     }
   }
 }
+  
+} // namespace chomp
 
 #endif

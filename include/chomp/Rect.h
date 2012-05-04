@@ -11,6 +11,8 @@
 #include "boost/serialization/vector.hpp"
 #include "boost/foreach.hpp"
 
+namespace chomp {
+
 /*********
  * Rect *
  *********/
@@ -72,8 +74,6 @@ private:
   BOOST_SERIALIZATION_SPLIT_MEMBER()
 };
 
-typedef Rect Rect; //compatibility
-
 std::ostream & operator << ( std::ostream & output_stream, const Rect & print_me );
 
 
@@ -103,5 +103,7 @@ inline std::ostream & operator << ( std::ostream & output_stream, const Rect & p
   }
   return output_stream;
 } 
+
+} // namespace chomp
 
 #endif

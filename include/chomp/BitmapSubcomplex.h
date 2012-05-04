@@ -9,6 +9,8 @@
 
 #include "boost/foreach.hpp"
 
+namespace chomp {
+  
 class BitmapSubcomplex : public Complex {
 public:
   CHOMP_COMPLEX(Index, HashIndexer)
@@ -130,4 +132,7 @@ inline BitmapSubcomplex::BitmapSubcomplex ( Complex & b, bool flag ) {
 inline const Complex & BitmapSubcomplex::base ( void ) const {
   return *base_;
 }
+
+} // namespace chomp
+
 #endif

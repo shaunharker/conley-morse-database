@@ -18,6 +18,8 @@
 #include "chomp/Complex.h"
 #include "chomp/Chain.h"
 
+namespace chomp {
+  
 /**************************
  *  CoreductionDecomposer *
  **************************/
@@ -315,5 +317,6 @@ inline void CoreductionDecomposer::decompose ( Complex & complex ) {
 
 }
 
+} // namespace chomp
 #endif
 

@@ -5,6 +5,8 @@
 #ifndef CHOMP_TOPLEXDETAIL_H
 #define CHOMP_TOPLEXDETAIL_H
 
+namespace chomp {
+
 typedef uint32_t GridElement;
 
 /***************
@@ -101,6 +103,7 @@ inline Node * Toplex_const_iterator::node ( void ) {
   return node_;
 } /* Adaptive_Cubical::Toplex_const_iterator::node */
 
+} // namespace chomp
 
 
 
