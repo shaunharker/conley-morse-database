@@ -20,7 +20,7 @@ public:
   uint32_t size ( void ) const;
   const Key & key ( Mapped i ) const;
   //Mapped & rank ( const Key & k );
-  const Mapped & rank ( const Key & k ) const;
+  const Mapped rank ( const Key & k ) const;
   void reindex ( const std::vector < Mapped > & permute );
 private:
   boost::unordered_map < Key, Mapped > data_;
@@ -57,7 +57,7 @@ HashIndexer<K,M>::key ( Mapped i ) const {
   //return data_ [ k ];
   //}
 
-template < class K, class M > const M &
+template < class K, class M > const M
 HashIndexer<K,M>::rank ( const Key & k ) const {
   typename boost::unordered_map < Key, Mapped >::const_iterator it = data_ . find ( k );
   if ( it == data_ . end () ) return keys_ . size ();
