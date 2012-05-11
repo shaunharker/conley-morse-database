@@ -59,7 +59,7 @@ HashIndexer<K,M>::key ( Mapped i ) const {
 
 template < class K, class M > const M &
 HashIndexer<K,M>::rank ( const Key & k ) const {
-  boost::unordered_map < K, M >::const_iterator it = data_ . find ( k );
+  typename boost::unordered_map < Key, Mapped >::const_iterator it = data_ . find ( k );
   if ( it == data_ . end () ) return keys_ . size ();
   return it -> second;
 }
