@@ -38,8 +38,8 @@
 using namespace chomp;
 
 // choose example
-#define TWODIMLESLIE
-//#define PRISMLESLIE
+//#define TWODIMLESLIE
+#define PRISMLESLIE
 
 int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 12;
 int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 16;

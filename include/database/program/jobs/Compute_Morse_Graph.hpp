@@ -72,7 +72,7 @@ void Compute_Morse_Graph (Morse_Graph * MG, Toplex * phase_space, const Map & in
     std::cout << "   Sizes of Morse Sets: ";
     BOOST_FOREACH ( CellContainer & morse_set, morse_sets ) 
     std::cout << " " << morse_set . size ();
-    std::cout << "...\n";
+    std::cout << ".\n";
 #endif
     
 #ifdef CMG_VERBOSE
@@ -121,11 +121,26 @@ void Compute_Morse_Graph (Morse_Graph * MG, Toplex * phase_space, const Map & in
 #ifdef CMG_VERBOSE
   std::cout << "Reachability Analysis.\n";
 #endif
-  
+ 
+#ifdef NOREACHABILITY
+  {
+    Graph G ( morse_sets, * phase_space, interval_map );
+    compute_morse_sets <Morse_Graph,Graph,CellContainer> ( &morse_sets, G );
+  }
+#else
   {
     Graph G ( * phase_space, interval_map );
     compute_morse_sets<Morse_Graph,Graph,CellContainer> ( &morse_sets, G, MG );
   }
+#endif
+#ifdef CMG_VERBOSE
+  std::cout << "   Time Elapsed: " << (double)(clock() - start)/(double)CLOCKS_PER_SEC << "\n";
+  std::cout << "   Number of Morse Sets: " << morse_sets . size () << "\n";
+  std::cout << "   Sizes of Morse Sets: ";
+  BOOST_FOREACH ( CellContainer & morse_set, morse_sets ) 
+  std::cout << " " << morse_set . size ();
+  std::cout << ".\n";
+#endif
 }
 
 template < class Toplex, class CellContainer >

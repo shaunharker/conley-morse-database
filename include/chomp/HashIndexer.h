@@ -19,7 +19,7 @@ public:
   void initialize ( const std::vector < Key > & data );
   uint32_t size ( void ) const;
   const Key & key ( Mapped i ) const;
-  Mapped & rank ( const Key & k );
+  //Mapped & rank ( const Key & k );
   const Mapped & rank ( const Key & k ) const;
   void reindex ( const std::vector < Mapped > & permute );
 private:
@@ -52,14 +52,16 @@ HashIndexer<K,M>::key ( Mapped i ) const {
   return keys_ [ i ];
 }
 
-template < class K, class M > M &
-HashIndexer<K,M>::rank ( const Key & k ) {
-  return data_ [ k ];
-}
+  //template < class K, class M > M &
+  //HashIndexer<K,M>::rank ( const Key & k ) {
+  //return data_ [ k ];
+  //}
 
 template < class K, class M > const M &
 HashIndexer<K,M>::rank ( const Key & k ) const {
-  return data_ . find ( k ) -> second;
+  boost::unordered_map < Key, Mapped >::iterator it = data_ . find ( k );
+  if ( it == data_ . end () ) return keys . size ();
+  return it -> second;
 }
 
 template < class K, class M > void 
