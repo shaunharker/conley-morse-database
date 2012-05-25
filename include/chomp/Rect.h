@@ -7,6 +7,8 @@
 
 #include <iostream>
 #include <vector>
+#include <cassert>
+
 #include "boost/serialization/serialization.hpp"
 #include "boost/serialization/vector.hpp"
 #include "boost/foreach.hpp"
@@ -33,7 +35,9 @@ public:
   { lower_bounds . resize ( size, lower_value );
     upper_bounds . resize ( size, upper_value ); }
   Rect ( unsigned int size, const std::vector<Real> & lower_values, const std::vector<Real> & upper_values )
-  { lower_bounds = lower_values;
+  { assert(size == lower_values.size());
+    assert(size == upper_values.size());
+    lower_bounds = lower_values;
     upper_bounds = upper_values; }
   Rect ( const std::vector<Real> & point ) {
     lower_bounds = point;
@@ -76,6 +80,9 @@ private:
 
 std::ostream & operator << ( std::ostream & output_stream, const Rect & print_me );
 
+inline bool operator==(Rect x, Rect y) {
+  return x.lower_bounds == y.lower_bounds && x.upper_bounds == y.upper_bounds;
+}
 
 ///////////// Definitions
 
