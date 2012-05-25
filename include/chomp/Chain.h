@@ -49,10 +49,21 @@ public:
   }
 };
 
+inline bool operator==(const Term &x, const Term &y)
+{
+  return (x.index() == y.index()) && (x.coef() == y.coef());
+}
+
+inline bool operator!=(const Term &x, const Term &y)
+{
+  return !(x == y);
+}
+
 inline std::ostream & operator << ( std::ostream & outstream, const Term & print_me ) {
   outstream << print_me . coef () << "[" << print_me . index () << "]";
   return outstream;
 }
+
 
 /*********************
  *      Chain        *
