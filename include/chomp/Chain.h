@@ -37,16 +37,6 @@ public:
   Term ( const Index & index_, const Ring & coef_) 
   : index_(index_), coef_(coef_) {}
   Term ( const std::pair < const Index, Ring > & pair ) : index_(pair.first), coef_(pair.second) {}
-  /*
-  Term & operator = ( const std::pair < Index, Ring > & pair ) {
-    index () = pair . first;
-    coef () = pair . second;
-    return *this;
-  }
-   */
-  bool operator < ( const Term & rhs ) const {
-    return index () < rhs . index ();
-  }
 };
 
 inline bool operator==(const Term &x, const Term &y)
