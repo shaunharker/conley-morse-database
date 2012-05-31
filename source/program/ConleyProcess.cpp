@@ -148,7 +148,7 @@ int ConleyProcess::prepare ( Message & job ) {
 /* work definition */
 /* * * * * * * * * */
 void ConleyProcess::work ( Message & result, const Message & job ) const {
-  Conley_Index_Job < Toplex, Toplex > ( &result , job ); 
+  Conley_Index_Job < chomp::Toplex, chomp::Toplex > ( &result , job ); 
   // debug
   /*
   Database job_database;

@@ -3,19 +3,21 @@
  */
 
 #include "delegator/delegator.h"  /* For Coordinator_Worker_Scheme<>() */
+#ifdef COMPUTE_MORSE_SETS
 #include "database/program/MorseProcess.h"
-//#include "database/program/ConleyProcess.h"
+#endif
+#ifdef COMPUTE_CONLEY_INDEX
+#include "database/program/ConleyProcess.h"
+#endif
 
-#define CMD_MORSE
-//#define CMD_CONLEY
 int main ( int argc, char * argv [] ) {
   delegator::Start ();
-#ifdef CMD_MORSE
-	delegator::Run < MorseProcess > (argc, argv); 
+#ifdef COMPUTE_MORSE_SETS
+  delegator::Run < MorseProcess > (argc, argv);
 #endif
-#ifdef CMD_CONLEY
-	delegator::Run < ConleyProcess > (argc, argv);
+#ifdef COMPUTE_CONLEY_INDEX
+  delegator::Run < ConleyProcess > (argc, argv);
 #endif	 
-	delegator::Stop ();
-	return 0;
+  delegator::Stop ();
+  return 0;
 }

@@ -1,6 +1,9 @@
 # makefile for CMDP project 
 include makefile.config
 
+COMPUTE_MORSE_SETS = yes
+COMPUTE_CONLEY_INDEX = no
+
 .PHONY: all
 all: Conley_Morse_Database PostProcessDatabase SingleCMG
 
@@ -13,8 +16,16 @@ all: Conley_Morse_Database
 
 DATABASE := ./build/structures/Database.o
 DATABASE += ./build/program/Conley_Morse_Database.o 
-#DATABASE += ./build/program/ConleyProcess.o
-DATABASE += ./build/program/MorseProcess.o 
+
+ifeq ($(COMPUTE_MORSE_SETS),yes)
+	DATABASE += ./build/program/MorseProcess.o 
+	CXXFLAGS += -D COMPUTE_MORSE_SETS
+endif
+
+ifeq ($(COMPUTE_CONLEY_INDEX),yes)
+	DATABASE += ./build/program/ConleyProcess.o
+	CXXFLAGS += -D COMPUTE_CONLEY_INDEX
+endif
 
 Conley_Morse_Database: $(DATABASE)
 	$(CC) $(LDFLAGS) $(DATABASE) -o $@ $(LDLIBS)
