@@ -17,6 +17,7 @@
 #include <boost/property_tree/xml_parser.hpp>
 
 #include <unistd.h>
+#include <fstream>
 
 /* Map Choice */
 #include "ModelMap.h"
@@ -48,6 +49,22 @@ public:
     std::string filestring ( filename );
     std::string appendstring ( "/config.xml" );
     std::string loadstring = filestring + appendstring;
+    char current [ 100 ];
+    std::ifstream input(loadstring.c_str());
+    
+    getcwd ( current, 100 );
+    std::cout << "Current directory:\n" << current << "\n";
+    std::cout << "Loading from file:\n " << loadstring << "\n";
+    LoadFromStream(&input);
+    std::cout << "Success.\n";
+  }
+
+  void LoadFromString(const std::string& input) {
+    std::istringstream stream(input);
+    LoadFromStream(&stream);
+  }
+  
+  void LoadFromStream(std::istream* input) {
     
     // Create an empty property tree object
     using boost::property_tree::ptree;
@@ -55,13 +72,9 @@ public:
     
     // Load the XML file into the property tree. If reading fails
     // (cannot open file, parse error), an exception is thrown.
-    char current [ 100 ];
-    getcwd ( current, 100 );
-    std::cout << "Current directory:\n" << current << "\n";
-    std::cout << "Loading from file:\n " << loadstring << "\n";
-    read_xml(loadstring, pt);
-    std::cout << "Success.\n";
-
+    
+    read_xml(*input, pt);
+    
     MODEL_NAME = pt.get<std::string>("config.model.name");
     MODEL_DESC = pt.get<std::string>("config.model.desc");
     
