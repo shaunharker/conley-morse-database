@@ -1,0 +1,33 @@
+# -*- mode: makefile -*-
+include makefile.config
+
+CXXFLAGS += -fPIC `pkg-config cppcutter --cflags` -I source/unittest
+
+UNITTESTS := $(patsubst source/unittest/%.cpp,./build/unittest/%.so,$(wildcard source/unittest/*.cpp))
+XMLFILES := $(patsubst source/unittest/%.xml,build/unittest/%.xml,$(wildcard source/unittest/*.xml))
+
+build/unittest/%.o: source/unittest/%.cpp
+	$(CXX) $(CXXFLAGS) -std=c++0x -c -o $@ $<  
+
+$(OBJDIR)/%.o: $(SRCDIR)/%.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+build/unittest/%.xml: source/unittest/%.xml
+	cp $< $@
+
+build/unittest/TestXMLExporter.so: build/structures/XMLExporter.o build/structures/Database.o build/unittest/TestXMLExporter.o 
+	$(CXX) -std=c++0x -o $@ $^ `pkg-config cppcutter --libs` $(LDLIBS) -shared
+
+build/unittest/%.so: build/unittest/%.o
+	$(CXX) -std=c++0x -o $@ $< `pkg-config cppcutter --libs` $(LDLIBS) -shared
+
+.PHONY: list-unittests
+list-unittests:
+	@echo $(UNITTESTS)
+
+.PHONY: unittests
+unittests: $(UNITTESTS)
+
+.PHONY: run-unittests
+run-unittests: unittests $(XMLFILES)
+	(cd build/unittest; cutter -c no .)

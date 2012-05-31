@@ -1,43 +1,8 @@
 # makefile for CMDP project 
-# directories where prerequisites can be found
-HOMEDIR := ..
-CHOMP := ./
-#CAPD := ../capd/
-CLUSTER := $(HOMEDIR)/cluster-delegator
-BOOST := /usr/local
-GRAPHICS := /usr/X11
-MODELDIR := ./   #user overrides this
+include makefile.config
 
-#includes
-HOMEDIR := ..
-INCS := -I$(CHOMP)/include
-#INCS += -I$(CAPD)/include
-INCS += -I$(CLUSTER)/include
-INCS += -I$(BOOST)/include
-INCS += -I$(GRAPHICS)/include
-INCS += -I./include/
-INCS += -I$(MODELDIR)
-
-#libraries                                                                     
-LINKFLAGS := -L$(CHOMP)/lib
-LINKFLAGS += -L$(BOOST)/lib
-LINKFLAGS += -L$(GRAPHICS)/lib
-#LINKFLAGS += -L$(CAPD)/lib
-
-LINKLIBS := -lboost_serialization
-LINKLIBS += -lX11
-#LINKLIBS += -lcapd
-
-# directory to store build products
-OBJDIR := ./build
-SRCDIR := ./source
-
-# Variables "make" uses for implicit rules
-CC := mpicxx
-CXX := mpicxx
-CXXFLAGS := -O3 -m64 -Wall -ggdb $(INCS)
-LDFLAGS := $(LINKFLAGS)
-LDLIBS := $(LINKLIBS)
+.PHONY: all
+all: Conley_Morse_Database PostProcessDatabase SingleCMG
 
 # pattern rule for compilation
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
@@ -68,7 +33,8 @@ SingleCMG: $(SINGLECMG)
 # Cleanup
  .PHONY: clean
 clean:
-	find . -name "*.o" -delete
+	find ./build -name "*.o" -delete
+	find ./build -name "*.so" -delete
 	rm -f Conley_Morse_Database
 	rm -f SingleCMG
 	rm -f PostProcessDatabase
