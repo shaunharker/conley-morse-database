@@ -1,0 +1,59 @@
+
+start = 
+   element conleyMorseDatabase {
+      element model {
+         element name { text },
+         element description { text }
+      },
+      element computationConfig {
+         element parameterSpace { 
+            box,
+            element subdivisionDepth { xsd:integer }
+         },
+         element phaseSpace { 
+            box,
+            element subdivision { 
+               element minDepth { xsd:integer },
+               element maxDepth { xsd:integer },
+               element limit { xsd:integer }
+            }
+         }
+
+      },
+      element boxRecords {
+         element parameterBoxRecord {
+            element id { xsd:integer },
+            box,
+            element partialOrders {
+               element order { list { xsd:integer, xsd:integer } }*
+            }
+         }*
+      },
+      element clutchRecords {
+         element clutchingRecord {
+            element id1 { xsd:integer },
+            element id2 { xsd:integer },
+            element clutch { 
+               element pair { list { xsd:integer, xsd:integer } }*
+            }
+         }*
+      },
+      element conleyRecords {
+         element conleyRecord {
+            element id { list { xsd:integer, xsd:integer } },
+            element homologyMap {
+               element dimension { xsd:integer },
+               element numberOfGenerators { xsd:integer },
+               # element generators { list { xsd:integer+ } },
+               element matrix { list { xsd:integer* } }
+            }*
+         }*
+      }
+   }
+
+box = 
+   element box {
+      element dimension { xsd:integer },
+      element lowerBounds { list { xsd:double+ } },
+      element upperBounds { list { xsd:double+ } }
+   }

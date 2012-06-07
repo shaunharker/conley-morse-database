@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<conleyMorseDatabase>
+  <model/>
+  <computationConfig/>
+  <boxRecords/>
+  <clutchRecords/>
+  <conleyRecords>
+    <conleyRecord>
+      <id>4 12</id>
+      <homologyMap>
+        <dimension>0</dimension>
+        <numberOfGenerators>0</numberOfGenerators>
+        <matrix/>
+      </homologyMap>
+      <homologyMap>
+        <dimension>1</dimension>
+        <numberOfGenerators>1</numberOfGenerators>
+        <matrix>1</matrix>
+      </homologyMap>
+      <homologyMap>
+        <dimension>2</dimension>
+        <numberOfGenerators>2</numberOfGenerators>
+        <matrix>0 1 0 0</matrix>
+      </homologyMap>
+    </conleyRecord>
+  </conleyRecords>
+</conleyMorseDatabase>

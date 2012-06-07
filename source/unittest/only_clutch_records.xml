@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<conleyMorseDatabase>
+  <model/>
+  <computationConfig/>
+  <boxRecords/>
+  <clutchRecords>
+    <clutchingRecord>
+      <id1>3</id1>
+      <id2>19</id2>
+      <clutch>
+        <pair>32 12</pair>
+      </clutch>
+    </clutchingRecord>
+    <clutchingRecord>
+      <id1>3</id1>
+      <id2>101</id2>
+      <clutch>
+        <pair>32 12</pair>
+        <pair>0 3</pair>
+      </clutch>
+    </clutchingRecord>
+  </clutchRecords>
+  <conleyRecords/>
+</conleyMorseDatabase>

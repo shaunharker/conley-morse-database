@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<conleyMorseDatabase>
+  <model>
+    <name>Leslie Model, Depth 12</name>
+    <description> This is a description. </description>
+  </model>
+  <computationConfig>
+    <parameterSpace>
+      <box>
+        <dimension>2</dimension>
+        <lowerBounds>8 3</lowerBounds>
+        <upperBounds>37 50</upperBounds>
+      </box>
+      <subdivisionDepth>6</subdivisionDepth>
+    </parameterSpace>
+    <phaseSpace>
+      <box>
+        <dimension>2</dimension>
+        <lowerBounds>0 0</lowerBounds>
+        <upperBounds>320 224</upperBounds>
+      </box>
+      <subdivision>
+        <minDepth>12</minDepth>
+        <maxDepth>16</maxDepth>
+        <limit>10000</limit>
+      </subdivision>
+    </phaseSpace>
+  </computationConfig>
+  <boxRecords/>
+  <clutchRecords/>
+  <conleyRecords/>
+</conleyMorseDatabase>

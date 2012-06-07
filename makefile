@@ -30,6 +30,13 @@ endif
 Conley_Morse_Database: $(DATABASE)
 	$(CC) $(LDFLAGS) $(DATABASE) -o $@ $(LDLIBS)
 
+EXPORTXML := ./build/program/ExportXML.o
+EXPORTXML += ./build/structures/Database.o
+EXPORTXML += ./build/structures/XMLExporter.o
+
+ExportXML: $(EXPORTXML)
+	$(CC) $(LDFLAGS) $(EXPORTXML) -o $@ $(LDLIBS)
+
 POSTPROCESS := ./build/test/PostProcessDatabase.o 
 POSTPROCESS += ./build/structures/Database.o
 PostProcessDatabase: $(POSTPROCESS)
