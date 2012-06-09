@@ -48,6 +48,7 @@ void test_ParameterRecord() {
   records[0].id_ = 3;
   records[0].ge_.lower_bounds_ = std::vector<double>{ -0.02, 0.00 };
   records[0].ge_.upper_bounds_ = std::vector<double>{ -0.01, 0.01 };
+  records[0].num_morse_sets_ = 5;
   records[0].partial_order_ = std::list<std::pair<int, int> > {
     make_pair(0, 3), make_pair(2, 3), make_pair(3, 4),
   };
@@ -55,6 +56,7 @@ void test_ParameterRecord() {
   records[1].id_ = 12;
   records[1].ge_.lower_bounds_ = std::vector<double>{ -0.01, -0.125 };
   records[1].ge_.upper_bounds_ = std::vector<double>{ 0.00, 0.125 };
+  records[1].num_morse_sets_ = 5;
   records[1].partial_order_ = std::list<std::pair<int, int> > {
     make_pair(0, 2), make_pair(2, 3), make_pair(1, 4),
   };

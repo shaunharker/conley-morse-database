@@ -10,6 +10,7 @@
         <lowerBounds>-0.02 0</lowerBounds>
         <upperBounds>-0.01 0.01</upperBounds>
       </box>
+      <numberOfMorseSets>5</numberOfMorseSets>
       <partialOrders>
         <order>0 3</order>
         <order>2 3</order>
@@ -23,6 +24,7 @@
         <lowerBounds>-0.01 -0.125</lowerBounds>
         <upperBounds>0 0.125</upperBounds>
       </box>
+      <numberOfMorseSets>5</numberOfMorseSets>
       <partialOrders>
         <order>0 2</order>
         <order>2 3</order>

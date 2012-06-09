@@ -78,7 +78,8 @@ void XMLExporter::AddParameterRecord(const ParameterBoxRecord& record) {
                    ptree());
   param_box_record_node.put("id", record.id_);
   PutGridElementRecord(&param_box_record_node, record.ge_);
-
+  param_box_record_node.put("numberOfMorseSets", record.num_morse_sets_);
+  
   BOOST_FOREACH (const order &order, record.partial_order_) {
     param_box_record_node.add("partialOrders.order",
                               StringOfPairInt(order));
