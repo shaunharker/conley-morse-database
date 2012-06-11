@@ -2,9 +2,10 @@
 #include <database/program/Configuration.h>
 
 #include <boost/property_tree/ptree.hpp>
+#include <boost/utility.hpp>
 #include <ostream>
 
-class XMLExporter {
+class XMLExporter: boost::noncopyable {
 public:
   XMLExporter();
   void Config(const Configuration& config);

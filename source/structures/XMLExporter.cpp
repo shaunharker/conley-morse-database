@@ -76,7 +76,9 @@ void XMLExporter::AddParameterRecord(const ParameterBoxRecord& record) {
   ptree& param_box_record_node =
       pt.add_child("conleyMorseDatabase.boxRecords.parameterBoxRecord",
                    ptree());
+  
   param_box_record_node.put("id", record.id_);
+
   PutGridElementRecord(&param_box_record_node, record.ge_);
   param_box_record_node.put("numberOfMorseSets", record.num_morse_sets_);
   
@@ -137,11 +139,14 @@ void XMLExporter::AddConleyRecord(const ConleyRecord& record) {
 
 void XMLExporter::LoadFromDatabase(const Database& database) {
   boost::for_each(database.box_records(),
-                  boost::bind(&XMLExporter::AddParameterRecord, *this, _1));
+                  boost::bind(&XMLExporter::AddParameterRecord,
+                              boost::ref(*this), _1));
   boost::for_each(database.clutch_records(),
-                  boost::bind(&XMLExporter::AddClutchingRecord, *this, _1));
+                  boost::bind(&XMLExporter::AddClutchingRecord,
+                              boost::ref(*this), _1));
   boost::for_each(database.conley_records(),
-                  boost::bind(&XMLExporter::AddConleyRecord, *this, _1));
+                  boost::bind(&XMLExporter::AddConleyRecord,
+                              boost::ref(*this), _1));
 }
     
 std::string XMLExporter::ExportString() {

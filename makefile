@@ -56,6 +56,7 @@ clean:
 	rm -f Conley_Morse_Database
 	rm -f SingleCMG
 	rm -f PostProcessDatabase
+	rm -f ExportXML
 
 # Create build directories
 .PHONY: build-dirs
