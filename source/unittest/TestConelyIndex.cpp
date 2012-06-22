@@ -18,8 +18,7 @@ void test_ConleyIndex()
   toplex.subdivide();
   
   std::vector<GridElement> center_of_four_cubes;
-  auto inserter = std::back_inserter(center_of_four_cubes);
-  toplex.cover(inserter, Rect(2, -0.0001, 0.0001));
+  toplex.cover(std::back_inserter(center_of_four_cubes), Rect(2, -0.0001, 0.0001));
 
   cppcut_assert_equal(4lu, center_of_four_cubes.size());
 

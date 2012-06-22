@@ -34,8 +34,7 @@ void test_compute_morse_sets() {
   for (int i=0; i<4; i++)
     toplex.subdivide();
   std::vector<CellContainer> all_cells(1, CellContainer());
-  auto inserter = std::back_inserter(all_cells[0]);
-  toplex.cover(inserter, toplex.bounds());
+  toplex.cover(std::back_inserter(all_cells[0]), toplex.bounds());
 
   HyperbolicLinearMap map;
   Graph graph(all_cells, toplex, map);

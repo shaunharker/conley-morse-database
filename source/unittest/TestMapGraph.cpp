@@ -18,8 +18,7 @@ HyperbolicLinearMap* map;
 
 void AllCells(std::vector<std::vector<GridElement> > *cells, const Toplex& toplex) {
   cells->push_back(std::vector<GridElement>());
-  auto inserter = std::back_inserter(cells->at(0));
-  toplex.cover(inserter, toplex.bounds());
+  toplex.cover(std::back_inserter(cells->at(0)), toplex.bounds());
 }
 
 void setup() {
@@ -34,15 +33,13 @@ void setup() {
 
 GridElement CubeAtOriginInFirstOctant(const Toplex& toplex) {
   std::vector<GridElement> cubes;
-  auto inserter = std::back_inserter(cubes);
-  toplex.cover(inserter, Rect(2, 0.00000001, 0.00000002));
+  toplex.cover(std::back_inserter(cubes), Rect(2, 0.00000001, 0.00000002));
   return cubes.front();
 }
 
 GridElement RootCube(const Toplex& toplex) {
   std::vector<GridElement> cubes;
-  auto inserter = std::back_inserter(cubes);
-  toplex.coarseCover(inserter, toplex.bounds());
+  toplex.coarseCover(std::back_inserter(cubes), toplex.bounds());
   cppcut_assert_equal(1lu, cubes.size());
   return cubes.front();
 }
@@ -66,8 +63,7 @@ void test_adjacenies()
   std::vector<uint32_t> children_indices_of_root_cube;
   
   adjacencies_of_root_cube = mapgraph->adjacencies(mapgraph->index(root));
-  auto inserter = std::back_inserter(children_of_root_cube);
-  toplex->children(inserter, root);
+  toplex->children(std::back_inserter(children_of_root_cube), root);
   mapgraph->index(&children_indices_of_root_cube, children_of_root_cube);
   cppcut_assert_equal(2lu, adjacencies_of_root_cube.size());
   cppcut_assert_equal(children_indices_of_root_cube[0],

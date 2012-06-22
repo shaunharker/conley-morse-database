@@ -31,8 +31,7 @@ void test_ctor() {
   cut_assert(prefix.empty());
   
   std::vector<GridElement> children;
-  auto inserter = std::back_inserter(children);
-  toplex.children(inserter, toplevel);
+  toplex.children(std::back_inserter(children), toplevel);
   cut_assert(children.empty());
 }
 
@@ -49,8 +48,7 @@ void test_SubdivideTopCell() {
   Toplex toplex(whole_box);
   std::vector<GridElement> new_elements;
   GridElement top_element = *toplex.begin();
-  auto inserter = std::back_inserter(new_elements);
-  toplex.subdivide(inserter, toplex.begin());
+  toplex.subdivide(std::back_inserter(new_elements), toplex.begin());
   cppcut_assert_equal(8u, toplex.size());
   cppcut_assert_equal(8lu, new_elements.size());
   cppcut_assert_equal(0, toplex.getDepth(top_element));
@@ -71,8 +69,7 @@ void test_SubdivideTopCell() {
   cppcut_assert_equal(1, static_cast<int>(last_element_prefix[2]));
 
   std::vector<GridElement> children;
-  auto children_inserter = std::back_inserter(children);
-  toplex.children(children_inserter, top_element);
+  toplex.children(std::back_inserter(children), top_element);
   cppcut_assert_equal(2lu, children.size());
   for (int i=0; i<2; i++) {
     std::vector<unsigned char> prefix = toplex.prefix(children[i]);
@@ -82,8 +79,7 @@ void test_SubdivideTopCell() {
 
   std::vector<GridElement> leaves;
   std::vector<GridElement> only_toplevel(1, top_element);
-  auto leaves_inserter = std::back_inserter(leaves);
-  toplex.leaves(leaves_inserter, only_toplevel);
+  toplex.leaves(std::back_inserter(leaves), only_toplevel);
   cppcut_assert_equal(8lu, leaves.size());
 
   {
@@ -93,8 +89,7 @@ void test_SubdivideTopCell() {
     // * *   * *   * *   * *
     // ambrella of {A} is {A}
     std::vector<GridElement> umbrella;
-    auto umbrella_inserter = std::back_inserter(umbrella);
-    toplex.umbrella(umbrella_inserter, only_toplevel);
+    toplex.umbrella(std::back_inserter(umbrella), only_toplevel);
     cppcut_assert_equal(1lu, umbrella.size());
     cppcut_assert_equal(top_element, umbrella[0]);
   }
@@ -106,8 +101,7 @@ void test_SubdivideTopCell() {
     // abmrbrella of {D} is {D, C, B, A}
     std::vector<GridElement> umbrella;
     std::vector<GridElement> elements = { new_elements[0] };
-    auto umbrella_inserter = std::back_inserter(umbrella);
-    toplex.umbrella(umbrella_inserter, elements);
+    toplex.umbrella(std::back_inserter(umbrella), elements);
     cppcut_assert_equal(4lu, umbrella.size());
     cppcut_assert_equal(new_elements[0], umbrella[0]);
     cppcut_assert_equal(top_element, umbrella[3]);
@@ -120,8 +114,7 @@ void test_SubdivideTopCell() {
     // abmrbrella of {D,E} is {D, E, C, B, A}
     std::vector<GridElement> umbrella;
     std::vector<GridElement> elements = { new_elements[0], new_elements[1] };
-    auto umbrella_inserter = std::back_inserter(umbrella);
-    toplex.umbrella(umbrella_inserter, elements);
+    toplex.umbrella(std::back_inserter(umbrella), elements);
     cppcut_assert_equal(5lu, umbrella.size());
     cppcut_assert_equal(new_elements[0], umbrella[0]);
     cppcut_assert_equal(new_elements[1], umbrella[1]);
@@ -135,8 +128,7 @@ void test_SubdivideTopCell() {
     // abmrbrella of {D,F} is {D, F, C, E, B, A}
     std::vector<GridElement> umbrella;
     std::vector<GridElement> elements = { new_elements[0], new_elements[2] };
-    auto umbrella_inserter = std::back_inserter(umbrella);
-    toplex.umbrella(umbrella_inserter, elements);
+    toplex.umbrella(std::back_inserter(umbrella), elements);
     cppcut_assert_equal(6lu, umbrella.size());
     cppcut_assert_equal(new_elements[0], umbrella[0]);
     cppcut_assert_equal(new_elements[2], umbrella[1]);
@@ -150,8 +142,7 @@ void test_SubdivideTopCell() {
     // abmrbrella of {D,G} is {D, G, C, F, B, E, A}
     std::vector<GridElement> umbrella;
     std::vector<GridElement> elements = { new_elements[0], new_elements[5] };
-    auto umbrella_inserter = std::back_inserter(umbrella);
-    toplex.umbrella(umbrella_inserter, elements);
+    toplex.umbrella(std::back_inserter(umbrella), elements);
     cppcut_assert_equal(7lu, umbrella.size());
   }
   
@@ -159,9 +150,9 @@ void test_SubdivideTopCell() {
   // the same result.
   {
     std::vector<GridElement> cover;
-    auto cover_inserter = std::back_inserter(cover);
     typedef std::vector<double> v;
-    toplex.cover(cover_inserter, Rect(3, v{-0.8,-0.2,0.7}, v{-0.6,0.2,0.9}));
+    toplex.cover(std::back_inserter(cover),
+                 Rect(3, v{-0.8,-0.2,0.7}, v{-0.6,0.2,0.9}));
     cppcut_assert_equal(2lu, cover.size());
     cppcut_assert_equal(Rect(3, v{-1.0, -1.0, 0.0}, v{0.0, 0.0, 1.0}),
                         toplex.geometry(cover[0]));
@@ -169,9 +160,9 @@ void test_SubdivideTopCell() {
                         toplex.geometry(cover[1]));
     
     std::vector<GridElement> coarse_cover;
-    auto coarse_cover_inserter = std::back_inserter(coarse_cover);
     typedef std::vector<double> v;
-    toplex.coarseCover(coarse_cover_inserter, Rect(3, v{-0.8,-0.2,0.7}, v{-0.6,0.2,0.9}));
+    toplex.coarseCover(std::back_inserter(coarse_cover),
+                       Rect(3, v{-0.8,-0.2,0.7}, v{-0.6,0.2,0.9}));
     cppcut_assert_equal(2lu, coarse_cover.size());
     cppcut_assert_equal(Rect(3, v{-1.0, -1.0, 0.0}, v{0.0, 0.0, 1.0}),
                         toplex.geometry(coarse_cover[0]));
@@ -183,15 +174,13 @@ void test_SubdivideTopCell() {
   // different results.
   {
     std::vector<GridElement> cover;
-    auto cover_inserter = std::back_inserter(cover);
     typedef std::vector<double> v;
-    toplex.cover(cover_inserter, whole_box);
+    toplex.cover(std::back_inserter(cover), whole_box);
     cppcut_assert_equal(8lu, cover.size());
     
     std::vector<GridElement> coarse_cover;
-    auto coarse_cover_inserter = std::back_inserter(coarse_cover);
     typedef std::vector<double> v;
-    toplex.coarseCover(coarse_cover_inserter, whole_box);
+    toplex.coarseCover(std::back_inserter(coarse_cover), whole_box);
     cppcut_assert_equal(1lu, coarse_cover.size());
     cppcut_assert_equal(top_element, coarse_cover[0]);
   }
@@ -242,11 +231,9 @@ void test_subdivide_subdivide()
   GridElement top_element = *toplex.begin();
 
   std::vector<GridElement> level1_elements;
-  auto level1_inserter = std::back_inserter(level1_elements);
-  toplex.subdivide(level1_inserter, top_element);
+  toplex.subdivide(std::back_inserter(level1_elements), top_element);
   std::vector<GridElement> level2_elements;
-  auto level2_inserter = std::back_inserter(level2_elements);
-  toplex.subdivide(level2_inserter, level1_elements[7]);
+  toplex.subdivide(std::back_inserter(level2_elements), level1_elements[7]);
   cppcut_assert_equal(15u, toplex.size()); // 15 = (2*2*2 - 1) + 2*2*2
   cppcut_assert_equal(29u, toplex.tree_size()); // 29 = 1 + 2 + 2*2 + 2*2*2 + 2 + 2*2 + 2*2*2
   BOOST_FOREACH (GridElement e, level2_elements) {
