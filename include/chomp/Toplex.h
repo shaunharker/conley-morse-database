@@ -60,44 +60,44 @@ public:
   /// children ( GridElement)
   ///    Return an array of children GridElements,
   ///    or else empty if the GridElement is not further subdivided.
-  template < class InsertIterator > void 
-  children ( InsertIterator & ii, const GridElement & element ) const;
+  template < class InsertIterator > InsertIterator 
+  children ( InsertIterator ii, const GridElement & element ) const;
 
   /// leaves ( GridElement )
-  template < class InsertIterator, class Container > void 
-  leaves ( InsertIterator & ii, 
+  template < class InsertIterator, class Container > InsertIterator
+  leaves ( InsertIterator ii, 
            const Container & elements ) const;
   
   /// umbrella ( std::vector < GridElement > & elements )
   ///    Return the set of all GridElements whose every descendent is in "elements"
   
-  template < class InsertIterator, class Container > void 
-  umbrella ( InsertIterator & ii, const Container & elements ) const;
+  template < class InsertIterator, class Container > InsertIterator
+  umbrella ( InsertIterator ii, const Container & elements ) const;
 
   /// cover
-  template < class InsertIterator > void 
-  cover ( InsertIterator & ii, const Rect & r ) const;
+  template < class InsertIterator > InsertIterator
+  cover ( InsertIterator ii, const Rect & r ) const;
 
   /// cover   (prism version)
-  template < class InsertIterator > void 
-  cover ( InsertIterator & ii, const Prism & p ) const;
+  template < class InsertIterator > InsertIterator
+  cover ( InsertIterator ii, const Prism & p ) const;
   
   /// coarse cover   (whenever node containment, report parent, not children)
-  template < class InsertIterator > void 
-  coarseCover ( InsertIterator & ii, const Rect & geometric_region ) const;
+  template < class InsertIterator > InsertIterator
+  coarseCover ( InsertIterator ii, const Rect & geometric_region ) const;
   
   /// subdivide
-  template < class InsertIterator > void 
-  subdivide ( InsertIterator & ii, GridElement divide_me );
+  template < class InsertIterator > InsertIterator
+  subdivide ( InsertIterator ii, GridElement divide_me );
 
-  template < class InsertIterator > void 
-  subdivide ( InsertIterator & ii, iterator divide_me );
+  template < class InsertIterator > InsertIterator
+  subdivide ( InsertIterator ii, iterator divide_me );
   
-  template < class InsertIterator, class Container > void 
-  subdivide ( InsertIterator & ii, const Container & subset_to_divide );
+  template < class InsertIterator, class Container > InsertIterator
+  subdivide ( InsertIterator ii, const Container & subset_to_divide );
 
-  template < class InsertIterator > void 
-  subdivide ( InsertIterator & ii );
+  template < class InsertIterator > InsertIterator
+  subdivide ( InsertIterator ii );
   
   void subdivide ( void );
   
@@ -244,17 +244,18 @@ inline std::vector < unsigned char > Toplex::prefix ( const GridElement & cell )
 } /* Adaptive_Cubical::Toplex::prefix */
 
 
-template < class InsertIterator > void 
-Toplex::children ( InsertIterator & ii, 
+template < class InsertIterator > InsertIterator
+Toplex::children ( InsertIterator ii, 
                   const GridElement & element ) const {
   iterator cell_iterator = find ( element );
   Node * ptr = cell_iterator . node_;
   if ( ptr -> left_ != NULL ) * ii ++ = ptr -> left_ -> contents_;
-  if ( ptr -> right_ != NULL ) * ii ++ = ptr -> right_ -> contents_; 
+  if ( ptr -> right_ != NULL ) * ii ++ = ptr -> right_ -> contents_;
+  return ii;
 }
 
-template < class InsertIterator, class Container > void 
-Toplex::leaves ( InsertIterator & ii, 
+template < class InsertIterator, class Container > InsertIterator
+Toplex::leaves ( InsertIterator ii, 
                  const Container & elements ) const {
   std::stack < Node * > nodes;
   BOOST_FOREACH ( GridElement element, elements ) {
@@ -276,6 +277,7 @@ Toplex::leaves ( InsertIterator & ii,
       }
     }
   }
+  return ii;
 }
 
 #if 0
@@ -304,8 +306,8 @@ Toplex::children ( InsertIterator & ii,
 }
 #endif
 
-template < class InsertIterator, class Container > void 
-Toplex::umbrella ( InsertIterator & ii, 
+template < class InsertIterator, class Container > InsertIterator
+Toplex::umbrella ( InsertIterator ii, 
                    const Container & elements ) const {
   std::vector<GridElement> result ( elements . begin (), elements . end () );
   boost::unordered_set < GridElement > umb;
@@ -322,6 +324,7 @@ Toplex::umbrella ( InsertIterator & ii,
     }
   }
   for ( int i = 0; i < N; ++ i ) * ii ++ = result [ i ];
+  return ii;
 }
 
 
@@ -373,7 +376,8 @@ inline Rect Toplex::geometry ( const GridElement & cell  ) const {
 // The third I don't know what to do with yet. Will the coarse cover idea pan out?
 
 template < class InsertIterator >
-inline void Toplex::cover ( InsertIterator & ii, const Rect & geometric_region ) const {
+inline InsertIterator
+Toplex::cover ( InsertIterator ii, const Rect & geometric_region ) const {
   //std::cout << "Rect version of Cover\n";
 
   /* Use a stack, not a queue, and do depth first search.
@@ -396,8 +400,8 @@ inline void Toplex::cover ( InsertIterator & ii, const Rect & geometric_region )
     (geometric_region . upper_bounds [ dimension_index ] - bounds_ . lower_bounds [ dimension_index ]) /
     (bounds_ . upper_bounds [ dimension_index ] - bounds_ . lower_bounds [ dimension_index ]);
     
-    if ( region . upper_bounds [ dimension_index ] < Real ( 0 ) ) return;
-    if ( region . lower_bounds [ dimension_index ] > Real ( 1 ) ) return;
+    if ( region . upper_bounds [ dimension_index ] < Real ( 0 ) ) return ii;
+    if ( region . lower_bounds [ dimension_index ] > Real ( 1 ) ) return ii;
     
     if ( region . lower_bounds [ dimension_index ] < Real ( 0 ) ) 
       region . lower_bounds [ dimension_index ] = Real ( 0 );
@@ -525,10 +529,11 @@ inline void Toplex::cover ( InsertIterator & ii, const Rect & geometric_region )
     } // state 3
     
   } // while loop
+  return ii;
 } // cover
 
-template < class InsertIterator >
-inline void Toplex::cover ( InsertIterator & ii, const Prism & P ) const {
+template < class InsertIterator > inline InsertIterator
+Toplex::cover ( InsertIterator ii, const Prism & P ) const {
   //std::cout << "Prism version of Cover\n";
   static Rect G ( dimension_ );
 
@@ -654,10 +659,12 @@ inline void Toplex::cover ( InsertIterator & ii, const Prism & P ) const {
     } // state 3
     
   } // while loop
+  return ii;
 } // cover
 
 template < class InsertIterator >
-inline void Toplex::coarseCover ( InsertIterator & ii, const Rect & geometric_region ) const {
+inline InsertIterator
+Toplex::coarseCover ( InsertIterator ii, const Rect & geometric_region ) const {
   
   /* Use a stack, not a queue, and do depth first search.
    The advantage of this is that we can maintain the geometry during our Euler Tour.
@@ -679,8 +686,8 @@ inline void Toplex::coarseCover ( InsertIterator & ii, const Rect & geometric_re
     (geometric_region . upper_bounds [ dimension_index ] - bounds_ . lower_bounds [ dimension_index ]) /
     (bounds_ . upper_bounds [ dimension_index ] - bounds_ . lower_bounds [ dimension_index ]);
     
-    if ( region . upper_bounds [ dimension_index ] < Real ( 0 ) ) return;
-    if ( region . lower_bounds [ dimension_index ] > Real ( 1 ) ) return;
+    if ( region . upper_bounds [ dimension_index ] < Real ( 0 ) ) return ii;
+    if ( region . lower_bounds [ dimension_index ] > Real ( 1 ) ) return ii;
     
     if ( region . lower_bounds [ dimension_index ] < Real ( 0 ) ) 
       region . lower_bounds [ dimension_index ] = Real ( 0 );
@@ -831,15 +838,17 @@ inline void Toplex::coarseCover ( InsertIterator & ii, const Rect & geometric_re
     } // state 3
     
   } // while loop
+  return ii;
 } // coarseCover
 
-template < class InsertIterator > 
-inline void Toplex::subdivide ( InsertIterator & ii, GridElement divide_me ) {
-  subdivide ( ii, find ( divide_me ) );
+template < class InsertIterator > inline InsertIterator
+Toplex::subdivide ( InsertIterator ii, GridElement divide_me ) {
+  return subdivide ( ii, find ( divide_me ) );
 }
 
 template < class InsertIterator >
-inline void Toplex::subdivide ( InsertIterator & ii, iterator cell_to_divide ) {
+inline InsertIterator
+Toplex::subdivide ( InsertIterator ii, iterator cell_to_divide ) {
   std::deque < std::pair < const_iterator, int > > work_deque;
   work_deque . push_back ( std::pair < const_iterator, int >
                           (cell_to_divide,
@@ -875,23 +884,26 @@ inline void Toplex::subdivide ( InsertIterator & ii, iterator cell_to_divide ) {
       * ii ++ = work_pair . first . node_ -> contents_;
     } /* if-else */
   } /* while */
+  return ii;
 } /* Adaptive_Cubical::Toplex::subdivide */
 
 template < class InsertIterator, class Container >
-inline void Toplex::subdivide ( InsertIterator & ii, const Container & subset_to_divide ) {
+inline InsertIterator
+Toplex::subdivide ( InsertIterator ii, const Container & subset_to_divide ) {
   BOOST_FOREACH ( GridElement cell, subset_to_divide ) {
     //std::cout << "subdividing " << cell << "\n";
-    subdivide ( ii, find ( cell ) );
+    ii = subdivide ( ii, find ( cell ) );
   }
+  return ii;
 }
 
 template < class InsertIterator >
-inline void Toplex::subdivide ( InsertIterator & ii ) {
+inline InsertIterator Toplex::subdivide ( InsertIterator ii ) {
   // TODO: CHECK THIS
   std::vector < GridElement > all;
   std::insert_iterator<std::vector<GridElement> > all_ii ( all, all . end () );
   cover ( all_ii, bounds () );
-  subdivide ( ii, all );
+  return subdivide ( ii, all );
 }
 
 inline void Toplex::subdivide ( void ) {
