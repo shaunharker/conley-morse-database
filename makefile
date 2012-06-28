@@ -47,7 +47,7 @@ SUBMAPTEST := ./build/test/SubdividedMapTest.o
 SUBMAPTEST += ./build/tools/picture.o
 SUBMAPTEST += ./build/tools/lodepng/lodepng.o
 SubdividedMapTest: $(SUBMAPTEST)
-        $(CC) $(LDFLAGS) $(SUBMAPTEST) -o $@ $(LDLIBS)
+	$(CC) $(LDFLAGS) $(SUBMAPTEST) -o $@ $(LDLIBS)
 
 # Cleanup
  .PHONY: clean
