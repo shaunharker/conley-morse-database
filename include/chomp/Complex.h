@@ -10,11 +10,10 @@
 #include <utility>
 
 #include "boost/foreach.hpp"
+#include "boost/unordered_set.hpp"
 
 #include "chomp/Ring.h"
 #include "chomp/Chain.h"
-#include "chomp/HashIndexer.h"
-#include "chomp/VectorIndexer.h"
 #include "chomp/SparseMatrix.h"
 
 namespace chomp {
@@ -35,6 +34,7 @@ public:
       (*output) += term . coef () * boundary ( term . index (), d );
     }
     output -> dimension () = d - 1;
+    // WARNING: UNSIMPLIFIED, MAY BE LIKE TERMS (GOTCHA)
   }
   
   virtual void coboundary ( Chain * output, const Chain & input ) const {
@@ -43,6 +43,7 @@ public:
       (*output) += term . coef () * coboundary ( term . index (), d );
     }
     output -> dimension () = d + 1;
+    // WARNING: UNSIMPLIFIED, MAY BE LIKE TERMS (GOTCHA)
   }
   
   // Convenience Forms
@@ -70,6 +71,7 @@ public:
   // size
   Index size ( int d ) const { 
     if ( d < 0 || d > dimension_ ) return 0;
+    if ( (size_t) d >= sizes_ . size () ) return 0;
     return sizes_ [ d ]; 
   }
   Index size ( void ) const { 
@@ -77,8 +79,6 @@ public:
     for ( int d = 0; d <= dimension (); ++ d ) result += size ( d );
     return result;
   }
-  // reindex
-  virtual void reindex ( std::vector<std::vector< Index > > & permute ) = 0;
 
 };
 
@@ -124,21 +124,19 @@ inline void BoundaryMatrix ( SparseMatrix < Ring > * output_matrix,
 ///       the complex.
 ///
 ///  The methods provided by this macro are:
-///    (1) startInserting
-///    (2) insertCell
-///    (3) finishedInserting
-///    (4) indexToCell
-///    (5) cellToIndex
-///    (6) reindex
+///    (1) insertCell
+///    (2) indexToCell
+///    (3) cellToIndex
 ///   
 ///  In order to prepare the cell indexing, the following must be done:
-///    (A) User calls "startInserting"
-///    (B) User calls "insertCell" on all cells.
-///    (C) User then calls "finishedInserting".
+///    ====> User calls "insertCell" on all cells. Repeats are OK.
 ///    Now the complex is ready for use by algorithms using index interface
-///  If one wants to reorder the indexing, the reindex method can accomplish 
-///  this. One produces vector<vector<Index> > v where we wish
-///  cell at (i,d)  --ends up as --> cell at ( v[d][i],d ) 
+///   Note that indexes are assigned contiguously, first come, first served.
+///   Repeat inserts are ignored.
+///   The indexToCell method assumes the index, dimension pair is valid.
+///   The cellToIndex method does not assume the cell, dimension pair is valid. If
+///     an invalid pair is given, the number of dim-dimensional cells is returned,
+///     which the user can check is a valid index or not.
 ///
 ///  In order to write "bd" and "cbd" methods, the implementor will:
 ///    (A) Get the index of a cell as an argment
@@ -147,44 +145,38 @@ inline void BoundaryMatrix ( SparseMatrix < Ring > * output_matrix,
 ///    (D) Use "cellToIndex" to convert the cells in the result to indexes
 ///  
 
-#define CHOMP_COMPLEX(MyCell,MyIndexer)                         \
-using Complex::boundary;                                        \
-using Complex::coboundary;                                      \
-typedef MyCell Cell;                                            \
-typedef MyIndexer < Cell, Index > Indexer;                      \
-std::vector < Indexer > indexers_;                              \
-std::vector < std::vector < Cell > > init_cell_stack_;          \
-void startInserting ( void ) {                                  \
-  BOOST_FOREACH ( Indexer & indexer, indexers_ )                \
-    indexer . clear ();                                         \
-}                                                               \
-void insertCell ( const Cell & c, const int dim ) {             \
-  if ( (int) init_cell_stack_ . size () <= dim )                \
-    init_cell_stack_ . resize ( dim + 1 );                      \
-  if ( dim > dimension () )                                     \
-    dimension () = dim;                                         \
-  init_cell_stack_ [ dim ] . push_back ( c );                   \
-}                                                               \
-void finishedInserting ( void ) {                               \
-  init_cell_stack_ . resize ( dimension () + 1 );               \
-  indexers_ . resize ( dimension () + 1 );                      \
-  sizes_ . resize ( dimension () + 1 );                         \
-  for ( int d = 0; d <= dimension (); ++ d ) {                  \
-    indexers_ [ d ] . initialize ( init_cell_stack_ [ d ] );    \
-    sizes_ [ d ] = indexers_ [ d ] . size ();                   \
-  }                                                             \
-  init_cell_stack_ . clear ();                                  \
-}                                                               \
-Cell indexToCell ( const Index i, const int dim ) const {       \
-  return indexers_ [ dim ] . key ( i );                         \
-}                                                               \
-Index cellToIndex ( const Cell & key, const int dim ) const {    \
-  return indexers_ [ dim ] . rank ( key );                      \
-}                                                               \
-void reindex ( std::vector<std::vector< Index > > & permute ) { \
-  for ( int d = 0; d <= dimension (); ++ d )                    \
-    indexers_ [ d ] . reindex ( permute [ d ] );                \
-} 
+#define CHOMP_COMPLEX(MyCell)                                     \
+using Complex::boundary;                                          \
+using Complex::coboundary;                                        \
+typedef MyCell Cell;                                              \
+std::vector < boost::unordered_map < Cell, Index > > CCindexes_;  \
+std::vector < std::vector < Cell > > CCcells_;                    \
+void insertCell ( const Cell & c, const int dim ) {               \
+  if ( CCindexes_ . size () <= (size_t) dim )                     \
+    CCindexes_ . resize ( dim + 1 );                              \
+  if ( CCcells_ . size () <= (size_t) dim )                       \
+    CCcells_ . resize ( dim + 1 );                                \
+  if ( sizes_ . size () <= (size_t) dim )                         \
+    sizes_ . resize ( dim + 1, 0 );                               \
+  if ( dim > dimension () ) {                                     \
+    dimension () = dim;                                           \
+  }                                                               \
+  if ( CCindexes_ [ dim ] . count ( c ) == 0 ) {                  \
+    CCindexes_ [ dim ] [ c ] = CCcells_ [ dim ] . size ();        \
+    CCcells_ [ dim ] . push_back ( c );                           \
+    sizes_ [ dim ] = CCcells_ [ dim ] . size ();                  \
+  }                                                               \
+}                                                                 \
+Cell indexToCell ( const Index i, const int dim ) const {         \
+  return CCcells_ [ dim ] [ i ];                                  \
+}                                                                 \
+Index cellToIndex ( const Cell & cell, const int dim ) const {    \
+  if ( (size_t) dim >= CCindexes_ . size () ) return 0;           \
+  boost::unordered_map < Cell, Index >::const_iterator it =       \
+   CCindexes_ [ dim ] . find ( cell );                            \
+  if ( it == CCindexes_ [ dim ] . end () ) return size ( dim );   \
+  return it -> second;                                            \
+}                                                               
 
 
 #endif

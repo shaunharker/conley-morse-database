@@ -62,8 +62,7 @@ public:
     Chain output; colower ( &output, input ); return output;
   }
   // Cell type = Index
-  // Indexer type = HashIndexer
-  CHOMP_COMPLEX(Index,HashIndexer)
+  CHOMP_COMPLEX(Index)
 //private:
   // Base Complex
   Complex * base_;
@@ -110,14 +109,14 @@ void MorseComplex::initialize ( Complex & basearg ) {
   decomposer_ = new Decomposer ( base () );
 
   // Produce the complex
-  startInserting ();
+  //startInserting ();
   for ( int d = 0; d <= base () . dimension (); ++ d ) {
     Cell hoist = base () . size ( d );
     for ( Cell i = 0; i < hoist; ++ i ) {
       if ( type ( i, d ) == Decomposer::ACE ) insertCell ( i, d ); 
     }
   }
-  finishedInserting ();
+  //finishedInserting ();
   boundary_cache_ . resize ( dimension () + 1 );
   coboundary_cache_ . resize ( dimension () + 1 );
   

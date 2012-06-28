@@ -23,7 +23,7 @@ namespace chomp {
   
 class FiberComplex : public Complex {
 public:
-CHOMP_COMPLEX(Index,HashIndexer)
+CHOMP_COMPLEX(Index)
 private:
   CubicalComplex * supercomplex_;
   Index choose_;
@@ -105,7 +105,7 @@ inline FiberComplex::FiberComplex
   closure ( A_image, * supercomplex_ );
   
   // Pick choose   (dirty: this makes sense only if A is empty )
-#if 0
+#if 1
   // DEBUG //////////////////////////////////////
   if ( X_image [ 0 ]. size () == 0 ) {
     std::cout << "FiberComplex failure. The fiber doesn't even have a single vertex.\n";
@@ -125,7 +125,7 @@ inline FiberComplex::FiberComplex
       cv -> drawComplex ( codomain, 100 );
       BOOST_FOREACH ( Index i, X_nbs ) {
         cv -> drawRect ( domain . geometry ( i, D ), 200 );
-        cv -> drawRect ( F ( domain . geometry ( i, D ) ) , 200 );
+        //cv -> drawRect ( F ( domain . geometry ( i, D ) ) , 200 );
       }
       // explore a minute here
       cv -> explore ();
@@ -147,14 +147,14 @@ inline FiberComplex::FiberComplex
   }
   
   // Initialize complex
-  startInserting ();
+  //startInserting ();
   for ( int d = 0; d <= D; ++ d ) {
     Index N = supercomplex_ -> size ( d );
     for ( Index i = 0; i < N; ++ i ) {
       if ( data_ [ d ] [ i ] ) insertCell ( i, d );
     }
   }
-  finishedInserting ();
+  //finishedInserting ();
   
 }
 

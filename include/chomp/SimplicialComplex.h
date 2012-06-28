@@ -116,8 +116,7 @@ inline std::size_t hash_value(Simplex const & simplex ) {
 class SimplicialComplex : public Complex {
 public:
   // Cell type: Simplex
-  // Indexing type: HashIndexer
-  CHOMP_COMPLEX(Simplex, HashIndexer)
+  CHOMP_COMPLEX(Simplex)
 	
   /*******************************
    *      COMPLEX INTERFACE      *
@@ -220,12 +219,12 @@ inline void SimplicialComplex::loadFromFile ( const char * FileName) {
 	}
 	*/
 	
-	startInserting ();
+	//startInserting ();
 	BOOST_FOREACH( const Simplex &s, processed_ ) {
 		std::cout << "Inserting cell " << s << "\n";
 		insertCell (s, s.dimension() );
 	}
-	finishedInserting ();
+	//finishedInserting ();
 	generateCoboundaryData ();
 	return;
 }

@@ -60,7 +60,11 @@ HashIndexer<K,M>::key ( Mapped i ) const {
 template < class K, class M > const M
 HashIndexer<K,M>::rank ( const Key & k ) const {
   typename boost::unordered_map < Key, Mapped >::const_iterator it = data_ . find ( k );
-  if ( it == data_ . end () ) return keys_ . size ();
+  if ( it == data_ . end () ) {
+    std::cout << "keys_ . size () = " << keys_ . size () << "\n";
+    return keys_ . size ();
+  }
+  if ( it -> second  >= keys_ . size () ) std::cout << "PROBLEM in hashindexer rank\n";
   return it -> second;
 }
 

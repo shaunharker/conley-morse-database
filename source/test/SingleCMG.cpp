@@ -12,7 +12,8 @@
 
 // To get SCC chatter
 #define CMG_VERBOSE 
-#define DO_CONLEY_INDEX
+//#define DO_CONLEY_INDEX
+//#define NOREACHABILITY
 #define VISUALIZE_DEBUG
 #define ILLUSTRATE
 
@@ -38,12 +39,61 @@
 using namespace chomp;
 
 // choose example
-//#define TWODIMLESLIE
-#define PRISMLESLIE
+//#define LORENZ
+#define TWODIMLESLIE
+//#define PRISMLESLIE
+//#define FIVEDIMPRISMLESLIE
 
 int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 12;
-int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 16;
+int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 15;
 int SINGLECMG_COMPLEXITY_LIMIT = 10000;
+
+
+#ifdef FIVEDIMPRISMLESLIE
+#include "database/maps/leslie5d.h"
+
+Rect initialize_phase_space_box ( void ) {
+  int phase_space_dimension = 5;
+  Rect phase_space_bounds ( phase_space_dimension );
+  phase_space_bounds . lower_bounds [ 0 ] = 0.0;// -25.0
+  phase_space_bounds . upper_bounds [ 0 ] = 320.056;
+  phase_space_bounds . lower_bounds [ 1 ] = 0.0;
+  phase_space_bounds . upper_bounds [ 1 ] = 224.04;
+  phase_space_bounds . lower_bounds [ 2 ] = 0.0;
+  phase_space_bounds . upper_bounds [ 2 ] = 156.828;
+  phase_space_bounds . lower_bounds [ 3 ] = 0.0;
+  phase_space_bounds . upper_bounds [ 3 ] = 109.78;
+  phase_space_bounds . lower_bounds [ 4 ] = 0.0;
+  phase_space_bounds . upper_bounds [ 4 ] = 76.8457;
+  std::cout << "Phase Space Bounds = " << phase_space_bounds << "\n";
+  return phase_space_bounds;
+}
+
+Rect initialize_parameter_space_box ( const Real bx, const Real by ) {
+  // Two dimensional parameter space
+  // A box chosen from [8, 37] x [3, 50]
+  int parameter_space_dimension = 2;
+  Rect parameter_space_limits ( parameter_space_dimension ); 
+  parameter_space_limits . lower_bounds [ 0 ] = 8.0; 
+  parameter_space_limits . upper_bounds [ 0 ] = 37.0;
+  parameter_space_limits . lower_bounds [ 1 ] = 3.0;
+  parameter_space_limits . upper_bounds [ 1 ] = 50.0;
+  int PARAMETER_BOXES = 64;
+  Rect parameter_box ( parameter_space_dimension );
+  parameter_box . lower_bounds [ 0 ] = parameter_space_limits . lower_bounds [ 0 ] + 
+  ( parameter_space_limits . upper_bounds [ 0 ] - parameter_space_limits . lower_bounds [ 0 ] ) * bx / (float) PARAMETER_BOXES;
+  parameter_box . upper_bounds [ 0 ] = parameter_space_limits . lower_bounds [ 0 ] + 
+  ( parameter_space_limits . upper_bounds [ 0 ] - parameter_space_limits . lower_bounds [ 0 ] ) * ( bx + 1.0 ) / (float) PARAMETER_BOXES;
+  parameter_box . lower_bounds [ 1 ] = parameter_space_limits . lower_bounds [ 1 ] + 
+  ( parameter_space_limits . upper_bounds [ 1 ] - parameter_space_limits . lower_bounds [ 1 ] ) * by / (float) PARAMETER_BOXES;
+  parameter_box . upper_bounds [ 1 ] = parameter_space_limits . lower_bounds [ 1 ] + 
+  ( parameter_space_limits . upper_bounds [ 1 ] - parameter_space_limits . lower_bounds [ 1 ] ) * ( by + 1.0 ) / (float) PARAMETER_BOXES;
+  std::cout << "Parameter Box Choice = " << parameter_box << "\n";
+  
+  return parameter_box;
+}
+
+#endif
 
 //#define VANDERPOL 
 #ifdef VANDERPOL
@@ -72,7 +122,6 @@ Rect initialize_parameter_space_box ( const Real bx, const Real by ) {
 #endif
 
 
-//#define LORENZ
 #ifdef LORENZ
 #include "database/maps/LorenzMap.h"
 typedef LorenzMap ModelMap;
@@ -83,12 +132,12 @@ Rect initialize_phase_space_box ( void ) {
   //  int phase_space_dimension = 2;
   int phase_space_dimension = 3;
   Rect phase_space_bounds ( phase_space_dimension );
-  phase_space_bounds . lower_bounds [ 0 ] = -40.0;// -25.0
-  phase_space_bounds . upper_bounds [ 0 ] = 40.0;
-  phase_space_bounds . lower_bounds [ 1 ] = -50.0;
-  phase_space_bounds . upper_bounds [ 1 ] = 50.0;
-  phase_space_bounds . lower_bounds [ 2 ] = -25.0;
-  phase_space_bounds . upper_bounds [ 2 ] = 75.0;
+  phase_space_bounds . lower_bounds [ 0 ] = -16.0;// -25.0
+  phase_space_bounds . upper_bounds [ 0 ] = 16.0;
+  phase_space_bounds . lower_bounds [ 1 ] = -20.0;
+  phase_space_bounds . upper_bounds [ 1 ] = 20.0;
+  phase_space_bounds . lower_bounds [ 2 ] = -8.0;
+  phase_space_bounds . upper_bounds [ 2 ] = 32.0;
   std::cout << "Phase Space Bounds = " << phase_space_bounds << "\n";
   return phase_space_bounds;
 }
@@ -590,6 +639,11 @@ typedef ConleyMorseGraph < CellContainer , ConleyIndex_t > CMG;
 void DrawMorseSets ( const Toplex & phase_space, const CMG & cmg );
 void CreateDotFile ( const CMG & cmg );
 
+template < class Toplex, class CellContainer >
+void output_cubes ( const Toplex & my_toplex, 
+                   const ConleyMorseGraph < CellContainer , chomp::ConleyIndex_t > & conley_morse_graph );
+
+
 // MAIN PROGRAM
 int main ( int argc, char * argv [] ) 
 {
@@ -617,6 +671,11 @@ int main ( int argc, char * argv [] )
   Toplex phase_space;
   phase_space . initialize ( phase_space_bounds );
   
+  phase_space . subdivide ();
+  phase_space . subdivide ();
+  phase_space . subdivide ();
+  phase_space . subdivide ();
+  
   /* INITIALIZE MAP */
   ModelMap map ( parameter_box );
   
@@ -639,6 +698,8 @@ int main ( int argc, char * argv [] )
   /* DRAW MORSE SETS */
   DrawMorseSets ( phase_space, conley_morse_graph );
 
+  output_cubes ( phase_space, conley_morse_graph );
+  
   /* OUTPUT MORSE GRAPH */
   CreateDotFile ( conley_morse_graph );
   
@@ -731,4 +792,29 @@ void CreateDotFile ( const CMG & cmg ) {
   
 }
 
-
+template < class Toplex, class CellContainer >
+void output_cubes ( const Toplex & my_toplex, 
+                    const ConleyMorseGraph < CellContainer , chomp::ConleyIndex_t > & conley_morse_graph ) {
+  using namespace chomp;
+  typedef ConleyMorseGraph < CellContainer , ConleyIndex_t > CMG;
+    
+  // Loop Through Morse Sets to determine bounds
+  typedef typename CMG::VertexIterator VI;
+  VI it, stop;
+  std::vector < std::vector < uint32_t > > cubes;
+  for (boost::tie ( it, stop ) = conley_morse_graph . Vertices (); it != stop; ++ it ) {
+    CellContainer const & my_subset = conley_morse_graph . CellSet ( *it );
+    int depth = my_toplex . getDepth ( my_subset );
+    BOOST_FOREACH ( const typename Toplex::Top_Cell & ge, my_subset ) {
+      my_toplex . GridElementToCubes ( & cubes, ge, depth  );
+    }
+  }
+  std::ofstream outfile ( "morsecubes.txt" );
+  for ( uint32_t i = 0; i < cubes . size (); ++ i ) {
+    for ( uint32_t j = 0; j < cubes [ i ] . size (); ++ j ) {
+      outfile << cubes [ i ] [ j ] << " ";
+    }
+    outfile << "\n";
+  }
+  outfile . close ();
+} /* draw_morse_sets */

@@ -13,7 +13,7 @@ namespace chomp {
   
 class BitmapSubcomplex : public Complex {
 public:
-  CHOMP_COMPLEX(Index, HashIndexer)
+  CHOMP_COMPLEX(Index)
   virtual void boundary ( Chain * output, const Index input, int dim ) const;
   virtual void coboundary ( Chain * output, const Index input, int dim ) const;
   const Complex & full ( void ) const;
@@ -111,14 +111,14 @@ inline void BitmapSubcomplex::insert ( const Cell cell, int d ) {
 
 inline void BitmapSubcomplex::finalize ( void ) {
   //std::cout << "BitmapSubcomplex: finalizing " << this << "\n";
-  startInserting ();
+  //startInserting ();
   for ( int d = 0; d <= dimension (); ++ d ) {
     Index hoist = base () . size ( d );
     for ( Index i = 0; i < hoist; ++ i ) {
       if ( pattern_ [ d ] [ i ] ) insertCell ( i, d );
     }
   }
-  finishedInserting ();
+  //finishedInserting ();
 }
 
 inline BitmapSubcomplex::BitmapSubcomplex ( Complex & b ) {

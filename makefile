@@ -37,16 +37,17 @@ EXPORTXML += ./build/structures/XMLExporter.o
 ExportXML: $(EXPORTXML)
 	$(CC) $(LDFLAGS) $(EXPORTXML) -o $@ $(LDLIBS)
 
-POSTPROCESS := ./build/test/PostProcessDatabase.o 
-POSTPROCESS += ./build/structures/Database.o
-PostProcessDatabase: $(POSTPROCESS)
-	$(CC) $(LDFLAGS) $(POSTPROCESS) -o $@ $(LDLIBS)
-
 SINGLECMG := ./build/test/SingleCMG.o 
 SINGLECMG += ./build/tools/picture.o 
 SINGLECMG += ./build/tools/lodepng/lodepng.o
 SingleCMG: $(SINGLECMG)
 	$(CC) $(LDFLAGS) $(SINGLECMG) -o $@ $(LDLIBS)
+
+SUBMAPTEST := ./build/test/SubdividedMapTest.o
+SUBMAPTEST += ./build/tools/picture.o
+SUBMAPTEST += ./build/tools/lodepng/lodepng.o
+SubdividedMapTest: $(SUBMAPTEST)
+        $(CC) $(LDFLAGS) $(SUBMAPTEST) -o $@ $(LDLIBS)
 
 # Cleanup
  .PHONY: clean

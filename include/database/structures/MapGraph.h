@@ -6,6 +6,7 @@
 #include <vector>
 #include <iterator>
 #include <iostream>
+#include <algorithm>
 #include "boost/unordered_map.hpp"
 #include "boost/foreach.hpp"
 
@@ -158,6 +159,11 @@ index ( std::vector < size_type > * output,
     size_type cell_index = index ( cell );
     if ( cell_index != sentinel () ) output -> push_back ( cell_index );
   }
+  // Remove duplicates 
+  std::sort ( output -> begin (), output -> end () );
+  typename std::vector<size_type>::iterator it = std::unique ( output->begin(),
+                                                     output->end());
+  output->resize( it - output->begin() );
 }
 
 template < class Toplex, class Map, class CellContainer >
@@ -171,6 +177,8 @@ lookup ( CellContainer * output,
   }
 }
 
+/// MapGraph::leaves
+/// Filter out all non-leaf nodes while translating into Top Cell indexing
 template < class Toplex, class Map, class CellContainer >
 void MapGraph<Toplex,Map,CellContainer>::
 leaves ( CellContainer * output, 

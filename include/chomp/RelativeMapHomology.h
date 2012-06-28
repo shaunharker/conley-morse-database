@@ -293,8 +293,9 @@ RelativeMapHomology (RelativeMapHomology_t * output,
     Matrix G = chainsToMatrix ( codomain_morse_gen [ d ], codomain_morse, d );
     Matrix Z = chainsToMatrix ( codomain_cycles [ d ], codomain_morse, d );
     Matrix MapHom = SmithSolve (G, Z);
-    print_matrix (G);
-    print_matrix (Z);
+    //print_matrix (G);
+    //print_matrix (Z);
+    std::cout << "Dimension " << d << ":\n";
     print_matrix (MapHom);
     output -> push_back ( MapHom );
   }

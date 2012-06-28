@@ -81,6 +81,10 @@ public:
   /// cover   (prism version)
   template < class InsertIterator > InsertIterator
   cover ( InsertIterator ii, const Prism & p ) const;
+
+  /// cover   (vector version)
+  template < class InsertIterator, class T > void 
+  cover ( InsertIterator & ii, const std::vector < T > & V ) const;
   
   /// coarse cover   (whenever node containment, report parent, not children)
   template < class InsertIterator > InsertIterator
@@ -662,6 +666,13 @@ Toplex::cover ( InsertIterator ii, const Prism & P ) const {
   return ii;
 } // cover
 
+template < class InsertIterator, class T >
+inline void Toplex::cover ( InsertIterator & ii, const std::vector < T > & V ) const {
+  BOOST_FOREACH ( const T & geo, V ) {
+    cover ( ii, geo );
+  }
+}   
+  
 template < class InsertIterator >
 inline InsertIterator
 Toplex::coarseCover ( InsertIterator ii, const Rect & geometric_region ) const {
