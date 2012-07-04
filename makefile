@@ -1,8 +1,11 @@
 # makefile for CMDP project 
 include makefile.config
 
-COMPUTE_MORSE_SETS = yes
-COMPUTE_CONLEY_INDEX = no
+COMPUTE_MORSE_SETS := yes
+COMPUTE_CONLEY_INDEX := no
+PARAM_SPACE_METHOD := EDGEMETHOD
+
+CXXFLAGS += -D $(PARAM_SPACE_METHOD)
 
 .PHONY: all
 all: Conley_Morse_Database PostProcessDatabase SingleCMG
@@ -26,6 +29,7 @@ ifeq ($(COMPUTE_CONLEY_INDEX),yes)
 	DATABASE += ./build/program/ConleyProcess.o
 	CXXFLAGS += -D COMPUTE_CONLEY_INDEX
 endif
+
 
 Conley_Morse_Database: $(DATABASE)
 	$(CC) $(LDFLAGS) $(DATABASE) -o $@ $(LDLIBS)
