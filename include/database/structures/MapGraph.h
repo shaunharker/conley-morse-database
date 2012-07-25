@@ -22,7 +22,11 @@ public:
   MapGraph ( const std::vector < CellContainer > & sets, 
              const Toplex & t,
              const Map & f);
- 
+
+  MapGraph ( const CellContainer & set, 
+            const Toplex & t,
+            const Map & f);
+  
   size_type insert ( const Vertex & v );
 
   std::vector<size_type> adjacencies ( const size_type & v ) const;
@@ -43,6 +47,7 @@ private:
   size_type sentinel_;
 };
 
+// Repeated code in constructors is bad practice -- should fix that below
 template < class Toplex, class Map, class CellContainer >
 MapGraph<Toplex,Map,CellContainer>::
 MapGraph ( const Toplex & t, 
@@ -97,6 +102,42 @@ sentinel_ ( t . tree_size () ) {
 }
 
 template < class Toplex, class Map, class CellContainer >
+MapGraph<Toplex,Map,CellContainer>::
+MapGraph ( const CellContainer & set, 
+          const Toplex & t, 
+          const Map & f ) : 
+toplex_ ( t ),
+f_ ( f ),
+sentinel_ ( t . tree_size () ) {
+  std::vector < CellContainer > sets;
+  sets . push_back ( set );
+  
+  //std::cout << "Constructing MapGraph.\n";
+  index_ . resize ( sentinel (), sentinel () ); 
+  
+  CellContainer allcells;
+  std::insert_iterator < CellContainer > ii ( allcells, 
+                                             allcells . begin () );
+  BOOST_FOREACH ( const CellContainer & cont, sets ) {
+    BOOST_FOREACH ( Vertex v, cont ) {
+      //std::cout << "Inserting " << v << " into allcells.\n";
+      * ii ++ = v;
+    }
+  }
+  CellContainer umbrella;
+  std::insert_iterator < CellContainer > uii ( umbrella, 
+                                              umbrella . begin () );
+  toplex_ . umbrella ( uii, allcells );
+  BOOST_FOREACH ( Vertex v, umbrella ) {
+    //std::cout << "Inserting " << v << " into graph.\n";
+    insert ( v );
+  }
+  //std::cout << "Finished constructing MapGraph.\n";
+  
+}
+
+
+template < class Toplex, class Map, class CellContainer >
 typename MapGraph<Toplex,Map,CellContainer>::size_type 
 MapGraph<Toplex,Map,CellContainer>::
 insert ( const Vertex & v ) {
@@ -111,10 +152,12 @@ MapGraph<Toplex,Map,CellContainer>::
 adjacencies ( const size_type & source ) const {
   std::vector < size_type > result;
   Vertex domain_cell = lookup ( source );
+  std::cout << "source = " << source << " and top cell = " << domain_cell << "\n";
   CellContainer children;
   std::insert_iterator < CellContainer > cii ( children, children . begin () );
   toplex_ . children ( cii, domain_cell );
   if ( children . empty () ) {
+    std::cout << "geo(" << domain_cell << ") = " << toplex_ . geometry ( domain_cell ) << "\n";
     CellContainer image;
     std::insert_iterator < CellContainer > ii ( image, image . begin () );
     toplex_ . cover ( ii, f_ ( toplex_ . geometry ( domain_cell ) ) ); // here is the work

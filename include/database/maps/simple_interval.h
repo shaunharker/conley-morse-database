@@ -139,4 +139,47 @@ simple_interval<Real> log ( const simple_interval<Real> & term ) {
   result . upper_ = std::exp ( term . upper_ );
   return result;
 } 
+
+template < class Real >
+simple_interval<Real> cos ( const simple_interval<Real> & term ) {
+  const Real pi = 3.1415926535897932384626433832795;
+  simple_interval<Real> result;
+  Real low = term . lower ();
+  Real high = term . upper ();
+  if ( high - low >= 2*pi ) return simple_interval<Real> (-1.0, 1.0);
+  while ( high > 2*pi ) {
+    high -= 2*pi;
+    low -= 2*pi;
+  }
+  while ( low < 0 ) {
+    high += 2*pi;
+    low += 2*pi;
+  }
+  if ( low <= pi ) {
+    if ( high <= pi ) {
+      result . lower_ = cos ( high );
+      result . upper_ = cos ( low );
+    } else {
+      result . lower_ = -1.0;
+      result . upper_ = std::max ( cos (high), cos (low) );
+    }
+  } else {
+    if ( high <= 2*pi ) {
+      result . lower_ = cos ( low );
+      result . upper_ = cos ( high );
+    } else {
+      result . lower_ = std::min ( cos ( low ), cos ( high ) );
+      result . upper_ = 1.0;
+    }
+  }
+  
+  return result;
+} 
+
+template < class Real >
+simple_interval<Real> sin ( const simple_interval<Real> & term ) {  
+  const Real pi = 3.1415926535897932384626433832795;
+  return cos ( term - pi/2.0);
+} 
+
 #endif

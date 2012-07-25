@@ -16,7 +16,7 @@
 #include "chomp/Complex.h"
 #include "chomp/Chain.h"
 #include "chomp/Rect.h"
-
+#include "chomp/Prism.h"
 
 namespace chomp {
   
@@ -66,6 +66,7 @@ namespace chomp {
     /// the edge of memory
     /// - the upper right buffer is to store the lower dimensional cells which may boundaries
     void initialize ( const std::vector<uint32_t> & sizes );
+    void initialize ( const std::vector<uint32_t> & sizes, const std::vector<bool> & periodic );
     
     /// fullCube
     /// returns a list of "Cells" corresponding to the cube coordinates
@@ -95,7 +96,8 @@ namespace chomp {
     Index cubeIndex ( const std::vector<uint32_t> & cube_coordinates ) const;
     std::vector<uint32_t> indexToCube ( Index i ) const;
     std::vector<uint32_t> addressToCube ( uint64_t address ) const;
-    
+    uint64_t cubeToAddress ( const std::vector<uint32_t> & cube ) const;
+
     /// low-level interface
     bool bitmap ( const uint64_t address ) const;
     void insert ( const uint64_t address );
@@ -131,6 +133,9 @@ namespace chomp {
     std::vector<uint32_t> dimension_sizes_; 
     std::vector<uint64_t> jump_values_; 
     boost::unordered_set < uint64_t > cells_;
+    std::vector<bool> periodic_;
+    //boost::unordered_map < uint64_t, uint64_t > periodic_alias_;
+    uint64_t alias ( uint64_t address ) const;
     uint64_t mask_;
     Rect bounds_;
     //std::vector<bool> bitmap_;
@@ -149,6 +154,7 @@ namespace chomp {
   /*******************************
    *        DEFINITIONS          *
    *******************************/
+  
   
   // EXPLANATION OF CUBICAL BITMAP SCHEME
   // There is a bitmap_[i], where 0<= i < N.
@@ -181,6 +187,16 @@ namespace chomp {
   // full_cube_number that is offset by NEGATIVE of the "jump_values" corresponding to 
   // the bit position. Of course we have to check these 'alleged' coboundary pieces to
   // see if they actually exist first!
+  //
+  // PERIODICITY: uses alias, currently slow
+  inline uint64_t CubicalComplex::alias ( uint64_t address ) const {
+    std::vector < uint32_t > cube = addressToCube ( address );
+    for ( int d = 0; d < dimension (); ++ d ) {
+      //std::cout << "cube[" << d << "] = " << cube [ d ] << "\n";
+      if ( cube [ d ] == dimension_sizes_ [ d ] ) return 0;
+    }
+    return cubeToAddress ( cube ) + (address & mask_);
+  }
   
   inline void CubicalComplex::boundary ( Chain * output, const Index input, int dim ) const {
     // std::cout << "CUBICALBOUNDARY\n";
@@ -203,7 +219,8 @@ namespace chomp {
       if ( bitmap ( address ) )
         (*output) += Term ( cellToIndex ( address, bd_dim ), sign ? positive : negative );
       /* Insert the piece in the appropriate neighboring full cube */
-      uint64_t offset_address = address + ( jump_values_ [ d ] << dimension () );
+      // periodicity requires we convert to periodic alias (i.e. see if jumped past edge)
+      uint64_t offset_address = alias ( address + ( jump_values_ [ d ] << dimension () ) );
       if ( bitmap ( offset_address ) )
         (*output) += Term ( cellToIndex ( offset_address, bd_dim ), sign ? negative : positive );
       /* Recover original address */
@@ -233,7 +250,7 @@ namespace chomp {
       address = address ^ work_bit;
       if ( bitmap ( address ) )
         (*output) += Term ( cellToIndex ( address, cbd_dim ), sign ? positive : negative );
-      uint64_t offset_address = address - ( jump_values_ [ d ] << dimension () );
+      uint64_t offset_address = alias ( address - ( jump_values_ [ d ] << dimension () ) );
       if ( bitmap ( offset_address ) )
         (*output) += Term ( cellToIndex ( offset_address, cbd_dim ), sign ? negative : positive );
       address = address ^ work_bit; 
@@ -338,6 +355,7 @@ namespace chomp {
   
   inline void CubicalComplex::initialize ( const std::vector<uint32_t> & user_dimension_sizes ) {
     dimension () = user_dimension_sizes . size ();
+    periodic_ . resize ( dimension (), false );
     dimension_sizes_ . resize ( dimension (), 0 );
     jump_values_ . resize ( dimension (), 0 );
     uint64_t number_of_full_cubes = 1;
@@ -354,6 +372,12 @@ namespace chomp {
     
   } /* CubicalComplex::initialize */
   
+  inline void CubicalComplex::initialize ( const std::vector<uint32_t> & user_dimension_sizes,
+                                          const std::vector < bool > & periodic ) {
+    initialize ( user_dimension_sizes );
+    periodic_ = periodic;
+  }
+
   inline std::vector < CubicalComplex::Cell >
   CubicalComplex::fullCube ( const std::vector<uint32_t> & cube_coordinates ) const {
     std::vector < CubicalComplex::Cell > result;
@@ -387,7 +411,8 @@ namespace chomp {
           } /* for */
           /* insert the cell */
           //std::cout << " CC addFullCube: bitmap_ [ " << ( ( full_cube_number + offset ) << dimension () ) + piece_index << " ] = true\n";
-          result . push_back ( ( ( full_cube_number + offset ) << dimension () ) + piece_index );
+          // use alias to deal with periodicity
+          result . push_back ( alias ( ( ( full_cube_number + offset ) << dimension () ) + piece_index ) );
         } /* if */
     } /* for */
     //std::cout << " . \n";
@@ -423,23 +448,10 @@ namespace chomp {
   } /* CubicalComplex::removeFullCube */
   
   inline void CubicalComplex::finalize ( void ) {
-    //std::cout << "CALLING CC FINALIZE\n";
-    //startInserting ();
     BOOST_FOREACH ( uint64_t address, cells_ ) {
       int d = __builtin_popcount ( ( uint32_t) ( address & mask_ ) );
       insertCell ( address, d );
     }
-    /*
-     for ( uint64_t i = 0; i < bitmap_ . size (); ++ i ) {
-     if ( bitmap_ [ i ] ) {
-     int d = __builtin_popcount ( ( uint32_t) ( i & mask ) );
-     //std::cout << " CC: insert (" << i << ", " << d << ")\n";
-     insertCell ( i, d );
-     }
-     }
-     */
-    //finishedInserting ();
-    //std::cout << "EXIT CC FINALIZE\n";
   } /* CubicalComplex::finalize */
   
   inline bool CubicalComplex::bitmap ( const uint64_t address ) const {
@@ -466,22 +478,33 @@ namespace chomp {
     return addressToCube ( address );
   }
   
+  // if address is not 
   inline std::vector<uint32_t> CubicalComplex::addressToCube ( uint64_t address ) const {
     int D = dimension ();
     std::vector<uint32_t> result ( D );
     address >>= D;
-    Index temp = address; //debug
     for ( int d = 0; d < D; ++ d ) {
-      int pos = address % dimension_sizes_ [ d ];
+      uint32_t pos = address % dimension_sizes_ [ d ];
       address /= dimension_sizes_ [ d ];
-      // DEBUG
-      if ( pos == 0 ) {
-        std::cout << temp << "\n";
-        std::cout << dimension_sizes_ [ 0 ] << "\n";
-      }
+      if ( periodic_ [ d ] ) {
+        if ( pos == 0 ) {
+          pos = dimension_sizes_ [ d ] - 2;
+        } else if ( pos == dimension_sizes_ [ d ] - 1 ) {
+          pos = 1;
+        }
+      } 
+      if ( pos == 0 ) pos = dimension_sizes_ [ d ] + 1; // doesn't exist
       result [ d ] = pos - 1; // subtract 1 to ignore wrap layer
+      
     }
     return result;
+  }
+  
+  inline uint64_t CubicalComplex::cubeToAddress ( const std::vector<uint32_t> & cube ) const {
+    uint64_t full_cube_number = 0;
+    for ( int d = 0; d < dimension (); ++ d ) 
+      full_cube_number += jump_values_ [d] * ( (uint64_t) cube [d] + 1 ); // lower-left buffer +1
+    return (full_cube_number << dimension ());
   }
   
   inline Rect & CubicalComplex::bounds ( void ) {

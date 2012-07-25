@@ -47,6 +47,12 @@ SINGLECMG += ./build/tools/lodepng/lodepng.o
 SingleCMG: $(SINGLECMG)
 	$(CC) $(LDFLAGS) $(SINGLECMG) -o $@ $(LDLIBS)
 
+NEWTONCMG := ./build/test/NewtonCMG.o
+NEWTONCMG += ./build/tools/picture.o
+NEWTONCMG += ./build/tools/lodepng/lodepng.o
+NewtonCMG: $(NEWTONCMG)
+	$(CC) $(LDFLAGS) $(NEWTONCMG) -o $@ $(LDLIBS)
+
 SUBMAPTEST := ./build/test/SubdividedMapTest.o
 SUBMAPTEST += ./build/tools/picture.o
 SUBMAPTEST += ./build/tools/lodepng/lodepng.o
@@ -62,6 +68,8 @@ clean:
 	rm -f SingleCMG
 	rm -f PostProcessDatabase
 	rm -f ExportXML
+	rm -f NewtonCMG
+
 
 # Create build directories
 .PHONY: build-dirs

@@ -74,7 +74,7 @@ public:
   template < class InsertIterator, class Container > InsertIterator
   umbrella ( InsertIterator ii, const Container & elements ) const;
 
-  /// cover
+  /// cover   (rect version)
   template < class InsertIterator > InsertIterator
   cover ( InsertIterator ii, const Rect & r ) const;
 
@@ -129,6 +129,8 @@ public:
   Toplex ( void );
   Toplex ( const Rect & outer_bounds_of_toplex );
   void initialize ( const Rect & outer_bounds_of_toplex );
+  void initialize ( const Rect & outer_bounds_of_toplex, const std::vector < bool > & periodic );
+
   ~Toplex ( void );
   
 private:
@@ -140,6 +142,7 @@ private:
   Node * root_;
   Rect bounds_;
   int dimension_;
+  std::vector < bool > periodic_;
 };
 
 inline void Toplex::erase ( iterator erase_me ) {
@@ -379,162 +382,210 @@ inline Rect Toplex::geometry ( const GridElement & cell  ) const {
 // The first two should be made into one, with a template parameter
 // The third I don't know what to do with yet. Will the coarse cover idea pan out?
 
-template < class InsertIterator >
-inline InsertIterator
-Toplex::cover ( InsertIterator ii, const Rect & geometric_region ) const {
-  //std::cout << "Rect version of Cover\n";
-
-  /* Use a stack, not a queue, and do depth first search.
-   The advantage of this is that we can maintain the geometry during our Euler Tour.
-   We can maintain our geometry without any roundoff error if we use the standard box
-   [0,1]^d. To avoid having to translate to real coordinates at each leaf, we instead
-   convert the input to these standard coordinates, which we put into integers. */
-  
-  // Step 1. Convert input to standard coordinates. 
-  Rect region ( dimension_ );
-  static std::vector<uint64_t> LB ( dimension_);
-  static std::vector<uint64_t> UB ( dimension_);
-#define INTPHASEWIDTH (((uint64_t)1) << 60)
-  static Real bignum ( INTPHASEWIDTH );
-  for ( int dimension_index = 0; dimension_index < dimension_; ++ dimension_index ) {
-    region . lower_bounds [ dimension_index ] = 
-    (geometric_region . lower_bounds [ dimension_index ] - bounds_ . lower_bounds [ dimension_index ]) /
-    (bounds_ . upper_bounds [ dimension_index ] - bounds_ . lower_bounds [ dimension_index ]);
-    region . upper_bounds [ dimension_index ] = 
-    (geometric_region . upper_bounds [ dimension_index ] - bounds_ . lower_bounds [ dimension_index ]) /
-    (bounds_ . upper_bounds [ dimension_index ] - bounds_ . lower_bounds [ dimension_index ]);
+  template < class InsertIterator >
+  inline InsertIterator
+  Toplex::cover ( InsertIterator ii, const Rect & geometric_region ) const {
+    //std::cout << "Rect version of Cover\n";
+    std::cout << "Covering " << geometric_region << "\n";
+    // Deal with periodicity
     
-    if ( region . upper_bounds [ dimension_index ] < Real ( 0 ) ) return ii;
-    if ( region . lower_bounds [ dimension_index ] > Real ( 1 ) ) return ii;
+    std::vector < double > width ( dimension_ );
+    for ( int d = 0; d < dimension_; ++ d ) {
+      width [ d ] = bounds_ . upper_bounds [ d ] - bounds_ . lower_bounds [ d ];
+    }
     
-    if ( region . lower_bounds [ dimension_index ] < Real ( 0 ) ) 
-      region . lower_bounds [ dimension_index ] = Real ( 0 );
-    if ( region . lower_bounds [ dimension_index ] > Real ( 1 ) ) 
-      region . lower_bounds [ dimension_index ] = Real ( 1 );
-    LB [ dimension_index ] = (uint64_t) ( bignum * region . lower_bounds [ dimension_index ] );
-    if ( region . upper_bounds [ dimension_index ] < Real ( 0 ) ) 
-      region . upper_bounds [ dimension_index ] = Real ( 0 );
-    if ( region . upper_bounds [ dimension_index ] > Real ( 1 ) ) 
-      region . upper_bounds [ dimension_index ] = Real ( 1 );
-    UB [ dimension_index ] = (uint64_t) ( bignum * region . upper_bounds [ dimension_index ] );
-  }
-  
-  // Step 2. Perform DFS on the Toplex tree, recursing whenever we have intersection,
-  //         (or adding leaf to output when we have leaf intersection)
-  static std::vector<uint64_t> NLB ( dimension_);
-  static std::vector<uint64_t> NUB ( dimension_);
-  for ( int dimension_index = 0; dimension_index < dimension_; ++ dimension_index ) {
-    //if ( LB [ dimension_index ] < (1 << 20) ) LB [ dimension_index ] = 0;
-    //if ( LB [ dimension_index ] >= (1 << 20) ) LB [ dimension_index ] -= (1 << 20);
-    //if ( UB [ dimension_index ] < (INTPHASEWIDTH - (1 << 20)) ) UB [ dimension_index ] += (1 << 20);
-    //if ( UB [ dimension_index ] >= (INTPHASEWIDTH - (1 << 20)) ) UB [ dimension_index ] = INTPHASEWIDTH;
-    NLB [ dimension_index ] = 0;
-    NUB [ dimension_index ] = INTPHASEWIDTH;
-  }
-  //std::cout << "C\n";
-  
-  /* Strategy. 
-   We will take the Euler Tour using a 4-state machine.
-   There are Four states.
-   0 = Just Descended. Check for an intersection.
-   1 = Descend to the left
-   2 = Descend to right 
-   3 = Rise.
-   */
-  
-  Node * N = root_;
-  char state = 0; 
-  
-  //std::cout << "D\n";
-  
-  while ( 1 ) {
-    //std::cout << "Entering Loop, state = " << (int) state << "\n";
-    //std::cout << " N = " << N << "\n";
-    if ( state == 0 ) {
-      // If we have descended here, then we should check for intersection.
-      bool intersect_flag = true;
+    std::stack < Rect > work_stack;
+    Rect R = geometric_region;
+    for ( int d = 0; d < dimension_; ++ d ) {
+      if ( periodic_ [ d ] == false ) continue;
+      if ( R . upper_bounds [ d ] > bounds_ . upper_bounds [ d ] ) {
+        R . lower_bounds [ d ] -= width [ d ];
+        R . upper_bounds [ d ] -= width [ d ];
+      }
+      if ( R . upper_bounds [d] - R . lower_bounds [ d ] > width [ d ] )
+        R . upper_bounds [ d ] = R . lower_bounds [ d ] + width [ d ];
+    }
+    
+    long periodic_long = 0;
+    for ( int d = 0; d < dimension_; ++ d ) {
+      if ( periodic_ [ d ] ) periodic_long += (1 << d );
+    }
+    
+    // loop through all 2^l periodic images, avoiding repeats
+    std::set < long > periodic_images;
+    long hypercube = 2 << dimension_;
+    for ( long k = 0; k < hypercube; ++ k ) {
+      if ( periodic_images . count ( k & periodic_long ) ) continue;
+      periodic_images . insert ( k & periodic_long );
+      Rect r = R;
       for ( int d = 0; d < dimension_; ++ d ) {
-        if ( LB[d] > NUB[d] || UB[d] < NLB [d] ) {  // INTERSECTION CHECK
-          intersect_flag = false;
-          break;
+        if ( periodic_ [ d ] == false ) continue;
+        if ( k & ( 1 << d ) ) {
+          r . lower_bounds [ d ] += width [ d ];
+          r . upper_bounds [ d ] += width [ d ];
         }
+      }
+      work_stack . push ( r );
+      std::cout << "Pushed " << r << "\n";
+    }
+    
+    std::cout << "ready to cover pushed things\n";
+    /* Use a stack, not a queue, and do depth first search.
+     The advantage of this is that we can maintain the geometry during our Euler Tour.
+     We can maintain our geometry without any roundoff error if we use the standard box
+     [0,1]^d. To avoid having to translate to real coordinates at each leaf, we instead
+     convert the input to these standard coordinates, which we put into integers. */
+    
+    while ( not work_stack . empty () ) {
+      
+      Rect GR = work_stack . top ();
+      work_stack . pop ();
+      // Step 1. Convert input to standard coordinates. 
+      Rect region ( dimension_ );
+      static std::vector<uint64_t> LB ( dimension_);
+      static std::vector<uint64_t> UB ( dimension_);
+#define INTPHASEWIDTH (((uint64_t)1) << 60)
+      static Real bignum ( INTPHASEWIDTH );
+      for ( int dimension_index = 0; dimension_index < dimension_; ++ dimension_index ) {
+        region . lower_bounds [ dimension_index ] = 
+        (GR . lower_bounds [ dimension_index ] - bounds_ . lower_bounds [ dimension_index ]) /
+        (bounds_ . upper_bounds [ dimension_index ] - bounds_ . lower_bounds [ dimension_index ]);
+        region . upper_bounds [ dimension_index ] = 
+        (GR . upper_bounds [ dimension_index ] - bounds_ . lower_bounds [ dimension_index ]) /
+        (bounds_ . upper_bounds [ dimension_index ] - bounds_ . lower_bounds [ dimension_index ]);
+        
+        if ( region . upper_bounds [ dimension_index ] < Real ( 0 ) ) return ii;
+        if ( region . lower_bounds [ dimension_index ] > Real ( 1 ) ) return ii;
+        
+        if ( region . lower_bounds [ dimension_index ] < Real ( 0 ) ) 
+          region . lower_bounds [ dimension_index ] = Real ( 0 );
+        if ( region . lower_bounds [ dimension_index ] > Real ( 1 ) ) 
+          region . lower_bounds [ dimension_index ] = Real ( 1 );
+        LB [ dimension_index ] = (uint64_t) ( bignum * region . lower_bounds [ dimension_index ] );
+        if ( region . upper_bounds [ dimension_index ] < Real ( 0 ) ) 
+          region . upper_bounds [ dimension_index ] = Real ( 0 );
+        if ( region . upper_bounds [ dimension_index ] > Real ( 1 ) ) 
+          region . upper_bounds [ dimension_index ] = Real ( 1 );
+        UB [ dimension_index ] = (uint64_t) ( bignum * region . upper_bounds [ dimension_index ] );
       }
       
-      if ( intersect_flag ) {
-        //std::cout << "Detected intersection.\n";
-        // Check if its a leaf.
-        if ( N -> left_ == NULL ) {
-          if ( N -> right_ == NULL ) {
-            // Here's what we are looking for.
-            * ii ++ = N -> contents_; // OUTPUT
-                                      //std::cout << "cover -- " << N -> contents_ << "\n";
-                                      // Issue the order to rise.
-                                      //std::cout << "Issue rise.\n";
-            state = 3;
-          } else {
-            // Issue the order to descend to the right.
-            //std::cout << "Issue descend right.\n";
-            state = 2;
-          } 
-        } else {
-          // Issue the order to descend to the left.   
-          //std::cout << "Issue descend left.\n";
-          state = 1;
-        }
-      } else {
-        // No intersection, issue order to rise.
-        //std::cout << "No intersection. \n";
-        //std::cout << "Issue Rise.\n";
-        state = 3;
-      } // intersection check complete
-    } // state 0
-    
-    if ( state == 1 ) {
-      // We have been ordered to descend to the left.
-      //std::cout << "Descend left.\n";
-      int div_dim = N -> dimension_;
-      NUB[div_dim] -= ( (NUB[div_dim]-NLB[div_dim]) >> 1 );
-      N = N -> left_;
-      state = 0;
-      continue;
-    } // state 1
-    
-    if ( state == 2 ) {
-      // We have been ordered to descend to the right.
-      //std::cout << "Descend right.\n";
-      int & div_dim = N -> dimension_;
-      NLB[div_dim] += ( (NUB[div_dim]-NLB[div_dim]) >> 1 );
-      N = N -> right_;
-      state = 0;
-      continue;
-    } // state 2
-    
-    if ( state == 3 ) {
-      // We have been ordered to rise.
-      //std::cout << "Rise.\n";
-      Node * P = N -> parent_;
-      // Can't rise if root.
-      if ( P == NULL ) break; // algorithm complete
-      int & div_dim = P -> dimension_;
-      if ( P -> left_ == N ) {
-        // This is a left child.
-        //std::cout << "We are rising from left.\n";
-        NUB[div_dim] += NUB[div_dim]-NLB[div_dim];
-        // If we rise from the left child, we order parent to go right.
-        state = 2;
-      } else {
-        // This is the right child.
-        //std::cout << "We are rising from right.\n";
-        NLB[div_dim] -= NUB[div_dim]-NLB[div_dim];
-        // If we rise from the right child, we order parent to rise.
-        state = 3;
+      // Step 2. Perform DFS on the Toplex tree, recursing whenever we have intersection,
+      //         (or adding leaf to output when we have leaf intersection)
+      static std::vector<uint64_t> NLB ( dimension_);
+      static std::vector<uint64_t> NUB ( dimension_);
+      for ( int dimension_index = 0; dimension_index < dimension_; ++ dimension_index ) {
+        //if ( LB [ dimension_index ] < (1 << 20) ) LB [ dimension_index ] = 0;
+        //if ( LB [ dimension_index ] >= (1 << 20) ) LB [ dimension_index ] -= (1 << 20);
+        //if ( UB [ dimension_index ] < (INTPHASEWIDTH - (1 << 20)) ) UB [ dimension_index ] += (1 << 20);
+        //if ( UB [ dimension_index ] >= (INTPHASEWIDTH - (1 << 20)) ) UB [ dimension_index ] = INTPHASEWIDTH;
+        NLB [ dimension_index ] = 0;
+        NUB [ dimension_index ] = INTPHASEWIDTH;
       }
-      N = P;
-    } // state 3
-    
-  } // while loop
-  return ii;
-} // cover
+      //std::cout << "C\n";
+      
+      /* Strategy. 
+       We will take the Euler Tour using a 4-state machine.
+       There are Four states.
+       0 = Just Descended. Check for an intersection.
+       1 = Descend to the left
+       2 = Descend to right 
+       3 = Rise.
+       */
+      
+      Node * N = root_;
+      char state = 0; 
+      
+      //std::cout << "D\n";
+      
+      while ( 1 ) {
+        //std::cout << "Entering Loop, state = " << (int) state << "\n";
+        //std::cout << " N = " << N << "\n";
+        if ( state == 0 ) {
+          // If we have descended here, then we should check for intersection.
+          bool intersect_flag = true;
+          for ( int d = 0; d < dimension_; ++ d ) {
+            if ( LB[d] > NUB[d] || UB[d] < NLB [d] ) {  // INTERSECTION CHECK
+              intersect_flag = false;
+              break;
+            }
+          }
+          
+          if ( intersect_flag ) {
+            //std::cout << "Detected intersection.\n";
+            // Check if its a leaf.
+            if ( N -> left_ == NULL ) {
+              if ( N -> right_ == NULL ) {
+                // Here's what we are looking for.
+                * ii ++ = N -> contents_; // OUTPUT
+                                          //std::cout << "cover -- " << N -> contents_ << "\n";
+                                          // Issue the order to rise.
+                                          //std::cout << "Issue rise.\n";
+                state = 3;
+              } else {
+                // Issue the order to descend to the right.
+                //std::cout << "Issue descend right.\n";
+                state = 2;
+              } 
+            } else {
+              // Issue the order to descend to the left.   
+              //std::cout << "Issue descend left.\n";
+              state = 1;
+            }
+          } else {
+            // No intersection, issue order to rise.
+            //std::cout << "No intersection. \n";
+            //std::cout << "Issue Rise.\n";
+            state = 3;
+          } // intersection check complete
+        } // state 0
+        
+        if ( state == 1 ) {
+          // We have been ordered to descend to the left.
+          //std::cout << "Descend left.\n";
+          int div_dim = N -> dimension_;
+          NUB[div_dim] -= ( (NUB[div_dim]-NLB[div_dim]) >> 1 );
+          N = N -> left_;
+          state = 0;
+          continue;
+        } // state 1
+        
+        if ( state == 2 ) {
+          // We have been ordered to descend to the right.
+          //std::cout << "Descend right.\n";
+          int & div_dim = N -> dimension_;
+          NLB[div_dim] += ( (NUB[div_dim]-NLB[div_dim]) >> 1 );
+          N = N -> right_;
+          state = 0;
+          continue;
+        } // state 2
+        
+        if ( state == 3 ) {
+          // We have been ordered to rise.
+          //std::cout << "Rise.\n";
+          Node * P = N -> parent_;
+          // Can't rise if root.
+          if ( P == NULL ) break; // algorithm complete
+          int & div_dim = P -> dimension_;
+          if ( P -> left_ == N ) {
+            // This is a left child.
+            //std::cout << "We are rising from left.\n";
+            NUB[div_dim] += NUB[div_dim]-NLB[div_dim];
+            // If we rise from the left child, we order parent to go right.
+            state = 2;
+          } else {
+            // This is the right child.
+            //std::cout << "We are rising from right.\n";
+            NLB[div_dim] -= NUB[div_dim]-NLB[div_dim];
+            // If we rise from the right child, we order parent to rise.
+            state = 3;
+          }
+          N = P;
+        } // state 3
+        
+      } // while loop
+    }
+    return ii;
+  } // cover
 
 template < class InsertIterator > inline InsertIterator
 Toplex::cover ( InsertIterator ii, const Prism & P ) const {
@@ -860,6 +911,7 @@ Toplex::subdivide ( InsertIterator ii, GridElement divide_me ) {
 template < class InsertIterator >
 inline InsertIterator
 Toplex::subdivide ( InsertIterator ii, iterator cell_to_divide ) {
+  std::cout << "Subdivide: called on cell " << *cell_to_divide << "\n";
   std::deque < std::pair < const_iterator, int > > work_deque;
   work_deque . push_back ( std::pair < const_iterator, int >
                           (cell_to_divide,
@@ -891,7 +943,7 @@ Toplex::subdivide ( InsertIterator ii, iterator cell_to_divide ) {
                                work_pair . second + 1 ) );
     } else {
       work_pair . first . node_ -> dimension_ = 0;
-      //std::cout << "subdivide: inserting " << work_pair . first . node_ -> contents_ << "\n";
+      std::cout << "subdivide: inserting " << work_pair . first . node_ -> contents_ << "\n";
       * ii ++ = work_pair . first . node_ -> contents_;
     } /* if-else */
   } /* while */
@@ -901,10 +953,13 @@ Toplex::subdivide ( InsertIterator ii, iterator cell_to_divide ) {
 template < class InsertIterator, class Container >
 inline InsertIterator
 Toplex::subdivide ( InsertIterator ii, const Container & subset_to_divide ) {
+  std::cout << " ENTER \n";
   BOOST_FOREACH ( GridElement cell, subset_to_divide ) {
     //std::cout << "subdividing " << cell << "\n";
     ii = subdivide ( ii, find ( cell ) );
   }
+  std::cout << " EXIT \n";
+
   return ii;
 }
 
@@ -1055,7 +1110,7 @@ inline void Toplex::relativeComplex ( RelativePair * pair,
   X . bounds () = bounds ();
   uint32_t width = 1 << depth;
   std::vector < uint32_t > dimension_sizes ( dimension (), width );
-  X . initialize ( dimension_sizes );
+  X . initialize ( dimension_sizes, periodic_ );
   
   //std::cout << "relativeComplex.\n";
   //std::cout << "XGridElements:\n";
@@ -1108,6 +1163,7 @@ inline void Toplex::relativeComplex ( RelativePair * pair,
 inline void Toplex::initialize ( const Rect & outer_bounds_of_toplex ) {
   if ( root_ != NULL ) clear ();
   dimension_ = outer_bounds_of_toplex . lower_bounds . size ();
+  periodic_ . resize ( dimension_, false );
   bounds_ = outer_bounds_of_toplex;
   root_ = new Node;
   tree_size_ = 1;
@@ -1115,6 +1171,12 @@ inline void Toplex::initialize ( const Rect & outer_bounds_of_toplex ) {
   begin_ = const_iterator ( root_ );
   find_ . push_back ( begin_ );
 } /* Adaptive_Cubical::Toplex::initialize */
+
+inline void Toplex::initialize ( const Rect & outer_bounds_of_toplex,
+                                const std::vector < bool > & periodic ) {
+  initialize ( outer_bounds_of_toplex );
+  periodic_ = periodic;
+}
 
 inline Toplex::Toplex ( void ) {
   end_ = const_iterator ( NULL );

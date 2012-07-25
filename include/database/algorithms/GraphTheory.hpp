@@ -248,6 +248,29 @@ void compute_morse_sets (std::vector< CellContainer > * output,
   
 }
 
+
+/* computeMorseSetsAndReachability */
+template < class Graph, class CellContainer >
+void computeMorseSetsAndReachability (std::vector< CellContainer > * output,
+                                      std::vector<std::vector<unsigned int> > * reach,
+                                      const Graph & G ) {
+  //std::cout << "compute_morse_sets new\n";
+  typedef typename Graph::size_type size_type;
+  std::vector<std::vector< size_type > > untranslated;
+  output -> clear ();
+  
+  /* Produce Strong Components and Reachability */
+  std::vector< size_type > topological_sort;
+  compute_strong_components ( &untranslated, G, &topological_sort );
+  compute_reachability ( reach, untranslated, G, topological_sort );  
+
+  /* Translate to Grid Elements */
+  BOOST_FOREACH ( std::vector < size_type > & translate_me, untranslated ) {
+    output -> push_back ( CellContainer () );
+    G . leaves ( & (output -> back ()), translate_me );
+  }
+}
+
 #endif
 
 
@@ -321,13 +344,15 @@ void compute_strong_components (std::vector<std::vector<typename OutEdgeGraph::s
       
       Edge S = dfs_stack . back ();
       ++effort;
-      //std::cout << "Top = (" << dfs_stack. back () . first << ", " << dfs_stack. back () . second << ")\n";
+      
+      std::cout << "Top = (" << dfs_stack. back () . first << ", " << dfs_stack. back () . second << ")\n";
+      
       size_type & v = S . second;
       if ( index [ v ] == sentinel ) {
         // FIRST VISIT
-        //std::cout << "First visit to vertex " << v << ".\n";
+        std::cout << "First visit to vertex " << v << ".\n";
         index [ v ] = current_index;
-        //std::cout << "index [ " << v << " ] := " << index[v] << "\n";
+        std::cout << "index [ " << v << " ] := " << index[v] << "\n";
         size_type lowlink = current_index;
         component . push ( v );
         ++ current_index;
@@ -339,7 +364,7 @@ void compute_strong_components (std::vector<std::vector<typename OutEdgeGraph::s
         // Work through children
         BOOST_FOREACH ( size_type w, children ) {
           ++ effort;
-          //std::cout << "Inspecting edge (" << v << ", " << w << ")\n";
+          std::cout << "Inspecting edge (" << v << ", " << w << ")\n";
           if ( w == v ) {
             // Self-edge. For Path-SCC, we will want to know about this.
             // We store a special lowlink code, which will be read last
@@ -359,22 +384,22 @@ void compute_strong_components (std::vector<std::vector<typename OutEdgeGraph::s
       } else {
         if ( lowlink_stack . top () . first != v ) {
           // THIRD VISIT OR LATER
-          //std::cout << "Later visit to vertex " << v << ".\n";
+          std::cout << "Later visit to vertex " << v << ".\n";
           dfs_stack . pop_back ();
           continue;
         }
         // SECOND VISIT.
-        //std::cout << "Second visit to vertex " << v << ".\n";
+        std::cout << "Second visit to vertex " << v << ".\n";
         bool self_connected = false;
         // Read the lowlinks of the children off from the stack
         size_type lowlink = index [ v ];
         while ( lowlink_stack . top () . first == v ) {
-          //std::cout << "Popping (" << lowlink_stack . top () . first << ", " << lowlink_stack . top () . second << ") from lowlink stack\n";
+          std::cout << "Popping (" << lowlink_stack . top () . first << ", " << lowlink_stack . top () . second << ") from lowlink stack\n";
           if ( lowlink_stack . top () . second == sentinel ) self_connected = true;
           lowlink = std::min ( lowlink, lowlink_stack . top () . second );
           lowlink_stack . pop ();
         }
-        //std::cout << "(Index, Lowlink) = " << index [ v ] << ", " << lowlink << "\n";
+        std::cout << "(Index, Lowlink) = " << index [ v ] << ", " << lowlink << "\n";
         // Now push the lowlink onto the stack for parent
         size_type & w = S . first; // Parent in DFS tree.
         if ( w != sentinel ) {
@@ -396,11 +421,11 @@ void compute_strong_components (std::vector<std::vector<typename OutEdgeGraph::s
           // mark them as committed, and send them to the output.
           std::vector < size_type > SCC;
           while ( component . top () != v ) {
-            //std::cout << "Popping vertex " << component . top () << " (index = " << index[component.top()] << ") from component stack\n";
+            std::cout << "Popping vertex " << component . top () << " (index = " << index[component.top()] << ") from component stack\n";
             SCC . push_back ( component . top () );
             component . pop ();
           }
-          //std::cout << "Final: Popping vertex " << component . top () << " (index = " << index[component.top()] << ") from component stack\n";
+          std::cout << "Final: Popping vertex " << component . top () << " (index = " << index[component.top()] << ") from component stack\n";
           SCC . push_back ( component . top () );
           component . pop (); // DRY style mistake, fix?
           // Mark the vertices in the component as committed to an SCC

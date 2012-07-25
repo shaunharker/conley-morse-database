@@ -12,7 +12,7 @@
 
 // To get SCC chatter
 #define CMG_VERBOSE 
-//#define DO_CONLEY_INDEX
+#define DO_CONLEY_INDEX
 //#define NOREACHABILITY
 #define VISUALIZE_DEBUG
 #define ILLUSTRATE
@@ -41,13 +41,56 @@ using namespace chomp;
 // choose example
 //#define LORENZ
 #define TWODIMLESLIE
+//#define TWODIMLESLIEPRISMCAPD
 //#define PRISMLESLIE
 //#define FIVEDIMPRISMLESLIE
 
 int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 12;
-int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 15;
+int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 16;
 int SINGLECMG_COMPLEXITY_LIMIT = 10000;
 
+
+#ifdef TWODIMLESLIEPRISMCAPD
+#include "data/leslie12prism2/ModelMap.h"
+Rect initialize_phase_space_box ( void ) {
+  // Two dimensional phase space
+  // [0, 320.056] x [0.0, 224.040]
+  //  int phase_space_dimension = 2;
+  int phase_space_dimension = 2;
+  Rect phase_space_bounds ( phase_space_dimension );
+  phase_space_bounds . lower_bounds [ 0 ] = 0.0;
+  phase_space_bounds . upper_bounds [ 0 ] = 320.056;
+  phase_space_bounds . lower_bounds [ 1 ] = 0.0;
+  phase_space_bounds . upper_bounds [ 1 ] = 224.040;
+  std::cout << "Phase Space Bounds = " << phase_space_bounds << "\n";
+  return phase_space_bounds;
+}
+
+Rect initialize_parameter_space_box ( const Real bx, const Real by ) {
+  // Two dimensional parameter space
+  // A box chosen from [8, 37] x [3, 50]
+  int parameter_space_dimension = 2;
+  Rect parameter_space_limits ( parameter_space_dimension ); 
+  parameter_space_limits . lower_bounds [ 0 ] = 8.0; 
+  parameter_space_limits . upper_bounds [ 0 ] = 37.0;
+  parameter_space_limits . lower_bounds [ 1 ] = 3.0;
+  parameter_space_limits . upper_bounds [ 1 ] = 50.0;
+  int PARAMETER_BOXES = 64;
+  Rect parameter_box ( parameter_space_dimension );
+  parameter_box . lower_bounds [ 0 ] = parameter_space_limits . lower_bounds [ 0 ] + 
+  ( parameter_space_limits . upper_bounds [ 0 ] - parameter_space_limits . lower_bounds [ 0 ] ) * bx / (float) PARAMETER_BOXES;
+  parameter_box . upper_bounds [ 0 ] = parameter_space_limits . lower_bounds [ 0 ] + 
+  ( parameter_space_limits . upper_bounds [ 0 ] - parameter_space_limits . lower_bounds [ 0 ] ) * ( bx + 1.0 ) / (float) PARAMETER_BOXES;
+  parameter_box . lower_bounds [ 1 ] = parameter_space_limits . lower_bounds [ 1 ] + 
+  ( parameter_space_limits . upper_bounds [ 1 ] - parameter_space_limits . lower_bounds [ 1 ] ) * by / (float) PARAMETER_BOXES;
+  parameter_box . upper_bounds [ 1 ] = parameter_space_limits . lower_bounds [ 1 ] + 
+  ( parameter_space_limits . upper_bounds [ 1 ] - parameter_space_limits . lower_bounds [ 1 ] ) * ( by + 1.0 ) / (float) PARAMETER_BOXES;
+  std::cout << "Parameter Box Choice = " << parameter_box << "\n";
+  
+  return parameter_box;
+}
+
+#endif
 
 #ifdef FIVEDIMPRISMLESLIE
 #include "database/maps/leslie5d.h"
@@ -670,12 +713,10 @@ int main ( int argc, char * argv [] )
   /* INITIALIZE PHASE SPACE */
   Toplex phase_space;
   phase_space . initialize ( phase_space_bounds );
-  
-  phase_space . subdivide ();
-  phase_space . subdivide ();
-  phase_space . subdivide ();
-  phase_space . subdivide ();
-  
+  //phase_space . subdivide ();
+  //phase_space . subdivide ();
+  //phase_space . subdivide ();
+  //phase_space . subdivide ();  
   /* INITIALIZE MAP */
   ModelMap map ( parameter_box );
   
@@ -698,7 +739,7 @@ int main ( int argc, char * argv [] )
   /* DRAW MORSE SETS */
   DrawMorseSets ( phase_space, conley_morse_graph );
 
-  output_cubes ( phase_space, conley_morse_graph );
+  //output_cubes ( phase_space, conley_morse_graph );
   
   /* OUTPUT MORSE GRAPH */
   CreateDotFile ( conley_morse_graph );
@@ -756,8 +797,11 @@ void CreateDotFile ( const CMG & cmg ) {
        ++ estart ) {
     V source = estart -> first; 
     V target = estart -> second; 
+    //std::cout << "I see (" << source << ", " << target << ")\n";
     int index_source = vertex_to_index [ source ];
     int index_target = vertex_to_index [ target ];
+    //std::cout << "I see indexed (" << index_source << ", " << index_target << ")\n";
+
     if ( index_source != index_target ) // Cull the self-edges
       edges . insert ( std::make_pair ( index_source, index_target ) );
   }

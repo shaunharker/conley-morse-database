@@ -58,6 +58,10 @@ void compute_morse_sets (std::vector< CellContainer > * output,
                          const Graph & G, 
                          /* optional output */ MorseGraph * MG = NULL);
 
+template < class Graph, class CellContainer >
+void computeMorseSetsAndReachability (std::vector< CellContainer > * output,
+                                      std::vector<std::vector<unsigned int> > * reach,
+                                      const Graph & G );
 #endif
 
 /** compute_strong_components */
