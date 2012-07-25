@@ -8,6 +8,7 @@
 #include "boost/foreach.hpp"
 #include "database/algorithms/GraphTheory.h"
 #include "database/structures/MapGraph.h"
+
 #include <ctime>
 
 #ifdef DO_CONLEY_INDEX
@@ -115,6 +116,16 @@ public:
       }
       children . clear ();
       reachability . clear ();
+      
+#ifdef DO_CONLEY_INDEX
+      using namespace chomp;
+      ConleyIndex_t output;
+      ConleyIndex ( &output,
+                   *phase_space, 
+                   set,
+                   interval_map );
+#endif
+
     }
     std::cout << "Returning from depth " << depth << ".\n";
   }

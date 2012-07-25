@@ -152,12 +152,12 @@ MapGraph<Toplex,Map,CellContainer>::
 adjacencies ( const size_type & source ) const {
   std::vector < size_type > result;
   Vertex domain_cell = lookup ( source );
-  std::cout << "source = " << source << " and top cell = " << domain_cell << "\n";
+  //std::cout << "source = " << source << " and top cell = " << domain_cell << "\n";
   CellContainer children;
   std::insert_iterator < CellContainer > cii ( children, children . begin () );
   toplex_ . children ( cii, domain_cell );
   if ( children . empty () ) {
-    std::cout << "geo(" << domain_cell << ") = " << toplex_ . geometry ( domain_cell ) << "\n";
+    //std::cout << "geo(" << domain_cell << ") = " << toplex_ . geometry ( domain_cell ) << "\n";
     CellContainer image;
     std::insert_iterator < CellContainer > ii ( image, image . begin () );
     toplex_ . cover ( ii, f_ ( toplex_ . geometry ( domain_cell ) ) ); // here is the work

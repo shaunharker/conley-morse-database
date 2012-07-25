@@ -386,8 +386,10 @@ inline Rect Toplex::geometry ( const GridElement & cell  ) const {
   inline InsertIterator
   Toplex::cover ( InsertIterator ii, const Rect & geometric_region ) const {
     //std::cout << "Rect version of Cover\n";
-    std::cout << "Covering " << geometric_region << "\n";
+    //std::cout << "Covering " << geometric_region << "\n";
     // Deal with periodicity
+    
+    std::set < GridElement > redundancy_check;
     
     std::vector < double > width ( dimension_ );
     for ( int d = 0; d < dimension_; ++ d ) {
@@ -426,10 +428,10 @@ inline Rect Toplex::geometry ( const GridElement & cell  ) const {
         }
       }
       work_stack . push ( r );
-      std::cout << "Pushed " << r << "\n";
+      //std::cout << "Pushed " << r << "\n";
     }
     
-    std::cout << "ready to cover pushed things\n";
+    //std::cout << "ready to cover pushed things\n";
     /* Use a stack, not a queue, and do depth first search.
      The advantage of this is that we can maintain the geometry during our Euler Tour.
      We can maintain our geometry without any roundoff error if we use the standard box
@@ -437,9 +439,10 @@ inline Rect Toplex::geometry ( const GridElement & cell  ) const {
      convert the input to these standard coordinates, which we put into integers. */
     
     while ( not work_stack . empty () ) {
-      
+      //std::cout << "Top of cover loop. Size of work stack = " << work_stack . size () << "\n";
       Rect GR = work_stack . top ();
       work_stack . pop ();
+      //std::cout << "Trying to cover " << GR << "\n";
       // Step 1. Convert input to standard coordinates. 
       Rect region ( dimension_ );
       static std::vector<uint64_t> LB ( dimension_);
@@ -454,8 +457,8 @@ inline Rect Toplex::geometry ( const GridElement & cell  ) const {
         (GR . upper_bounds [ dimension_index ] - bounds_ . lower_bounds [ dimension_index ]) /
         (bounds_ . upper_bounds [ dimension_index ] - bounds_ . lower_bounds [ dimension_index ]);
         
-        if ( region . upper_bounds [ dimension_index ] < Real ( 0 ) ) return ii;
-        if ( region . lower_bounds [ dimension_index ] > Real ( 1 ) ) return ii;
+        if ( region . upper_bounds [ dimension_index ] < Real ( 0 ) ) continue;
+        if ( region . lower_bounds [ dimension_index ] > Real ( 1 ) ) continue;
         
         if ( region . lower_bounds [ dimension_index ] < Real ( 0 ) ) 
           region . lower_bounds [ dimension_index ] = Real ( 0 );
@@ -516,7 +519,13 @@ inline Rect Toplex::geometry ( const GridElement & cell  ) const {
             if ( N -> left_ == NULL ) {
               if ( N -> right_ == NULL ) {
                 // Here's what we are looking for.
-                * ii ++ = N -> contents_; // OUTPUT
+                if ( redundancy_check . count ( N -> contents_ ) == 0 ) {
+                  * ii ++ = N -> contents_; // OUTPUT
+                                            //std::cout << "output " << N -> contents_ << "\n";
+                  redundancy_check . insert ( N -> contents_ ); 
+                } else {
+                  //std::cout << "redundant!\n";
+                }
                                           //std::cout << "cover -- " << N -> contents_ << "\n";
                                           // Issue the order to rise.
                                           //std::cout << "Issue rise.\n";
@@ -911,7 +920,7 @@ Toplex::subdivide ( InsertIterator ii, GridElement divide_me ) {
 template < class InsertIterator >
 inline InsertIterator
 Toplex::subdivide ( InsertIterator ii, iterator cell_to_divide ) {
-  std::cout << "Subdivide: called on cell " << *cell_to_divide << "\n";
+  //std::cout << "Subdivide: called on cell " << *cell_to_divide << "\n";
   std::deque < std::pair < const_iterator, int > > work_deque;
   work_deque . push_back ( std::pair < const_iterator, int >
                           (cell_to_divide,
@@ -943,7 +952,7 @@ Toplex::subdivide ( InsertIterator ii, iterator cell_to_divide ) {
                                work_pair . second + 1 ) );
     } else {
       work_pair . first . node_ -> dimension_ = 0;
-      std::cout << "subdivide: inserting " << work_pair . first . node_ -> contents_ << "\n";
+      //std::cout << "subdivide: inserting " << work_pair . first . node_ -> contents_ << "\n";
       * ii ++ = work_pair . first . node_ -> contents_;
     } /* if-else */
   } /* while */
@@ -953,12 +962,12 @@ Toplex::subdivide ( InsertIterator ii, iterator cell_to_divide ) {
 template < class InsertIterator, class Container >
 inline InsertIterator
 Toplex::subdivide ( InsertIterator ii, const Container & subset_to_divide ) {
-  std::cout << " ENTER \n";
+  //std::cout << " ENTER \n";
   BOOST_FOREACH ( GridElement cell, subset_to_divide ) {
     //std::cout << "subdividing " << cell << "\n";
     ii = subdivide ( ii, find ( cell ) );
   }
-  std::cout << " EXIT \n";
+  //std::cout << " EXIT \n";
 
   return ii;
 }
