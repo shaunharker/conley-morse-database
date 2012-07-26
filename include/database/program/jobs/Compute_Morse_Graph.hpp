@@ -118,12 +118,14 @@ public:
       reachability . clear ();
       
 #ifdef DO_CONLEY_INDEX
+      if ( not spurious ) {
       using namespace chomp;
       ConleyIndex_t output;
       ConleyIndex ( &output,
                    *phase_space, 
                    set,
                    interval_map );
+      }
 #endif
 
     }
