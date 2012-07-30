@@ -20,7 +20,7 @@ void Conley_Index_Job ( Message * result , const Message & job ) {
   int PHASE_SUBDIV_MAX;
   int PHASE_SUBDIV_LIMIT;
   Rect PHASE_BOUNDS;
-
+  std::vector < bool > PERIODIC;
   job >> job_number;
   job >> geo;
   job >> ms;
@@ -28,6 +28,7 @@ void Conley_Index_Job ( Message * result , const Message & job ) {
   job >> PHASE_SUBDIV_MAX;
   job >> PHASE_SUBDIV_LIMIT;
   job >> PHASE_BOUNDS;
+  job >> PERIODIC;
   
   //std::cout << "CIJ: job_number = " << job_number << "  (" << ms . first << ", " << ms . second << ")\n";
 
@@ -37,7 +38,7 @@ void Conley_Index_Job ( Message * result , const Message & job ) {
   CMGraph cmg;
   
   Toplex phase_space;
-  phase_space . initialize ( PHASE_BOUNDS );
+  phase_space . initialize ( PHASE_BOUNDS, PERIODIC );
   
   //std::cout << "CIJ: geo = " << geo << "\n";
   

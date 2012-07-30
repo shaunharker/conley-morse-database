@@ -3,12 +3,12 @@ include makefile.config
 
 COMPUTE_MORSE_SETS := yes
 COMPUTE_CONLEY_INDEX := no
-PARAM_SPACE_METHOD := EDGEMETHOD
+PARAM_SPACE_METHOD := PATCHMETHOD
 
 CXXFLAGS += -D $(PARAM_SPACE_METHOD)
 
 .PHONY: all
-all: Conley_Morse_Database PostProcessDatabase SingleCMG
+all: Conley_Morse_Database
 
 # pattern rule for compilation
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
@@ -47,6 +47,12 @@ SINGLECMG += ./build/tools/lodepng/lodepng.o
 SingleCMG: $(SINGLECMG)
 	$(CC) $(LDFLAGS) $(SINGLECMG) -o $@ $(LDLIBS)
 
+HENONCMG := ./build/test/HenonCMG.o
+HENONCMG += ./build/tools/picture.o
+HENONCMG += ./build/tools/lodepng/lodepng.o
+HenonCMG: $(HENONCMG)
+	$(CC) $(LDFLAGS) $(HENONCMG) -o $@ $(LDLIBS)
+
 NEWTONCMG := ./build/test/NewtonCMG.o
 NEWTONCMG += ./build/tools/picture.o
 NEWTONCMG += ./build/tools/lodepng/lodepng.o
@@ -66,7 +72,6 @@ clean:
 	find ./build -name "*.so" -delete
 	rm -f Conley_Morse_Database
 	rm -f SingleCMG
-	rm -f PostProcessDatabase
 	rm -f ExportXML
 	rm -f NewtonCMG
 

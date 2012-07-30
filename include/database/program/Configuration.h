@@ -43,6 +43,7 @@ public:
   int PHASE_SUBDIV_MAX;
   int PHASE_SUBDIV_LIMIT;
   Rect PHASE_BOUNDS; 
+  std::vector<bool> PERIODIC;
   
   // Loading
   void loadFromFile ( const char * filename ) {
@@ -109,6 +110,21 @@ public:
       phase_lbss >> PHASE_BOUNDS . lower_bounds [ d ];
       phase_ubss >> PHASE_BOUNDS . upper_bounds [ d ];
     }
+    
+    PERIODIC . resize ( PHASE_DIM, false );
+    if ( pt.find("config.phase.periodic") != pt.not_found() ) {
+      
+      
+      std::string phase_periodic = pt.get<std::string>("config.phase.periodic");
+      std::stringstream phase_periodic_ss ( phase_periodic );
+      
+      for ( int d = 0; d < PHASE_DIM; ++ d ) {
+        int x;
+        phase_periodic_ss >> x;
+        PERIODIC [ d ] = (bool) x;
+      }
+    }
+
     
   }
   

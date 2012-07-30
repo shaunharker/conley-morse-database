@@ -21,22 +21,22 @@ struct ModelMap {
    0 c ];
    B = R^{-1}_\theta [ a 0; 0 b ] R_\theta
    */
-  ModelMap ( const Rect & rectangle ) {
+  ModelMap ( const chomp::Rect & rectangle ) {
     a = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ]);
     b = interval (rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ]);
     c = interval (rectangle . lower_bounds [ 2 ], rectangle . upper_bounds [ 2 ]);
     phi = interval (rectangle . lower_bounds [ 3 ], rectangle . upper_bounds [ 3 ]);
     return;
   }
-  Rect operator () 
-  ( const Rect & rectangle ) const {    
+  chomp::Rect operator () 
+  ( const chomp::Rect & rectangle ) const {    
     /* Read input */
     interval theta = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ]);
     
     interval x = interval ( 1.0 ) + ( interval ( 1.0 ) - c ) * sin ( theta ) * sin ( theta );
     interval y = (a + b ) * 0.5 + ( a - b ) * 0.5 * cos ( 2.0 * ( phi + theta ) );
     
-    const Real pi = 3.1415926535897932384626433832795;
+    const chomp::Real pi = 3.1415926535897932384626433832795;
      
     double A = x . lower ();
     double B = x . upper ();
@@ -48,7 +48,7 @@ struct ModelMap {
     double t3 = atan2 ( D, B );
     double t4 = atan2 ( D, A );
     
-    Rect return_value ( 1 );
+    chomp::Rect return_value ( 1 );
     
     if ( C*D < 0.0 ) {
       if ( A*B < 0.0 ) {

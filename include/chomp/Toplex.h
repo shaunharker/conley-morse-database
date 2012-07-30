@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <stack>
+#include <boost/unordered_set.hpp>
 
 #include "chomp/Rect.h"
 #include "chomp/Prism.h"
@@ -389,7 +390,7 @@ inline Rect Toplex::geometry ( const GridElement & cell  ) const {
     //std::cout << "Covering " << geometric_region << "\n";
     // Deal with periodicity
     
-    std::set < GridElement > redundancy_check;
+    boost::unordered_set < GridElement > redundancy_check;
     
     std::vector < double > width ( dimension_ );
     for ( int d = 0; d < dimension_; ++ d ) {
@@ -449,6 +450,7 @@ inline Rect Toplex::geometry ( const GridElement & cell  ) const {
       static std::vector<uint64_t> UB ( dimension_);
 #define INTPHASEWIDTH (((uint64_t)1) << 60)
       static Real bignum ( INTPHASEWIDTH );
+      bool out_of_bounds = false;
       for ( int dimension_index = 0; dimension_index < dimension_; ++ dimension_index ) {
         region . lower_bounds [ dimension_index ] = 
         (GR . lower_bounds [ dimension_index ] - bounds_ . lower_bounds [ dimension_index ]) /
@@ -457,9 +459,12 @@ inline Rect Toplex::geometry ( const GridElement & cell  ) const {
         (GR . upper_bounds [ dimension_index ] - bounds_ . lower_bounds [ dimension_index ]) /
         (bounds_ . upper_bounds [ dimension_index ] - bounds_ . lower_bounds [ dimension_index ]);
         
-        if ( region . upper_bounds [ dimension_index ] < Real ( 0 ) ) continue;
-        if ( region . lower_bounds [ dimension_index ] > Real ( 1 ) ) continue;
-        
+        if (region . upper_bounds [ dimension_index ] < Real ( 0 ) ||
+            region . lower_bounds [ dimension_index ] > Real ( 1 ) )  {
+          out_of_bounds = true;
+          break;
+        }
+        //std::cout << "dim " << dimension_index << ": [" << region . lower_bounds [ dimension_index ] << ", " << region . upper_bounds [ dimension_index ] << "]\n";
         if ( region . lower_bounds [ dimension_index ] < Real ( 0 ) ) 
           region . lower_bounds [ dimension_index ] = Real ( 0 );
         if ( region . lower_bounds [ dimension_index ] > Real ( 1 ) ) 
@@ -471,7 +476,7 @@ inline Rect Toplex::geometry ( const GridElement & cell  ) const {
           region . upper_bounds [ dimension_index ] = Real ( 1 );
         UB [ dimension_index ] = (uint64_t) ( bignum * region . upper_bounds [ dimension_index ] );
       }
-      
+      if ( out_of_bounds ) continue;
       // Step 2. Perform DFS on the Toplex tree, recursing whenever we have intersection,
       //         (or adding leaf to output when we have leaf intersection)
       static std::vector<uint64_t> NLB ( dimension_);
@@ -522,10 +527,8 @@ inline Rect Toplex::geometry ( const GridElement & cell  ) const {
                 if ( redundancy_check . count ( N -> contents_ ) == 0 ) {
                   * ii ++ = N -> contents_; // OUTPUT
                                             //std::cout << "output " << N -> contents_ << "\n";
-                  redundancy_check . insert ( N -> contents_ ); 
-                } else {
-                  //std::cout << "redundant!\n";
-                }
+                            redundancy_check . insert ( N -> contents_ ); 
+                                            }
                                           //std::cout << "cover -- " << N -> contents_ << "\n";
                                           // Issue the order to rise.
                                           //std::cout << "Issue rise.\n";

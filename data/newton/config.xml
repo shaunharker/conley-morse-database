@@ -1,28 +1,29 @@
 <config>
 <model>
-  <name>Leslie Model 14/18</name>
-  <desc> This is a description. </desc>
+  <name>Newton Model </name>
+  <desc> Exploring the limit of iterates in newton convergence. </desc>
 </model>
 <param>
-  <dim> 2 </dim>
+  <dim> 4 </dim>
   <bounds>
-    <lower> 8.0 3.0 </lower>
-    <upper> 37.0 50.0 </upper>
+    <lower> -1.0 -1.0 -1.0 -3.142</lower>
+    <upper> 1.0 1.0 1.0 3.142</upper>
   </bounds>
   <subdiv>
-    <depth> 6 </depth>
+    <depth> 4 </depth>
   </subdiv>
 </param>
 <phase>
-  <dim> 2 </dim>
+  <dim> 1 </dim>
   <bounds>
-    <lower> 0.0 0.0 </lower>
-    <upper> 320.056 224.040 </upper>
+    <lower> -3.14159265358979323846264338327950288 </lower>
+    <upper> 3.14159265358979323846264338327950288 </upper>
   </bounds>
   <subdiv>
-    <min> 14 </min>
-    <max> 18 </max>
+    <min> 10 </min>
+    <max> 15 </max>
     <limit> 10000 </limit>
   </subdiv>
+  <periodic> 1 </periodic>
 </phase>
 </config>

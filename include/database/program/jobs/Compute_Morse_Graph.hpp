@@ -38,7 +38,8 @@ std::cout << ".\n";
 
 #endif
 
-#ifndef CMG_VERBOSE_PRINT(x) 
+#ifndef CMG_VERBOSE
+#define CMG_VERBOSE_PRINT(x)  if(0){std::cout << x;}
 #define CMG_VERBOSE_START_CLOCK
 #define CMG_VERBOSE_REPORT_CLOCK
 #define CMG_VERBOSE_REPORT_MORSE_SETS
@@ -72,7 +73,7 @@ public:
                       const unsigned int Limit,
                       const unsigned int depth,
                       const CellContainer & set ) : set(set) {
-    std::cout << "Depth = " << depth << "\n";
+    CMG_VERBOSE_PRINT("Depth = " << depth << "\n");
     typedef MapGraph<Toplex,Map,CellContainer> Graph;  
     // Check subdivision condition.
     if ( depth >= Min && ( set . size () > Limit || depth >= Max ) ) {
@@ -103,13 +104,13 @@ public:
       children . push_back ( child );
       if ( not child -> spurious ) spurious = false;
       if ( not spurious && depth >= Min ) {
-        std::cout << "Not spurious.\n";
+        CMG_VERBOSE_PRINT("Not spurious.\n");
         break;
       }
     }
     // If deeper than min, erase sub-hierarchy and coarsen grid.
     if ( depth == Min ) {
-      std::cout << "Coarsening to min-level\n";
+      CMG_VERBOSE_PRINT("Coarsening to min-level\n");
       phase_space -> coarsen ( set );
       BOOST_FOREACH ( const MorseDecomposition * child, children ) {
         delete child;
@@ -129,7 +130,7 @@ public:
 #endif
 
     }
-    std::cout << "Returning from depth " << depth << ".\n";
+    CMG_VERBOSE_PRINT("Returning from depth " << depth << ".\n");
   }
   ~MorseDecomposition ( void ) {
     BOOST_FOREACH ( const MorseDecomposition * child, children ) {

@@ -222,7 +222,7 @@ int MorseProcess::prepare ( Message & job ) {
   job << config.PHASE_SUBDIV_MAX;
   job << config.PHASE_SUBDIV_LIMIT;
   job << config.PHASE_BOUNDS;
-
+  job << config.PERIODIC;
   /// Increment the jobs_sent counter
   ++num_jobs_sent_;
   
