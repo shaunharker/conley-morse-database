@@ -11,7 +11,7 @@
 #include <map>
 
 // To get SCC chatter
-#define CMG_VERBOSE 
+//#define CMG_VERBOSE 
 #define DO_CONLEY_INDEX
 
 // HEADERS FOR DATA STRUCTURES
@@ -35,8 +35,8 @@ using namespace chomp;
 
 // SUBDIVISION RULES
 
-int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 15;
-int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 20;
+int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 12;
+int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 17;
 int SINGLECMG_COMPLEXITY_LIMIT = 10000;
 
 // MAP INFORMATION
@@ -55,18 +55,20 @@ Rect initialize_phase_space_box ( void ) {
   return phase_space_bounds;
 }
 
-Rect initialize_parameter_space_box ( void ) {
+Rect initialize_parameter_space_box ( double bx, double by, double width = .5 ) {
   const Real pi = 3.1415926535897932384626433832795;
   int parameter_space_dimension = 4;
+  double step = 1.0/32.0;
   Rect parameter_space_limits ( parameter_space_dimension ); 
-  parameter_space_limits . lower_bounds [ 0 ] = 1.0; 
-  parameter_space_limits . upper_bounds [ 0 ] = 1.0;
-  parameter_space_limits . lower_bounds [ 1 ] = -1.0;
-  parameter_space_limits . upper_bounds [ 1 ] = -1.0;
-  parameter_space_limits . lower_bounds [ 2 ] = 1.0;
-  parameter_space_limits . upper_bounds [ 2 ] = 1.0;
-  parameter_space_limits . lower_bounds [ 3 ] = -pi / 4.0;
-  parameter_space_limits . upper_bounds [ 3 ] = -pi / 4.0;
+  parameter_space_limits . lower_bounds [ 0 ] = (0.5 - width + bx) * step; 
+  parameter_space_limits . upper_bounds [ 0 ] = (0.5 + width + bx) * step;
+  parameter_space_limits . lower_bounds [ 1 ] = (0.5 - width + by) * step;
+  parameter_space_limits . upper_bounds [ 1 ] = (0.5 + width + by) * step;
+  parameter_space_limits . lower_bounds [ 2 ] = .7;//1.0;
+  parameter_space_limits . upper_bounds [ 2 ] = .7;//1.0;
+  parameter_space_limits . lower_bounds [ 3 ] = 1.5;//-pi / 4.0;
+  parameter_space_limits . upper_bounds [ 3 ] = 1.5;//-pi / 4.0;
+  std::cout << "Parameter Space Bounds = " << parameter_space_limits << "\n";
   return parameter_space_limits;
 }
 
@@ -91,8 +93,18 @@ int main ( int argc, char * argv [] )
   Rect phase_space_bounds = initialize_phase_space_box ();
 
   /* SET PARAMETER SPACE REGION */
-  Rect parameter_box = initialize_parameter_space_box ();
-
+  int bx = atoi ( argv [ 1 ] );
+  int by = atoi ( argv [ 2 ] );
+  Rect parameter_box;
+  if ( argc == 3 ) {
+    parameter_box = initialize_parameter_space_box (bx, by);
+  } else if ( argc == 4 ) {
+    double width = atof ( argv [ 3 ] );
+    parameter_box = initialize_parameter_space_box (bx, by, width);
+  } else {
+    std::cout << argc << "\n";
+    abort ();
+  }
   /* INITIALIZE PHASE SPACE */
   Toplex phase_space;
   phase_space . initialize ( phase_space_bounds, std::vector<bool>(1,true) );
