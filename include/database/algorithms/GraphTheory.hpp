@@ -569,3 +569,33 @@ void compute_reachability ( std::vector < std::vector < unsigned int > > * outpu
   } // for groups
   DEBUGPRINT std::cout << "reach effort = " << effort << "\n";
 } /* compute_reachability */
+
+/*
+template < class OutEdgeGraph >
+void find_short_cycles (std::vector<std::vector<typename OutEdgeGraph::size_type> > * output, 
+                        const OutEdgeGraph & G,
+                        int length ) {
+  typedef typename OutEdgeGraph::size_type size_type;
+  typedef std::pair<size_type, size_type> Edge;
+  const size_type sentinel = G . sentinel ();
+  
+  std::unordered_map < size_type, std::pair < size_type, std::set < size_type > > > 
+    bfs_tree;
+  std::queue < size_type > bfs_queue;
+  while ( not bfs_queue . empty () ) {
+    size_type v = bfs_queue . front ();
+    std::vector<size_type> adj = G . adjacencies ( v );
+    std::set < size_type > children;
+    BOOST_FOREACH ( const size_type & u, adj ) {
+      if ( bfs_tree . count ( u ) == 0 ) { 
+        children . insert ( u );
+        bfs_queue . push ( u );
+      } else {
+ // really important cycle detection code 
+      }
+    }
+    bfs_tree [ v ] = children;
+    bfs_queue . pop ();
+  }
+}
+*/
