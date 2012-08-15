@@ -23,9 +23,6 @@
 #include "database/structures/Conley_Morse_Graph.h"
 #include "database/program/jobs/Compute_Morse_Graph.h"
 
-// HEADERS FOR DEALING WITH PICTURES
-#include "database/tools/picture.h"
-#include "database/tools/lodepng/lodepng.h"
 
 
 //////////////////////////////////////BEGIN USER EDIT//////////////////////////////////////////
@@ -40,8 +37,8 @@ using namespace chomp;
 
 // choose example
 //#define LORENZ
-#define TWODIMLESLIE
-//#define TWODIMLESLIEPRISMCAPD
+//#define TWODIMLESLIE
+#define TWODIMLESLIEPRISMCAPD
 //#define PRISMLESLIE
 //#define FIVEDIMPRISMLESLIE
 
@@ -748,6 +745,10 @@ int main ( int argc, char * argv [] )
 } /* main */
 
 /* ----------------------------  OUTPUT FUNCTIONS ---------------------------- */
+
+// HEADERS FOR DEALING WITH PICTURES
+#include "database/tools/picture.h"
+#include "database/tools/lodepng/lodepng.h"
 
 void DrawMorseSets ( const Toplex & phase_space, const CMG & conley_morse_graph ) {
   // Create a Picture

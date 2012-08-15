@@ -9,7 +9,10 @@
 
 //#include <boost/numeric/interval.hpp>
 #include "chomp/Rect.h"
-#include "database/maps/simple_interval.h"
+//#include "database/maps/simple_interval.h"
+#include "capd/intervals/lib.h"
+
+
 #include <vector>
 
 struct ModelMap {
@@ -18,7 +21,8 @@ struct ModelMap {
   capd::dynsys::DynSysMap<capd::IMap> * map;
   
   ModelMap ( const Rect & rectangle ) {
-       f = "par:a,b;var:x,y;fun:(a*x+b*y)*exp(-(x+y)/10),7*x/10;";
+    using namespace capd;
+    f = "par:a,b;var:x,y;fun:(a*x+b*y)*exp(-(x+y)/10),7*x/10;";
     f.setParameter("a", interval(rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ] ) );
     
     f.setParameter("b", interval (rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ]) ); 

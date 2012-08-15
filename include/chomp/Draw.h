@@ -17,6 +17,10 @@
 #undef index
 #undef Complex
 
+#ifdef None
+#undef None
+#endif
+
 #include "chomp/Chain.h"
 
 namespace chomp {
@@ -47,7 +51,7 @@ inline GraphicsWindow::GraphicsWindow( const char * title ) {
   white=WhitePixel(dis, screen);
   win=XCreateSimpleWindow(dis,DefaultRootWindow(dis),0,0, 
                           512, 512, 5,black, white);
-  XSetStandardProperties(dis,win, title,"Hi",None,NULL,0,NULL);
+  XSetStandardProperties(dis,win, title,"Hi", 0L/* None */,NULL,0,NULL);
   XSelectInput(dis, win, KeyPressMask);
   // get Graphics Context
   gc=XCreateGC(dis, win, 0,0);        
