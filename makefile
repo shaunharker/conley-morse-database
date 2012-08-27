@@ -59,6 +59,12 @@ NEWTONCMG += ./build/tools/lodepng/lodepng.o
 NewtonCMG: $(NEWTONCMG)
 	$(CC) $(LDFLAGS) $(NEWTONCMG) -o $@ $(LDLIBS)
 
+JUSTINCMG := ./build/test/JustinCMG.o
+JUSTINCMG += ./build/tools/picture.o
+JUSTINCMG += ./build/tools/lodepng/lodepng.o
+JustinCMG: $(JUSTINCMG)
+	$(CC) $(LDFLAGS) $(JUSTINCMG) -o $@ $(LDLIBS)
+
 SUBMAPTEST := ./build/test/SubdividedMapTest.o
 SUBMAPTEST += ./build/tools/picture.o
 SUBMAPTEST += ./build/tools/lodepng/lodepng.o
