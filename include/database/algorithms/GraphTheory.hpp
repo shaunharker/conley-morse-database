@@ -579,7 +579,7 @@ void find_short_cycles (std::vector<std::vector<typename OutEdgeGraph::size_type
   typedef std::pair<size_type, size_type> Edge;
   const size_type sentinel = G . sentinel ();
   
-  std::unordered_map < size_type, std::pair < size_type, std::set < size_type > > > 
+  boost::unordered_map < size_type, std::pair < size_type, std::set < size_type > > > 
     bfs_tree;
   std::queue < size_type > bfs_queue;
   while ( not bfs_queue . empty () ) {

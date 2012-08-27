@@ -224,8 +224,9 @@ BOOST_FOREACH ( const Term & t, chain () ) {                \
       std::cout << "Flow problem.\n";
       std::cout << "King: " << king << "\n";
       std::cout << "Queen: " << queen << "\n";
+      std::cout << "unit: " << unit << "\n";
       std::cout << "bd(king) = " << king_bd << "\n";
-      //exit ( 1 );
+      exit ( 1 );
     } //else { std::cout << unit << " "; }
     
     Ring factor = - queen_coef  / unit;

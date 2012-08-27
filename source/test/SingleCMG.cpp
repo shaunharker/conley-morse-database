@@ -733,6 +733,11 @@ int main ( int argc, char * argv [] )
   std::cout << "Total Time for Finding Morse Sets and reachability relation: " << 
     (float) (stop - start ) / (float) CLOCKS_PER_SEC << "\n";
   
+  CMG::VertexIteratorPair vip = conley_morse_graph . Vertices ();
+  CMG::VertexIterator it;
+  for ( CMG::VertexIterator it = vip . first; it != vip . second; ++ it ) {
+    
+  }
   /* DRAW MORSE SETS */
   DrawMorseSets ( phase_space, conley_morse_graph );
 

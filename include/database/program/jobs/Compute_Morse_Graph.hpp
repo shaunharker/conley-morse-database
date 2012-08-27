@@ -91,6 +91,16 @@ public:
     Graph G ( newset, * phase_space, interval_map );
     computeMorseSetsAndReachability <Graph,CellContainer> 
     ( &morse_sets, &reachability, G );
+#ifdef CMG_VERBOSE 
+    if ( morse_sets . size () > 1 ) {
+      std::cout << "Splits into " << morse_sets . size () << " morse sets.\n";
+    }
+    std::cout << "Sizes of children: ";
+    BOOST_FOREACH ( const CellContainer & morse_set, morse_sets ) {
+      std::cout << morse_set . size (); 
+    }
+    std::cout << "\n";
+#endif 
     BOOST_FOREACH ( const CellContainer & morse_set, morse_sets ) {
       MorseDecomposition * child = 
       new MorseDecomposition (phase_space,
