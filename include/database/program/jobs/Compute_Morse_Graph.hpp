@@ -97,7 +97,7 @@ public:
     }
     std::cout << "Sizes of children: ";
     BOOST_FOREACH ( const CellContainer & morse_set, morse_sets ) {
-      std::cout << morse_set . size (); 
+      std::cout << morse_set . size () << " "; 
     }
     std::cout << "\n";
 #endif 
