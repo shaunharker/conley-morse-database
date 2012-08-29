@@ -303,6 +303,7 @@ void compute_strong_components (std::vector<std::vector<typename OutEdgeGraph::s
 #ifdef CMG_VERBOSE
   long num_edges = 0;
   std::cout << "   Computing Strongly Connected Components.\n";
+  std::cout . flush ();
 #endif
   //std::cout << "sentinel = " << sentinel << "\n";
   for ( size_type root = 0; root < N; ++ root ) {

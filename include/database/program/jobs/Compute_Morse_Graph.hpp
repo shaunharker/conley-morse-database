@@ -36,6 +36,7 @@ BOOST_FOREACH ( CellContainer & morse_set, morse_sets ) \
 std::cout << " " << morse_set . size ();\
 std::cout << ".\n";
 
+#define CMG_VERBOSE_FLUSH fflush(std::
 #endif
 
 #ifndef CMG_VERBOSE
@@ -43,6 +44,7 @@ std::cout << ".\n";
 #define CMG_VERBOSE_START_CLOCK
 #define CMG_VERBOSE_REPORT_CLOCK
 #define CMG_VERBOSE_REPORT_MORSE_SETS
+#define CMG_VERBOSE_FLUSH
 #endif
 
 
