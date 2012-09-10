@@ -51,8 +51,8 @@ using namespace chomp;
 
 
 
-int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 4;
-int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 5;
+int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 72;
+int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 88;
 int SINGLECMG_COMPLEXITY_LIMIT = 10000;
 
 #ifdef PRISMFISHERIES2D
@@ -1059,7 +1059,7 @@ int main ( int argc, char * argv [] )
   
     
   /* DRAW MORSE SETS */
-  DrawMorseSets ( phase_space, conley_morse_graph );
+  //DrawMorseSets ( phase_space, conley_morse_graph );
 
   //output_cubes ( phase_space, conley_morse_graph );
   

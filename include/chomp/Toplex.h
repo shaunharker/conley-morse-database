@@ -275,8 +275,10 @@ Toplex::leaves ( InsertIterator ii,
     Node * ptr = nodes . top ();
     nodes . pop ();
     if ( ptr -> left_ == NULL && ptr -> right_ == NULL ) {
+      // It's a leaf.
       * ii ++ = ptr -> contents_;
     } else {
+      // It's not a leaf.
       if ( ptr -> left_ != NULL ) {
         nodes . push ( ptr -> left_ );
       }
@@ -923,6 +925,24 @@ Toplex::subdivide ( InsertIterator ii, GridElement divide_me ) {
 template < class InsertIterator >
 inline InsertIterator
 Toplex::subdivide ( InsertIterator ii, iterator cell_to_divide ) {
+  cell_to_divide . node_ -> left_ = new Node;
+  cell_to_divide . node_ -> right_ = new Node;
+  cell_to_divide . node_ -> left_ -> parent_ = cell_to_divide . node_;
+  cell_to_divide . node_ -> right_ -> parent_ = cell_to_divide . node_;
+  int new_dim = (cell_to_divide . node_ -> dimension_ + 1 ) % dimension ();
+  cell_to_divide . node_ -> left_ -> dimension_ = new_dim;
+  cell_to_divide . node_ -> right_ -> dimension_ = new_dim;
+  
+  /* Update begin_, size_, tree_size_, find_ and initialize new nodes.*/
+  if ( begin_ == cell_to_divide . node_ )
+    begin_ . node_ = cell_to_divide . node_ -> left_;
+  ++ size_;
+  * ii ++ = cell_to_divide . node_ -> left_ -> contents_ = tree_size_ ++;
+  * ii ++ = cell_to_divide . node_ -> right_ -> contents_ = tree_size_ ++;
+  find_ . push_back ( const_iterator ( cell_to_divide . node_ -> left_ ) );
+  find_ . push_back ( const_iterator ( cell_to_divide . node_ -> right_ ) );
+
+#if 0
   //std::cout << "Subdivide: called on cell " << *cell_to_divide << "\n";
   std::deque < std::pair < const_iterator, int > > work_deque;
   work_deque . push_back ( std::pair < const_iterator, int >
@@ -931,7 +951,7 @@ Toplex::subdivide ( InsertIterator ii, iterator cell_to_divide ) {
   while ( not work_deque . empty () ) {
     std::pair < const_iterator, int >  work_pair = work_deque . front ();
     work_deque . pop_front ();
-    if ( work_pair . second < dimension_ ) {
+    if ( work_pair . second < dimension_ ) { // NON-CYCLIC WORK TODO
       work_pair . first . node_ -> dimension_ = work_pair . second;
       /* We must subdivide further */
       work_pair . first . node_ -> left_ = new Node;
@@ -959,6 +979,7 @@ Toplex::subdivide ( InsertIterator ii, iterator cell_to_divide ) {
       * ii ++ = work_pair . first . node_ -> contents_;
     } /* if-else */
   } /* while */
+#endif
   return ii;
 } /* Adaptive_Cubical::Toplex::subdivide */
 
@@ -993,7 +1014,7 @@ inline void Toplex::subdivide ( void ) {
 /// depth
 inline int Toplex::getDepth ( const GridElement & ge ) const {
   std::vector < unsigned char > p = prefix ( ge );
-  return p . size () / dimension ();
+  return p . size ();// / dimension ();
 }
 
 template < class Container >
@@ -1055,19 +1076,29 @@ inline void Toplex::GridElementToCubes ( std::vector<std::vector < uint32_t > > 
   //std::cout << "GEtoCubes: " << geometry ( e ) << "\n";
   int D = dimension ();
   std::vector < unsigned char > p = prefix ( e );
-  int GridElement_depth = p . size () / D;
+  int GridElement_depth = p . size (); // == getDepth ( e );
   //std::cout << "  gedepth = " << GridElement_depth << ", from " << p . size () << "\n";
   if ( GridElement_depth > depth ) GridElement_depth = depth; //effectively truncates the prefix
   // Determine width
-  std::vector < uint32_t > cube ( D, 0 );
+  typedef std::vector < uint32_t > Cube;
+  Cube cube ( D, 0 );
   int pos = 0;
-  for ( int d = 0; d < GridElement_depth; ++ d ) {
-    for ( int dim = 0; dim < D; ++ dim ) {
-      cube [ dim ] <<= 1;
-      cube [ dim ] |= (uint32_t) p [ pos ++ ];
-    }
-  }
+  
+  // NON-CYCLIC OLD CODE
+  //for ( int d = 0; d < GridElement_depth; ++ d ) {
+  //  for ( int dim = 0; dim < D; ++ dim ) {
+  //    cube [ dim ] <<= 1;
+  //    cube [ dim ] |= (uint32_t) p [ pos ++ ];
+  //  }
+  //}
 
+  int dim = 0;
+  for ( int d = 0; d < GridElement_depth; ++ d ) {
+    if ( dim == D ) dim = 0;
+    cube [ dim ] <<= 1;
+    cube [ dim ] |= (uint32_t) p [ pos ++ ];
+    ++ dim;
+  }
   // make the cubes
   if ( GridElement_depth == depth ) {
     cubes -> push_back ( cube );
@@ -1079,19 +1110,20 @@ inline void Toplex::GridElementToCubes ( std::vector<std::vector < uint32_t > > 
   // the user has requested a greater depth than
   // the toplex provides.
   //std::cout << "    hard case.\n";
-  int depth_diff = depth - GridElement_depth; 
-  for ( int dim = 0; dim < D; ++ dim ) {
-    cube [ dim ] <<= depth_diff;
-  }
-  uint64_t num_cubes = ((uint64_t) 1) << (D * depth_diff);
-  uint64_t mask = (1 << depth_diff) - 1;
-  for ( uint64_t cube_num = 0; cube_num < num_cubes; ++ cube_num ) {
-    std::vector < uint32_t > outcube ( D, 0 );
-    for ( int dim = 0; dim < D; ++ dim ) {
-      uint32_t value = (uint32_t) ( mask & ( cube_num >> (dim * depth_diff) ) );
-      //std::cout << "value = " << value << "\n";
-      outcube [ dim ] = ( cube [ dim ] | value );
+  
+  std::vector < Cube > work_stack, split_stack;
+  work_stack . push_back ( cube );
+  for ( int dim = GridElement_depth; dim < depth; ++ dim ) {
+    std::vector < Cube > split_stack;
+    BOOST_FOREACH ( Cube c, work_stack ) {
+      c [ dim % D ] <<= 1;
+      split_stack . push_back ( c );
+      c [ dim % D ] |= 1;
+      split_stack . push_back ( c );
     }
+    std::swap ( work_stack, split_stack );
+  }
+  BOOST_FOREACH ( const Cube & outcube, work_stack ) {
     cubes -> push_back ( outcube );
   }
   
@@ -1120,8 +1152,11 @@ inline void Toplex::relativeComplex ( RelativePair * pair,
   CubicalComplex * full_complex = new CubicalComplex;
   CubicalComplex & X = *full_complex;
   X . bounds () = bounds ();
-  uint32_t width = 1 << depth;
-  std::vector < uint32_t > dimension_sizes ( dimension (), width );
+  int D = dimension ();
+  std::vector < uint32_t > dimension_sizes ( D, 1 );
+  for ( int dim = 0; dim < depth; ++ dim ) {
+    dimension_sizes [ dim % D ] <<= 1;
+  }
   X . initialize ( dimension_sizes, periodic_ );
   
   //std::cout << "relativeComplex.\n";

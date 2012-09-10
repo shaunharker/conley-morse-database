@@ -19,7 +19,7 @@
 
 // HEADERS FOR DATA STRUCTURES
 #include "chomp/Toplex.h"
-
+#include "chomp/ConleyIndex.h"
 #include "database/structures/Conley_Morse_Graph.h"
 #include "database/program/jobs/Compute_Morse_Graph.h"
 
@@ -37,13 +37,13 @@ using namespace chomp;
 
 // choose example
 //#define LORENZ
-//#define TWODIMLESLIE
-#define TWODIMLESLIEPRISMCAPD
+#define TWODIMLESLIE
+//#define TWODIMLESLIEPRISMCAPD
 //#define PRISMLESLIE
 //#define FIVEDIMPRISMLESLIE
 
-int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 12;
-int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 16;
+int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 24;
+int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 32;
 int SINGLECMG_COMPLEXITY_LIMIT = 10000;
 
 
