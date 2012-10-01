@@ -552,9 +552,58 @@ namespace chomp {
   }
   
   template < class InsertIterator >
-  void CubicalComplex::cover ( InsertIterator & ii, const Rect & p ) const {
+  void CubicalComplex::cover ( InsertIterator & iiIn, 
+  														 const Rect & geometric_region ) const {
+  
+  // Deal with periodicity STYLE ERROR, D.R.Y. repeating self from Toplex.h)
+        
+    boost::unordered_set < Index > results;
+    std::insert_iterator < boost::unordered_set < Index > > ii ( results, results . end () );
+    std::vector < double > width ( dimension_ );
+    for ( int d = 0; d < dimension_; ++ d ) {
+      width [ d ] = bounds () . upper_bounds [ d ] - bounds () . lower_bounds [ d ];
+    }
+    
+    std::stack < Rect > work_stack;
+    Rect R = geometric_region;
+    for ( int d = 0; d < dimension_; ++ d ) {
+      if ( periodic_ [ d ] == false ) continue;
+      if ( R . upper_bounds [ d ] > bounds () . upper_bounds [ d ] ) {
+        R . lower_bounds [ d ] -= width [ d ];
+        R . upper_bounds [ d ] -= width [ d ];
+      }
+      if ( R . upper_bounds [d] - R . lower_bounds [ d ] > width [ d ] )
+        R . upper_bounds [ d ] = R . lower_bounds [ d ] + width [ d ];
+    }
+    
+    long periodic_long = 0;
+    for ( int d = 0; d < dimension_; ++ d ) {
+      if ( periodic_ [ d ] ) periodic_long += (1 << d );
+    }
+    
+    // loop through all 2^l periodic images, avoiding repeats
+    std::set < long > periodic_images;
+    long hypercube = 2 << dimension_;
+    for ( long k = 0; k < hypercube; ++ k ) {
+      if ( periodic_images . count ( k & periodic_long ) ) continue;
+      periodic_images . insert ( k & periodic_long );
+      Rect r = R;
+      for ( int d = 0; d < dimension_; ++ d ) {
+        if ( periodic_ [ d ] == false ) continue;
+        if ( k & ( 1 << d ) ) {
+          r . lower_bounds [ d ] += width [ d ];
+          r . upper_bounds [ d ] += width [ d ];
+        }
+      }
+      work_stack . push ( r );
+      //std::cout << "Pushed " << r << "\n";
+    }
+    
+    while ( not work_stack . empty () ) {
+    Rect p = work_stack . top ();
+    work_stack . pop ();
     //std::cout << ">>> CUBICAL COMPLEX: COVER ----: " << p << "\n";
-    // Convert prism to scale of dimension sizes
+    // Convert rect to scale of dimension sizes
     // Be careful about the padding.
     int D = dimension ();
     std::vector < uint32_t > low ( D );
@@ -576,6 +625,11 @@ namespace chomp {
       //std::cout << "high grid line = " << lowbound + (high [ d ] ) / scale << "\n";
     }
     coverHelper ( ii, 0, low, high, D );
+    }
+    // Copy answer.
+    BOOST_FOREACH ( const Index & cube, results ) {
+    	* iiIn ++ = cube;
+    }
   }
   
   inline std::vector < Index > 

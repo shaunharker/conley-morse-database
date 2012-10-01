@@ -100,7 +100,7 @@ inline FiberComplex::FiberComplex
     codomain . cover ( ii, F ( domain . geometry ( i, D ) ) );
   }
 
-  // Find the algebraic closures of X and A
+  // Find the combinatorial closures of X and A
   closure ( X_image, * supercomplex_ );
   closure ( A_image, * supercomplex_ );
   
@@ -119,6 +119,7 @@ inline FiberComplex::FiberComplex
     for ( int d = 0; d <= D; ++ d ) {
       std::cout << " size of A_image [ " << d << " ] = " << A_image [ d ] . size () << "\n";
     }
+#if 0
     {
       ComplexVisualization * cv = new ComplexVisualization ( "Codomain Picture." );
       std::cout << "About to draw complex.\n";
@@ -131,6 +132,7 @@ inline FiberComplex::FiberComplex
       cv -> explore ();
       delete cv;
     }
+#endif
     exit ( 1 );
   }
   ///////////////////////////////////////////////

@@ -35,6 +35,11 @@ struct ModelMap {
   chomp::Rect operator () 
   ( const chomp::Rect & rectangle ) const {    
     /* Read input */
+    chomp::Rect testoutput = rectangle;
+    testoutput . lower_bounds [ 0 ] -= .1;
+    testoutput . upper_bounds [ 0 ] += .1;
+    return testoutput;
+
     interval theta = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ]);
     
     interval x = interval ( 1.0 ) + ( interval ( 1.0 ) - c ) * sin ( theta ) * sin ( theta );

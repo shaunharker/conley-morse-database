@@ -81,7 +81,7 @@ inline Matrix SmithSolve ( const Matrix & A, const Matrix & B ) {
                                            // DEBUG
       Ring newvalue = Y . read ( entry ) / value;
       if ( newvalue * value != Y . read ( entry ) ) {
-        std::cout << "INSOLUBLE MATRIX EQUATION! " 
+      std::cout << "preboundary: INSOLUBLE MATRIX EQUATION! " 
         << Y . read ( entry ) 
         << " is not divisible by " 
         << value << ".\n"; 

@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <stack>
+#include <queue>
 #include <algorithm>
 #include "boost/foreach.hpp"
 
@@ -571,32 +572,56 @@ void compute_reachability ( std::vector < std::vector < unsigned int > > * outpu
   DEBUGPRINT std::cout << "reach effort = " << effort << "\n";
 } /* compute_reachability */
 
-/*
+
 template < class OutEdgeGraph >
 void find_short_cycles (std::vector<std::vector<typename OutEdgeGraph::size_type> > * output, 
                         const OutEdgeGraph & G,
                         int length ) {
   typedef typename OutEdgeGraph::size_type size_type;
   typedef std::pair<size_type, size_type> Edge;
-  const size_type sentinel = G . sentinel ();
+  //const size_type sentinel = G . sentinel ();
   
-  boost::unordered_map < size_type, std::pair < size_type, std::set < size_type > > > 
-    bfs_tree;
-  std::queue < size_type > bfs_queue;
-  while ( not bfs_queue . empty () ) {
-    size_type v = bfs_queue . front ();
-    std::vector<size_type> adj = G . adjacencies ( v );
-    std::set < size_type > children;
-    BOOST_FOREACH ( const size_type & u, adj ) {
-      if ( bfs_tree . count ( u ) == 0 ) { 
-        children . insert ( u );
-        bfs_queue . push ( u );
-      } else {
- // really important cycle detection code 
+  // bfs_tree maps a node to its parent and a set of children
+  // Strategy:
+  // Breadth first search.
+  // bfs_queue only approach fails: why?
+  // because once we detect a cycle, we don't know how to backtrace it.
+  // solution: remember parents of each node. Then when we detect a cycle, 
+  // backtrace up to original node.
+  // Problem: what about depth-limited searches?
+  // solution: remember depth of node.
+  size_type N = G . num_vertices ();
+  
+  for ( size_type start = 0; start < N; ++ start ) { 
+    std::queue < size_type > bfs_queue;
+    boost::unordered_map < size_type, size_type > bfs_parent;
+    boost::unordered_map < size_type, size_type > bfs_depth;
+    bfs_queue . push ( start );
+    bfs_depth [ start ] = 0;
+    bfs_parent [ start ] = start; // to make it appear explored
+    while ( not bfs_queue . empty () ) {
+      size_type v = bfs_queue . front ();
+      bfs_queue . pop ();
+      if ( bfs_depth [ v ] > length ) continue;
+      std::vector<size_type> adj = G . adjacencies ( v );
+      BOOST_FOREACH ( const size_type & u, adj ) {
+        if ( u == start ) {
+          // Found a cycle
+          size_type w = v;
+          std::vector<size_type> cycle ( bfs_depth [ v ] + 1 );
+          for ( int i = bfs_depth [ v ]; i >= 0; -- i ) {
+            cycle [ i ] = w;
+            w = bfs_parent [ w ];
+          }
+          output -> push_back ( cycle );
+        }
+        if ( bfs_parent . find ( u ) == bfs_parent . end () ) { 
+          bfs_queue . push ( u );
+          bfs_parent [ u ] = v;
+          bfs_depth [ u ] = bfs_depth [ v ] + 1;
+        }
       }
     }
-    bfs_tree [ v ] = children;
-    bfs_queue . pop ();
   }
 }
-*/
+
