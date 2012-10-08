@@ -45,15 +45,115 @@ using namespace chomp;
 //#define FIVEDIMPRISMLESLIE
 //#define PRISMFISHERIES2D
 //#define PRISMFISHERIES3D
-#define PRISMFISHERIES4D
+//#define PRISMFISHERIES4D
 //#define PRISMFISHERIES5D
 //#define PRISMFISHERIES6D 
-
-
+//#define PRISMFISHERIES7D
+//#define CORAL4D
+#define CORAL5D
 
 int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 72;
 int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 88;
 int SINGLECMG_COMPLEXITY_LIMIT = 10000;
+
+#ifdef CORAL4D
+#include "data/coral4d/ModelMap.h"
+Rect initialize_phase_space_box ( void ) {
+	// Two dimensional phase space                                                                                                                        
+	// [0, 320.056] x [0.0, 224.040]                                                                                                                      
+	//  int phase_space_dimension = 2;                                                                                                                    
+	int phase_space_dimension = 4;
+	Rect phase_space_bounds ( phase_space_dimension );
+	phase_space_bounds . lower_bounds [ 0 ] = 0.0;
+	phase_space_bounds . upper_bounds [ 0 ] = 1062.0;
+	phase_space_bounds . lower_bounds [ 1 ] = 0.0;
+	phase_space_bounds . upper_bounds [ 1 ] = 944.0;
+	phase_space_bounds . lower_bounds [ 2 ] = 0.0;
+        phase_space_bounds . upper_bounds [ 2 ] = 598.0;
+        phase_space_bounds . lower_bounds [ 3 ] = 0.0;
+        phase_space_bounds . upper_bounds [ 3 ] = 417.0;
+
+	std::cout << "Phase Space Bounds = " << phase_space_bounds << "\n";
+	return phase_space_bounds;
+}
+
+Rect initialize_parameter_space_box ( const Real bx, const Real by ) {
+	// Two dimensional parameter space                                                                                                                    
+	// A box chosen from [8, 37] x [3, 50]                                                                                                                
+	int parameter_space_dimension = 2;
+	Rect parameter_space_limits ( parameter_space_dimension );
+	parameter_space_limits . lower_bounds [ 0 ] = 8.0;
+	parameter_space_limits . upper_bounds [ 0 ] = 37.0;
+	parameter_space_limits . lower_bounds [ 1 ] = 3.0;
+	parameter_space_limits . upper_bounds [ 1 ] = 50.0;
+	int PARAMETER_BOXES = 64;
+	Rect parameter_box ( parameter_space_dimension );
+	parameter_box . lower_bounds [ 0 ] = parameter_space_limits . lower_bounds [ 0 ] +
+    ( parameter_space_limits . upper_bounds [ 0 ] - parameter_space_limits . lower_bounds [ 0 ] ) * bx / (float) PARAMETER_BOXES;
+	parameter_box . upper_bounds [ 0 ] = parameter_space_limits . lower_bounds [ 0 ] +
+    ( parameter_space_limits . upper_bounds [ 0 ] - parameter_space_limits . lower_bounds [ 0 ] ) * ( bx + 1.0 ) / (float) PARAMETER_BOXES;
+	parameter_box . lower_bounds [ 1 ] = parameter_space_limits . lower_bounds [ 1 ] +
+    ( parameter_space_limits . upper_bounds [ 1 ] - parameter_space_limits . lower_bounds [ 1 ] ) * by / (float) PARAMETER_BOXES;
+	parameter_box . upper_bounds [ 1 ] = parameter_space_limits . lower_bounds [ 1 ] +
+    ( parameter_space_limits . upper_bounds [ 1 ] - parameter_space_limits . lower_bounds [ 1 ] ) * ( by + 1.0 ) / (float) PARAMETER_BOXES;
+	std::cout << "Parameter Box Choice = " << parameter_box << "\n";
+	
+	return parameter_box;
+}
+
+
+#endif
+
+#ifdef CORAL5D
+#include "data/coral5d/ModelMap.h"
+Rect initialize_phase_space_box ( void ) {
+	// Two dimensional phase space                                                                                                                        
+	// [0, 320.056] x [0.0, 224.040]                                                                                                                      
+	//  int phase_space_dimension = 2;                                                                                                                    
+	int phase_space_dimension = 5;
+	Rect phase_space_bounds ( phase_space_dimension );
+	//temporarily 1/10 size for debugging
+	phase_space_bounds . lower_bounds [ 0 ] = 0.0;
+	phase_space_bounds . upper_bounds [ 0 ] = 228.60;
+	phase_space_bounds . lower_bounds [ 1 ] = 0.0;
+	phase_space_bounds . upper_bounds [ 1 ] = 203.20;
+	phase_space_bounds . lower_bounds [ 2 ] = 0.0;
+        phase_space_bounds . upper_bounds [ 2 ] = 128.60;
+        phase_space_bounds . lower_bounds [ 3 ] = 0.0;
+        phase_space_bounds . upper_bounds [ 3 ] = 89.70;
+	phase_space_bounds . lower_bounds [ 4 ] = 0.0;
+        phase_space_bounds . upper_bounds [ 4 ] = 46.40;
+	std::cout << "Phase Space Bounds = " << phase_space_bounds << "\n";
+	return phase_space_bounds;
+}
+
+Rect initialize_parameter_space_box ( const Real bx, const Real by ) {
+	// Two dimensional parameter space                                                                                                                    
+	// A box chosen from [8, 37] x [3, 50]                                                                                                                
+	int parameter_space_dimension = 2;
+	Rect parameter_space_limits ( parameter_space_dimension );
+	parameter_space_limits . lower_bounds [ 0 ] = 8.0;
+	parameter_space_limits . upper_bounds [ 0 ] = 37.0;
+	parameter_space_limits . lower_bounds [ 1 ] = 3.0;
+	parameter_space_limits . upper_bounds [ 1 ] = 50.0;
+	int PARAMETER_BOXES = 64;
+	Rect parameter_box ( parameter_space_dimension );
+	parameter_box . lower_bounds [ 0 ] = parameter_space_limits . lower_bounds [ 0 ] +
+    ( parameter_space_limits . upper_bounds [ 0 ] - parameter_space_limits . lower_bounds [ 0 ] ) * bx / (float) PARAMETER_BOXES;
+	parameter_box . upper_bounds [ 0 ] = parameter_space_limits . lower_bounds [ 0 ] +
+    ( parameter_space_limits . upper_bounds [ 0 ] - parameter_space_limits . lower_bounds [ 0 ] ) * ( bx + 1.0 ) / (float) PARAMETER_BOXES;
+	parameter_box . lower_bounds [ 1 ] = parameter_space_limits . lower_bounds [ 1 ] +
+    ( parameter_space_limits . upper_bounds [ 1 ] - parameter_space_limits . lower_bounds [ 1 ] ) * by / (float) PARAMETER_BOXES;
+	parameter_box . upper_bounds [ 1 ] = parameter_space_limits . lower_bounds [ 1 ] +
+    ( parameter_space_limits . upper_bounds [ 1 ] - parameter_space_limits . lower_bounds [ 1 ] ) * ( by + 1.0 ) / (float) PARAMETER_BOXES;
+	std::cout << "Parameter Box Choice = " << parameter_box << "\n";
+	
+	return parameter_box;
+}
+
+
+#endif
+
 
 #ifdef PRISMFISHERIES2D
 #include "data/fisheries2d/ModelMap.h"
@@ -256,17 +356,17 @@ Rect initialize_phase_space_box ( void ) {
   int phase_space_dimension = 6;
   Rect phase_space_bounds ( phase_space_dimension );
   phase_space_bounds . lower_bounds [ 0 ] = 0.0;
-  phase_space_bounds . upper_bounds [ 0 ] = 10.0;
+  phase_space_bounds . upper_bounds [ 0 ] = 10.0/2.718;
   phase_space_bounds . lower_bounds [ 1 ] = 0.0;
-  phase_space_bounds . upper_bounds [ 1 ] = 7.0;
+  phase_space_bounds . upper_bounds [ 1 ] = 7.0/2.718;
   phase_space_bounds . lower_bounds [ 2 ] = 0.0;
-  phase_space_bounds . upper_bounds [ 2 ] = 4.9;
+  phase_space_bounds . upper_bounds [ 2 ] = 4.9/2.718;
   phase_space_bounds . lower_bounds [ 3 ] = 0.0;
-  phase_space_bounds . upper_bounds [ 3 ] = 3.43;
+  phase_space_bounds . upper_bounds [ 3 ] = 3.43/2.718;
   phase_space_bounds . lower_bounds [ 4 ] = 0.0;
-  phase_space_bounds . upper_bounds [ 4 ] = 2.401;
+  phase_space_bounds . upper_bounds [ 4 ] = 2.401/2.718;
   phase_space_bounds . lower_bounds [ 5 ] = 0.0;
-  phase_space_bounds . upper_bounds [ 5 ] = 1.6807;
+  phase_space_bounds . upper_bounds [ 5 ] = 1.6807/2.718;
 
 
   std::cout << "Phase Space Bounds = " << phase_space_bounds << "\n";
@@ -277,6 +377,63 @@ Rect initialize_parameter_space_box ( const Real bx, const Real by ) {
   // Two dimensional parameter space                                                                                                                                         
 
   // A box chosen from [8, 37] x [3, 50]                                                                                                                                     
+  int parameter_space_dimension = 2;
+  Rect parameter_space_limits ( parameter_space_dimension );
+  parameter_space_limits . lower_bounds [ 0 ] = 8.0;
+  parameter_space_limits . upper_bounds [ 0 ] = 37.0;
+  parameter_space_limits . lower_bounds [ 1 ] = 3.0;
+  parameter_space_limits . upper_bounds [ 1 ] = 50.0;
+  int PARAMETER_BOXES = 64;
+  Rect parameter_box ( parameter_space_dimension );
+  parameter_box . lower_bounds [ 0 ] = parameter_space_limits . lower_bounds [ 0 ] +
+    ( parameter_space_limits . upper_bounds [ 0 ] - parameter_space_limits . lower_bounds [ 0 ] ) * bx / (float) PARAMETER_BOXES;
+  parameter_box . upper_bounds [ 0 ] = parameter_space_limits . lower_bounds [ 0 ] +
+    ( parameter_space_limits . upper_bounds [ 0 ] - parameter_space_limits . lower_bounds [ 0 ] ) * ( bx + 1.0 ) / (float) PARAMETER_BOXES;
+  parameter_box . lower_bounds [ 1 ] = parameter_space_limits . lower_bounds [ 1 ] +
+    ( parameter_space_limits . upper_bounds [ 1 ] - parameter_space_limits . lower_bounds [ 1 ] ) * by / (float) PARAMETER_BOXES;
+  parameter_box . upper_bounds [ 1 ] = parameter_space_limits . lower_bounds [ 1 ] +
+    ( parameter_space_limits . upper_bounds [ 1 ] - parameter_space_limits . lower_bounds [ 1 ] ) * ( by + 1.0 ) / (float) PARAMETER_BOXES;
+  std::cout << "Parameter Box Choice = " << parameter_box << "\n";
+
+  return parameter_box;
+}
+
+#endif
+
+#ifdef PRISMFISHERIES7D
+#include "data/fisheries7d/ModelMap.h"
+Rect initialize_phase_space_box ( void ) {
+  // Two dimensional phase space                                                                                                          
+                                                                                                                                                                  
+  // [0, 320.056] x [0.0, 224.040]                                                                                                                                    
+                                                                                                                                                                      
+  //  int phase_space_dimension = 2;                                                                                                                                  
+                                                                                                                                                                      
+  int phase_space_dimension = 7;
+  Rect phase_space_bounds ( phase_space_dimension );
+  phase_space_bounds . lower_bounds [ 0 ] = 0.0;
+  phase_space_bounds . upper_bounds [ 0 ] = 10.0/2.718;
+  phase_space_bounds . lower_bounds [ 1 ] = 0.0;
+  phase_space_bounds . upper_bounds [ 1 ] = 6.07/2.718;
+  phase_space_bounds . lower_bounds [ 2 ] = 0.0;
+  phase_space_bounds . upper_bounds [ 2 ] = 3.68/2.718;
+  phase_space_bounds . lower_bounds [ 3 ] = 0.0;
+  phase_space_bounds . upper_bounds [ 3 ] = 2.24/2.718;
+  phase_space_bounds . lower_bounds [ 4 ] = 0.0;
+  phase_space_bounds . upper_bounds [ 4 ] = 1.36/2.718;
+  phase_space_bounds . lower_bounds [ 5 ] = 0.0;
+  phase_space_bounds . upper_bounds [ 5 ] = 0.83/2.718;
+  phase_space_bounds . lower_bounds [ 6 ] = 0.0;
+  phase_space_bounds . upper_bounds [ 6 ] = 0.50/2.718;
+
+  std::cout << "Phase Space Bounds = " << phase_space_bounds << "\n";
+  return phase_space_bounds;
+}
+
+Rect initialize_parameter_space_box ( const Real bx, const Real by ) {
+  // Two dimensional parameter space                                                                                                                                                                                                                                                                           
+  // A box chosen from [8, 37] x [3, 50]                                                                                                                             
+                                                                                                                                                                    
   int parameter_space_dimension = 2;
   Rect parameter_space_limits ( parameter_space_dimension );
   parameter_space_limits . lower_bounds [ 0 ] = 8.0;
@@ -1108,7 +1265,7 @@ void CreateDotFile ( const CMG & cmg,
   typedef CMG::VertexIterator VI;
   typedef CMG::EdgeIterator EI;
 
-  std::ofstream outfile ("morsegraph-fish-4d-z05.gv");
+  std::ofstream outfile ("morsegraph-leslie5d.gv");
   
   outfile << "digraph G { \n";
   //outfile << "node [ shape = point, color=black  ];\n";

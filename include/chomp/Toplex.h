@@ -1151,16 +1151,51 @@ inline void Toplex::relativeComplex ( RelativePair * pair,
   // Produce the full complex.
   CubicalComplex * full_complex = new CubicalComplex;
   CubicalComplex & X = *full_complex;
-  X . bounds () = bounds ();
   int D = dimension ();
-  std::vector < uint32_t > dimension_sizes ( D, 1 );
-  for ( int dim = 0; dim < depth; ++ dim ) {
-    dimension_sizes [ dim % D ] <<= 1;
-  }
-  X . initialize ( dimension_sizes, periodic_ );
-  
+
   //std::cout << "relativeComplex.\n";
   //std::cout << "XGridElements:\n";
+  
+  // Make set of cubes, and learn bounds of the cubes.
+  typedef std::vector < uint32_t > Cube;
+  Cube mincube ( D, -1 );
+  Cube maxcube ( D, 0 );
+  Rect newbounds ( D );
+  for ( int d = 0; d < D; ++ d ) {
+		newbounds . lower_bounds [ d ] = bounds () . upper_bounds [ d ];
+		newbounds . upper_bounds [ d ] = bounds () . lower_bounds [ d ];
+  }
+  BOOST_FOREACH ( GridElement e, XGridElements ) {
+    Rect geo = geometry ( e );
+    for ( int d = 0; d < D; ++ d ) {
+    if ( newbounds . lower_bounds [ d ] > geo . lower_bounds [ d ] )
+    	newbounds . lower_bounds [ d ] = geo . lower_bounds [ d ];
+    if ( newbounds . upper_bounds [ d ] < geo . upper_bounds [ d ] )
+    	newbounds . upper_bounds [ d ] = geo . upper_bounds [ d ];
+    	}
+    std::vector < Cube > cubes;
+    GridElementToCubes ( &cubes, e, depth );
+    BOOST_FOREACH ( Cube & cube, cubes ) {
+      for ( int d = 0; d < D; ++ d ) {
+      	if ( mincube [ d ] > cube [ d ] ) mincube [ d ] = cube [ d ];
+      	if ( maxcube [ d ] < cube [ d ] ) maxcube [ d ] = cube [ d ];
+      }
+    }
+  }
+  
+  std::vector < uint32_t > dimension_sizes ( D, 1 );
+  std::vector < bool > is_periodic = periodic_;
+  for ( int d = 0; d < D; ++ d ) {
+    dimension_sizes [ d ] = maxcube [ d ] - mincube [ d ] + 1;
+    if ( newbounds . lower_bounds [ d ] > bounds () . lower_bounds [ d ] )
+    	is_periodic [ d ] = false;
+    if ( newbounds . upper_bounds [ d ] < bounds () . upper_bounds [ d ] )
+    	is_periodic [ d ] = false;
+  }
+  
+  X . bounds () = newbounds;
+  X . initialize ( dimension_sizes, is_periodic );
+  
   BOOST_FOREACH ( GridElement e, XGridElements ) {
     //std::cout << e << "\n";
     //std::cout << "GEOMETRY = " << geometry ( e ) << "\n"; 
@@ -1171,7 +1206,9 @@ inline void Toplex::relativeComplex ( RelativePair * pair,
       //std::cout << "XCube = ";
       //for ( int d = 0; d < dimension (); ++ d ) std::cout << cube [ d ] << " ";
       //std::cout << "\n";
-      X . addFullCube ( cube );
+      Cube offset ( D );
+      for ( int d = 0; d < D; ++ d ) offset [ d ] = cube [ d ] - mincube [ d ];
+      X . addFullCube ( offset );
       //std::cout << " CC-Geometry = " << X . geometryOfCube ( cube ) << "\n";
     }
   }
@@ -1192,8 +1229,11 @@ inline void Toplex::relativeComplex ( RelativePair * pair,
       //std::cout << "ACube = ";
       //for ( int d = 0; d < dimension (); ++ d ) std::cout << cube [ d ] << " ";
       //std::cout << "\n";
+      Cube offset ( D );
+      for ( int d = 0; d < D; ++ d ) offset [ d ] = cube [ d ] - mincube [ d ];
+      
       std::vector < std::vector < Index > > cells = 
-      X . fullCubeIndexes ( cube );
+      X . fullCubeIndexes ( offset );
       for ( int d = 0; d <= dimension (); ++ d ) {
         BOOST_FOREACH ( Index cell, cells [ d ] ) {
           XA . erase ( cell, d );

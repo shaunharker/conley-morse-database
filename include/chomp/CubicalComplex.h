@@ -19,7 +19,7 @@
 #include "chomp/Prism.h"
 
 namespace chomp {
-  
+
   /*******************************
    *      CUBICAL COMPLEX        *
    *******************************/
@@ -189,13 +189,25 @@ namespace chomp {
   // see if they actually exist first!
   //
   // PERIODICITY: uses alias, currently slow
+  
+  /// alias
+  /// This function helps accommodate periodic boundary conditions.
+  /// 
+  /// dimension_sizes_ == 2 + user_dimension_sizes_
+  /// in a non-periodic dimension, we use addresses from 1 <= . <= user_dim_sizes
+  /// in a periodic dimension, we again use addresses from 1 <= . <= user_dim_sizes 
   inline uint64_t CubicalComplex::alias ( uint64_t address ) const {
+    /// convert to cube coordinates
     std::vector < uint32_t > cube = addressToCube ( address );
+    ///
+    uint64_t result = cubeToAddress ( cube ) + (address & mask_);
     for ( int d = 0; d < dimension (); ++ d ) {
       //std::cout << "cube[" << d << "] = " << cube [ d ] << "\n";
-      if ( cube [ d ] == dimension_sizes_ [ d ] ) return 0;
+      if ( cube [ d ] == dimension_sizes_ [ d ] ) result = 0;
     }
-    return cubeToAddress ( cube ) + (address & mask_);
+    /// keep piece number, change position.
+    //std::cout << "alias(" << address << ") = " << result << "\n";
+    return result;
   }
   
   inline void CubicalComplex::boundary ( Chain * output, const Index input, int dim ) const {
@@ -221,6 +233,7 @@ namespace chomp {
       /* Insert the piece in the appropriate neighboring full cube */
       // periodicity requires we convert to periodic alias (i.e. see if jumped past edge)
       uint64_t offset_address = alias ( address + ( jump_values_ [ d ] << dimension () ) );
+      //if ( offset_address == 0 ) std::cout << "Alias returned 0!\n";
       if ( bitmap ( offset_address ) )
         (*output) += Term ( cellToIndex ( offset_address, bd_dim ), sign ? negative : positive );
       /* Recover original address */
@@ -359,13 +372,28 @@ namespace chomp {
     dimension_sizes_ . resize ( dimension (), 0 );
     jump_values_ . resize ( dimension (), 0 );
     uint64_t number_of_full_cubes = 1;
+    int digits = dimension ();
     for ( int d = 0; d < dimension (); ++ d ) { 
       dimension_sizes_ [ d ] = ( 2 + user_dimension_sizes [ d ] );
       jump_values_ [ d ] = number_of_full_cubes;
       number_of_full_cubes *= dimension_sizes_ [ d ]; 
+      uint32_t temp = user_dimension_sizes [ d ] + 2;
+      while ( temp > 0 ) {
+        temp >>= 1;
+        digits ++;
+      }
       /* +2 for lower-left and upper-right buffers */
     } /* for */
+    if ( digits > 64 ) {
+       std::cout << "CubicalComplex requires " << digits << " bit-wide cell type for this complex. Recompile with appropriate type.\n";
+       exit ( 1 );
+    }
     mask_ = ( ( (uint64_t) 1 ) << dimension () ) - (uint64_t) 1;
+    
+    //std::cout << "CubicalComplex::initialize.\n";
+    //std::cout << "user_dimension_sizes = " ;
+    //BOOST_FOREACH ( uint32_t x, user_dimension_sizes ) std::cout << x << " ";
+    //std::cout << "\n";
     
     //bitmap_ . clear ();
     //bitmap_ . resize ( number_of_full_cubes << dimension (), false );
@@ -412,7 +440,9 @@ namespace chomp {
           /* insert the cell */
           //std::cout << " CC addFullCube: bitmap_ [ " << ( ( full_cube_number + offset ) << dimension () ) + piece_index << " ] = true\n";
           // use alias to deal with periodicity
-          result . push_back ( alias ( ( ( full_cube_number + offset ) << dimension () ) + piece_index ) );
+          uint64_t result_address = alias ( ( ( full_cube_number + offset ) << dimension () ) + piece_index );
+          //std::cout << "fullCube: pushing " << result_address << "\n";
+          result . push_back ( result_address );
         } /* if */
     } /* for */
     //std::cout << " . \n";
@@ -438,13 +468,19 @@ namespace chomp {
   
   
   inline void CubicalComplex::addFullCube ( const std::vector<uint32_t> & cube_coordinates ) {
-    BOOST_FOREACH ( const Cell cell, fullCube ( cube_coordinates ) ) 
+    //std::cout << "addFullCube called with coordinates ";
+    //BOOST_FOREACH ( uint32_t x, cube_coordinates ) std::cout << x << " ";
+    //std::cout << "\n";
+    std::vector < CubicalComplex::Cell > full_cube_cells = fullCube ( cube_coordinates );
+    BOOST_FOREACH ( const Cell & cell, full_cube_cells ) {
+    //std::cout << "   addFullCube: adding " << cell << "\n";
     insert ( cell );
+    }
   } /* CubicalComplex::addFullCube */
   
   inline void CubicalComplex::removeFullCube ( const std::vector<uint32_t> & cube_coordinates ) {
-    BOOST_FOREACH ( const Cell cell, fullCube ( cube_coordinates ) ) 
-    erase ( cell );
+    std::vector < CubicalComplex::Cell > full_cube_cells = fullCube ( cube_coordinates );
+      BOOST_FOREACH ( const Cell & cell, full_cube_cells ) erase ( cell );
   } /* CubicalComplex::removeFullCube */
   
   inline void CubicalComplex::finalize ( void ) {

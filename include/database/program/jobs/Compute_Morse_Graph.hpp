@@ -79,11 +79,19 @@ public:
     if ( depth >= Min && ( set . size () > Limit || depth >= Max ) ) {
       subdivided = false;
       spurious = false;
+#ifdef DO_CONLEY_INDEX
+      using namespace chomp;
+      ConleyIndex_t output;
+      ConleyIndex ( &output,
+                   *phase_space, 
+                   set,
+                   interval_map );
+#endif
       return;
     }
     // Subdivide
     subdivided = true;
-    spurious = true; // This may be changed later.
+    spurious = true; // This may be changed below.
     CellContainer newset = set;
     subdivide ( phase_space, newset );
     // Create children.
