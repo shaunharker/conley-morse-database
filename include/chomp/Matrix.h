@@ -27,7 +27,7 @@ Matrix SmithSolve ( const Matrix & A, const Matrix & B );
 inline Matrix chainsToMatrix ( const std::vector < Chain > & chains, 
                         const Complex & complex,
                         int dim ) {
-  std::cout << "chainsToMatrix.  d= " << dim << " (i,j) = (" << complex . size ( dim ) << ", " << chains . size () << ")\n";
+  //std::cout << "chainsToMatrix.  d= " << dim << " (i,j) = (" << complex . size ( dim ) << ", " << chains . size () << ")\n";
   Matrix result ( complex . size ( dim ), chains . size () );
   for ( uint32_t chain_num = 0; 
         chain_num < chains . size (); 
@@ -43,7 +43,7 @@ inline Matrix chainsToMatrix ( const std::vector < Chain > & chains,
 inline Matrix chainsToMatrix ( const std::vector < std::pair < Chain, Ring > > & chains, 
                        const Complex & complex,
                        int dim ) {
-    std::cout << "chainsToMatrix.  d= " << dim << " (i,j) = (" << complex . size ( dim ) << ", " << chains . size () << ")\n";
+    //std::cout << "chainsToMatrix.  d= " << dim << " (i,j) = (" << complex . size ( dim ) << ", " << chains . size () << ")\n";
   Matrix result ( complex . size ( dim ), chains . size () );
   for ( uint32_t chain_num = 0; 
         chain_num < chains . size (); 

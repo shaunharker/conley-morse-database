@@ -70,7 +70,7 @@ ConleyIndex ( ConleyIndex_t * output,
 
   
   clock_t start, start0, stop;
-  std::cout << "Conley Index. Preparing computation...\n";
+  //std::cout << "Conley Index. Preparing computation...\n";
   start0 = start = clock ();
   /* Construct G on S, and also X and S in hash set forms called X_cells and S_cells */
   // note: All cells in X may be obtained as images of cells in S.
@@ -135,7 +135,7 @@ ConleyIndex ( ConleyIndex_t * output,
   stop = clock ();
   
   std::cout << "Conley Index computed. Total time = " << (float) ( stop - start0 ) / (float) CLOCKS_PER_SEC << "\n";
-  std::cout << "Number of cells in X = " << X . size () << "\n Cells per second = " << (float) X . size () * (float) CLOCKS_PER_SEC / (float) ( stop - start0 )  << "\n";
+  //std::cout << "Number of cells in X = " << X . size () << "\n Cells per second = " << (float) X . size () * (float) CLOCKS_PER_SEC / (float) ( stop - start0 )  << "\n";
   
   return;
 } /* void ConleyIndex(...) */

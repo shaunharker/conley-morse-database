@@ -47,6 +47,12 @@ SINGLECMG += ./build/tools/lodepng/lodepng.o
 SingleCMG: $(SINGLECMG)
 	$(CC) $(LDFLAGS) $(SINGLECMG) -o $@ $(LDLIBS)
 
+RMHTEST := ./build/test/RMHTest.o
+RMHTEST += ./build/tools/picture.o
+RMHTEST += ./build/tools/lodepng/lodepng.o
+RMHTest: $(RMHTEST)
+	$(CC) $(LDFLAGS) $(RMHTEST) -o $@ $(LDLIBS)
+
 HENONCMG := ./build/test/HenonCMG.o
 HENONCMG += ./build/tools/picture.o
 HENONCMG += ./build/tools/lodepng/lodepng.o

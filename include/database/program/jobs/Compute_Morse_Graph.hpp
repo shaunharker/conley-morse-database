@@ -75,20 +75,34 @@ public:
                       const CellContainer & set ) : set(set) {
     CMG_VERBOSE_PRINT("Depth = " << depth << "\n");
     typedef MapGraph<Toplex,Map,CellContainer> Graph;  
-    // Check subdivision condition.
+    // Check subdivision condition. (condition true -> dont subdivide)
     if ( depth >= Min && ( set . size () > Limit || depth >= Max ) ) {
       subdivided = false;
       spurious = false;
 #ifdef DO_CONLEY_INDEX
+      if ( depth == Min ) {
+        using namespace chomp;
+        ConleyIndex_t output;
+        ConleyIndex ( &output,
+                   *phase_space, 
+                   set,
+                   interval_map );
+      }
+#endif
+      CMG_VERBOSE_PRINT("Returning from depth " << depth << ".\n");
+
+      return;
+    }
+    #ifdef DO_CONLEY_INDEX
+    if ( (depth > 0) && (depth < Min) ) {
       using namespace chomp;
       ConleyIndex_t output;
       ConleyIndex ( &output,
                    *phase_space, 
                    set,
                    interval_map );
-#endif
-      return;
     }
+    #endif
     // Subdivide
     subdivided = true;
     spurious = true; // This may be changed below.

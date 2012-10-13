@@ -27,9 +27,9 @@ CHOMP_COMPLEX(Index)
 private:
   CubicalComplex * supercomplex_;
   Index choose_;
-  std::vector < std::vector < bool > > data_;
+  std::vector < boost::unordered_set<Index> > data_;
   bool query ( const Index i, int d ) const {
-    return data_ [ d ] [ i ];
+    return ( data_ [ d ] . count ( i ) );
   }
 public:
   template < class RectMap >
@@ -108,6 +108,8 @@ inline FiberComplex::FiberComplex
 #if 1
   // DEBUG //////////////////////////////////////
   if ( X_image [ 0 ]. size () == 0 ) {
+    // TAKE OUT
+    return;
     std::cout << "FiberComplex failure. The fiber doesn't even have a single vertex.\n";
     BOOST_FOREACH ( Index i, X_nbs ) {
       std::cout << domain . geometry ( i, D ) << " --> " << F ( domain . geometry ( i, D ) ) << "\n";
@@ -133,6 +135,7 @@ inline FiberComplex::FiberComplex
       delete cv;
     }
 #endif
+    return;
     exit ( 1 );
   }
   ///////////////////////////////////////////////
@@ -143,17 +146,15 @@ inline FiberComplex::FiberComplex
   // Initialize bitmap.
   data_ . resize ( D + 1 );
   for ( int d = 0; d <= D; ++ d ) {
-    data_ [ d ] . resize ( supercomplex_ -> size ( d ), false );
-    BOOST_FOREACH ( Index i, X_image [ d ] ) data_ [d][i] = true;
-    BOOST_FOREACH ( Index i, A_image [ d ] ) data_ [d][i] = false;
+    BOOST_FOREACH ( Index i, X_image [ d ] ) data_ [d] . insert ( i );
+    BOOST_FOREACH ( Index i, A_image [ d ] ) data_ [d] . erase ( i );
   }
   
   // Initialize complex
   //startInserting ();
   for ( int d = 0; d <= D; ++ d ) {
-    Index N = supercomplex_ -> size ( d );
-    for ( Index i = 0; i < N; ++ i ) {
-      if ( data_ [ d ] [ i ] ) insertCell ( i, d );
+    BOOST_FOREACH ( Index i, data_[d] ) { 
+      insertCell ( i, d );
     }
   }
   //finishedInserting ();

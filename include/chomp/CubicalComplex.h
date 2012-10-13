@@ -861,18 +861,21 @@ namespace chomp {
     
     // DEBUG
     Rect result = geometryOfCube ( cube );
+    /*
     for ( int d = 0; d < D; ++ d ) {
       if ( result . upper_bounds [ d ] > bounds () . upper_bounds [ d ] ) {
         std::cout << "CubicalComplex::geometry ( " << i << ", " << dim << ")\n";
-        std::cout << result << "\n";
-        std::cout << size ( dim ) << "\n";
-        for ( int k = 0; k < D; ++ k ) std::cout << cube [ k ] << ", ";
+        std::cout << "size(" << dim << ") = " << size(dim) << "\n";
+        std::cout << "Result = " << result << "\n";
+        std::cout << "Complex bounds = " << bounds () << "\n";
+        std::cout << "Cube Coordinates:\n";
+        for ( int k = 0; k < D; ++ k ) std::cout << cube [ k ] << "/" << dimension_sizes_[k]-2 << ", ";
         std::cout << "\n";
         abort ();
       }
-      
     }
-    return geometryOfCube ( cube );
+    */
+    return result;
   }
   
 } // namespace chomp
