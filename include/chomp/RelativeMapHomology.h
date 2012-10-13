@@ -144,6 +144,7 @@ RelativeMapHomology (RelativeMapHomology_t * output,
   long max_chain_memory = 0;
   long number_of_analyzed_fibers = 0;
   long explored_graph_complex = 0;
+  int highest_nontrivial_dim = -1;
   clock_t lift_time_start = clock ();
   for ( int d = 0; d <= D; ++ d ) {
 
@@ -154,6 +155,7 @@ RelativeMapHomology (RelativeMapHomology_t * output,
     //PRINT "RMH: Number of Generators at this dimension = " << number_of_domain_gen << "\n";
 
     for ( int gi = 0; gi < number_of_domain_gen; ++ gi ) {
+      highest_nontrivial_dim = d;
       //PRINT "RMH: dimension = " << d << ", generator = " << gi << "\n";
 
       long chain_memory = 0;
@@ -328,10 +330,10 @@ RelativeMapHomology (RelativeMapHomology_t * output,
     Matrix MapHom = SmithSolve (G, Z);
     //print_matrix (G);
     //print_matrix (Z);
-    
-    std::cout << "Dimension " << d << ":\n";
-    print_matrix (MapHom);
-    
+    if ( MapHom . number_of_rows () != 0 ) {
+      std::cout << "Dimension " << d << ":\n";
+      print_matrix (MapHom);
+    }
     output -> push_back ( MapHom );
   }
   for ( int d = codomain_morse . dimension () + 1; d <= D; ++ d ) {
@@ -360,6 +362,7 @@ RelativeMapHomology (RelativeMapHomology_t * output,
   PRINT "RMH: Graph Size = " << graph_size << "\n";
   std::cout << "# ";
   std::cout << D << " ";
+  std::cout << highest_nontrivial_dim << " ";
   std::cout << full_domain . size (D) << " ";  
   std::cout << full_domain . size () << " ";
   std::cout << full_codomain . size (D) << " ";

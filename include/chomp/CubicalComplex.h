@@ -571,7 +571,7 @@ namespace chomp {
        std::cout << "\n";
        Rect geo = geometryOfCube ( cube );
        std::cout << geo << "\n";
-       */
+      */
       
       if ( not bitmap ( address ) ) return;
       * ii ++ = cellToIndex ( address, dimension () );
@@ -580,7 +580,15 @@ namespace chomp {
     -- d;
     //std::cout << "    For d = " << d << ", adding low[d]*jv[d] = " << low[d] * jump_values_ [ d ] << ", where low[d]=" << low[d] << "\n";
     partial += ( 1 + low[d] ) * jump_values_ [ d ];
+    //std::cout << "before low[" << d << "] = " << low[d] << "\n";
+    //std::cout << "before high[" << d << "] = " << high[d] << "\n";
+    
+    //long my_magic_number = rand () % 1000;
     for ( uint32_t i = low [ d ]; i <= high [ d ]; ++ i ) {
+    //std::cout << "magic = " << my_magic_number << ", i = " << i << "\n";
+      //  std::cout << "low[" << d << "] = " << low[d] << "\n";
+    //std::cout << "high[" << d << "] = " << high[d] << "\n";
+    
       coverHelper ( ii, partial, low, high, d );
       //std::cout << "    Hopping over at dim = " << d << " by " << jump_values_ [ d ] << "\n";
       partial += jump_values_ [ d ];
@@ -647,18 +655,23 @@ namespace chomp {
     for ( int d = 0; d < D; ++ d ) {
       double lowbound = bounds () . lower_bounds [ d ];
       double highbound = bounds () . upper_bounds [ d ];
+      //std::cout << "cubical bounds, low = " << lowbound << ", high = " << highbound << "\n";
+      //std::cout << "dimension sizes [ d ] = " << dimension_sizes_[d]-2 << "\n";
       double scale = ( (double) (dimension_sizes_ [ d ] - 2) ) / (highbound - lowbound);
+      //std::cout << "scale = " << scale << "\n";
       double lower = p . lower_bounds [ d ] - lowbound;
       if ( lower < 0 ) lower = 0;
-      if ( lower + lowbound > highbound ) lower = highbound;
+      if ( lower + lowbound > highbound ) lower = highbound - lowbound;
       double upper = p . upper_bounds [ d ] - lowbound;
       if ( upper < 0 ) upper = 0;
-      if ( upper + lowbound > highbound ) upper = highbound;
+      if ( upper + lowbound > highbound ) upper = highbound - lowbound;
+      //std::cout << "[" << lower << ", " << upper << "]\n";
+      //std::cout << "scaled: [" << scale*lower << ", " << scale * upper << "]\n";
       low [ d ] = (uint32_t) ( scale * lower );
       high [ d ] = (uint32_t) ( scale * upper );
       //std::cout << " low[" << d << "] = " << low [ d ] << ", high["<<d<<"] = " << high [ d ] << "\n";
-      //std::cout << "low grid line = " << lowbound + (low [ d ] - 1 ) / scale << "\n";
-      //std::cout << "high grid line = " << lowbound + (high [ d ] ) / scale << "\n";
+      //std::cout << "low grid line = " << lowbound + (double)(low [ d ]  ) / scale << "\n";
+      //std::cout << "high grid line = " << lowbound + (double)(high [ d ] + 1) / scale << "\n";
     }
     coverHelper ( ii, 0, low, high, D );
     }

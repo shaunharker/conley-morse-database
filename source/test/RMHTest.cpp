@@ -11,7 +11,7 @@
 #include <map>
 
 // To get SCC chatter
-#define CMG_VERBOSE 
+//#define CMG_VERBOSE 
 #define DO_CONLEY_INDEX
 #define RMHMEASUREGRAPH
 //#define NOREACHABILITY
@@ -38,10 +38,10 @@ using namespace chomp;
 
 // choose example
 
-//#define TWODIMLESLIE
+#define TWODIMLESLIE
 //#define FOURDIMLESLIE
 //#define TWOSPHERE
-#define CYCLICLOGISTIC
+//#define CYCLICLOGISTIC
 //#define HENONEXAMPLE
 
 #ifdef TWODIMLESLIE 
@@ -167,8 +167,8 @@ struct ModelMap {
     interval x1 = interval (rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ]);
     interval x2 = interval (rectangle . lower_bounds [ 2 ], rectangle . upper_bounds [ 2 ]);
 
-    interval r = x0*x0 + x1*x1 + x2*x2;
-    interval factor = 2.0 * r - r * r;
+    interval rad = x0*x0 + x1*x1 + x2*x2;
+    interval factor = 2.0 * rad - rad * rad;
     /* Perform map computation */
     interval y0 = factor * x0;     
     interval y1 = factor * x1;
@@ -198,8 +198,8 @@ Rect initialize_phase_space_box ( void ) {
   phase_space_bounds . upper_bounds [ 0 ] = 2.0;
   phase_space_bounds . lower_bounds [ 1 ] = -2.0;
   phase_space_bounds . upper_bounds [ 1 ] = 2.0;
-  phase_space_bounds . lower_bounds [ 1 ] = -2.0;
-  phase_space_bounds . upper_bounds [ 1 ] = 2.0;
+  phase_space_bounds . lower_bounds [ 2 ] = -2.0;
+  phase_space_bounds . upper_bounds [ 2 ] = 2.0;
   std::cout << "Phase Space Bounds = " << phase_space_bounds << "\n";
   return phase_space_bounds;
 }

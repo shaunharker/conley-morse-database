@@ -121,11 +121,11 @@ ConleyIndex ( ConleyIndex_t * output,
   } /* boost_foreach */  
 #endif
   stop = clock ();
-  std::cout << "Conley Index computation prepared as relative map homology problem.\n";
-  std::cout << "Elapsed time = " << (float) ( stop - start ) / (float) CLOCKS_PER_SEC << "\n";
+  //std::cout << "Conley Index computation prepared as relative map homology problem.\n";
+  //std::cout << "Elapsed time = " << (float) ( stop - start ) / (float) CLOCKS_PER_SEC << "\n";
 
   start = clock ();
-  std::cout << "ConleyIndex: calling RelativeMapHomology.\n";
+  //std::cout << "ConleyIndex: calling RelativeMapHomology.\n";
   int error_code = RelativeMapHomology ( &(output -> data ()), toplex, X, A, toplex, X, A, F, depth );
   if ( error_code == 1 ) {
     std::cout << "Problem computing conley index. Returning undefined result.\n";
@@ -134,7 +134,7 @@ ConleyIndex ( ConleyIndex_t * output,
   }
   stop = clock ();
   
-  std::cout << "Conley Index computed. Total time = " << (float) ( stop - start0 ) / (float) CLOCKS_PER_SEC << "\n";
+  //std::cout << "Conley Index computed. Total time = " << (float) ( stop - start0 ) / (float) CLOCKS_PER_SEC << "\n";
   //std::cout << "Number of cells in X = " << X . size () << "\n Cells per second = " << (float) X . size () * (float) CLOCKS_PER_SEC / (float) ( stop - start0 )  << "\n";
   
   return;
