@@ -11,7 +11,7 @@
 #include <map>
 
 // To get SCC chatter
-//#define CMG_VERBOSE 
+#define CMG_VERBOSE 
 #define DO_CONLEY_INDEX
 #define RMHMEASUREGRAPH
 //#define NOREACHABILITY
@@ -38,9 +38,9 @@ using namespace chomp;
 
 // choose example
 
-#define TWODIMLESLIE
+//#define TWODIMLESLIE
 //#define FOURDIMLESLIE
-//#define TWOSPHERE
+#define TWOSPHERE
 //#define CYCLICLOGISTIC
 //#define HENONEXAMPLE
 
@@ -57,14 +57,14 @@ int SINGLECMG_COMPLEXITY_LIMIT = 10000;
 #endif
 
 #ifdef TWOSPHERE
-int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 26;
-int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 30;
+int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 6;
+int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 10;
 int SINGLECMG_COMPLEXITY_LIMIT = 10000;
 #endif
 
 #ifdef CYCLICLOGISTIC 
-int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 26;
-int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 30;
+int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 27;
+int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 36;
 int SINGLECMG_COMPLEXITY_LIMIT = 10000;
 #endif
 
@@ -167,8 +167,11 @@ struct ModelMap {
     interval x1 = interval (rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ]);
     interval x2 = interval (rectangle . lower_bounds [ 2 ], rectangle . upper_bounds [ 2 ]);
 
-    interval rad = x0*x0 + x1*x1 + x2*x2;
-    interval factor = 2.0 * rad - rad * rad;
+    interval sqr = pow(x0,2.0) + pow(x1,2.0) + pow(x2,2.0);
+    std::cout << "|x|^2 = [" << sqr . lower () << ", " << sqr . upper () << "]\n";
+    interval rad = pow(sqr, .5);
+    interval factor = 2.0 * ( interval(1.0,1.0) - rad );
+    factor . lower_  = std::max ( 0.0, factor . lower () );
     /* Perform map computation */
     interval y0 = factor * x0;     
     interval y1 = factor * x1;
@@ -183,6 +186,7 @@ struct ModelMap {
     r . lower_bounds [ 2 ] = y2 . lower ();
     r . upper_bounds [ 2 ] = y2 . upper ();
 
+    std::cout << rectangle << "--->" << r << "\n";
     return r;
   } 
   

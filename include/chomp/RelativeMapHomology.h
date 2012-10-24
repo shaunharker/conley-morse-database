@@ -360,6 +360,7 @@ RelativeMapHomology (RelativeMapHomology_t * output,
     }
   }
   PRINT "RMH: Graph Size = " << graph_size << "\n";
+  if ( highest_nontrivial_dim > -1 ) {
   std::cout << "# ";
   std::cout << D << " ";
   std::cout << highest_nontrivial_dim << " ";
@@ -379,7 +380,7 @@ RelativeMapHomology (RelativeMapHomology_t * output,
   std::cout << max_chain_memory << " ";
 
   std::cout << "\n";
-  
+  }
   #endif
   PRINT "RMH: Returning.\n";
   return 0;

@@ -90,7 +90,9 @@ void MorseProcess::initialize ( void ) {
   for (int i = 0; i < config.PARAM_SUBDIV_DEPTH; ++i) {
     scale /= (Real) 2.0;
     num_across *= 2;
-    param_toplex . subdivide (); // subdivide every top cell
+    for ( int d = 0; d < config.PARAM_DIM; ++ d ) {
+      param_toplex . subdivide (); // subdivide every top cell
+    }
   }
   // Determine the lengths of the boxes.
   // Also, determine the number of interior vertices = (num_across/stride - 1)^dim
