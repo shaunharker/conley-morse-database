@@ -11,7 +11,7 @@
 #include <map>
 
 // To get SCC chatter
-//#define CMG_VERBOSE 
+#define CMG_VERBOSE 
 #define DO_CONLEY_INDEX
 
 // HEADERS FOR DATA STRUCTURES

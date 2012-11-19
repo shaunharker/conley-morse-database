@@ -77,11 +77,11 @@ public:
 
   /// cover   (rect version)
   template < class InsertIterator > InsertIterator
-  cover ( InsertIterator ii, const Rect & r ) const;
+  cover ( InsertIterator & ii, const Rect & r ) const;
 
   /// cover   (prism version)
   template < class InsertIterator > InsertIterator
-  cover ( InsertIterator ii, const Prism & p ) const;
+  cover ( InsertIterator & ii, const Prism & p ) const;
 
   /// cover   (vector version)
   template < class InsertIterator, class T > void 
@@ -387,7 +387,7 @@ inline Rect Toplex::geometry ( const GridElement & cell  ) const {
 
   template < class InsertIterator >
   inline InsertIterator
-  Toplex::cover ( InsertIterator ii, const Rect & geometric_region ) const {
+  Toplex::cover ( InsertIterator & ii, const Rect & geometric_region ) const {
     //std::cout << "Rect version of Cover\n";
     //std::cout << "Covering " << geometric_region << "\n";
     // Deal with periodicity
@@ -602,7 +602,7 @@ inline Rect Toplex::geometry ( const GridElement & cell  ) const {
   } // cover
 
 template < class InsertIterator > inline InsertIterator
-Toplex::cover ( InsertIterator ii, const Prism & P ) const {
+Toplex::cover ( InsertIterator & ii, const Prism & P ) const {
   //std::cout << "Prism version of Cover\n";
   static Rect G ( dimension_ );
 
@@ -662,9 +662,9 @@ Toplex::cover ( InsertIterator ii, const Prism & P ) const {
           if ( N -> right_ == NULL ) {
             // Here's what we are looking for.
             * ii ++ = N -> contents_; // OUTPUT
-                                      //std::cout << "cover -- " << N -> contents_ << "\n";
-                                      // Issue the order to rise.
-                                      //std::cout << "Issue rise.\n";
+            //std::cout << "cover -- " << N -> contents_ << "\n";
+            // Issue the order to rise.
+            //std::cout << "Issue rise.\n";
             state = 3;
           } else {
             // Issue the order to descend to the right.
@@ -736,7 +736,7 @@ inline void Toplex::cover ( InsertIterator & ii, const std::vector < T > & V ) c
   BOOST_FOREACH ( const T & geo, V ) {
     cover ( ii, geo );
   }
-}   
+}
   
 template < class InsertIterator >
 inline InsertIterator

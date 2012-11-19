@@ -69,6 +69,7 @@ struct Element {
     ar & right;
     ar & up;
     ar & down;
+      //std::cout << "Serializing Element\n";
   }
 };
 
@@ -88,6 +89,10 @@ template < class R >
 SparseMatrix<R> operator - (const SparseMatrix<R> & rhs,
                                const SparseMatrix<R> & lhs);
 
+// forward declare
+template < class R >
+void print_matrix ( const SparseMatrix<R> & print_me );
+    
 // class Sparse Matrix
 template < class R >
 class SparseMatrix {
@@ -104,8 +109,8 @@ public: // not friends with different templated versions, weirdly
   // Garbage Collection structure
   std::deque < Index > garbage_;
   // data to assist in O(1) random access times
-  boost::unordered_map < Position, Index, boost::hash< Position > > access_;
-  typedef boost::unordered_map < Position, Index, boost::hash< Position > >::const_iterator access_iterator;
+  std::tr1::unordered_map < Position, Index, boost::hash< Position > > access_;
+  typedef std::tr1::unordered_map < Position, Index, boost::hash< Position > >::const_iterator access_iterator;
   // data to store the beginning of the rows and columns
   std::vector < Index > row_begin_;
   std::vector < Index > column_begin_;
@@ -192,10 +197,41 @@ public:
   size_type row_size ( const size_type i ) const;
   size_type column_size ( const size_type j ) const;
   
+    
+    void sanityCheck ( void ) const {
+        std::cout << "sanityCheck.\n";
+        std::cout << "data_.size() = " << data_ . size () << "\n";
+        BOOST_FOREACH ( const Element<R> & e, data_ ) {
+            std::cout << "(" << e . position . first << ", " << e . position . second << "; " << e  . value << ") ";
+        }
+        std::cout << "\n";
+        std::cout << "access_.size() = " << access_ . size () << "\n";
+        typedef std::pair < Position, Index > access_value_t;
+        BOOST_FOREACH ( const access_value_t & v, access_ ) {
+            std::cout << "(" << v . first . first << ", " << v. first . second << "; " << v  . second << ") ";
+        }
+        std::cout << "\n";
+        std::cout << "row_sizes_.size() = " << row_sizes_ . size () << "\n";
+        for ( unsigned int i = 0; i < row_sizes_ . size (); ++ i ) {
+            std::cout << "(" << i << ", " << row_sizes_ [ i ] << "\n";
+        }
+        std::cout << "\n";
+        std::cout << "column_sizes_.size() = " << column_sizes_ . size () << "\n";
+        for ( unsigned int i = 0; i < column_sizes_ . size (); ++ i ) {
+            std::cout << "(" << i << ", " << column_sizes_ [ i ] << "\n";
+        }
+        std::cout << "row_names_.size() = " << row_names_ . size () << "\n";
+
+        std::cout << "column_sizes_.size() = " << column_names_ . size () << "\n";
+
+    }
+
   /// The serialization method.
   friend class boost::serialization::access;  
   template < class Archive >
   void serialize ( Archive & ar , const unsigned int version ) {
+      //std::cout << "Serializing SparseMatrix\n";
+      
     ar & data_;
     ar & garbage_;
     // data to assist in O(1) random access times
@@ -204,8 +240,25 @@ public:
     ar & row_begin_;
     ar & column_begin_;
     // data to store amount of non-zero elements per row and column
+      //int x = 300;
+      //ar & x;
+      //std::cout << "SM serialize " << x << "\n";
+      //x = row_sizes_ . size ();
+      //ar & x;
+      //std::cout << "SM serialize " << x << "\n";
+
     ar & row_sizes_;
+      //x = 301;
+      //ar & x;
+      //std::cout << "SM serialize " << x << "\n";
+      //x = column_sizes_ . size ();
+      //ar & x;
+      //std::cout << "SM serialize " << x << "\n";
     ar & column_sizes_;
+      //x = 302;
+      //ar & x;
+      //std::cout << "SM serialize " << x << "\n";
+
     // data to handle quick permutations of rows and columns
     ar & row_names_;
     ar & column_names_;
@@ -216,8 +269,18 @@ public:
     ar & cache_B;
     ar & cache_B_TS;
     ar & cache_B_S;
-    ar & timestamp;  
+    ar & timestamp;
+      //x = 999;
+      //ar & x;
+      //std::cout << "SM serialize " << x << "\n";
+
+      //print_matrix ( * this );
+      //std::cout << "row_sizes_.size() = " << row_sizes_ . size () << "\n";
+      //std::cout << "column_sizes_.size() = " << column_names_ . size () << "\n";
+      //std::cout << "Serialization of Sparse Matrix complete.\n";
+      //sanityCheck ();
   }
+    
 };
 
 // Sparse Matrix Algorithms

@@ -33,6 +33,11 @@
 // MAP FUNCTION OBJECT
 #include <cmath>
 #include "database/maps/simple_interval.h"   // for interval arithmetic
+
+#include "capd/capdlib.h"
+#include "capd/dynsys/DynSysMap.h"
+#include "capd/dynset/C0PpedSet.hpp"
+
 #include "chomp/Rect.h"
 #include "chomp/Prism.h"
 
@@ -45,14 +50,64 @@ using namespace chomp;
 //#define FIVEDIMPRISMLESLIE
 //#define HENONEXAMPLE
 
-#define HenonMap //20120726 CU
-#define HM3D     //20120726 CU
+#define CleverHenonMap
+//#define HenonMap //20120726 CU
+//#define HM3D     //20120726 CU
 
-int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 10;
+int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 8;
 int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 12;
 int SINGLECMG_COMPLEXITY_LIMIT = 10000;
 
 
+#ifdef CleverHenonMap
+
+#include "data/henon/ModelMap.h"
+
+Rect initialize_phase_space_box ( void ) {
+  
+#ifdef HM3D
+  int phase_space_dimension = 3;
+#else
+  int phase_space_dimension = 2;
+#endif
+  Rect phase_space_bounds ( phase_space_dimension );
+  phase_space_bounds . lower_bounds [ 0 ] = -1.5;
+  phase_space_bounds . upper_bounds [ 0 ] =  1.5;
+  phase_space_bounds . lower_bounds [ 1 ] = -1.5;
+  phase_space_bounds . upper_bounds [ 1 ] =  1.5;
+#ifdef HM3D
+  phase_space_bounds . lower_bounds [ 2 ] = -1.5;
+  phase_space_bounds . upper_bounds [ 2 ] =  1.5;
+#endif
+  
+  std::cout << "Phase Space Bounds = " << phase_space_bounds << "\n";
+  return phase_space_bounds;
+}
+
+Rect initialize_parameter_space_box ( const Real bx, const Real by ) {
+  int parameter_space_dimension = 2;
+  Rect parameter_space_limits ( parameter_space_dimension );
+  parameter_space_limits . lower_bounds [ 0 ] = -2.5;
+  parameter_space_limits . upper_bounds [ 0 ] =  2.5 ;
+  parameter_space_limits . lower_bounds [ 1 ] = -2.5 ;
+  parameter_space_limits . upper_bounds [ 1 ] =  2.5 ;
+  int PARAMETER_BOXES = 10000;
+  Rect parameter_box ( parameter_space_dimension );
+  parameter_box . lower_bounds [ 0 ] = parameter_space_limits . lower_bounds [ 0 ] +
+  ( parameter_space_limits . upper_bounds [ 0 ] - parameter_space_limits . lower_bounds [ 0 ] ) * bx / (float) PARAMETER_BOXES;
+  parameter_box . upper_bounds [ 0 ] = parameter_space_limits . lower_bounds [ 0 ] +
+  ( parameter_space_limits . upper_bounds [ 0 ] - parameter_space_limits . lower_bounds [ 0 ] ) * ( bx + 1.0 ) / (float) PARAMETER_BOXES;
+  parameter_box . lower_bounds [ 1 ] = parameter_space_limits . lower_bounds [ 1 ] +
+  ( parameter_space_limits . upper_bounds [ 1 ] - parameter_space_limits . lower_bounds [ 1 ] ) * by / (float) PARAMETER_BOXES;
+  parameter_box . upper_bounds [ 1 ] = parameter_space_limits . lower_bounds [ 1 ] +
+  ( parameter_space_limits . upper_bounds [ 1 ] - parameter_space_limits . lower_bounds [ 1 ] ) * ( by + 1.0 ) / (float) PARAMETER_BOXES;
+  std::cout << "Parameter Box Choice = " << parameter_box << "\n";
+  
+  return parameter_box;
+}
+
+
+#endif
 #ifdef HenonMap  //20120726 CU
 
 struct ModelMap {

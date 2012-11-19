@@ -82,6 +82,7 @@ const std::set < ConleyRecord > & Database::conley_records ( void ) const {
 
 // file operations
 void Database::save ( const char * filename ) {
+    std::cout << "Database SAVE\n";
   std::ofstream ofs(filename);
   assert(ofs.good()); 
   boost::archive::text_oarchive oa(ofs);
@@ -90,6 +91,7 @@ void Database::save ( const char * filename ) {
 }
 
 void Database::load ( const char * filename ) {
+    std::cout << "Database LOAD\n";
   std::ifstream ifs(filename);
   if ( not ifs . good () ) {
     std::cout << "Could not load " << filename << "\n";

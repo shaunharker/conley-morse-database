@@ -11,8 +11,8 @@
 #include <map>
 
 // To get SCC chatter
-#define CMG_VERBOSE 
-#define DO_CONLEY_INDEX
+#define CMG_VERBOSE
+//#define DO_CONLEY_INDEX
 #define NOREACHABILITY
 //#define VISUALIZE_DEBUG
 //#define ILLUSTRATE
@@ -22,7 +22,7 @@
 
 #include "database/structures/Conley_Morse_Graph.h"
 #include "database/program/jobs/Compute_Morse_Graph.h"
-
+#include "chomp/ConleyIndex.h"
 
 
 //////////////////////////////////////BEGIN USER EDIT//////////////////////////////////////////
@@ -41,7 +41,7 @@ using namespace chomp;
 //#define TWODIMLESLIE
 //#define TWODIMLESLIEPRISMCAPD
 //#define PRISMLESLIE
-//#define FOURDIMPRISMLESLIE
+#define FOURDIMPRISMLESLIE
 //#define FIVEDIMPRISMLESLIE
 //#define PRISMFISHERIES2D
 //#define PRISMFISHERIES3D
@@ -50,10 +50,10 @@ using namespace chomp;
 //#define PRISMFISHERIES6D 
 //#define PRISMFISHERIES7D
 //#define CORAL4D
-#define CORAL5D
+//#define CORAL5D
 
-int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 72;
-int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 88;
+int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 33;
+int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 43;
 int SINGLECMG_COMPLEXITY_LIMIT = 10000;
 
 #ifdef CORAL4D

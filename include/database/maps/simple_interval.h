@@ -182,4 +182,39 @@ simple_interval<Real> sin ( const simple_interval<Real> & term ) {
   return cos ( term - pi/2.0);
 } 
 
+template < class Real >
+simple_interval<Real> tanh (const simple_interval<Real> & term) {
+	simple_interval<Real> result;
+	result . lower_ = std::tanh (term . lower_ );
+	result . upper_ = std::tanh (term . upper_ );
+	return result;
+}
+
+template < class Real >
+simple_interval<Real> square (const simple_interval<Real> & term) {
+  simple_interval<Real> result;
+  if (term . lower_ < 0 && term . upper_ > 0){
+    if (std::abs (term . lower_) > term.upper_){
+      result . lower_ = 0;
+      result . upper_ = term.lower_ * term.lower_;
+    }
+    else{
+      result . lower_ = 0;
+      result . upper_ = term.upper_ * term.upper_;
+    }
+  }
+  else{
+    if (std::abs (term . lower_)> std::abs(term.upper_)){
+      result . lower_ = term . upper_ * term . upper_;
+      result . upper_ = term . lower_ * term . lower_;
+    }
+    else{
+      result . lower_ = term . lower_ * term . lower_;
+      result . upper_ = term . upper_ * term . upper_;
+    }
+  }
+  return result;
+}
+
+
 #endif

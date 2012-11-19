@@ -39,7 +39,9 @@ struct GridElementRecord {
   friend class boost::serialization::access;
   template<class Archive>
   void serialize(Archive& ar, const unsigned int version) {
+      //std::cout << "Serialize lower bounds\n";
     ar & lower_bounds_;
+      //std::cout << "Serialize upper bounds\n";
     ar & upper_bounds_;
   }
 };
@@ -60,9 +62,14 @@ struct ParameterBoxRecord {
   friend class boost::serialization::access;
   template<class Archive>
   void serialize(Archive& ar, const unsigned int version) {
+      //std::cout << "Serialize box record.\n";
+      //std::cout << "Serialize ID\n";
     ar & id_;
+      //std::cout << "Serialize Grid Element\n";
     ar & ge_;
+      //std::cout << "Serialize number of morse sets\n";
     ar & num_morse_sets_;
+      //std::cout << "Serialize partial order\n";
     ar & partial_order_;
   }
 };
@@ -74,8 +81,12 @@ struct ClutchingRecord {
   friend class boost::serialization::access;
   template<class Archive>
   void serialize(Archive& ar, const unsigned int version) {
+      //std::cout << "Serialize clutch record.\n";
+      //std::cout << "Serialize ID\n";
     ar & id1_;
+      //std::cout << "Serialize ID\n";
     ar & id2_;
+      //std::cout << "Serialize clutch list\n";
     ar & clutch_;
   }
 };
@@ -87,7 +98,11 @@ struct ConleyRecord {
   friend class boost::serialization::access;
   template<class Archive>
   void serialize(Archive& ar, const unsigned int version) {
+      //std::cout << "Serialize conley record.\n";
+      //std::cout << "Serialize ID\n";
     ar & id_;
+      //std::cout << "Serialize Conley Index\n";
+
     ar & ci_;
   }
 };
@@ -114,9 +129,19 @@ public:
   const std::set < ConleyRecord > & conley_records ( void ) const;
   template<class Archive>
   void serialize(Archive& ar, const unsigned int version) {
+      //std::cout << "Serialize box records.\n";
     ar & box_records_;
+      //std::cout << "Serialize clutch records.\n";
+
     ar & clutch_records_;
+      //std::cout << "Serialize conley records.\n";
+
     ar & conley_records_;
+    
+      //int x = 753;
+      
+      //ar & x;
+      //std::cout << "Seralize the number " << x << "\n";
   }
 };
 

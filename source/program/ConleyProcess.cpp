@@ -183,5 +183,10 @@ void ConleyProcess::finalize ( void ) {
   std::string filestring ( argv[1] );
   std::string appendstring ( "/database.cmdb" );
   database . save ( (filestring + appendstring) . c_str () );
+    
+    std::cout << "DEBUG...\n";
+    Database debugtest;
+    debugtest . load ( (filestring + appendstring) . c_str () );
+    std::cout << typeid ( chomp::Ring ).name() << "\n";
   
 }

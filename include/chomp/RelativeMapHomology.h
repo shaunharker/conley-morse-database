@@ -16,7 +16,7 @@
 #include "chomp/FiberComplex.h"
 
 
-#include "Draw.h"
+//#include "Draw.h"
 
 #define PRINT if ( 0 ) std::cout <<
 
@@ -146,8 +146,10 @@ RelativeMapHomology (RelativeMapHomology_t * output,
   long explored_graph_complex = 0;
   int highest_nontrivial_dim = -1;
   clock_t lift_time_start = clock ();
+  bool acyclic_map = true;
   for ( int d = 0; d <= D; ++ d ) {
 
+    if ( not acyclic_map ) break;
     int number_of_domain_gen = domain_gen [ d ] . size ();
     codomain_cycles [ d ] . resize ( number_of_domain_gen );
 
@@ -155,6 +157,8 @@ RelativeMapHomology (RelativeMapHomology_t * output,
     //PRINT "RMH: Number of Generators at this dimension = " << number_of_domain_gen << "\n";
 
     for ( int gi = 0; gi < number_of_domain_gen; ++ gi ) {
+      if ( not acyclic_map ) break;
+
       highest_nontrivial_dim = d;
       //PRINT "RMH: dimension = " << d << ", generator = " << gi << "\n";
 
@@ -189,6 +193,8 @@ RelativeMapHomology (RelativeMapHomology_t * output,
       //PRINT "RMH: Chain size = " << domain_generator () . size () << "\n";
       // Now lift it:
       BOOST_FOREACH ( const Term & t, domain_generator () ) {
+        if ( not acyclic_map ) break;
+
         //std::cout << "Dealing with fiber (" << t . index () << ", " << d << ") (*)\n";
         //std::cout << "   Term is " << t << "\n";
         // Determine fiber
@@ -209,7 +215,10 @@ RelativeMapHomology (RelativeMapHomology_t * output,
         ////////////////////////////////
         
         FiberComplex fiber ( X_nbs, A_nbs, full_domain, full_codomain, F );
-        ++ number_of_analyzed_fibers; // run statistics
+        if ( not fiber . acyclic () ) {
+          acyclic_map = false;
+          break;
+        }        ++ number_of_analyzed_fibers; // run statistics
         explored_graph_complex += fiber . size (); // run statistics
 
         // Choose a vertex in fiber
@@ -226,11 +235,13 @@ RelativeMapHomology (RelativeMapHomology_t * output,
       // Now process every fiber we can see in graph_boundary
       // Loop through every fiber dimension (fd)
       for ( int fd = d - 1; fd >= 0; -- fd ) {
+        if ( not acyclic_map ) break;
         //PRINT "  fiber dimension = " << fd << "\n";
 
         // Loop through every non-empty fiber
         typedef std::pair<Index,Chain> IndexChainPair;
         BOOST_FOREACH ( const IndexChainPair & fiberchain, graph_boundary [fd] ) {
+          if ( not acyclic_map ) break;
           //std::cout << "Dealing with fiber (" << fiberchain . first << ", " << fd << ")\n";
           //std::cout << "   Chain is " << fiberchain . second << "\n";
           chain_memory += fiberchain . second () . size ();
@@ -239,6 +250,10 @@ RelativeMapHomology (RelativeMapHomology_t * output,
           X_nbs = domain_GridElements_X [ fd ] [ fiberchain . first ];
           A_nbs = domain_GridElements_A [ fd ] [ fiberchain . first ];    
           FiberComplex fiber ( X_nbs, A_nbs, full_domain, full_codomain, F );
+          if ( not fiber . acyclic () ) {
+            acyclic_map = false;
+            break;
+          }
           ++ number_of_analyzed_fibers; // run statistics
           explored_graph_complex += fiber . size (); // run statistics
           // Determine chain in fiber
@@ -320,6 +335,11 @@ RelativeMapHomology (RelativeMapHomology_t * output,
   PRINT "RMH: Time Elapsed (lift and project) = " << lift_time << "\n";
   PRINT "RMH: Max memory usage (chains only)= " << max_chain_memory << "\n";
 
+  if ( not acyclic_map ) {
+    PRINT "RMH: Returning no answer due to lack of acyclicity in map.";
+    return 1;
+  }
+  
   //PRINT "RMH: Algebraic processing. \n";
 
  clock_t algebra_time_start = clock ();

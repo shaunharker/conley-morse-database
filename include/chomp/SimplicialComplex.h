@@ -162,7 +162,8 @@ inline void SimplicialComplex::loadFromFile ( const char * FileName) {
 	if ( not input_file . good () ) {
 		std::cout << "SimplicialComplex::loadFromFile. Fatal Error. " 
 		<< FileName << " not found.\n";
-	exit ( 1 ); } /* if */
+    exit ( 1 );
+  } /* if */
 	//int index = 0;
 	
 	//Simplex s;

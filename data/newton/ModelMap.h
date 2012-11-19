@@ -26,25 +26,35 @@ struct ModelMap {
     //b = interval (rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ]);
     //c = interval (rectangle . lower_bounds [ 2 ], rectangle . upper_bounds [ 2 ]);
     //phi = interval (rectangle . lower_bounds [ 3 ], rectangle . upper_bounds [ 3 ]);
-    c = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ] );
-    phi = interval ( rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ] );
-    a = interval ( -.5, -.5 );
-    b = interval ( .5, .5 );
+    c = interval (rectangle . lower_bounds [ 2 ], rectangle . upper_bounds [ 2 ] );
+    phi = interval ( rectangle . lower_bounds [ 3 ], rectangle . upper_bounds [ 3 ] );
+    a = interval (-1.0,-1.0 );
+    b = interval ( 1.0, 1.0 );
     return;
   }
   chomp::Rect operator () 
   ( const chomp::Rect & rectangle ) const {    
+    //chomp::Rect myresult = rectangle;
+    //myresult . lower_bounds [ 0 ] -= .1;
+    //myresult . upper_bounds [ 0 ] += .1;
+    //return myresult;
     /* Read input */
-    chomp::Rect testoutput = rectangle;
-    testoutput . lower_bounds [ 0 ] -= .00001;
-    testoutput . upper_bounds [ 0 ] += .00001;
-    return testoutput;
+    //chomp::Rect testoutput = rectangle;
+    //testoutput . lower_bounds [ 0 ] -= .1;
+    //testoutput . upper_bounds [ 0 ] += .1;
+    //return testoutput;
 
     interval theta = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ]);
     
-    interval x = interval ( 1.0 ) + ( interval ( 1.0 ) - c ) * sin ( theta ) * sin ( theta );
+    interval x = interval ( 1.0 ) + ( c - interval ( 1.0 ) ) * sin ( theta ) * sin ( theta );
     interval y = (a + b ) * 0.5 + ( a - b ) * 0.5 * cos ( 2.0 * ( phi + theta ) );
+
+    //interval x = cos(theta)*cos(theta) + c*sin(theta)*sin(theta);
+    //interval y = a*cos(theta + phi)*cos(theta + phi) + b*sin(theta + phi)*sin(theta + phi);
     
+    //interval x = cos(theta);
+    //interval y = sin(theta);
+
     const chomp::Real pi = 3.1415926535897932384626433832795;
      
     double A = x . lower ();
@@ -58,7 +68,12 @@ struct ModelMap {
     double t4 = atan2 ( D, A );
     
     chomp::Rect return_value ( 1 );
-    
+    if ( A*B <= 0.0 && C*D <= 0.0 ) {
+      return_value . lower_bounds [ 0 ] = -pi;
+      return_value . upper_bounds [ 0 ] = pi;
+      //std::cout << "Singularity.\n";
+    }
+
     if ( C*D < 0.0 ) {
       if ( A*B < 0.0 ) {
         // [0,2pi)

@@ -14,10 +14,11 @@
 #include "chomp/Preboundary.h"
 #include "chomp/Closure.h"
 #include "chomp/CubicalComplex.h"
+#include "chomp/Generators.h"
 
 
 // debug
-#include "chomp/Draw.h"
+//#include "chomp/Draw.h"
 
 namespace chomp { 
   
@@ -56,7 +57,9 @@ public:
   
   virtual void 
   coboundary ( Chain * output, const Chain & input ) const;
-    
+  
+  bool acyclic ( void ) /* const */;
+  
   Chain preboundary ( const Chain & input ) /* const */;
   
   //convenience
@@ -105,7 +108,7 @@ inline FiberComplex::FiberComplex
   closure ( A_image, * supercomplex_ );
   
   // Pick choose   (dirty: this makes sense only if A is empty )
-#if 1
+#if 0
   // DEBUG //////////////////////////////////////
   if ( X_image [ 0 ]. size () == 0 ) {
     // TAKE OUT
@@ -183,7 +186,21 @@ inline void FiberComplex::project ( Chain * output,
   output -> dimension () = dim;
 }
 
-inline Chain FiberComplex::preboundary 
+inline bool FiberComplex::acyclic ( void ) /* const */ {
+  Generators_t gen = MorseGenerators ( *this );
+  bool result = true;
+  if ( gen [ 0 ] . size () > 1 ) result = false;
+  for ( int d = 1; d <= dimension (); ++ d ) {
+    if ( gen [ d ] . size () > 0 ) result = false;
+  }
+  //std::cout << "Fiber acyclic? " << (result ? "true" : "false") << "\n";
+  //for ( int d = 0; d <= dimension (); ++ d ) { std::cout << gen [ d ] . size () << " "; }
+  //std::cout << "\n";
+
+  return result;
+}
+  
+inline Chain FiberComplex::preboundary
 ( const Chain & input ) /* const */ {
   return SmithPreboundary ( input, *this );
 
