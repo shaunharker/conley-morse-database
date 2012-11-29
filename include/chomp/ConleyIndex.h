@@ -125,7 +125,8 @@ ConleyIndex ( ConleyIndex_t * output,
   //std::cout << "Elapsed time = " << (float) ( stop - start ) / (float) CLOCKS_PER_SEC << "\n";
 
   start = clock ();
-  //std::cout << "ConleyIndex: calling RelativeMapHomology.\n";
+  
+  std::cout << "ConleyIndex: calling RelativeMapHomology.\n";
   int error_code = RelativeMapHomology ( &(output -> data ()), toplex, X, A, toplex, X, A, F, depth );
   if ( error_code == 1 ) {
     std::cout << "Problem computing conley index. Returning undefined result.\n";

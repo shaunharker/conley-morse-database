@@ -136,8 +136,7 @@ int ConleyProcess::prepare ( Message & job ) {
   job << config.PERIODIC;
 
   std::cout << "Preparing conley job " << job_number 
-            << " with GD = " << GD << "\n";
-  
+            << " with GD = " << GD << "  and  ms_id = (" << conley_work_items [ job_number ] . first << ", " << conley_work_items [ job_number ] . second << ")\n";
   /// Increment the jobs_sent counter
   ++num_jobs_sent_;
   

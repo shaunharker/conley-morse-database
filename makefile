@@ -3,6 +3,8 @@ include makefile.config
 
 COMPUTE_MORSE_SETS := yes
 COMPUTE_CONLEY_INDEX := yes
+CHECKIFMAPISGOOD := yes
+# if modelmap has good() implemented
 PARAM_SPACE_METHOD := PATCHMETHOD
 
 CXXFLAGS += -D $(PARAM_SPACE_METHOD)
@@ -30,6 +32,9 @@ ifeq ($(COMPUTE_CONLEY_INDEX),yes)
 	CXXFLAGS += -D COMPUTE_CONLEY_INDEX
 endif
 
+ifeq ($(CHECKIFMAPISGOOD),yes)
+	CXXFLAGS += -D CHECKIFMAPISGOOD
+endif
 
 Conley_Morse_Database: $(DATABASE)
 	$(CC) $(LDFLAGS) $(DATABASE) -o $@ $(LDLIBS)

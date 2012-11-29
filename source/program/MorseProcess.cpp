@@ -94,6 +94,19 @@ void MorseProcess::initialize ( void ) {
       param_toplex . subdivide (); // subdivide every top cell
     }
   }
+  
+  // DEBUG CODE FOR "ModelMap::good"
+  
+  std::cout << "DEBUGGING FOR MODELMAPGOOD\n";
+  Toplex::iterator it = param_toplex . begin ();
+  for ( it = param_toplex . begin (); it != param_toplex . end (); ++ it ) {
+    ModelMap map ( param_toplex . geometry ( it ) );
+    std::cout << "\n BOX = " << param_toplex . geometry ( it ) << "\n";
+    if ( map . good () ) std::cout << "not singular.\n"; else std::cout << "singular.\n";
+  }
+  std::cout << "END DEBUGGING\n";
+  // END DEBUG CODE FOR "ModelMap::good"
+  
   // Determine the lengths of the boxes.
   // Also, determine the number of interior vertices = (num_across/stride - 1)^dim
   int num_interior_vertices = 1;
@@ -197,6 +210,10 @@ int MorseProcess::prepare ( Message & job ) {
   BOOST_FOREACH ( Toplex::Top_Cell cell_in_patch, patch_subset ) {
     // Find geometry of patch cell
     Rect GD = param_toplex . geometry (param_toplex . find (cell_in_patch));
+#ifdef CHECKIFMAPISGOOD
+    ModelMap map ( GD );
+    if ( not map . good () ) continue;
+#endif
     // Store the name of the patch cell
     box_names . push_back ( cell_in_patch );
     // Store the geometric description of the patch cell
@@ -207,6 +224,11 @@ int MorseProcess::prepare ( Message & job ) {
     param_toplex . cover ( ii, GD );
     // Store the cells in the patch which intersect the patch cell as adjacency pairs
     BOOST_FOREACH ( Toplex::Top_Cell cell_in_cover, GD_Cover ) {
+#ifdef CHECKIFMAPISGOOD
+      Rect adjGD = param_toplex . geometry (param_toplex . find (cell_in_cover));
+      ModelMap adjmap ( GD );
+      if ( not adjmap . good () ) continue;
+#endif
       if (( patch_subset . count (cell_in_cover) != 0 ) && cell_in_patch < cell_in_cover ) {
         box_adjacencies . push_back ( std::make_pair ( cell_in_patch, cell_in_cover ) );
       }

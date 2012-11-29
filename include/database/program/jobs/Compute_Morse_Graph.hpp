@@ -179,9 +179,25 @@ void Compute_Morse_Graph (Morse_Graph * MG,
                           const unsigned int Min, 
                           const unsigned int Max, 
                           const unsigned int Limit) {
+  
+#if 0
+  std::cout << "c = (" << interval_map . c . lower () << ", " << interval_map . c . upper () << ")\n";
+  std::cout << "phi = (" << interval_map . phi . lower () << ", " << interval_map . phi . upper () << ")\n";
+
+  std::cout << "phase_space bounds = " << phase_space -> bounds () << "\n";
+  std::cout << "phase_space tree size = " << phase_space -> tree_size () << "\n";
+  std::cout << "phase_space periodic:" << phase_space -> periodic () . size () << "\n";
+  for ( int d = 0; d < phase_space -> periodic () . size (); ++ d ) {
+    std::cout << "PERIODIC[" << d << "] = " << (phase_space -> periodic ()[d]? "true":"false") << "\n";
+  }
+
+  std::cout << "Min = " << Min << "\n";
+  std::cout << "Max = " << Max << "\n";
+  std::cout << "Limit = " << Limit << "\n";
+#endif
+  
   using namespace chomp;
   typedef std::vector<typename Toplex::Top_Cell> CellContainer;
-  
   // Produce initial Morse Set
   CellContainer morse_set;
   std::insert_iterator < CellContainer > ii (morse_set, 

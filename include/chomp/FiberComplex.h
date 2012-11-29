@@ -144,8 +144,11 @@ inline FiberComplex::FiberComplex
   ///////////////////////////////////////////////
 #endif
   
-  choose_ = * X_image [ 0 ] . begin ();
-  
+  //std::cout << "PICKING CHOOSE\n";
+  if ( X_image [ 0 ] . size () > 0 ) {
+    choose_ = * X_image [ 0 ] . begin ();
+  }
+  //std::cout << "CHOOSE PICKED\n";
   // Initialize bitmap.
   data_ . resize ( D + 1 );
   for ( int d = 0; d <= D; ++ d ) {

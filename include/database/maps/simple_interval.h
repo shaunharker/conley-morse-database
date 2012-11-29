@@ -6,6 +6,7 @@
 #define CMDP_SIMPLEINTERVAL_H
 
 #include <cmath>
+#include <limits>
 
 // boost interval doesn't seem to want to give me exp
 // This simple alternative will work as long as we as approximate
@@ -109,6 +110,12 @@ simple_interval<Real> operator - ( const simple_interval<Real> & lhs, const Real
 template < class Real >
 simple_interval<Real> pow ( const simple_interval<Real> & base, const Real exponent ) {
   simple_interval<Real> result;
+  //if ( base . lower () <= 0.0  && exponent <= 0.0 ) std::cout << "pow A\n";
+  //if ( base . upper () <= 0.0  && exponent <= 0.0 ) std::cout << "pow B.\n";
+  //if ( base . lower () <= 0.0 ) std::cout << "pow C. " << base . lower () << ", " << base . upper () << "\n";
+  //if ( base . upper () <= 0.0 ) std::cout << "pow D. " << base . lower () << ", " << base . upper () << "\n";
+  
+
   if (exponent > 0){
     result . lower_ = std::pow( base . lower_ , exponent );
     result . upper_ = std::pow( base . upper_ , exponent );                   
@@ -181,6 +188,33 @@ simple_interval<Real> sin ( const simple_interval<Real> & term ) {
   const Real pi = 3.1415926535897932384626433832795;
   return cos ( term - pi/2.0);
 } 
+
+template < class Real >
+simple_interval<Real> tan ( const simple_interval<Real> & term ) {
+  const Real pi = 3.1415926535897932384626433832795;
+  simple_interval<Real> result;
+  Real low = term . lower ();
+  Real high = term . upper ();
+  Real tanlow = tan ( low );
+  Real tanhigh = tan ( high );
+  if ( (high - low >= pi) ||
+       (tanlow > tanhigh) ) return simple_interval<double> ( -std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity());
+  return simple_interval<double> ( tanlow, tanhigh );
+}
+
+template < class Real >
+simple_interval<Real> cot ( const simple_interval<Real> & term ) {
+  const Real pi = 3.1415926535897932384626433832795;
+  simple_interval<Real> result;
+  Real low = term . lower ();
+  Real high = term . upper ();
+  Real cotlow = 1.0 / tan ( high );
+  Real cothigh = 1.0 / tan ( low );
+  if ( (high - low >= pi) ||
+      (cotlow > cothigh) ) return simple_interval<double> ( -std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity());
+  return simple_interval<double> ( cotlow, cothigh );
+}
+
 
 template < class Real >
 simple_interval<Real> tanh (const simple_interval<Real> & term) {

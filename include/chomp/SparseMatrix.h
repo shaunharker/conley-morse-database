@@ -230,8 +230,21 @@ public:
   friend class boost::serialization::access;  
   template < class Archive >
   void serialize ( Archive & ar , const unsigned int version ) {
+    // TODO: More efficient to split into save/load routines, saving has unnecessary operations
       //std::cout << "Serializing SparseMatrix\n";
-      
+    std::vector < Element<R> > data_copy = data_;
+    int number_of_rows = row_sizes_ . size ();
+    int number_of_columns = column_sizes_ . size ();
+    ar & data_copy;
+    ar & number_of_rows;
+    ar & number_of_columns;
+    resize ( number_of_rows, number_of_columns );
+    BOOST_FOREACH ( const Element<R> & e, data_copy ) {
+      write ( e . position . first, e . position . second, e . value );
+    }
+    
+#if 0
+// THERE WAS A BOOST INCOMPATIBILITY PROBLEM. UNORDERED MAPS DO NOT SERIALIZE PROPERLY.
     ar & data_;
     ar & garbage_;
     // data to assist in O(1) random access times
@@ -239,27 +252,10 @@ public:
     // data to store the beginning of the rows and columns
     ar & row_begin_;
     ar & column_begin_;
-    // data to store amount of non-zero elements per row and column
-      //int x = 300;
-      //ar & x;
-      //std::cout << "SM serialize " << x << "\n";
-      //x = row_sizes_ . size ();
-      //ar & x;
-      //std::cout << "SM serialize " << x << "\n";
-
+   
     ar & row_sizes_;
-      //x = 301;
-      //ar & x;
-      //std::cout << "SM serialize " << x << "\n";
-      //x = column_sizes_ . size ();
-      //ar & x;
-      //std::cout << "SM serialize " << x << "\n";
     ar & column_sizes_;
-      //x = 302;
-      //ar & x;
-      //std::cout << "SM serialize " << x << "\n";
-
-    // data to handle quick permutations of rows and columns
+         // data to handle quick permutations of rows and columns
     ar & row_names_;
     ar & column_names_;
     // data to handle quick linear algebra
@@ -270,15 +266,8 @@ public:
     ar & cache_B_TS;
     ar & cache_B_S;
     ar & timestamp;
-      //x = 999;
-      //ar & x;
-      //std::cout << "SM serialize " << x << "\n";
-
-      //print_matrix ( * this );
-      //std::cout << "row_sizes_.size() = " << row_sizes_ . size () << "\n";
-      //std::cout << "column_sizes_.size() = " << column_names_ . size () << "\n";
-      //std::cout << "Serialization of Sparse Matrix complete.\n";
-      //sanityCheck ();
+#endif
+    
   }
     
 };

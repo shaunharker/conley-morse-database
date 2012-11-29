@@ -144,6 +144,8 @@ private:
   Rect bounds_;
   int dimension_;
   std::vector < bool > periodic_;
+public:
+  std::vector < bool > periodic ( void ) const { return periodic_; }
 };
 
 inline void Toplex::erase ( iterator erase_me ) {

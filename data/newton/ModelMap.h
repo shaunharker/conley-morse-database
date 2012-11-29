@@ -26,11 +26,75 @@ struct ModelMap {
     //b = interval (rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ]);
     //c = interval (rectangle . lower_bounds [ 2 ], rectangle . upper_bounds [ 2 ]);
     //phi = interval (rectangle . lower_bounds [ 3 ], rectangle . upper_bounds [ 3 ]);
-    c = interval (rectangle . lower_bounds [ 2 ], rectangle . upper_bounds [ 2 ] );
-    phi = interval ( rectangle . lower_bounds [ 3 ], rectangle . upper_bounds [ 3 ] );
+    c = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ] );
+    phi = interval ( rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ] );
     a = interval (-1.0,-1.0 );
     b = interval ( 1.0, 1.0 );
     return;
+  }
+
+  bool good ( void ) const {
+    //std::cout << "Checking if map is good\n";
+    interval cnew = c;
+    if ( c . lower () <= 0.0 && c . upper () > 0.0 ) {
+      cnew . upper_ = 0.0;
+    }
+    if ( c . lower () > 0.0 ) return true;
+    cnew = -1.0 * cnew;
+    if ( cnew . lower () == -0.0 ) cnew . lower_ = 0.0;
+    if ( cnew . upper () == -0.0) cnew . upper_ = 0.0;
+ 
+    interval mu;
+    interval nu;
+    interval alpha;
+    interval beta;
+    if ( phi . lower () > 3.1415926535/4.0 && phi . lower () < 3.0*3.1415926535/4.0 ) {
+      mu = pow ( cnew, 0.5 );
+      nu = cot ( phi );
+      alpha = a;
+      beta = b;
+      //std::cout << "Case 1.\n";
+    } else {
+      mu = pow ( cnew, 0.5 );
+      nu = tan ( phi );
+      alpha = b;
+      beta = a;
+      //std::cout << "Case 2.\n";
+    }
+
+    std::cout << "Good:\n";
+    std::cout << "a = [" << a . lower () << ", " << a .upper () << "]\n";
+    std::cout << "b = [" << b . lower () << ", " << b .upper () << "]\n";
+    std::cout << "c = [" << c . lower () << ", " << c .upper () << "]\n";
+    std::cout << "phi = [" << phi . lower () << ", " << phi .upper () << "]\n\
+";
+    std::cout << "mu = [" << mu . lower () << ", " << mu .upper () << "]\n";
+    std::cout << "nu = [" << nu . lower () << ", " << nu .upper () << "]\n";
+
+    bool result = true;
+    interval check;
+    check = pow ( (interval(1.0,1.0) - mu * nu ), 2.0) * alpha +
+      pow ( mu + nu, 2.0 ) * beta;
+    
+    double tol = 0.0;
+
+    std::cout << "check1 = [" << check . lower () << ", " << check .upper () \
+	      << "]\n";
+    if ( check . lower () <= tol && check . upper () >= -tol ) { 
+      result = false;
+    }
+    check = pow ( (interval(1.0,1.0) + mu * nu ), 2.0) * alpha +
+      pow ( nu - mu, 2.0 ) * beta;
+
+    std::cout << "check2 = [" << check . lower () << ", " << check .upper () \
+	      << "]\n";
+    if ( check . lower () <= tol && check . upper () >= -tol ) {
+      result = false;
+    }
+    //    std::cout << "No singularity.\n";
+    return result;
+
+    
   }
   chomp::Rect operator () 
   ( const chomp::Rect & rectangle ) const {    
@@ -43,7 +107,7 @@ struct ModelMap {
     //testoutput . lower_bounds [ 0 ] -= .1;
     //testoutput . upper_bounds [ 0 ] += .1;
     //return testoutput;
-
+    
     interval theta = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ]);
     
     interval x = interval ( 1.0 ) + ( c - interval ( 1.0 ) ) * sin ( theta ) * sin ( theta );

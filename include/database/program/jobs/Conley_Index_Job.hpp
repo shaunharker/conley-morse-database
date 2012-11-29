@@ -30,7 +30,7 @@ void Conley_Index_Job ( Message * result , const Message & job ) {
   job >> PHASE_BOUNDS;
   job >> PERIODIC;
   
-  //std::cout << "CIJ: job_number = " << job_number << "  (" << ms . first << ", " << ms . second << ")\n";
+  std::cout << "CIJ: job_number = " << job_number << "  (" << ms . first << ", " << ms . second << ")\n";
 
   // Compute Morse Graph
   typedef std::vector< typename Toplex::Top_Cell > Subset;
@@ -40,11 +40,11 @@ void Conley_Index_Job ( Message * result , const Message & job ) {
   Toplex phase_space;
   phase_space . initialize ( PHASE_BOUNDS, PERIODIC );
   
-  //std::cout << "CIJ: geo = " << geo << "\n";
+     std::cout << "CIJ: geo = " << geo << "\n";
   
   GeometricMap map ( geo );
 
-  //std::cout << "CIJ: calling Compute_Morse_Graph\n";
+  std::cout << "CIJ: calling Compute_Morse_Graph\n";
   
   Compute_Morse_Graph ( & cmg, 
                         & phase_space, 
@@ -56,8 +56,8 @@ void Conley_Index_Job ( Message * result , const Message & job ) {
   // Select Subset
   Subset subset = cmg . CellSet ( ms . second );
 
-  //std::cout << "CIJ: calling Conley_Index\n";
-
+  std::cout << "CIJ: calling Conley_Index on Morse Set " << ms . second << "\n";
+  
   // Compute Conley Index Record of Morse Set
   ConleyRecord record;
   record . id_ = ms;
@@ -66,8 +66,9 @@ void Conley_Index_Job ( Message * result , const Message & job ) {
                 subset,
                 map );
 
-  //std::cout << "CIJ: producing Database Record\n";
+  std::cout << "CIJ: producing Database Record\n";
   // Produce Database to hold Conley Index Record
+  
   Database database;
   database . insert ( record );
   

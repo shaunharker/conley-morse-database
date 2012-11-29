@@ -56,18 +56,18 @@ Rect initialize_phase_space_box ( void ) {
 }
 
 Rect initialize_parameter_space_box ( double bx, double by, double width = .5 ) {
-  const Real pi = 3.1415926535897932384626433832795;
-  int parameter_space_dimension = 4;
-  double step = 1.0/32.0;
+  //const Real pi = 3.1415926535897932384626433832795;
+  int parameter_space_dimension = 2;
+  //double step = 1.0/32.0;
   Rect parameter_space_limits ( parameter_space_dimension ); 
-  parameter_space_limits . lower_bounds [ 0 ] = (0.5 - width + bx) * step; 
-  parameter_space_limits . upper_bounds [ 0 ] = (0.5 + width + bx) * step;
-  parameter_space_limits . lower_bounds [ 1 ] = (0.5 - width + by) * step;
-  parameter_space_limits . upper_bounds [ 1 ] = (0.5 + width + by) * step;
-  parameter_space_limits . lower_bounds [ 2 ] = .7;//1.0;
-  parameter_space_limits . upper_bounds [ 2 ] = .7;//1.0;
-  parameter_space_limits . lower_bounds [ 3 ] = 1.5;//-pi / 4.0;
-  parameter_space_limits . upper_bounds [ 3 ] = 1.5;//-pi / 4.0;
+  parameter_space_limits . lower_bounds [ 0 ] = -1.0;//(0.5 - width + bx) * step;
+  parameter_space_limits . upper_bounds [ 0 ] = -0.985375;//(0.5 + width + bx) * step;
+  parameter_space_limits . lower_bounds [ 1 ] = .760854;//(0.5 - width + by) * step;
+  parameter_space_limits . upper_bounds [ 1 ] = .785398;//(0.5 + width + by) * step;
+  //parameter_space_limits . lower_bounds [ 2 ] = .7;//1.0;
+  //parameter_space_limits . upper_bounds [ 2 ] = .7;//1.0;
+  //parameter_space_limits . lower_bounds [ 3 ] = 1.5;//-pi / 4.0;
+  //parameter_space_limits . upper_bounds [ 3 ] = 1.5;//-pi / 4.0;
   std::cout << "Parameter Space Bounds = " << parameter_space_limits << "\n";
   return parameter_space_limits;
 }
