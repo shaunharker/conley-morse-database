@@ -82,8 +82,8 @@ simple_interval<Real> operator + ( const simple_interval<Real> & lhs, const Real
 template < class Real >
 simple_interval<Real> operator - ( const simple_interval<Real> & lhs, const simple_interval<Real> & rhs ) {
   simple_interval<Real> result;
-  result . lower_ = lhs . lower_ - rhs . lower_;
-  result . upper_ = lhs . upper_ - rhs . upper_;
+  result . lower_ = lhs . lower_ - rhs . upper_;
+  result . upper_ = lhs . upper_ - rhs . lower_;
   if ( result . lower_ > result . upper_ ) std::swap ( result.lower_, result.upper_ );
   return result;  
 }
@@ -91,8 +91,8 @@ simple_interval<Real> operator - ( const simple_interval<Real> & lhs, const simp
 template < class Real >
 simple_interval<Real> operator - ( const Real lhs, const simple_interval<Real> & rhs ) {
   simple_interval<Real> result;
-  result . lower_ = lhs - rhs . lower_;
-  result . upper_ = lhs - rhs . upper_;
+  result . lower_ = lhs - rhs . upper_;
+  result . upper_ = lhs - rhs . lower_;
   if ( result . lower_ > result . upper_ ) std::swap ( result.lower_, result.upper_ );
   return result;  
 }
