@@ -39,9 +39,9 @@ using namespace chomp;
 // choose example
 //#define LORENZ
 //#define TWODIMLESLIE
-//#define TWODIMLESLIEPRISMCAPD
+#define TWODIMLESLIEPRISMCAPD
 //#define PRISMLESLIE
-#define FOURDIMPRISMLESLIE
+//#define FOURDIMPRISMLESLIE
 //#define FIVEDIMPRISMLESLIE
 //#define PRISMFISHERIES2D
 //#define PRISMFISHERIES3D

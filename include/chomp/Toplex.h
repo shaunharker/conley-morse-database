@@ -83,10 +83,16 @@ public:
   template < class InsertIterator > InsertIterator
   cover ( InsertIterator & ii, const Prism & p ) const;
 
-  /// cover   (vector version)
-  template < class InsertIterator, class T > void 
+  /// cover   (vector version)  FOR UNIONS
+  template < class InsertIterator, class T > void
   cover ( InsertIterator & ii, const std::vector < T > & V ) const;
   
+  /// cover   (pair version)    FOR INTERSECTIONS
+  template < class InsertIterator, class T > void
+  cover ( InsertIterator & ii, const std::pair < T > & V ) const;
+  
+  template < class InsertIterator, class T > void
+  cover ( InsertIterator & ii, const std::vector < T > & V ) const;
   /// coarse cover   (whenever node containment, report parent, not children)
   template < class InsertIterator > InsertIterator
   coarseCover ( InsertIterator ii, const Rect & geometric_region ) const;
@@ -733,12 +739,36 @@ Toplex::cover ( InsertIterator & ii, const Prism & P ) const {
   return ii;
 } // cover
 
+  
+  // UNION version of cover
 template < class InsertIterator, class T >
 inline void Toplex::cover ( InsertIterator & ii, const std::vector < T > & V ) const {
   BOOST_FOREACH ( const T & geo, V ) {
     cover ( ii, geo );
   }
 }
+
+  // INTERSECTION (pair) for cover
+  template < class InsertIterator, class T >
+  inline void Toplex::cover ( InsertIterator & ii, const std::pair < T > & V ) const {
+    // Cover V . first, store in "firstcover"
+    boost::unordered_set < GridElement > firstcover;
+    std::insert_iterator < boost::unordered_set < GridElement > > fcii ( firstcover, firstcover . begin () );
+    cover ( fcii, V . first );
+    // Cover V . second, store in "secondcover"
+    boost::unordered_set < GridElement > secondcover;
+    std::insert_iterator < boost::unordered_set < GridElement > > scii ( secondcover, secondcover . begin () );
+    cover ( scii, V . second );
+    // Without loss, let firstcover be no smaller than secondcover.
+    if ( firstcover . size () < secondcover. size () ) std::swap ( firstcover, secondcover );
+    // Compute intersection by checking if each element in smaller cover is in larger cover
+    BOOST_FOREACH ( const GridElement & ge, secondcover ) {
+      if ( firstcover . count ( ge ) ) {
+        // Use "ii" to insert "ge" into output.
+        * ii ++ = ge;
+      }
+    }
+  }
   
 template < class InsertIterator >
 inline InsertIterator
