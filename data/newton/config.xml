@@ -20,8 +20,8 @@
     <upper> 3.14159265358979323846264338327950288 </upper>
   </bounds>
   <subdiv>
-    <min> 2 </min>
-    <max> 2 </max>
+    <min> 10 </min>
+    <max> 12 </max>
     <limit> 100 </limit>
   </subdiv>
   <periodic> 1 </periodic>

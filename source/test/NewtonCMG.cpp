@@ -12,8 +12,8 @@
 
 // To get SCC chatter
 #define CMG_VERBOSE 
-#define DO_CONLEY_INDEX
-
+//#define DO_CONLEY_INDEX
+#define MONOTONICSUBDIVISIONPROPERTY
 // HEADERS FOR DATA STRUCTURES
 #include "chomp/Toplex.h"
 

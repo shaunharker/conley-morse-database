@@ -251,6 +251,9 @@ public:
       }
     }
     // If deeper than min, erase sub-hierarchy and coarsen grid.
+#ifdef MONOTONICSUBDIVISIONPROPERTY
+    if ( not spurious )
+#endif
     if ( depth == Min ) {
       CMG_VERBOSE_PRINT("Coarsening to min-level\n");
       phase_space -> coarsen ( set );
@@ -323,6 +326,7 @@ void Compute_Morse_Graph (Morse_Graph * MG,
                                 0,
                                 morse_set);
   
+#ifndef MONOTONICSUBDIVISIONPROPERTY
   // Produce Morse Graph
   typedef typename Morse_Graph::Vertex Vertex;
   std::map < MorseDecomposition<Toplex> *, std::vector<Vertex> > temp;
@@ -372,6 +376,12 @@ void Compute_Morse_Graph (Morse_Graph * MG,
       eulertourstack . push ( std::make_pair ( MD -> children [ childnum ], 0 ) );
     }
   }
+#else
+  typedef MapGraph<Toplex,Map,CellContainer> Graph;
+  Graph G ( * phase_space, interval_map );
+  std::vector < CellContainer > morse_sets;
+  compute_morse_sets<Morse_Graph,Graph,CellContainer> ( &morse_sets, G, MG );
+#endif
 }
 
 #endif

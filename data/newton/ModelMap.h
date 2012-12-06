@@ -34,68 +34,17 @@ struct ModelMap {
   }
 
   bool good ( void ) const {
-    //std::cout << "Checking if map is good\n";
-    interval cnew = c;
-    if ( c . lower () <= 0.0 && c . upper () > 0.0 ) {
-      cnew . upper_ = 0.0;
-    }
-    if ( c . lower () > 0.0 ) return true;
-    cnew = -1.0 * cnew;
-    if ( cnew . lower () == -0.0 ) cnew . lower_ = 0.0;
-    if ( cnew . upper () == -0.0) cnew . upper_ = 0.0;
- 
-    interval mu;
-    interval nu;
-    interval alpha;
-    interval beta;
-    if ( phi . lower () > 3.1415926535/4.0 && phi . lower () < 3.0*3.1415926535/4.0 ) {
-      mu = pow ( cnew, 0.5 );
-      nu = cot ( phi );
-      alpha = a;
-      beta = b;
-      //std::cout << "Case 1.\n";
-    } else {
-      mu = pow ( cnew, 0.5 );
-      nu = tan ( phi );
-      alpha = b;
-      beta = a;
-      //std::cout << "Case 2.\n";
-    }
-
-    std::cout << "Good:\n";
-    std::cout << "a = [" << a . lower () << ", " << a .upper () << "]\n";
-    std::cout << "b = [" << b . lower () << ", " << b .upper () << "]\n";
-    std::cout << "c = [" << c . lower () << ", " << c .upper () << "]\n";
-    std::cout << "phi = [" << phi . lower () << ", " << phi .upper () << "]\n\
-";
-    std::cout << "mu = [" << mu . lower () << ", " << mu .upper () << "]\n";
-    std::cout << "nu = [" << nu . lower () << ", " << nu .upper () << "]\n";
-
-    bool result = true;
-    interval check;
-    check = pow ( (interval(1.0,1.0) - mu * nu ), 2.0) * alpha +
-      pow ( mu + nu, 2.0 ) * beta;
-    
-    double tol = 0.0;
-
-    std::cout << "check1 = [" << check . lower () << ", " << check .upper () \
-	      << "]\n";
-    if ( check . lower () <= tol && check . upper () >= -tol ) { 
-      result = false;
-    }
-    check = pow ( (interval(1.0,1.0) + mu * nu ), 2.0) * alpha +
-      pow ( nu - mu, 2.0 ) * beta;
-
-    std::cout << "check2 = [" << check . lower () << ", " << check .upper () \
-	      << "]\n";
-    if ( check . lower () <= tol && check . upper () >= -tol ) {
-      result = false;
-    }
-    //    std::cout << "No singularity.\n";
-    return result;
-
-    
+    //(   (b + ac) Cos(phi)^2   +   (a  + bc) Sin(phi)^2  ) = 4 a b c
+    interval cossqr = pow ( cos ( phi ), 2.0 );
+    interval sinsqr = pow ( sin ( phi ), 2.0 );
+    interval A = b + a * c;
+    interval B = a + b * c;
+    interval C = 4.0 * a * b * c;
+    interval result = A * cossqr + B * sinsqr - C;
+    if ( result . lower () <= 0 && result . upper () >= 0 ) return false;
+    return true;
   }
+
   chomp::Rect operator () 
   ( const chomp::Rect & rectangle ) const {    
     //chomp::Rect myresult = rectangle;
