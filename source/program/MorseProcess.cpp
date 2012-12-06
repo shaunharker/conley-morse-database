@@ -96,7 +96,7 @@ void MorseProcess::initialize ( void ) {
   }
   
   // DEBUG CODE FOR "ModelMap::good"
-  
+#if 0
   std::cout << "DEBUGGING FOR MODELMAPGOOD\n";
   Toplex::iterator it = param_toplex . begin ();
   for ( it = param_toplex . begin (); it != param_toplex . end (); ++ it ) {
@@ -105,6 +105,7 @@ void MorseProcess::initialize ( void ) {
     if ( map . good () ) std::cout << "not singular.\n"; else std::cout << "singular.\n";
   }
   std::cout << "END DEBUGGING\n";
+#endif
   // END DEBUG CODE FOR "ModelMap::good"
   
   // Determine the lengths of the boxes.
