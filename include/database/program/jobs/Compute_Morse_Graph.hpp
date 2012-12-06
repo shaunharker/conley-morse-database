@@ -2,6 +2,13 @@
 #ifndef _CMDP_COMPUTE_MORSE_GRAPH_HPP_
 #define _CMDP_COMPUTE_MORSE_GRAPH_HPP_
 
+#ifdef CMG_VISUALIZE
+#include <boost/unordered_map.hpp>
+#include "CImg.h"
+using namespace cimg_library;
+#endif
+
+
 #include <map>
 #include <stack>
 #include <vector>
@@ -10,12 +17,6 @@
 #include "database/structures/MapGraph.h"
 
 #include <ctime>
-
-#ifdef CMG_VISUALIZE
-#include <boost/unordered_map.hpp>
-#include "CImg.h"
-using namespace cimg_library;
-#endif
 
 #ifdef DO_CONLEY_INDEX
 #include "chomp/ConleyIndex.h"
@@ -141,7 +142,7 @@ public:
     // Iterate through out-edges several times
     CImgDisplay display(512,512);
     //display . wait ();
-    for ( int iterate = 0; iterate < 100; ++ iterate ) {
+    for ( int iterate = 0; iterate < 10; ++ iterate ) {
       std::cout << "iterate " << iterate << "\n";
       boost::unordered_map < typename Toplex::Top_Cell, double > newmeasure;
       BOOST_FOREACH ( typename Toplex::Top_Cell t, newset ) {

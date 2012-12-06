@@ -10,6 +10,8 @@
 #include "chomp/Complex.h"
 #include "chomp/SmithNormalForm.h"
 
+#undef Complex
+#undef complex
 namespace chomp {
   
 Matrix chainsToMatrix ( const std::vector < Chain > & chains, 

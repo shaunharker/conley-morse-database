@@ -1,6 +1,7 @@
 /// Construct and display a conley morse graph for a given dynamical system
 
 //#define OLD_CMAP_METHOD
+//#define CMG_VISUALIZE
 
 // STANDARD HEADERS
 #include <iostream>
@@ -9,6 +10,7 @@
 #include <vector>
 #include <set>
 #include <map>
+#include "boost/tuple/tuple.hpp"
 
 // To get SCC chatter
 #define CMG_VERBOSE
@@ -52,8 +54,8 @@ using namespace chomp;
 //#define CORAL4D
 //#define CORAL5D
 
-int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 33;
-int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 43;
+int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 24;
+int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 30;
 int SINGLECMG_COMPLEXITY_LIMIT = 10000;
 
 #ifdef CORAL4D
@@ -1130,12 +1132,11 @@ typedef std::vector < GridElement > CellContainer;
 typedef ConleyMorseGraph < CellContainer , ConleyIndex_t > CMG;
 
 // Declarations
-void DrawMorseSets ( const Toplex & phase_space, const CMG & cmg );
 void CreateDotFile ( const CMG & cmg, const std::vector < CellContainer > & marked  );
 
-template < class Toplex, class CellContainer >
-void output_cubes ( const Toplex & my_toplex, 
-                   const ConleyMorseGraph < CellContainer , chomp::ConleyIndex_t > & conley_morse_graph );
+//template < class Toplex, class CellContainer >
+//void output_cubes ( const Toplex & my_toplex,
+//                   const ConleyMorseGraph < CellContainer , chomp::ConleyIndex_t > & conley_morse_graph );
 
 
 // MAIN PROGRAM
@@ -1216,36 +1217,15 @@ int main ( int argc, char * argv [] )
   
     
   /* DRAW MORSE SETS */
-  //DrawMorseSets ( phase_space, conley_morse_graph );
-
   //output_cubes ( phase_space, conley_morse_graph );
   
   /* OUTPUT MORSE GRAPH */
-  CreateDotFile ( conley_morse_graph, marked );
+  //CreateDotFile ( conley_morse_graph, marked );
   
   return 0;
 } /* main */
 
 /* ----------------------------  OUTPUT FUNCTIONS ---------------------------- */
-
-// HEADERS FOR DEALING WITH PICTURES
-#include "database/tools/picture.h"
-#include "database/tools/lodepng/lodepng.h"
-
-void DrawMorseSets ( const Toplex & phase_space, const CMG & conley_morse_graph ) {
-  // Create a Picture
-  int Width =  4096;
-  int Height = 4096;
-  Picture * picture = draw_morse_sets<Toplex,CellContainer>( Width, Height, phase_space, conley_morse_graph );
-  LodePNG_encode32_file( "morse_sets.png", picture -> bitmap, picture -> Width, picture -> Height);
-  Picture * picture2 = draw_toplex <Toplex,CellContainer>( Width, Height, phase_space );
-  LodePNG_encode32_file( "toplex.png", picture2 -> bitmap, picture2 -> Width, picture2 -> Height);
-  Picture * picture3 = draw_toplex_and_morse_sets <Toplex,CellContainer>( Width, Height, phase_space, conley_morse_graph );
-  LodePNG_encode32_file( "toplex_and_morse.png", picture3 -> bitmap, picture3 -> Width, picture3 -> Height);
-  delete picture;
-  delete picture2;
-  delete picture3;
-}
 
 bool cellIntersect ( const CellContainer & A, const CellContainer & B ) {
   boost::unordered_set < GridElement > As;
@@ -1258,6 +1238,7 @@ bool cellIntersect ( const CellContainer & A, const CellContainer & B ) {
   return false;
 }
 
+#if 0
 void CreateDotFile ( const CMG & cmg, 
                      const std::vector < CellContainer > & marked ) {
   typedef CMG::Vertex V;
@@ -1339,6 +1320,9 @@ void CreateDotFile ( const CMG & cmg,
   
 }
 
+#endif
+
+#if 0
 template < class Toplex, class CellContainer >
 void output_cubes ( const Toplex & my_toplex, 
                     const ConleyMorseGraph < CellContainer , chomp::ConleyIndex_t > & conley_morse_graph ) {
@@ -1365,3 +1349,5 @@ void output_cubes ( const Toplex & my_toplex,
   }
   outfile . close ();
 } /* draw_morse_sets */
+
+#endif

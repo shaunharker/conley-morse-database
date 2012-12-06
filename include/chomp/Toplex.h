@@ -88,11 +88,9 @@ public:
   cover ( InsertIterator & ii, const std::vector < T > & V ) const;
   
   /// cover   (pair version)    FOR INTERSECTIONS
-  template < class InsertIterator, class T > void
-  cover ( InsertIterator & ii, const std::pair < T > & V ) const;
+  template < class InsertIterator, class S, class T > void
+  cover ( InsertIterator & ii, const std::pair < S, T > & V ) const;
   
-  template < class InsertIterator, class T > void
-  cover ( InsertIterator & ii, const std::vector < T > & V ) const;
   /// coarse cover   (whenever node containment, report parent, not children)
   template < class InsertIterator > InsertIterator
   coarseCover ( InsertIterator ii, const Rect & geometric_region ) const;
@@ -749,8 +747,8 @@ inline void Toplex::cover ( InsertIterator & ii, const std::vector < T > & V ) c
 }
 
   // INTERSECTION (pair) for cover
-  template < class InsertIterator, class T >
-  inline void Toplex::cover ( InsertIterator & ii, const std::pair < T > & V ) const {
+  template < class InsertIterator, class S, class T >
+  inline void Toplex::cover ( InsertIterator & ii, const std::pair < S, T > & V ) const {
     // Cover V . first, store in "firstcover"
     boost::unordered_set < GridElement > firstcover;
     std::insert_iterator < boost::unordered_set < GridElement > > fcii ( firstcover, firstcover . begin () );
