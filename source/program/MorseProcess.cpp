@@ -79,11 +79,12 @@ void MorseProcess::initialize ( void ) {
 #endif
 
 #ifdef PATCHMETHOD
-  int patch_stride = 1; // distance between center of patches in box-units
+  int patch_stride = 16; // distance between center of patches in box-units
   // warning: currently only works if patch_stride is a power of two
   
   // Initialize parameter space bounds
   param_toplex . initialize ( config.PARAM_BOUNDS );   /// Parameter space toplex
+  
   // Subdivide parameter space toplex
   Real scale = Real ( 1.0 );
   int num_across = 1; // The number of boxes across
@@ -95,51 +96,37 @@ void MorseProcess::initialize ( void ) {
     }
   }
   
-  // DEBUG CODE FOR "ModelMap::good"
-#if 0
-  std::cout << "DEBUGGING FOR MODELMAPGOOD\n";
-  Toplex::iterator it = param_toplex . begin ();
-  for ( it = param_toplex . begin (); it != param_toplex . end (); ++ it ) {
-    ModelMap map ( param_toplex . geometry ( it ) );
-    std::cout << "\n BOX = " << param_toplex . geometry ( it ) << "\n";
-    if ( map . good () ) std::cout << "not singular.\n"; else std::cout << "singular.\n";
-  }
-  std::cout << "END DEBUGGING\n";
-#endif
-  // END DEBUG CODE FOR "ModelMap::good"
-  
-  // Determine the lengths of the boxes.
-  // Also, determine the number of interior vertices = (num_across/stride - 1)^dim
-  int num_interior_vertices = 1;
-  int limit = num_across / patch_stride - 1;
-  std::vector < Real > side_length ( config.PARAM_DIM );
-  for (int dim = 0; dim < config.PARAM_DIM; ++ dim ) {
-    num_interior_vertices *= limit;
-    side_length [ dim ] = scale * ( config.PARAM_BOUNDS . upper_bounds [ dim ] -
-                                    config.PARAM_BOUNDS . lower_bounds [ dim ] );
-  }
-  // Cover the toplex with patches so that each codimension-one interior cell is
-  // interior to at least one of the patches.
-  for ( int i = 0; i < num_interior_vertices; ++ i ) {
-    // Acquire the coordinates of the ith interior vertex
-    int value = i;
-    std::vector < Real > coordinates ( config.PARAM_DIM );
-    std::vector < Real > lower_bounds ( config.PARAM_DIM );
-    std::vector < Real > upper_bounds ( config.PARAM_DIM );
-    
-    for (int dim = 0; dim < config.PARAM_DIM; ++ dim ) {
-      coordinates [ dim ] = config . PARAM_BOUNDS . lower_bounds [ dim ] 
-      + ((Real) patch_stride) * side_length [ dim ] * ( (Real) 1.0 + (Real) ( value % limit ) );
-      lower_bounds [ dim ] = coordinates [ dim ] - ((Real) patch_stride) * side_length [ dim ] / (Real) 2.0;
-      upper_bounds [ dim ] = coordinates [ dim ] + ((Real) patch_stride) * side_length [ dim ] / (Real) 2.0;
-      value /= limit;
+  // Create the patches.
+  std::vector < chomp::Rect > patches;
+  // Loop through D-tuples
+  std::vector < int > coordinates ( config.PARAM_DIM, 0);
+  bool finished = false;
+  while ( not finished ) {
+    chomp::Rect patch ( config.PARAM_DIM );
+    for ( int d = 0; d < config.PARAM_DIM; ++ d ) {
+      patch . lower_bounds [ d ] = config.PARAM_BOUNDS . lower_bounds [ d ] + (double) coordinates[d] *
+      (config.PARAM_BOUNDS . upper_bounds [ d ] - config.PARAM_BOUNDS . lower_bounds [ d ]) / (double)patch_stride;
+      patch . upper_bounds [ d ] = config.PARAM_BOUNDS . lower_bounds [ d ] + (double)(1 + coordinates[d]) *
+      (config.PARAM_BOUNDS . upper_bounds [ d ] - config.PARAM_BOUNDS . lower_bounds [ d ]) / (double)patch_stride;
     }
-    // Produce a geometric region impinging on the neighbors of the interior vertex
-    Rect patch_bounds (config.PARAM_DIM, lower_bounds, upper_bounds);
+    patches . push_back ( patch );
+    finished = true;
+    for ( int d = 0; d < config.PARAM_DIM; ++ d ) {
+      ++ coordinates [ d ];
+      if ( coordinates [ d ] == patch_stride ) {
+        coordinates [ d ] = 0;
+      } else {
+        finished = false;
+        break;
+      }
+    }
+  }
+
+  BOOST_FOREACH ( const chomp::Rect & patch, patches ) {
     // Cover the geometric region with top cells
     Toplex_Subset patch_subset;
     std::insert_iterator < Toplex_Subset > ii ( patch_subset, patch_subset . begin () );
-    param_toplex . cover ( ii, patch_bounds );
+    param_toplex . cover ( ii, patch );
     // Add "patch_subset" to the growing vector of patches
     PS_patches . push_back (patch_subset);
   } /* for */

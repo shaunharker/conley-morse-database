@@ -28,12 +28,15 @@ struct ModelMap {
     //phi = interval (rectangle . lower_bounds [ 3 ], rectangle . upper_bounds [ 3 ]);
     c = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ] );
     phi = interval ( rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ] );
-    a = interval (-1.0,-1.0 );
-    b = interval ( 1.0, 1.0 );
+    //a = interval (-1.0,-1.0 );
+    //b = interval ( 1.0, 1.0 );
     return;
   }
 
   bool good ( void ) const {
+    
+    // MAP:
+
     //(   (b + ac) Cos(phi)^2   +   (a  + bc) Sin(phi)^2  ) = 4 a b c
     interval cossqr = pow ( cos ( phi ), 2.0 );
     interval sinsqr = pow ( sin ( phi ), 2.0 );
@@ -146,6 +149,8 @@ struct ModelMap {
         }
       } 
     }
+    return_value . lower_bounds [ 0 ] -= 1.0e-8;
+    return_value . upper_bounds [ 0 ] += 1.0e-8;
 
     return return_value;
   } 

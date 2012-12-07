@@ -4,13 +4,13 @@
   <desc> Exploring the limit of iterates in newton convergence. </desc>
 </model>
 <param>
-  <dim> 2 </dim>
+  <dim> 4 </dim>
   <bounds>
-    <lower> -1.0 0</lower>
-    <upper> 1.0 3.14159265358979323846264338327950288</upper>
+    <lower> -.25 -.25 -.25  0</lower>
+    <upper> .25 .25 .25 3.14159265358979323846264338327950288</upper>
   </bounds>
   <subdiv>
-    <depth> 6 </depth>
+    <depth> 5 </depth>
   </subdiv>
 </param>
 <phase>
@@ -20,8 +20,8 @@
     <upper> 3.14159265358979323846264338327950288 </upper>
   </bounds>
   <subdiv>
-    <min> 10 </min>
-    <max> 12 </max>
+    <min> 12 </min>
+    <max> 15 </max>
     <limit> 100 </limit>
   </subdiv>
   <periodic> 1 </periodic>
