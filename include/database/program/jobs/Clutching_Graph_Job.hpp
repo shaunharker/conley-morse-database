@@ -232,7 +232,9 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   
 
   // Compute Morse Graphs
+  //std::cout << "CLUTCHING JOB " << job_number << ": " << box_names . size () << ".\n";
   for ( unsigned int i = 0; i < box_names . size (); ++ i ) {
+    //std::cout << " Doing box " << i << "\n";
     //Prepare phase space and map
     size_t box = box_names [ i ];
     box_index [ box ] = i;

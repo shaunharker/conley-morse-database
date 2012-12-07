@@ -22,12 +22,12 @@ struct ModelMap {
    B = R^{-1}_\theta [ a 0; 0 b ] R_\theta
    */
   ModelMap ( const chomp::Rect & rectangle ) {
-    //a = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ]);
-    //b = interval (rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ]);
-    //c = interval (rectangle . lower_bounds [ 2 ], rectangle . upper_bounds [ 2 ]);
-    //phi = interval (rectangle . lower_bounds [ 3 ], rectangle . upper_bounds [ 3 ]);
-    c = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ] );
-    phi = interval ( rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ] );
+    a = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ]);
+    b = interval (rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ]);
+    c = interval (rectangle . lower_bounds [ 2 ], rectangle . upper_bounds [ 2 ]);
+    phi = interval (rectangle . lower_bounds [ 3 ], rectangle . upper_bounds [ 3 ]);
+    //c = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ] );
+    //phi = interval ( rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ] );
     //a = interval (-1.0,-1.0 );
     //b = interval ( 1.0, 1.0 );
     return;

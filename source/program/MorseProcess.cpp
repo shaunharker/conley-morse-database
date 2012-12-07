@@ -79,23 +79,23 @@ void MorseProcess::initialize ( void ) {
 #endif
 
 #ifdef PATCHMETHOD
-  int patch_stride = 16; // distance between center of patches in box-units
+  int patch_width = 10;
   // warning: currently only works if patch_stride is a power of two
   
   // Initialize parameter space bounds
   param_toplex . initialize ( config.PARAM_BOUNDS );   /// Parameter space toplex
   
   // Subdivide parameter space toplex
-  Real scale = Real ( 1.0 );
-  int num_across = 1; // The number of boxes across
+  long num_across = 1;
   for (int i = 0; i < config.PARAM_SUBDIV_DEPTH; ++i) {
-    scale /= (Real) 2.0;
     num_across *= 2;
     for ( int d = 0; d < config.PARAM_DIM; ++ d ) {
       param_toplex . subdivide (); // subdivide every top cell
     }
   }
   
+  int patch_stride = num_across / patch_width; // distance between center of patches in box-units
+  std::cout << "patch_stride = " << patch_stride << "\n";
   // Create the patches.
   std::vector < chomp::Rect > patches;
   // Loop through D-tuples
@@ -121,7 +121,7 @@ void MorseProcess::initialize ( void ) {
       }
     }
   }
-
+  std::cout << "Created " << patches . size () << " patches.\n";
   BOOST_FOREACH ( const chomp::Rect & patch, patches ) {
     // Cover the geometric region with top cells
     Toplex_Subset patch_subset;
