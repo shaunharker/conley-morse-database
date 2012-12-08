@@ -104,10 +104,15 @@ void MorseProcess::initialize ( void ) {
   while ( not finished ) {
     chomp::Rect patch ( config.PARAM_DIM );
     for ( int d = 0; d < config.PARAM_DIM; ++ d ) {
-      patch . lower_bounds [ d ] = config.PARAM_BOUNDS . lower_bounds [ d ] + (double) coordinates[d] *
-      (config.PARAM_BOUNDS . upper_bounds [ d ] - config.PARAM_BOUNDS . lower_bounds [ d ]) / (double)patch_stride;
-      patch . upper_bounds [ d ] = config.PARAM_BOUNDS . lower_bounds [ d ] + (double)(1 + coordinates[d]) *
-      (config.PARAM_BOUNDS . upper_bounds [ d ] - config.PARAM_BOUNDS . lower_bounds [ d ]) / (double)patch_stride;
+      double tol = (config.PARAM_BOUNDS . upper_bounds [ d ] - config.PARAM_BOUNDS . lower_bounds [ d ]) / (double) (1000 * num_across);
+      patch . lower_bounds [ d ] = config.PARAM_BOUNDS . lower_bounds [ d ] + ( (double) coordinates[d] ) *
+      (config.PARAM_BOUNDS . upper_bounds [ d ] - config.PARAM_BOUNDS . lower_bounds [ d ]) / (double)patch_stride - tol;
+      patch . upper_bounds [ d ] = config.PARAM_BOUNDS . lower_bounds [ d ] + ((double)(1 + coordinates[d])) *
+      (config.PARAM_BOUNDS . upper_bounds [ d ] - config.PARAM_BOUNDS . lower_bounds [ d ]) / (double)patch_stride + tol;
+      
+      if ( patch . lower_bounds [ d ] < config.PARAM_BOUNDS . lower_bounds [ d ] ) patch . lower_bounds [ d ] = config.PARAM_BOUNDS . lower_bounds [ d ];
+      if ( patch . upper_bounds [ d ] > config.PARAM_BOUNDS . upper_bounds [ d ] ) patch . upper_bounds [ d ] = config.PARAM_BOUNDS . upper_bounds [ d ];
+      
     }
     patches . push_back ( patch );
     finished = true;
@@ -121,6 +126,8 @@ void MorseProcess::initialize ( void ) {
       }
     }
   }
+  
+  size_t debug_size = 0;
   std::cout << "Created " << patches . size () << " patches.\n";
   BOOST_FOREACH ( const chomp::Rect & patch, patches ) {
     // Cover the geometric region with top cells
@@ -129,10 +136,12 @@ void MorseProcess::initialize ( void ) {
     param_toplex . cover ( ii, patch );
     // Add "patch_subset" to the growing vector of patches
     PS_patches . push_back (patch_subset);
+    debug_size += patch_subset . size ();
   } /* for */
   num_jobs_ = PS_patches . size ();
 #endif
   std::cout << "MorseProcess Constructed, there are " << num_jobs_ << " jobs.\n";
+  std::cout << "Number of parameter box calculations = " << debug_size << ".\n";
   //char c; std::cin >> c;
 }
 
@@ -190,6 +199,9 @@ int MorseProcess::prepare ( Message & job ) {
 #endif
   
 #ifdef PATCHMETHOD
+  
+  //size_t local_clutchings_ordered = 0;
+  static size_t number_of_clutching_jobs_ordered = 0;
   /// Toplex with the patch to be sent
   Toplex_Subset patch_subset = PS_patches [job_number];
 
@@ -198,6 +210,13 @@ int MorseProcess::prepare ( Message & job ) {
   BOOST_FOREACH ( Toplex::Top_Cell cell_in_patch, patch_subset ) {
     // Find geometry of patch cell
     Rect GD = param_toplex . geometry (param_toplex . find (cell_in_patch));
+    // DEBUG -- (check toplex::cover)
+    double tol = 1e-8;
+    for ( int d = 0; d < param_toplex . dimension (); ++ d ) {
+      GD . lower_bounds [ d ] -= tol;
+      GD . upper_bounds [ d ] += tol;
+    }
+    // END DEBUG
 #ifdef CHECKIFMAPISGOOD
     ModelMap map ( GD );
     if ( not map . good () ) continue;
@@ -210,6 +229,21 @@ int MorseProcess::prepare ( Message & job ) {
     Toplex_Subset GD_Cover;
     std::insert_iterator < Toplex_Subset > ii ( GD_Cover, GD_Cover . begin () );
     param_toplex . cover ( ii, GD );
+    // DEBUG BEGIN
+    /*
+    while ( 1 ) {
+    if ( GD_Cover . size () != 9 ) {
+      if ( GD . lower_bounds [ 0 ] < config.PARAM_BOUNDS.lower_bounds[0] + tol ) break;
+      if ( GD . upper_bounds [ 0 ] > config.PARAM_BOUNDS.upper_bounds[0] - tol ) break;
+      if ( GD . lower_bounds [ 1 ] < config.PARAM_BOUNDS.lower_bounds[1] + tol) break;
+      if ( GD . upper_bounds [ 1 ] > config.PARAM_BOUNDS.upper_bounds[1] - tol ) break;
+      std::cout << GD << " has " << GD_Cover . size () << " neighbors.\n";
+      abort ();
+    }
+      break;
+    }
+     */
+    // DEBUG END
     // Store the cells in the patch which intersect the patch cell as adjacency pairs
     BOOST_FOREACH ( Toplex::Top_Cell cell_in_cover, GD_Cover ) {
 #ifdef CHECKIFMAPISGOOD
@@ -219,10 +253,15 @@ int MorseProcess::prepare ( Message & job ) {
 #endif
       if (( patch_subset . count (cell_in_cover) != 0 ) && cell_in_patch < cell_in_cover ) {
         box_adjacencies . push_back ( std::make_pair ( cell_in_patch, cell_in_cover ) );
+        //std::cout << "(" << cell_in_patch << ", " << cell_in_cover << ")\n";
+        ++ number_of_clutching_jobs_ordered;
+        //++ local_clutchings_ordered;
       }
     }
   }
 #endif
+  //std::cout << "# of clutchings ordered locally:" << local_clutchings_ordered << "\n";
+  std::cout << "# of clutchings ordered so far: " << number_of_clutching_jobs_ordered << "\n";
   //std::cout << "Coordinator::Prepare: Sent job " << num_jobs_sent_ << "\n";
   
   // prepare the message with the job to be sent
@@ -247,7 +286,9 @@ int MorseProcess::prepare ( Message & job ) {
 /* * * * * * * * * */
 void MorseProcess::work ( Message & result, const Message & job ) const {
   using namespace chomp;
-	Clutching_Graph_Job < Toplex, Toplex, ConleyIndex_t > ( &result , job ); 
+	Clutching_Graph_Job < Toplex, Toplex, ConleyIndex_t > ( &result , job );
+  //result << (size_t)0;
+  //result << Database ();
 }
 
 /* * * * * * * * * * */

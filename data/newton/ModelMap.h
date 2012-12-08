@@ -22,32 +22,33 @@ struct ModelMap {
    B = R^{-1}_\theta [ a 0; 0 b ] R_\theta
    */
   ModelMap ( const chomp::Rect & rectangle ) {
-    a = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ]);
-    b = interval (rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ]);
-    c = interval (rectangle . lower_bounds [ 2 ], rectangle . upper_bounds [ 2 ]);
-    phi = interval (rectangle . lower_bounds [ 3 ], rectangle . upper_bounds [ 3 ]);
-    //c = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ] );
-    //phi = interval ( rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ] );
+    //a = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ]);
+    //b = interval (rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ]);
+    //c = interval (rectangle . lower_bounds [ 2 ], rectangle . upper_bounds [ 2 ]);
+    //phi = interval (rectangle . lower_bounds [ 3 ], rectangle . upper_bounds [ 3 ]);
+    c = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ] );
+    phi = interval ( rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ] );
     //a = interval (-1.0,-1.0 );
+    a = interval ( rectangle.lower_bounds[2], rectangle.upper_bounds[2]);
+    b = interval ( rectangle.lower_bounds[3], rectangle.lower_bounds[3]);
     //b = interval ( 1.0, 1.0 );
     return;
   }
 
   bool good ( void ) const {
-    
-    // MAP:
 
-    //(   (b + ac) Cos(phi)^2   +   (a  + bc) Sin(phi)^2  ) = 4 a b c
-    interval cossqr = pow ( cos ( phi ), 2.0 );
-    interval sinsqr = pow ( sin ( phi ), 2.0 );
-    interval A = b + a * c;
-    interval B = a + b * c;
-    interval C = 4.0 * a * b * c;
-    interval result = A * cossqr + B * sinsqr - C;
-    if ( result . lower () <= 0 && result . upper () >= 0 ) return false;
+    interval x = (a - b)*(interval(1.0) - c)*cos(2.0*phi) - (a + b)*(interval(1.0) + c);
+    interval y = 16.0*a*b*c;
+
+    interval check = (x*x) - y;
+
+    double tol = 0;
+
+    if( tol + check.upper() >= 0 && check.lower() - tol <= 0 )
+      return false;
     return true;
-  }
 
+  }
   chomp::Rect operator () 
   ( const chomp::Rect & rectangle ) const {    
     //chomp::Rect myresult = rectangle;
@@ -59,17 +60,26 @@ struct ModelMap {
     //testoutput . lower_bounds [ 0 ] -= .1;
     //testoutput . upper_bounds [ 0 ] += .1;
     //return testoutput;
-    
-    interval theta = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ]);
-    
-    interval x = interval ( 1.0 ) + ( c - interval ( 1.0 ) ) * sin ( theta ) * sin ( theta );
-    interval y = (a + b ) * 0.5 + ( a - b ) * 0.5 * cos ( 2.0 * ( phi + theta ) );
 
+    double tol = 1.0e-8;
+    interval theta = interval (rectangle . lower_bounds [ 0 ] - tol, rectangle . upper_bounds [ 0 ] + tol);
+    
+    interval x = interval ( 1.0 ) + ( c - interval ( 1.0 ) ) * sin ( theta ) * sin ( theta );// 1 - 2 sin^2 = cos(2t)
+    interval y = (a + b ) * 0.5 + ( a - b ) * 0.5 * cos ( 2.0 * ( phi + theta ) ); // -cos(2t - pi/2)= -sin(2t)
+
+    //std::cout << "a = " << a . lower () << "\n";
+    //std::cout << "b = " << b . lower () << "\n";
+    //std::cout << "phi = " << phi . lower ()  << "\n";
+    //std::cout << "theta = " << theta . lower () << " " << theta. upper () << "\n";
+    //std::cout << "x = " << x . lower () << " " << x . upper () << "\n";
+    //std::cout << "y = " << y . lower () << " " << y . upper () << "\n";
+    //std::cout << "x = " << cos(2.0*theta) . lower() << "\n";
+    //std::cout << "y = " << -1.0*sin(2.0*theta) . lower() << "\n";
     //interval x = cos(theta)*cos(theta) + c*sin(theta)*sin(theta);
     //interval y = a*cos(theta + phi)*cos(theta + phi) + b*sin(theta + phi)*sin(theta + phi);
     
-    //interval x = cos(theta);
-    //interval y = sin(theta);
+    //interval x = cos(2.0*theta);
+    //interval y = -1.0*sin(2.0*theta);
 
     const chomp::Real pi = 3.1415926535897932384626433832795;
      
@@ -149,8 +159,6 @@ struct ModelMap {
         }
       } 
     }
-    return_value . lower_bounds [ 0 ] -= 1.0e-8;
-    return_value . upper_bounds [ 0 ] += 1.0e-8;
 
     return return_value;
   } 
