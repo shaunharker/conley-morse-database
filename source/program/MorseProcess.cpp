@@ -308,7 +308,7 @@ void MorseProcess::accept(const Message &result) {
   ++ progress_bar;
   
   clock_t time = clock ();
-  if ( (float)(time - time_of_last_checkpoint ) / (float)CLOCKS_PER_SEC > 300.0f ) {
+  if ( (float)(time - time_of_last_checkpoint ) / (float)CLOCKS_PER_SEC > 3600.0f ) {
     finalize (); // doesn't end things, just saves a checkpoint.
     time_of_last_checkpoint = time;
   }

@@ -12,7 +12,7 @@
 
 // To get SCC chatter
 #define CMG_VERBOSE 
-//#define DO_CONLEY_INDEX
+#define DO_CONLEY_INDEX
 #define MONOTONICSUBDIVISIONPROPERTY
 // HEADERS FOR DATA STRUCTURES
 #include "chomp/Toplex.h"
@@ -37,11 +37,11 @@ using namespace chomp;
 
 int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 12;
 int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 17;
-int SINGLECMG_COMPLEXITY_LIMIT = 10000;
+int SINGLECMG_COMPLEXITY_LIMIT = 100;
 
 // MAP INFORMATION
 
-#include "data/newton/ModelMap.h"
+#include "data/newton2d/ModelMap.h"
 Rect initialize_phase_space_box ( void ) {
   // Two dimensional phase space
   // [0, 320.056] x [0.0, 224.040]
@@ -56,14 +56,14 @@ Rect initialize_phase_space_box ( void ) {
 }
 
 Rect initialize_parameter_space_box ( double bx, double by, double width = .5 ) {
-  //const Real pi = 3.1415926535897932384626433832795;
+  const Real pi = 3.1415926535897932384626433832795;
   int parameter_space_dimension = 2;
   //double step = 1.0/32.0;
   Rect parameter_space_limits ( parameter_space_dimension ); 
   parameter_space_limits . lower_bounds [ 0 ] = -1.0;//(0.5 - width + bx) * step;
-  parameter_space_limits . upper_bounds [ 0 ] = -0.985375;//(0.5 + width + bx) * step;
-  parameter_space_limits . lower_bounds [ 1 ] = .760854;//(0.5 - width + by) * step;
-  parameter_space_limits . upper_bounds [ 1 ] = .785398;//(0.5 + width + by) * step;
+  parameter_space_limits . upper_bounds [ 0 ] = -.99;//-0.985375;//(0.5 + width + bx) * step;
+  parameter_space_limits . lower_bounds [ 1 ] = 3.0*pi/4.0 - .01;//.760854;//(0.5 - width + by) * step;
+  parameter_space_limits . upper_bounds [ 1 ] = 3.0*pi/4.0 + .01;//.785398;//(0.5 + width + by) * step;
   //parameter_space_limits . lower_bounds [ 2 ] = .7;//1.0;
   //parameter_space_limits . upper_bounds [ 2 ] = .7;//1.0;
   //parameter_space_limits . lower_bounds [ 3 ] = 1.5;//-pi / 4.0;
