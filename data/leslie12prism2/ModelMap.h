@@ -171,15 +171,15 @@ struct ModelMap {
   }
   
   // OPERATOR () FUNCTION
-  //std::pair < chomp::Rect, chomp::Prism > operator ()
-  //( const chomp::Rect & rectangle ) const {
-  //  return std::make_pair ( intervalMethod ( rectangle ), ppedMethod ( rectangle ) );
-  //}
-
-  chomp::Prism  operator ()
+  std::pair < chomp::Rect, chomp::Prism > operator ()
   ( const chomp::Rect & rectangle ) const {
-    return ppedMethod ( rectangle );
+    return std::make_pair ( intervalMethod ( rectangle ), ppedMethod ( rectangle ) );
   }
+
+  //chomp::Prism  operator ()
+  //( const chomp::Rect & rectangle ) const {
+  //  return ppedMethod ( rectangle );
+  //}
   
   bool good ( void ) const { return true; }
   

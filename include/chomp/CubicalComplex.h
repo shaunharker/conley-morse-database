@@ -116,10 +116,17 @@ namespace chomp {
     std::vector < Index > cover ( const Prism & p ) const;  
 
     // cover: returns indexes of inserted cells (Vector)
-    template < class InsertIterator, class T > void cover ( InsertIterator & ii, 
-                                                           const std::vector<T> & V ) const;
+    template < class InsertIterator, class T >
+    void cover (InsertIterator & ii,
+                const std::vector<T> & V ) const;
     template < class T >
     std::vector < Index > cover ( const std::vector<T> & V ) const;  
+    
+    template < class InsertIterator, class S, class T >
+    void cover ( InsertIterator & ii, const std::pair < S, T > & V ) const;
+    
+    template < class S, class T >
+    std::vector < Index >  cover ( const std::pair < S, T > & V ) const;
     
     // insertRect -- adds full cubes to cover p
     void insertRect ( const Rect & p ); 
@@ -800,6 +807,39 @@ namespace chomp {
     cover ( ii, V );
     return result;
   }
+  
+  template < class InsertIterator, class S, class T >
+  void CubicalComplex::cover ( InsertIterator & ii,
+                              const std::pair < S, T > & V ) const {
+    // Cover V . first, store in "firstcover"
+    boost::unordered_set < Index > firstcover;
+    std::insert_iterator < boost::unordered_set < Index > > fcii ( firstcover, firstcover . begin () );
+    cover ( fcii, V . first );
+    // Cover V . second, store in "secondcover"
+    boost::unordered_set < Index > secondcover;
+    std::insert_iterator < boost::unordered_set < Index > > scii ( secondcover, secondcover . begin () );
+    cover ( scii, V . second );
+    // Without loss, let firstcover be no smaller than secondcover.
+    if ( firstcover . size () < secondcover. size () ) std::swap ( firstcover, secondcover );
+    // Compute intersection by checking if each element in smaller cover is in larger cover
+    BOOST_FOREACH ( const Index & i, secondcover ) {
+      if ( firstcover . count ( i ) ) {
+        // Use "ii" to insert "ge" into output.
+        * ii ++ = i;
+      }
+    }
+
+  }
+  
+  template < class S, class T >
+  std::vector < Index >
+  CubicalComplex::cover ( const std::pair < S, T > & V ) const {
+    std::vector < Index > result;
+    std::insert_iterator < std::vector < Index > > ii ( result, result . end () );
+    cover ( ii, V );
+    return result;
+  }
+
   
   inline void
   CubicalComplex::insertRectHelper 

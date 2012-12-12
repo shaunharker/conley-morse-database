@@ -3,11 +3,17 @@ include makefile.config
 
 COMPUTE_MORSE_SETS := yes
 COMPUTE_CONLEY_INDEX := yes
+USE_CAPD := yes
 CHECKIFMAPISGOOD := yes
 # if modelmap has good() implemented
 PARAM_SPACE_METHOD := PATCHMETHOD
+MONOTONICSUBDIVISION := no
 
-CXXFLAGS += -D $(PARAM_SPACE_METHOD) -D MONOTONICSUBDIVISIONPROPERTY
+include makefile.config
+CXXFLAGS += -D $(PARAM_SPACE_METHOD) 
+ifeq ($(MONOTONICSUBDIVISION),yes)
+	CXXFLAGS += -D MONOTONICSUBDIVISIONPROPERTY
+endif
 
 .PHONY: all
 all: Conley_Morse_Database

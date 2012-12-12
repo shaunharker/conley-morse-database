@@ -31,6 +31,8 @@
 #include "chomp/Rect.h"
 #include "chomp/Prism.h"
 
+#include "chomp/GraphComplex.h"
+#include "chomp/SimplicialComplex.h"
 using namespace chomp;
 
 // SUBDIVISION RULES

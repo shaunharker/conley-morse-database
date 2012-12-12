@@ -14,8 +14,8 @@
 
 // To get SCC chatter
 #define CMG_VERBOSE
-#define CMG_VISUALIZE
-//#define DO_CONLEY_INDEX
+//#define CMG_VISUALIZE
+#define DO_CONLEY_INDEX
 #define NOREACHABILITY
 //#define VISUALIZE_DEBUG
 //#define ILLUSTRATE
