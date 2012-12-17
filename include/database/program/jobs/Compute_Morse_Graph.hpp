@@ -84,6 +84,7 @@ public:
     typedef MapGraph<Toplex,Map,CellContainer> Graph;  
     // Check subdivision condition. (condition true -> dont subdivide)
     if ( depth >= Min && ( set . size () > Limit || depth >= Max ) ) {
+      std::cout << "Condition to halt subdivision met.\n";
       subdivided = false;
       spurious = false;
 #ifdef DO_CONLEY_INDEX
