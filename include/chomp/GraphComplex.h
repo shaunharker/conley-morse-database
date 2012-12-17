@@ -20,7 +20,7 @@ namespace chomp {
     domain_index ( dc ), codomain_index (cc), domain_dim (dd), codomain_dim (cd) {}
   };
   
-  bool operator == (const GraphCell & lhs, 
+  bool operator == (const GraphCell & lhs,
                     const GraphCell & rhs)
   {
     if ( lhs . domain_index != rhs . domain_index ) return false;

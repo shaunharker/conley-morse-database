@@ -86,7 +86,7 @@ public:
     if ( depth >= Min && ( set . size () > Limit || depth >= Max ) ) {
       subdivided = false;
       spurious = false;
-#ifdef DO_EVERY_CONLEY_INDEX
+#ifdef DO_CONLEY_INDEX
       if ( depth == Min ) {
         using namespace chomp;
         ConleyIndex_t output;
