@@ -16,7 +16,7 @@
 struct LorenzMap {
   capd::IMap f;
   double step;
-  interval timestep;
+  capd::interval timestep;
   int order;
   capd::ITaylor * T;
   capd::ITimeMap * timemap;

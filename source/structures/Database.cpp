@@ -91,7 +91,7 @@ void Database::save ( const char * filename ) {
 }
 
 void Database::load ( const char * filename ) {
-    std::cout << "Database LOAD\n";
+  //std::cout << "Database LOAD\n";
   std::ifstream ifs(filename);
   if ( not ifs . good () ) {
     std::cout << "Could not load " << filename << "\n";

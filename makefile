@@ -82,6 +82,12 @@ JUSTINCMG += ./build/tools/lodepng/lodepng.o
 JustinCMG: $(JUSTINCMG)
 	$(CC) $(LDFLAGS) $(JUSTINCMG) -o $@ $(LDLIBS)
 
+ALLANCMG := ./build/test/AllanCMG.o
+ALLANCMG += ./build/tools/picture.o
+ALLANCMG += ./build/tools/lodepng/lodepng.o
+AllanCMG: $(ALLANCMG)
+	$(CC) $(LDFLAGS) $(ALLANCMG) -o $@ $(LDLIBS)
+
 SUBMAPTEST := ./build/test/SubdividedMapTest.o
 SUBMAPTEST += ./build/tools/picture.o
 SUBMAPTEST += ./build/tools/lodepng/lodepng.o

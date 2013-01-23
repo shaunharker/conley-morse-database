@@ -44,6 +44,11 @@ Details:
  C) sudo ./configure --prefix=/usr/local
  D) sudo make all install
 
+(4) Install CImg
+I recommend placing CImg.h in /usr/local/include
+(You can put it anywhere and edit the makefile)
+
+
 CHOMP SOFTWARE:
 The chomp software is header-only and can be used by
 including files in ./conley-morse-database/include/chomp/
