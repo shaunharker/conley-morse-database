@@ -48,6 +48,9 @@ Details:
 I recommend placing CImg.h in /usr/local/include
 (You can put it anywhere and edit the makefile)
 
+(5) Install CAPD
+This seems to involve getting a package pkg-config to start.
+Then from the CAPD folder do "./configure" "make" "make install"
 
 CHOMP SOFTWARE:
 The chomp software is header-only and can be used by

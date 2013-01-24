@@ -3,7 +3,7 @@
 #ifndef CMDP_INTEGRATOR_H
 #define CMDP_INTEGRATOR_H
 
-#include "capd/krak/krak.h"
+//#include "capd/krak/krak.h"
 #include "capd/capdlib.h"
 
 
