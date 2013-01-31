@@ -517,8 +517,8 @@ void SmithNormalForm (SparseMatrix<R> * U,
       ////NSLog(@"SNF - PASS -- A\n" );
 
       ////// DEBUG //////
-      R temp1 = D -> read ( i + 1, i + 1 );
-      R temp2 = D -> read ( i, i );
+      //R temp1 = D -> read ( i + 1, i + 1 );
+      //R temp2 = D -> read ( i, i );
       //std::cout << "temp1 = " << temp1 << "\n";
       //std::cout << "temp2 = " << temp2 << "\n";
       ////NSLog( @"SNF - PASS - A2\n");

@@ -14,6 +14,7 @@
 #define CMG_VERBOSE 
 #define DO_CONLEY_INDEX
 #define MONOTONICSUBDIVISIONPROPERTY
+
 // HEADERS FOR DATA STRUCTURES
 #include "chomp/Toplex.h"
 
@@ -37,13 +38,14 @@ using namespace chomp;
 
 // SUBDIVISION RULES
 
-int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 12;
-int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 17;
+int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 7;
+int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 13;
 int SINGLECMG_COMPLEXITY_LIMIT = 100;
 
 // MAP INFORMATION
+#include "/Users/sharker/CMDBFiles/Wes/2D/7-13/ModelMap.h"
 
-#include "data/newton2d/ModelMap.h"
+//#include "data/newton2d/ModelMap.h"
 Rect initialize_phase_space_box ( void ) {
   // Two dimensional phase space
   // [0, 320.056] x [0.0, 224.040]
@@ -57,19 +59,15 @@ Rect initialize_phase_space_box ( void ) {
   return phase_space_bounds;
 }
 
-Rect initialize_parameter_space_box ( double bx, double by, double width = .5 ) {
+Rect initialize_parameter_space_box ( void ) {
   const Real pi = 3.1415926535897932384626433832795;
   int parameter_space_dimension = 2;
-  //double step = 1.0/32.0;
+  
   Rect parameter_space_limits ( parameter_space_dimension ); 
-  parameter_space_limits . lower_bounds [ 0 ] = -1.0;//(0.5 - width + bx) * step;
-  parameter_space_limits . upper_bounds [ 0 ] = -.99;//-0.985375;//(0.5 + width + bx) * step;
-  parameter_space_limits . lower_bounds [ 1 ] = 3.0*pi/4.0 - .01;//.760854;//(0.5 - width + by) * step;
-  parameter_space_limits . upper_bounds [ 1 ] = 3.0*pi/4.0 + .01;//.785398;//(0.5 + width + by) * step;
-  //parameter_space_limits . lower_bounds [ 2 ] = .7;//1.0;
-  //parameter_space_limits . upper_bounds [ 2 ] = .7;//1.0;
-  //parameter_space_limits . lower_bounds [ 3 ] = 1.5;//-pi / 4.0;
-  //parameter_space_limits . upper_bounds [ 3 ] = 1.5;//-pi / 4.0;
+  parameter_space_limits . lower_bounds [ 0 ] = .156250;
+  parameter_space_limits . upper_bounds [ 0 ] = .171875;
+  parameter_space_limits . lower_bounds [ 1 ] = 2.577088;
+  parameter_space_limits . upper_bounds [ 1 ] = 2.601631;
   std::cout << "Parameter Space Bounds = " << parameter_space_limits << "\n";
   return parameter_space_limits;
 }
@@ -85,7 +83,7 @@ void CreateDotFile ( const CMG & cmg );
 
 
 // MAIN PROGRAM
-int main ( int argc, char * argv [] ) 
+int main ( void ) 
 {
   
   clock_t start, stop;
@@ -95,18 +93,8 @@ int main ( int argc, char * argv [] )
   Rect phase_space_bounds = initialize_phase_space_box ();
 
   /* SET PARAMETER SPACE REGION */
-  int bx = atoi ( argv [ 1 ] );
-  int by = atoi ( argv [ 2 ] );
-  Rect parameter_box;
-  if ( argc == 3 ) {
-    parameter_box = initialize_parameter_space_box (bx, by);
-  } else if ( argc == 4 ) {
-    double width = atof ( argv [ 3 ] );
-    parameter_box = initialize_parameter_space_box (bx, by, width);
-  } else {
-    std::cout << argc << "\n";
-    abort ();
-  }
+  Rect parameter_box = initialize_parameter_space_box ();
+
   /* INITIALIZE PHASE SPACE */
   Toplex phase_space;
   phase_space . initialize ( phase_space_bounds, std::vector<bool>(1,true) );
@@ -141,20 +129,6 @@ int main ( int argc, char * argv [] )
 
 /* ----------------------------  OUTPUT FUNCTIONS ---------------------------- */
 
-void DrawMorseSets ( const Toplex & phase_space, const CMG & conley_morse_graph ) {
-  // Create a Picture
-  int Width =  4096;
-  int Height = 4096;
-  Picture * picture = draw_morse_sets<Toplex,CellContainer>( Width, Height, phase_space, conley_morse_graph );
-  LodePNG_encode32_file( "morse_sets.png", picture -> bitmap, picture -> Width, picture -> Height);
-  Picture * picture2 = draw_toplex <Toplex,CellContainer>( Width, Height, phase_space );
-  LodePNG_encode32_file( "toplex.png", picture2 -> bitmap, picture2 -> Width, picture2 -> Height);
-  Picture * picture3 = draw_toplex_and_morse_sets <Toplex,CellContainer>( Width, Height, phase_space, conley_morse_graph );
-  LodePNG_encode32_file( "toplex_and_morse.png", picture3 -> bitmap, picture3 -> Width, picture3 -> Height);
-  delete picture;
-  delete picture2;
-  delete picture3;
-}
 
 
 void CreateDotFile ( const CMG & cmg ) {

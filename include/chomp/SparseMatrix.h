@@ -199,6 +199,9 @@ public:
   
     
     void sanityCheck ( void ) const {
+#ifdef OBJECTIVEC
+      
+#endif
         std::cout << "sanityCheck.\n";
         std::cout << "data_.size() = " << data_ . size () << "\n";
         BOOST_FOREACH ( const Element<R> & e, data_ ) {

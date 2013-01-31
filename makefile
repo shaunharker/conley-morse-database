@@ -3,7 +3,7 @@ include makefile.config
 
 COMPUTE_MORSE_SETS := yes
 COMPUTE_CONLEY_INDEX := yes
-USE_CAPD := yes
+USE_CAPD := no
 CHECKIFMAPISGOOD := yes
 # if modelmap has good() implemented
 PARAM_SPACE_METHOD := PATCHMETHOD
