@@ -24,6 +24,7 @@
 #include "boost/serialization/vector.hpp"
 #include "boost/serialization/deque.hpp"
 #include "boost/serialization/unordered_map.hpp"
+#include <boost/serialization/nvp.hpp>
 
 #define HASH_SWITCH 10
 

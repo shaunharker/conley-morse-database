@@ -8,6 +8,7 @@
 #include <boost/serialization/list.hpp>
 #include <boost/serialization/set.hpp>
 #include <boost/serialization/utility.hpp>
+#include <boost/serialization/nvp.hpp>
 
 #include "chomp/ConleyIndex.h"
 
@@ -40,9 +41,9 @@ struct GridElementRecord {
   template<class Archive>
   void serialize(Archive& ar, const unsigned int version) {
       //std::cout << "Serialize lower bounds\n";
-    ar & BOOST_SERIALIZATION_NVP(lower_bounds_);
+    ar & boost::serialization::make_nvp("LB", lower_bounds_);
       //std::cout << "Serialize upper bounds\n";
-    ar & BOOST_SERIALIZATION_NVP(upper_bounds_);
+    ar & boost::serialization::make_nvp("UB", upper_bounds_);
   }
 };
 
@@ -64,13 +65,13 @@ struct ParameterBoxRecord {
   void serialize(Archive& ar, const unsigned int version) {
       //std::cout << "Serialize box record.\n";
       //std::cout << "Serialize ID\n";
-    ar & BOOST_SERIALIZATION_NVP(id_);
+    ar & boost::serialization::make_nvp("ID", id_);
       //std::cout << "Serialize Grid Element\n";
-    ar & BOOST_SERIALIZATION_NVP(ge_);
+    ar & boost::serialization::make_nvp("GE", ge_);
       //std::cout << "Serialize number of morse sets\n";
-    ar & BOOST_SERIALIZATION_NVP(num_morse_sets_);
+    ar & boost::serialization::make_nvp("N", num_morse_sets_);
       //std::cout << "Serialize partial order\n";
-    ar & BOOST_SERIALIZATION_NVP(partial_order_);
+    ar & boost::serialization::make_nvp("PO", partial_order_);
   }
 };
 
@@ -83,11 +84,11 @@ struct ClutchingRecord {
   void serialize(Archive& ar, const unsigned int version) {
       //std::cout << "Serialize clutch record.\n";
       //std::cout << "Serialize ID\n";
-    ar & BOOST_SERIALIZATION_NVP(id1_);
+    ar & boost::serialization::make_nvp("ID1",id1_);
       //std::cout << "Serialize ID\n";
-    ar & BOOST_SERIALIZATION_NVP(id2_);
+    ar & boost::serialization::make_nvp("ID2",id2_);
       //std::cout << "Serialize clutch list\n";
-    ar & BOOST_SERIALIZATION_NVP(clutch_);
+    ar & boost::serialization::make_nvp("CLUTCH",clutch_);
   }
 };
 
@@ -100,10 +101,10 @@ struct ConleyRecord {
   void serialize(Archive& ar, const unsigned int version) {
       //std::cout << "Serialize conley record.\n";
       //std::cout << "Serialize ID\n";
-    ar & BOOST_SERIALIZATION_NVP(id_);
+    ar & boost::serialization::make_nvp("ID",id_);
       //std::cout << "Serialize Conley Index\n";
 
-    ar & BOOST_SERIALIZATION_NVP(ci_);
+    ar & boost::serialization::make_nvp("CI",ci_);
   }
 };
 
@@ -130,18 +131,14 @@ public:
   template<class Archive>
   void serialize(Archive& ar, const unsigned int version) {
       //std::cout << "Serialize box records.\n";
-    ar & BOOST_SERIALIZATION_NVP(box_records_);
+    ar & boost::serialization::make_nvp("MORSERECORDS", box_records_);
       //std::cout << "Serialize clutch records.\n";
 
-    ar & BOOST_SERIALIZATION_NVP(clutch_records_);
+    ar & boost::serialization::make_nvp("CLUTCHRECORDS", clutch_records_);
       //std::cout << "Serialize conley records.\n";
 
-    ar & BOOST_SERIALIZATION_NVP(conley_records_);
+    ar & boost::serialization::make_nvp("CONLEYRECORDS", conley_records_);
     
-      //int x = 753;
-      
-      //ar & x;
-      //std::cout << "Seralize the number " << x << "\n";
   }
 };
 

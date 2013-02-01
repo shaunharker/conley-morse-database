@@ -7,6 +7,8 @@
 
 #include <iostream>
 #include <boost/serialization/serialization.hpp>
+#include <boost/serialization/nvp.hpp>
+
 #include "Field.h"
 
 namespace chomp {

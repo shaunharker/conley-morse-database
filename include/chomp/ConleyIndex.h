@@ -12,6 +12,7 @@
 // Later separate this into a distinct file
 #include <boost/serialization/serialization.hpp>
 #include <boost/serialization/vector.hpp>
+#include <boost/serialization/nvp.hpp>
 
 namespace chomp { 
   
@@ -30,8 +31,8 @@ public:
   friend class boost::serialization::access;
   template < class Archive >
   void serialize ( Archive & ar , const unsigned int version ) {
-    ar & BOOST_SERIALIZATION_NVP(data_);
-    ar & BOOST_SERIALIZATION_NVP(undefined_);
+    ar & boost::serialization::make_nvp("data",data_);
+    ar & boost::serialization::make_nvp("undefined",undefined_);
   }
 };
 
