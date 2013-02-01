@@ -248,7 +248,8 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
       PHASE_SUBDIV_MIN, 
       PHASE_SUBDIV_MAX, 
       PHASE_SUBDIV_LIMIT);
-    if ( conley_morse_graphs [ box ] . NumVertices () == 0 ) std::cout << "WARNING. Box # " << box << " Clutching Job #" << job_number << ", box = " << box_geometries [ i ] << " had no morse sets.\n";
+    if ( conley_morse_graphs [ box ] . NumVertices () == 0 ) std::cout << "WARNING. Box # " << box << " Clutching Job #" << job_number << ", box = " << box_geometries [ i ] << " had no morse sets.\n"; else std::cout << "SUCCESS. Box # " << box << " Clutching Job #" << job_number << ", box = " << box_geometries [ i ] << " \
+      had " << conley_morse_graphs [ box ] . NumVertices () << " morse sets.\n";
   }
   
   // Compute Clutching Graphs
