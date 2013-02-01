@@ -236,9 +236,9 @@ public:
     std::vector < Element<R> > data_copy = data_;
     int number_of_rows = row_sizes_ . size ();
     int number_of_columns = column_sizes_ . size ();
-    ar & BOOST_SERIALIZATION_NVP(data_copy);
-    ar & BOOST_SERIALIZATION_NVP(number_of_rows);
-    ar & BOOST_SERIALIZATION_NVP(number_of_columns);
+    ar & boost::serialization::make_nvp("DATA",data_copy);
+    ar & boost::serialization::make_nvp("NUMROWS",number_of_rows);
+    ar & boost::serialization::make_nvp("NUMCOLS",number_of_columns);
     resize ( number_of_rows, number_of_columns );
     BOOST_FOREACH ( const Element<R> & e, data_copy ) {
       write ( e . position . first, e . position . second, e . value );
