@@ -3,8 +3,12 @@
 #include <iostream>
 
 #include <fstream>
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
+//#include <boost/archive/text_oarchive.hpp>
+//#include <boost/archive/text_iarchive.hpp>
+
+#include <boost/archive/xml_oarchive.hpp>
+#include <boost/archive/xml_iarchive.hpp>
+
 
 #include "database/structures/Database.h"
 #include "boost/foreach.hpp"
@@ -85,7 +89,7 @@ void Database::save ( const char * filename ) {
     std::cout << "Database SAVE\n";
   std::ofstream ofs(filename);
   assert(ofs.good()); 
-  boost::archive::text_oarchive oa(ofs);
+  boost::archive::xml_oarchive oa(ofs);
   oa << * this;
   ofs . close ();
 }
@@ -97,7 +101,7 @@ void Database::load ( const char * filename ) {
     std::cout << "Could not load " << filename << "\n";
     exit ( 1 );
   }
-  boost::archive::text_iarchive ia(ifs);
+  boost::archive::xml_iarchive ia(ifs);
   // read class state from archive
   ia >> *this;
   ifs . close ();
