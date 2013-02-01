@@ -41,38 +41,48 @@ using namespace chomp;
 
 // choose example
 
-int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 24;
-int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 30;
+int PRESUBDIVIDE = 6;
+int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 20 - PRESUBDIVIDE;
+int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 26 - PRESUBDIVIDE;
 int SINGLECMG_COMPLEXITY_LIMIT = 10000;
 
 
-#include "database/maps/LorenzMap.h"
-typedef LorenzMap ModelMap;
+//#include "database/maps/LorenzMap.h"
+//typedef LorenzMap ModelMap;
+
+#include "database/maps/VanderPolRect.h"
+typedef VanderPolRect ModelMap;
+
 
 Rect initialize_phase_space_box ( void ) {
   // Two dimensional phase space
   // [0, 320.056] x [0.0, 224.040]
   //  int phase_space_dimension = 2;
-  int phase_space_dimension = 3;
+  int phase_space_dimension = 2;
   Rect phase_space_bounds ( phase_space_dimension );
-  phase_space_bounds . lower_bounds [ 0 ] = -16.0;// -25.0
-  phase_space_bounds . upper_bounds [ 0 ] = 16.0;
-  phase_space_bounds . lower_bounds [ 1 ] = -20.0;
-  phase_space_bounds . upper_bounds [ 1 ] = 20.0;
-  phase_space_bounds . lower_bounds [ 2 ] = -8.0;
-  phase_space_bounds . upper_bounds [ 2 ] = 32.0;
+  phase_space_bounds . lower_bounds [ 0 ] = -10.0;// -25.0
+  phase_space_bounds . upper_bounds [ 0 ] = 10.0;
+  phase_space_bounds . lower_bounds [ 1 ] = -10.0;
+  phase_space_bounds . upper_bounds [ 1 ] = 10.0;
+  //phase_space_bounds . lower_bounds [ 2 ] = -8.0;
+  //phase_space_bounds . upper_bounds [ 2 ] = 32.0;
   std::cout << "Phase Space Bounds = " << phase_space_bounds << "\n";
   return phase_space_bounds;
 }
 
 Rect initialize_parameter_space_box ( void ) {
-  return Rect ( 2 );
+  Rect parambox ( 1 );
+  parambox . lower_bounds[0] = 2.5;
+  parambox . upper_bounds[0] = 2.5;
+  return parambox;
 }
   
 
 // TYPEDEFS
 typedef std::vector < GridElement > CellContainer;
 typedef ConleyMorseGraph < CellContainer , ConleyIndex_t > CMG;
+
+void DrawMorseSets ( const Toplex & phase_space, const CMG & conley_morse_graph );
 
 // Declarations
 void CreateDotFile ( const CMG & cmg, const std::vector < CellContainer > & marked  );
@@ -98,7 +108,9 @@ int main ( int argc, char * argv [] )
   /* INITIALIZE PHASE SPACE */
   Toplex phase_space;
   phase_space . initialize ( phase_space_bounds );
-
+  for ( int i = 0; i < PRESUBDIVIDE; ++ i ) phase_space . subdivide ();
+  
+  
   /* INITIALIZE MAP */
   ModelMap map ( parameter_box );
   
@@ -119,6 +131,8 @@ int main ( int argc, char * argv [] )
     (float) (stop - start ) / (float) CLOCKS_PER_SEC << "\n";
     
   /* DRAW MORSE SETS */
+  DrawMorseSets ( phase_space, conley_morse_graph );
+
   //output_cubes ( phase_space, conley_morse_graph );
   
   /* OUTPUT MORSE GRAPH */
@@ -223,6 +237,25 @@ void CreateDotFile ( const CMG & cmg,
 }
 
 #endif
+
+// HEADERS FOR DEALING WITH PICTURES
+#include "database/tools/picture.h"
+#include "database/tools/lodepng/lodepng.h"
+
+void DrawMorseSets ( const Toplex & phase_space, const CMG & conley_morse_graph ) {
+  // Create a Picture
+  int Width =  4096;
+  int Height = 4096;
+  Picture * picture = draw_morse_sets<Toplex,CellContainer>( Width, Height, phase_space, conley_morse_graph );
+  LodePNG_encode32_file( "morse_sets.png", picture -> bitmap, picture -> Width, picture -> Height);
+  Picture * picture2 = draw_toplex <Toplex,CellContainer>( Width, Height, phase_space );
+  LodePNG_encode32_file( "toplex.png", picture2 -> bitmap, picture2 -> Width, picture2 -> Height);
+  Picture * picture3 = draw_toplex_and_morse_sets <Toplex,CellContainer>( Width, Height, phase_space, conley_morse_graph );
+  LodePNG_encode32_file( "toplex_and_morse.png", picture3 -> bitmap, picture3 -> Width, picture3 -> Height);
+  delete picture;
+  delete picture2;
+  delete picture3;
+}
 
 #if 0
 template < class Toplex, class CellContainer >

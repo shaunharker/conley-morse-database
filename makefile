@@ -3,11 +3,11 @@ include makefile.config
 
 COMPUTE_MORSE_SETS := yes
 COMPUTE_CONLEY_INDEX := yes
-USE_CAPD := no
-CHECKIFMAPISGOOD := yes
+USE_CAPD := yes
+CHECKIFMAPISGOOD := no
 # if modelmap has good() implemented
 PARAM_SPACE_METHOD := PATCHMETHOD
-MONOTONICSUBDIVISION := yes
+MONOTONICSUBDIVISION := no
 
 include makefile.config
 CXXFLAGS += -D $(PARAM_SPACE_METHOD) 
