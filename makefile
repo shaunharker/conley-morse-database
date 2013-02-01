@@ -7,7 +7,7 @@ USE_CAPD := no
 CHECKIFMAPISGOOD := yes
 # if modelmap has good() implemented
 PARAM_SPACE_METHOD := PATCHMETHOD
-MONOTONICSUBDIVISION := no
+MONOTONICSUBDIVISION := yes
 
 include makefile.config
 CXXFLAGS += -D $(PARAM_SPACE_METHOD) 

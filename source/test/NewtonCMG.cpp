@@ -38,8 +38,8 @@ using namespace chomp;
 
 // SUBDIVISION RULES
 
-int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 7;
-int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 13;
+int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 13;
+int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 18;
 int SINGLECMG_COMPLEXITY_LIMIT = 100;
 
 // MAP INFORMATION
@@ -47,10 +47,7 @@ int SINGLECMG_COMPLEXITY_LIMIT = 100;
 
 //#include "data/newton2d/ModelMap.h"
 Rect initialize_phase_space_box ( void ) {
-  // Two dimensional phase space
-  // [0, 320.056] x [0.0, 224.040]
-  //  int phase_space_dimension = 2;
-  const Real pi = 3.1415926535897932384626433832795;
+  const Real pi = 3.14159265358979323846264338327950288;
   int phase_space_dimension = 1;
   Rect phase_space_bounds ( phase_space_dimension );
   phase_space_bounds . lower_bounds [ 0 ] = -pi;
@@ -60,14 +57,14 @@ Rect initialize_phase_space_box ( void ) {
 }
 
 Rect initialize_parameter_space_box ( void ) {
-  const Real pi = 3.1415926535897932384626433832795;
   int parameter_space_dimension = 2;
+  //[-0.84375, -0.828125]x[0.245437, 0.269981]
   
   Rect parameter_space_limits ( parameter_space_dimension ); 
-  parameter_space_limits . lower_bounds [ 0 ] = .156250;
-  parameter_space_limits . upper_bounds [ 0 ] = .171875;
-  parameter_space_limits . lower_bounds [ 1 ] = 2.577088;
-  parameter_space_limits . upper_bounds [ 1 ] = 2.601631;
+  parameter_space_limits . lower_bounds [ 0 ] = -0.84375;
+  parameter_space_limits . upper_bounds [ 0 ] = -0.828125;
+  parameter_space_limits . lower_bounds [ 1 ] = 0.245437;
+  parameter_space_limits . upper_bounds [ 1 ] = 0.269981;
   std::cout << "Parameter Space Bounds = " << parameter_space_limits << "\n";
   return parameter_space_limits;
 }
