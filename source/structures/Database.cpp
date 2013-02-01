@@ -6,6 +6,16 @@
 //#include <boost/archive/text_oarchive.hpp>
 //#include <boost/archive/text_iarchive.hpp>
 
+
+#include <cstdio> // remove
+#include <boost/config.hpp>
+#if defined(BOOST_NO_STDC_NAMESPACE)
+namespace std{
+  using ::remove;
+}
+#endif
+
+#include <boost/archive/tmpdir.hpp>
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/archive/xml_iarchive.hpp>
 
@@ -90,7 +100,7 @@ void Database::save ( const char * filename ) {
   std::ofstream ofs(filename);
   assert(ofs.good()); 
   boost::archive::xml_oarchive oa(ofs);
-  oa << * this;
+  oa << BOOST_SERIALIZATION_NVP(* this);
   ofs . close ();
 }
 
@@ -103,6 +113,6 @@ void Database::load ( const char * filename ) {
   }
   boost::archive::xml_iarchive ia(ifs);
   // read class state from archive
-  ia >> *this;
+  ia >> BOOST_SERIALIZATION_NVP(*this);
   ifs . close ();
 }

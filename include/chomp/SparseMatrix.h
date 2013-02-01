@@ -63,12 +63,12 @@ struct Element {
   friend class boost::serialization::access;  
   template < class Archive >
   void serialize ( Archive & ar , const unsigned int version ) {
-    ar & position;
-    ar & value;
-    ar & left;
-    ar & right;
-    ar & up;
-    ar & down;
+    ar & BOOST_SERIALIZATION_NVP(position);
+    ar & BOOST_SERIALIZATION_NVP(value);
+    ar & BOOST_SERIALIZATION_NVP(left);
+    ar & BOOST_SERIALIZATION_NVP(right);
+    ar & BOOST_SERIALIZATION_NVP(up);
+    ar & BOOST_SERIALIZATION_NVP(down);
       //std::cout << "Serializing Element\n";
   }
 };
@@ -199,9 +199,6 @@ public:
   
     
     void sanityCheck ( void ) const {
-#ifdef OBJECTIVEC
-      
-#endif
         std::cout << "sanityCheck.\n";
         std::cout << "data_.size() = " << data_ . size () << "\n";
         BOOST_FOREACH ( const Element<R> & e, data_ ) {
@@ -238,9 +235,9 @@ public:
     std::vector < Element<R> > data_copy = data_;
     int number_of_rows = row_sizes_ . size ();
     int number_of_columns = column_sizes_ . size ();
-    ar & data_copy;
-    ar & number_of_rows;
-    ar & number_of_columns;
+    ar & BOOST_SERIALIZATION_NVP(data_copy);
+    ar & BOOST_SERIALIZATION_NVP(number_of_rows);
+    ar & BOOST_SERIALIZATION_NVP(number_of_columns);
     resize ( number_of_rows, number_of_columns );
     BOOST_FOREACH ( const Element<R> & e, data_copy ) {
       write ( e . position . first, e . position . second, e . value );
