@@ -79,8 +79,7 @@ void MorseProcess::initialize ( void ) {
 #endif
 
 #ifdef PATCHMETHOD
-  int patch_width = 10;
-  // warning: currently only works if patch_stride is a power of two
+  int patch_width = 10; // try to use patch_width^d boxes per patch (plus or minus 1)
   
   // Initialize parameter space bounds
   param_toplex . initialize ( config.PARAM_BOUNDS );   /// Parameter space toplex
@@ -94,8 +93,8 @@ void MorseProcess::initialize ( void ) {
     }
   }
   
-  int patch_stride = num_across / patch_width; // distance between center of patches in box-units
-  std::cout << "patch_stride = " << patch_stride << "\n";
+  int strides = num_across / patch_width; // distance between center of patches in box-units
+  std::cout << "strides = " << strides << "\n";
   // Create the patches.
   std::vector < chomp::Rect > patches;
   // Loop through D-tuples
@@ -104,21 +103,23 @@ void MorseProcess::initialize ( void ) {
   while ( not finished ) {
     chomp::Rect patch ( config.PARAM_DIM );
     for ( int d = 0; d < config.PARAM_DIM; ++ d ) {
+      // tol shouldn't be necessary if cover is rigorous
       double tol = (config.PARAM_BOUNDS . upper_bounds [ d ] - config.PARAM_BOUNDS . lower_bounds [ d ]) / (double) (1000 * num_across);
       patch . lower_bounds [ d ] = config.PARAM_BOUNDS . lower_bounds [ d ] + ( (double) coordinates[d] ) *
-      (config.PARAM_BOUNDS . upper_bounds [ d ] - config.PARAM_BOUNDS . lower_bounds [ d ]) / (double)patch_stride - tol;
+      (config.PARAM_BOUNDS . upper_bounds [ d ] - config.PARAM_BOUNDS . lower_bounds [ d ]) / (double)strides - tol;
       patch . upper_bounds [ d ] = config.PARAM_BOUNDS . lower_bounds [ d ] + ((double)(1 + coordinates[d])) *
-      (config.PARAM_BOUNDS . upper_bounds [ d ] - config.PARAM_BOUNDS . lower_bounds [ d ]) / (double)patch_stride + tol;
+      (config.PARAM_BOUNDS . upper_bounds [ d ] - config.PARAM_BOUNDS . lower_bounds [ d ]) / (double)strides + tol;
       
       if ( patch . lower_bounds [ d ] < config.PARAM_BOUNDS . lower_bounds [ d ] ) patch . lower_bounds [ d ] = config.PARAM_BOUNDS . lower_bounds [ d ];
       if ( patch . upper_bounds [ d ] > config.PARAM_BOUNDS . upper_bounds [ d ] ) patch . upper_bounds [ d ] = config.PARAM_BOUNDS . upper_bounds [ d ];
       
     }
     patches . push_back ( patch );
+    // ODOMETER STEP
     finished = true;
     for ( int d = 0; d < config.PARAM_DIM; ++ d ) {
       ++ coordinates [ d ];
-      if ( coordinates [ d ] == patch_stride ) {
+      if ( coordinates [ d ] == strides ) {
         coordinates [ d ] = 0;
       } else {
         finished = false;
@@ -248,7 +249,7 @@ int MorseProcess::prepare ( Message & job ) {
     BOOST_FOREACH ( Toplex::Top_Cell cell_in_cover, GD_Cover ) {
 #ifdef CHECKIFMAPISGOOD
       Rect adjGD = param_toplex . geometry (param_toplex . find (cell_in_cover));
-      ModelMap adjmap ( GD );
+      ModelMap adjmap ( adjGD );
       if ( not adjmap . good () ) continue;
 #endif
       if (( patch_subset . count (cell_in_cover) != 0 ) && cell_in_patch < cell_in_cover ) {
