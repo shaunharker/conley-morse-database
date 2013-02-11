@@ -3,11 +3,11 @@ include makefile.config
 
 COMPUTE_MORSE_SETS := yes
 COMPUTE_CONLEY_INDEX := yes
-USE_CAPD := no
+USE_CAPD := yes
 CHECKIFMAPISGOOD := no
 # if modelmap has good() implemented
 PARAM_SPACE_METHOD := PATCHMETHOD
-MONOTONICSUBDIVISION := yes
+MONOTONICSUBDIVISION := no
 
 include makefile.config
 CXXFLAGS += -D $(PARAM_SPACE_METHOD) 
@@ -87,6 +87,12 @@ ALLANCMG += ./build/tools/picture.o
 ALLANCMG += ./build/tools/lodepng/lodepng.o
 AllanCMG: $(ALLANCMG)
 	$(CC) $(LDFLAGS) $(ALLANCMG) -o $@ $(LDLIBS)
+
+TRAVELCMG := ./build/test/TravelCMG.o
+TRAVELCMG += ./build/tools/picture.o
+TRAVELCMG += ./build/tools/lodepng/lodepng.o
+TravelCMG: $(TRAVELCMG)
+	$(CC) $(LDFLAGS) $(TRAVELCMG) -o $@ $(LDLIBS)
 
 SUBMAPTEST := ./build/test/SubdividedMapTest.o
 SUBMAPTEST += ./build/tools/picture.o
