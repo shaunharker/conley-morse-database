@@ -8,6 +8,8 @@
 #include "capd/dynset/lib.h"
 //#include <boost/numeric/interval.hpp>
 #include "chomp/Rect.h"
+#include "chomp/Prism.h"
+
 //#include "database/maps/simple_interval.h"
 #include "capd/intervals/lib.h"
 
@@ -22,11 +24,15 @@ struct ModelMap {
   capd::interval step;
   int order;
   int num_steps;
-  capd::ITaylor * T;
-  capd::ITimeMap * timemap;
-  
+  capd::ITaylor * solver;
+  capd::ITimeMap * timeMap;
+  capd::interval integrateTime;
   int D;
+  chomp::Rect parameter_;
+  
+  chomp::Rect parameter ( void ) const { return parameter_; }
   ModelMap ( const Rect & rectangle ) {
+    parameter_ = rectangle;
     using namespace capd;
     D = 4;
     f = "par:pa,pb,pc,pd;var:u,w,v,z;fun:w,((-pc/pd)*w)-((1/pd)*u*(1-u)*(u-v)),z,(-pc*z)-(v*((pa*u)-(pb+v)));";
@@ -39,31 +45,50 @@ struct ModelMap {
     step= interval(1.0/128.0,1.0/128.0);
     order = 3;
     num_steps = 16;
-    
+    integrateTime = interval(1.0/8.0, 1.0/8.0);
 
-    T = new ITaylor (f,order,step);
-    timemap = new ITimeMap ( *T );
+    solver = new ITaylor (f,order,step);
+    timeMap = new ITimeMap ( *solver );
     
     return;
   }
   
-  
+  ~ModelMap ( void ) {
+    delete solver;
+    delete timeMap;
+  }
   
   chomp::Rect intervalMethod ( const chomp::Rect & rectangle ) const {
     using namespace capd;
     
-    // Put input into IVector structure "x0"
-    IVector box ( D );
-    for ( int d = 0; d < D; ++ d ) {
-      box [ d ] = interval ( rectangle . lower_bounds [ d ],
-                            rectangle . upper_bounds [ d ] );
+    // Count executions
+    static size_t execution_count = 0;
+    ++ execution_count;
+    //std::cout << rectangle << "\n";
+    if ( execution_count % 10000 == 0 ) {
+      std::cout << execution_count << "\n";
     }
-    // INTERVAL METHOD CALCULATION
-    IVector imethod = f ( box );
+    
+    // Put input into IVector structure "x0"
+    IVector c ( D );
+    for ( int d = 0; d < D; ++ d ) {
+      c [ d ] = interval (rectangle . lower_bounds [ d ],
+                          rectangle . upper_bounds [ d ] );
+    }
+    // Use integrator
+    capd::dynset::C0Rect2Set<IMatrix> s(c);
+    
+    //IVector mapped = (*timeMap)(integrateTime,s);  //(really doesn't work at all!)
+    for (int step = 0; step < num_steps; ++ step) {
+      s . move ( *solver ); // move the set under the flow
+    }
+    IVector mapped ( s );
+    
+    // Return result
     chomp::Rect result ( D );
     for ( int d = 0; d < D; ++ d ) {
-      result . lower_bounds [ d ] = imethod [ d ] . leftBound ();
-      result . upper_bounds [ d ] = imethod [ d ] . rightBound ();
+      result . lower_bounds [ d ] = mapped[d].leftBound();
+      result . upper_bounds [ d ] = mapped[d].rightBound();
     }
     return result;
   }
@@ -71,6 +96,12 @@ struct ModelMap {
   chomp::Prism ppedMethod ( const chomp::Rect & rectangle ) const {
     using namespace capd;
     
+    static size_t execution_count = 0;
+    ++ execution_count;
+    //std::cout << rectangle << "\n";
+    if ( execution_count % 10000 == 0 ) {
+      std::cout << execution_count << "\n";
+    }
     // Put input into IVector structure "x0"
     IVector box ( D );
     for ( int d = 0; d < D; ++ d ) {
@@ -78,14 +109,14 @@ struct ModelMap {
                             rectangle . upper_bounds [ d ] );
     }
     //capd::dynset::C0PpedSet<IMatrix> rect ( box );
-    capd::dynset::C0Rect2Set<IMatrix> rect ( box );
+    capd::dynset::C0RectSet<IMatrix> rect ( box );
 
     /* Perform map computation */
-    Prism P ( D );
+    chomp::Prism P ( D );
     try {
       
       for (int i =0; i< num_steps; ++i ) {
-        rect.move(*T);
+        rect.move(*solver);
       }
       
       IMatrix B = rect . get_B ();
@@ -122,10 +153,18 @@ struct ModelMap {
   //  return std::make_pair ( intervalMethod ( rectangle ), ppedMethod ( rectangle ) );
   //}
 
-  chomp::Prism  operator ()
-  ( const chomp::Rect & rectangle ) const {
+  
+  chomp::Rect operator () ( const chomp::Rect & rectangle ) const {
+    return intervalMethod ( rectangle );
+  }
+   
+  
+  /*
+  chomp::Prism  operator () ( const chomp::Rect & rectangle ) const {
     return ppedMethod ( rectangle );
   }
+   */
+  
   
   bool good ( void ) const { return true; }
   

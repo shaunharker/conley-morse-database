@@ -45,6 +45,14 @@ endif
 Conley_Morse_Database: $(DATABASE)
 	$(CC) $(LDFLAGS) $(DATABASE) -o $@ $(LDLIBS)
 
+COMPUTEGRAPH := ./build/program/ComputeGraph.o
+ComputeGraph: $(COMPUTEGRAPH)
+	$(CC) $(LDFLAGS) $(COMPUTEGRAPH) -o $@ $(LDLIBS)
+
+GRAPHPROCESS := ./build/program/GraphProcess.o
+GraphProcess: $(GRAPHPROCESS)
+	$(CC) $(LDFLAGS) $(GRAPHPROCESS) -o $@ $(LDLIBS)
+
 EXPORTXML := ./build/program/ExportXML.o
 EXPORTXML += ./build/structures/Database.o
 EXPORTXML += ./build/structures/XMLExporter.o

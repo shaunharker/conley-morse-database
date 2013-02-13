@@ -7,8 +7,12 @@
 #include <iterator>
 #include <iostream>
 #include <algorithm>
+#include <unistd.h>
+
 #include "boost/unordered_map.hpp"
 #include "boost/foreach.hpp"
+
+#include "database/program/ComputeGraph.h"
 
 template < class Toplex, class Map, class CellContainer >
 class MapGraph {
@@ -30,6 +34,8 @@ public:
   size_type insert ( const Vertex & v );
 
   std::vector<size_type> adjacencies ( const size_type & v ) const;
+  std::vector<size_type> compute_adjacencies ( const size_type & v ) const;
+
   size_type sentinel ( void ) const;
   size_type index ( const Vertex & input ) const;
   size_type num_vertices ( void ) const;
@@ -45,6 +51,11 @@ private:
   std::vector<size_type> index_;
   //boost::unordered_map<Vertex,size_type> index_;
   size_type sentinel_;
+  
+#ifdef CMDB_STORE_GRAPH
+  std::vector<std::vector<size_type> > adjacency_storage_;
+#endif
+  
 };
 
 // Repeated code in constructors is bad practice -- should fix that below
@@ -134,6 +145,53 @@ sentinel_ ( t . tree_size () ) {
   }
   //std::cout << "Finished constructing MapGraph.\n";
   
+#ifdef CMDB_STORE_GRAPH
+  // Make a file with required integrations
+  MapEvals evals;
+  evals . parameter () = f . parameter ();
+  for ( size_type source = 0; source < num_vertices (); ++ source ) {
+    Vertex domain_cell = lookup ( source );
+    CellContainer children;
+    std::insert_iterator < CellContainer > cii ( children, children . begin () );
+    toplex_ . children ( cii, domain_cell );
+    if ( children . empty () ) {
+      evals . insert ( toplex_ . geometry ( domain_cell ) );
+    }
+  }
+  
+  // Compute and store the graph using a separate program
+  if ( num_vertices () > 10000 ) {
+    evals . save ( "mapevals.txt" );
+    system("./COMPUTEGRAPHSCRIPT");
+    evals . load ( "mapevals.txt" );
+  } else {
+    for ( size_t i = 0; i < evals . size (); ++ i ) {
+      evals . val ( i ) = f ( evals . arg ( i ) );
+    }
+  }
+
+  
+  adjacency_storage_ . resize ( num_vertices () );
+  size_type count = 0;
+  for ( size_type source = 0; source < num_vertices (); ++ source ) {
+    std::vector < size_type > result;
+    Vertex domain_cell = lookup ( source );
+    //std::cout << "source = " << source << " and top cell = " << domain_cell << "\n";
+    CellContainer children;
+    std::insert_iterator < CellContainer > cii ( children, children . begin () );
+    toplex_ . children ( cii, domain_cell );
+    if ( children . empty () ) {
+      //std::cout << "geo(" << domain_cell << ") = " << toplex_ . geometry ( domain_cell ) << "\n";
+      CellContainer image;
+      std::insert_iterator < CellContainer > ii ( image, image . begin () );
+      toplex_ . cover ( ii, evals.val(count++) ); // here is the work
+      index ( & result, image );
+    } else {
+      index ( & result, children );
+    }
+    adjacency_storage_ [ source ] = result;
+  }
+#endif
 }
 
 
@@ -150,6 +208,17 @@ template < class Toplex, class Map, class CellContainer >
 std::vector<typename MapGraph<Toplex,Map,CellContainer>::size_type>
 MapGraph<Toplex,Map,CellContainer>::
 adjacencies ( const size_type & source ) const {
+#ifdef CMDB_STORE_GRAPH
+  return adjacency_storage_ [ source ];
+#else
+  return compute_adjacencies ( source );
+#endif
+}
+
+template < class Toplex, class Map, class CellContainer >
+std::vector<typename MapGraph<Toplex,Map,CellContainer>::size_type>
+MapGraph<Toplex,Map,CellContainer>::
+compute_adjacencies ( const size_type & source ) const {
   std::vector < size_type > result;
   Vertex domain_cell = lookup ( source );
   //std::cout << "source = " << source << " and top cell = " << domain_cell << "\n";
@@ -163,10 +232,11 @@ adjacencies ( const size_type & source ) const {
     toplex_ . cover ( ii, f_ ( toplex_ . geometry ( domain_cell ) ) ); // here is the work
     index ( & result, image );
   } else {
-    index ( & result, children ); 
+    index ( & result, children );
   }
-  return result; 
+  return result;
 }
+
 
 template < class Toplex, class Map, class CellContainer >
 typename MapGraph<Toplex,Map,CellContainer>::size_type 
