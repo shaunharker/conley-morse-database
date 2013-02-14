@@ -114,6 +114,9 @@ public:
     // Subdivide
     subdivided = true;
     spurious = true; // This may be changed below.
+#ifdef IGNORE_SMALL_MORSE_SETS
+    if ( set . size () < 10 ) return;
+#endif
     CellContainer newset = set;
     subdivide ( phase_space, newset );
     // Create children.
