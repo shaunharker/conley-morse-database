@@ -263,7 +263,9 @@ void computeMorseSetsAndReachability (std::vector< CellContainer > * output,
   /* Produce Strong Components and Reachability */
   std::vector< size_type > topological_sort;
   compute_strong_components ( &untranslated, G, &topological_sort );
+#ifdef CMG_VERBOSE
   std::cout << "Found " << untranslated . size () << " morse sets.\n";
+#endif
 #ifndef NO_REACHABILITY
   compute_reachability ( reach, untranslated, G, topological_sort );
 #endif

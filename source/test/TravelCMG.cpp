@@ -1,7 +1,5 @@
 /// Construct and display a conley morse graph for a given dynamical system
 
-//#define OLD_CMAP_METHOD
-
 // STANDARD HEADERS
 #include <iostream>
 #include <fstream>
@@ -11,11 +9,12 @@
 #include <map>
 
 // To get SCC chatter
-#define CMG_VERBOSE 
+//#define CMG_VERBOSE
 //#define DO_CONLEY_INDEX
 #define NO_REACHABILITY
-#define VISUALIZE_DEBUG
-#define ILLUSTRATE
+#define NOREACHABILITY
+//#define VISUALIZE_DEBUG
+//#define ILLUSTRATE
 #define CMDB_STORE_GRAPH
 
 // HEADERS FOR DATA STRUCTURES
