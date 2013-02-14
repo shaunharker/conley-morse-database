@@ -82,7 +82,7 @@ private:
   mutable uVector v;
 
 public:
-  Prism ( void ) { Ainv_computed = false;}
+  Prism ( void ) { Ainv_computed = false; dim = 0;}
   Prism ( int dim ) : dim ( dim ) {
     A . resize ( dim, dim );
     A = ublas::identity_matrix<Real> ( dim );
