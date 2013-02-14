@@ -147,7 +147,7 @@ sentinel_ ( t . tree_size () ) {
   
 #ifdef CMDB_STORE_GRAPH
   // Make a file with required integrations
-  MapEvals evals;
+  MapEvals<typename Map::image_type> evals;
   evals . parameter () = f . parameter ();
   for ( size_type source = 0; source < num_vertices (); ++ source ) {
     Vertex domain_cell = lookup ( source );

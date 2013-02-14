@@ -18,6 +18,7 @@
 
 struct ModelMap {
   typedef chomp::Rect Rect;
+  typedef chomp::Prism image_type;
   capd::IMap f;
   
   // ODES
@@ -154,16 +155,17 @@ struct ModelMap {
   //}
 
   
+  /*
   chomp::Rect operator () ( const chomp::Rect & rectangle ) const {
     return intervalMethod ( rectangle );
   }
-   
+   */
   
-  /*
+  
   chomp::Prism  operator () ( const chomp::Rect & rectangle ) const {
     return ppedMethod ( rectangle );
   }
-   */
+   
   
   
   bool good ( void ) const { return true; }

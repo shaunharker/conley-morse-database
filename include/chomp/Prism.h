@@ -12,6 +12,7 @@
 #include <cmath>
 
 #include "chomp/Rect.h"
+#include "boost/serialization/serialization.hpp"
 
 #include "boost/foreach.hpp"
 #include <boost/numeric/ublas/matrix.hpp>
@@ -100,7 +101,24 @@ public:
 
   }
   bool intersects ( const Rect & R ) const;
-
+private:
+  friend class boost::serialization::access;
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int version) {
+    ar & dim;
+    ar & A;
+    ar & c;
+    Ainv . resize ( dim, dim );
+    Ainv_computed = false;
+    D . resize ( dim );
+    d . resize ( dim );
+    a . resize ( dim );
+    b . resize ( dim );
+    x . resize ( dim );
+    u . resize ( dim );
+    v . resize ( dim );
+  }
+  
 };
 
 std::ostream & operator << ( std::ostream & output_stream, const Prism & print_me );

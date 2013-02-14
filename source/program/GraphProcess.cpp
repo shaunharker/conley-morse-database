@@ -10,6 +10,7 @@
 
 #define ATONCE 1000
 
+
 /* * * * * * * * * * * * */
 /* initialize definition */
 /* * * * * * * * * * * * */
@@ -60,7 +61,7 @@ void GraphProcess::finalize ( void ) {
     result >> number_in_message;
     for ( size_t i = 0; i < number_in_message; ++ i ) {
       size_t j;
-      chomp::Rect value;
+      ModelMap::image_type value;
       result >> j;
       result >> value;
       evals . val ( j ) = value;

@@ -10,18 +10,18 @@
 #include "chomp/Rect.h"
 #include "chomp/Prism.h"
 
+template< class image_type >
 class MapEvals {
  private:
-  typedef chomp::Rect ValType;
   friend class boost::serialization::access;
   chomp::Rect parameter_;
   std::vector < chomp::Rect > arguments_;
-  std::vector < ValType > values_;
+  std::vector < image_type > values_;
  public:
   
   void insert ( const chomp::Rect & rect ) {
     arguments_ . push_back ( rect );
-    values_ . push_back ( ValType () );
+    values_ . push_back ( image_type () );
   }
   chomp::Rect & parameter ( void ) {
     return parameter_;
@@ -30,7 +30,7 @@ class MapEvals {
   chomp::Rect arg ( size_t i ) const {
     return arguments_ [ i ];
   }
-  ValType & val ( size_t i ) {
+  image_type & val ( size_t i ) {
     return values_ [ i ];
   }
   size_t size ( void ) const {

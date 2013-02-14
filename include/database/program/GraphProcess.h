@@ -2,6 +2,7 @@
 #define CMDB_GRAPHPROCESS_H
 
 #include "database/program/ComputeGraph.h"
+#include "ModelMap.h"
 
 #include "delegator/delegator.h"
 /* * * * * * * * * * * * * * */
@@ -13,7 +14,7 @@ public:
   void work ( Message & result, const Message & job ) const;
   void finalize ( void );
 private:
-  MapEvals evals;
+  MapEvals<ModelMap::image_type> evals;
 };
 
 #endif
