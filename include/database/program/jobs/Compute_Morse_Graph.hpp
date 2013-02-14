@@ -80,6 +80,9 @@ public:
                       const unsigned int Limit,
                       const unsigned int depth,
                       const CellContainer & set ) : set(set) {
+#ifdef IGNORE_SMALL_MORSE_SETS
+    if ( set . size () < 10 ) return;
+#endif
     CMG_VERBOSE_PRINT("Depth = " << depth << "\n");
     typedef MapGraph<Toplex,Map,CellContainer> Graph;  
     // Check subdivision condition. (condition true -> dont subdivide)
@@ -114,9 +117,7 @@ public:
     // Subdivide
     subdivided = true;
     spurious = true; // This may be changed below.
-#ifdef IGNORE_SMALL_MORSE_SETS
-    if ( set . size () < 10 ) return;
-#endif
+
     CellContainer newset = set;
     subdivide ( phase_space, newset );
     // Create children.
@@ -238,7 +239,10 @@ public:
     std::cout << "\n";
 #endif 
     BOOST_FOREACH ( const CellContainer & morse_set, morse_sets ) {
-      MorseDecomposition * child = 
+#ifdef IGNORE_SMALL_MORSE_SETS
+      if ( morse_set . size () < 10 ) continue;
+#endif
+      MorseDecomposition * child =
       new MorseDecomposition (phase_space,
                               interval_map,
                               Min,
