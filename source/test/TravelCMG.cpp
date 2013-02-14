@@ -36,9 +36,9 @@
 
 using namespace chomp;
 
-int INITIALSUBDIVISIONS = 19;
-int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 32 - INITIALSUBDIVISIONS;
-int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 40 - INITIALSUBDIVISIONS;
+int INITIALSUBDIVISIONS = 20;
+int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 28 - INITIALSUBDIVISIONS;
+int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 32 - INITIALSUBDIVISIONS;
 int SINGLECMG_COMPLEXITY_LIMIT = 10000;
 
 
@@ -129,7 +129,7 @@ int main ( int argc, char * argv [] )
   /* DRAW MORSE SETS */
   DrawMorseSets ( phase_space, conley_morse_graph );
 
-  //output_cubes ( phase_space, conley_morse_graph );
+  output_cubes ( phase_space, conley_morse_graph );
   
   /* OUTPUT MORSE GRAPH */
   CreateDotFile ( conley_morse_graph );
