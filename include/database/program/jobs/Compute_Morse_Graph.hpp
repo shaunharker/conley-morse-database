@@ -348,6 +348,7 @@ void Compute_Morse_Graph (Morse_Graph * MG,
     if ( childnum == N ) {
       // Exhausted children already.
       // Amalgamate reachability information
+#ifndef NO_REACHABILITY
       for ( unsigned int i = 0; i < N; ++ i ) {
         const std::vector < unsigned int > & reaches = MD -> reachability [ i ];
         //std::cout << "reaching info: " << reaches . size () << "\n";
@@ -363,7 +364,8 @@ void Compute_Morse_Graph (Morse_Graph * MG,
           }
         }
       }
-      // Aggregate temp data 
+#endif
+      // Aggregate temp data
       temp [ MD ] = std::vector < Vertex > ();
       if ( N == 0 ) {
         if ( MD -> spurious == false ) {  
