@@ -47,12 +47,12 @@ int SINGLECMG_COMPLEXITY_LIMIT = 10000;
 Rect initialize_phase_space_box ( void ) {
   int phase_space_dimension = 4;
   Rect phase_space_bounds ( phase_space_dimension );
-  phase_space_bounds . lower_bounds [ 0 ] = -2.0;
-  phase_space_bounds . upper_bounds [ 0 ] =  2.0;
+  phase_space_bounds . lower_bounds [ 0 ] = -0.1;
+  phase_space_bounds . upper_bounds [ 0 ] =  1.9;
   phase_space_bounds . lower_bounds [ 1 ] = -2.0;
   phase_space_bounds . upper_bounds [ 1 ] =  2.0;
-  phase_space_bounds . lower_bounds [ 2 ] = -2.0;
-  phase_space_bounds . upper_bounds [ 2 ] =  2.0;
+  phase_space_bounds . lower_bounds [ 2 ] = -0.1;
+  phase_space_bounds . upper_bounds [ 2 ] =  1.9;
   phase_space_bounds . lower_bounds [ 3 ] = -2.0;
   phase_space_bounds . upper_bounds [ 3 ] =  2.0;
   std::cout << "Phase Space Bounds = " << phase_space_bounds << "\n";
