@@ -1,0 +1,28 @@
+<config>
+<model>
+  <name> Monodromy Model </name>
+  <desc> An example of a nontrivial mondromy. </desc>
+</model>
+<param>
+  <dim> 2 </dim>
+  <bounds>
+    <lower> -1.8 -1.8 </lower>
+    <upper> 1.8 1.8 </upper>
+  </bounds>
+  <subdiv>
+    <depth> 6 </depth>
+  </subdiv>
+</param>
+<phase>
+  <dim> 2 </dim>
+  <bounds>
+    <lower> -1.55 -1.55 </lower>
+    <upper> 1.55 1.55 </upper>
+  </bounds>
+  <subdiv>
+    <min> 12 </min>
+    <max> 16 </max>
+    <limit> 10000 </limit>
+  </subdiv>
+</phase>
+</config>

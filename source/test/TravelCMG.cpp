@@ -42,7 +42,7 @@ int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 32 - INITIALSUBDIVISIONS;
 int SINGLECMG_COMPLEXITY_LIMIT = 10000;
 
 
-#include "data/travellingWave/ModelMap.h"
+#include "data/HollingPredatorPrey/ModelMap.h"
 
 Rect initialize_phase_space_box ( void ) {
   int phase_space_dimension = 4;
@@ -62,14 +62,18 @@ Rect initialize_phase_space_box ( void ) {
 Rect initialize_parameter_space_box ( void) {
   int parameter_space_dimension = 4;
   Rect parameter_space_limits ( parameter_space_dimension );
-  parameter_space_limits . lower_bounds [ 0 ] = 1.65;
-  parameter_space_limits . upper_bounds [ 0 ] = 1.65;
+  parameter_space_limits . lower_bounds [ 0 ] = 1;
+  parameter_space_limits . upper_bounds [ 0 ] = 1;
   parameter_space_limits . lower_bounds [ 1 ] = 0.25;
   parameter_space_limits . upper_bounds [ 1 ] = 0.25;
-  parameter_space_limits . lower_bounds [ 2 ] = 0.8;
-  parameter_space_limits . upper_bounds [ 2 ] = 0.8;
+  parameter_space_limits . lower_bounds [ 2 ] = 1.0;
+  parameter_space_limits . upper_bounds [ 2 ] = 1.0;
   parameter_space_limits . lower_bounds [ 3 ] = 0.5;
   parameter_space_limits . upper_bounds [ 3 ] = 0.5;
+  parameter_space_limits . lower_bounds [ 4 ] = 0.5;
+  parameter_space_limits . upper_bounds [ 4 ] = 0.5;
+  parameter_space_limits . lower_bounds [ 5 ] = 2.0;
+  parameter_space_limits . upper_bounds [ 5 ] = 2.0;
   std::cout << "Parameter Space Bounds = " << parameter_space_limits << "\n";
   return parameter_space_limits;
 }
