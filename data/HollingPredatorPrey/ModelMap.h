@@ -52,7 +52,7 @@ struct ModelMap {
     
     step= interval(1.0/32.0,1.0/32.0);
     order = 3;
-    num_steps = 2; // default, change to be in constructor
+    num_steps = 6; // default, change to be in constructor
     //integrateTime = interval(1.0/8.0, 1.0/8.0);
 
     solver = new ITaylor (f,order,step);
