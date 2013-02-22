@@ -60,7 +60,7 @@ Rect initialize_phase_space_box ( void ) {
 }
 
 Rect initialize_parameter_space_box ( void) {
-  int parameter_space_dimension = 4;
+  int parameter_space_dimension = 6;
   Rect parameter_space_limits ( parameter_space_dimension );
   parameter_space_limits . lower_bounds [ 0 ] = 1;
   parameter_space_limits . upper_bounds [ 0 ] = 1;
