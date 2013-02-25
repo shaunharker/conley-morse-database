@@ -161,6 +161,7 @@ sentinel_ ( t . tree_size () ) {
   
   // Compute and store the graph using a separate program
   if ( num_vertices () > 10000 ) {
+    toplex_ . save ("grid.txt");
     evals . save ( "mapevals.txt" );
     system("./COMPUTEGRAPHSCRIPT");
     evals . load ( "mapevals.txt" );

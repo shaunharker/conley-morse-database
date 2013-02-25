@@ -16,6 +16,12 @@
 #include "chomp/ToplexDetail.h"
 #include "chomp/BitmapSubcomplex.h"
 
+#include "boost/serialization/serialization.hpp"
+#include "boost/serialization/vector.hpp"
+
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+
 namespace chomp {
 
 /**********
@@ -148,8 +154,43 @@ private:
   Rect bounds_;
   int dimension_;
   std::vector < bool > periodic_;
+  friend class boost::serialization::access;
 public:
   std::vector < bool > periodic ( void ) const { return periodic_; }
+  
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int version)
+  {
+    ar & begin_;
+    ar & end_;
+    ar & size_;
+    ar & tree_size_;
+    ar & find_;
+    ar & root_;
+    ar & bounds_;
+    ar & dimension_;
+    ar & periodic_;
+  }
+  // file operations
+  void save ( const char * filename ) {
+    std::ofstream ofs(filename);
+    assert(ofs.good());
+    boost::archive::text_oarchive oa(ofs);
+    oa << * this;
+    ofs . close ();
+  }
+  
+  void load ( const char * filename ) {
+    std::ifstream ifs(filename);
+    if ( not ifs . good () ) {
+      std::cout << "Could not load " << filename << "\n";
+      exit ( 1 );
+    }
+    boost::archive::text_iarchive ia(ifs);
+    ia >> * this;    
+    ifs . close ();
+  }
+ 
 };
 
 inline void Toplex::erase ( iterator erase_me ) {

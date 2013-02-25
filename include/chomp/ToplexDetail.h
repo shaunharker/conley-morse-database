@@ -5,6 +5,8 @@
 #ifndef CHOMP_TOPLEXDETAIL_H
 #define CHOMP_TOPLEXDETAIL_H
 
+#include "boost/serialization/serialization.hpp"
+
 namespace chomp {
 
 typedef uint32_t GridElement;
@@ -20,6 +22,17 @@ struct Node {
   int dimension_;
   Node ( void );
   ~Node ( void );
+  friend class boost::serialization::access;
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int version)
+  {
+    ar & left_;
+    ar & right_;
+    ar & parent_;
+    ar & contents_;
+    ar & dimension_;
+  }
+
 };
 
 inline Node::Node ( void ) : left_ ( NULL ), right_ ( NULL ), parent_ ( NULL ), contents_ ( 0 ), dimension_ ( 0 ) {
@@ -54,6 +67,14 @@ public:
 private:
   friend class Toplex;
   Node * node_;
+  friend class boost::serialization::access;
+public:
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int version)
+  {
+    ar & node_;
+  }
+
 };
 
 inline Toplex_const_iterator::Toplex_const_iterator ( void ) {
