@@ -162,12 +162,15 @@ sentinel_ ( t . tree_size () ) {
     evals . insert ( domain_cell );
   }
   
+  std::cout << "Saving grid to file.\n";
   // Save the grid and a list of required evaluations to disk
   toplex_ . save ("grid.txt");
   evals . save ( "mapevals.txt" );
   
   // Call a program to compute the adjacency information
+  std::cout << "Calling MPI program to evaluate map.\n";
   system("./COMPUTEGRAPHSCRIPT");
+  std::cout << "MPI program returned.\n";
 
   // Load and store the adjacency information
   evals . load ( "mapevals.txt" );
@@ -176,6 +179,7 @@ sentinel_ ( t . tree_size () ) {
     Vertex domain_cell = lookup ( source );    
     adjacency_storage_ [ source ] = evals . val ( domain_cell );
   }
+  std::cout << "Map stored.\n";
 #endif
 }
 
