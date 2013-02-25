@@ -73,9 +73,9 @@ struct ModelMap {
     static size_t execution_count = 0;
     ++ execution_count;
     //std::cout << rectangle << "\n";
-    if ( execution_count % 10000 == 0 ) {
-      std::cout << execution_count << "\n";
-    }
+    //if ( execution_count % 10000 == 0 ) {
+    //  std::cout << execution_count << "\n";
+    //}
     
     // Put input into IVector structure "x0"
     IVector c ( D );
@@ -107,9 +107,9 @@ struct ModelMap {
     static size_t execution_count = 0;
     ++ execution_count;
     //std::cout << rectangle << "\n";
-    if ( execution_count % 10000 == 0 ) {
-      std::cout << execution_count << "\n";
-    }
+    //if ( execution_count % 10000 == 0 ) {
+    //  std::cout << execution_count << "\n";
+    //}
     // Put input into IVector structure "x0"
     IVector box ( D );
     for ( int d = 0; d < D; ++ d ) {

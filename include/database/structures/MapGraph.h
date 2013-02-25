@@ -177,7 +177,7 @@ sentinel_ ( t . tree_size () ) {
   adjacency_storage_ . resize ( num_vertices () );
   for ( size_type source = 0; source < num_vertices (); ++ source ) {
     Vertex domain_cell = lookup ( source );    
-    adjacency_storage_ [ source ] = evals . val ( domain_cell );
+    index ( &adjacency_storage_ [ source ], evals . val ( domain_cell ) );
   }
   std::cout << "Map stored.\n";
 #endif
