@@ -10,11 +10,14 @@
 /* * * * * * * * * * * * * * */
 class GraphProcess : public Coordinator_Worker_Process {
 public:
+  void command_line ( int argc, char * argv [] );
   void initialize ( void );
   void work ( Message & result, const Message & job ) const;
   void finalize ( void );
 private:
-  MapEvals<ModelMap::image_type> evals;
+  MapEvals evals;
+  Toplex toplex_;
+  ModelMap * f_;
 };
 
 #endif

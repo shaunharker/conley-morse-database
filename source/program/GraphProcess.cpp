@@ -11,11 +11,19 @@
 #define ATONCE 1000
 
 
+/* * * * * * * * * * * * * */
+/* command_line definition */
+/* * * * * * * * * * * * * */
+void command_line ( int argc, char * argv [] ) {
+  toplex_ . load ( "grid.txt" );
+  evals . load ( "mapevals.txt" );
+  f_ = new ModelMap ( parameter );
+}
+
 /* * * * * * * * * * * * */
 /* initialize definition */
 /* * * * * * * * * * * * */
 void GraphProcess::initialize ( void ) {
-  evals . load ( "mapevals.txt" );
   for ( size_t startjob = 0; startjob < evals . size (); startjob += ATONCE ) {
     Message Job;
     Job << evals . parameter ();
@@ -23,7 +31,6 @@ void GraphProcess::initialize ( void ) {
     size_t number_in_message = endjob - startjob;
     Job << number_in_message;
     for ( size_t j = startjob; j < endjob; ++ j ) {
-      Job << j;
       Job << evals . arg ( j );
     }
     JOBS_TO_SEND . push ( Job );
@@ -39,14 +46,30 @@ void GraphProcess::work ( Message & result, const Message & job ) const {
   size_t number_in_message;
   job >> number_in_message;
   result << number_in_message;
-  ModelMap f ( parameter );
+  ModelMap & f = *f_;
   for ( size_t i = 0; i < number_in_message; ++ i ) {
     size_t j;
-    chomp::Rect argument;
-    job >> j;
+    Toplex::value_type argument;
+    std::vector < Toplex::value_type > value;
+    chomp::Rect argument_geo;
+    
+    // Retrieve argument
     job >> argument;
-    result << j;
-    result << f ( argument );
+    
+    // If interior node, just give 2 children
+    // cii stands for child insert iterator
+    std::insert_iterator < CellContainer > cii ( value, value . begin () );
+    toplex_ . children ( cii, argument );
+    // If leaf, value is still empty. Apply the map.
+    if ( value . empty () ) {
+      argument_geo = toplex_ . geometry ( argument );
+      std::insert_iterator < CellContainer > ii ( value, value . begin () );
+      toplex_ . cover ( ii, argument_geo ); // here is the work
+    }
+
+    // Emit (argument, image) pair
+    result << argument;
+    result << value 
   }
 }
 
@@ -60,11 +83,11 @@ void GraphProcess::finalize ( void ) {
     size_t number_in_message;
     result >> number_in_message;
     for ( size_t i = 0; i < number_in_message; ++ i ) {
-      size_t j;
-      ModelMap::image_type value;
-      result >> j;
+      Toplex::value_type argument;
+      std::vector < Toplex::value_type > value;
+      result >> argument;
       result >> value;
-      evals . val ( j ) = value;
+      evals . val ( argument ) = value;
     }
   }
   evals . save ( "mapevals.txt" );

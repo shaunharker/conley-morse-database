@@ -54,6 +54,7 @@ private:
   
 #ifdef CMDB_STORE_GRAPH
   std::vector<std::vector<size_type> > adjacency_storage_;
+  bool stored_graph;
 #endif
   
 };
@@ -146,51 +147,34 @@ sentinel_ ( t . tree_size () ) {
   //std::cout << "Finished constructing MapGraph.\n";
   
 #ifdef CMDB_STORE_GRAPH
+  
+  // Determine whether it is efficient to use an MPI job to store the graph
+  if ( num_vertices () < 10000 ) {
+    stored_graph = false;
+  }
+  stored_graph = true;
+  
   // Make a file with required integrations
-  MapEvals<typename Map::image_type> evals;
+  MapEvals evals;
   evals . parameter () = f . parameter ();
   for ( size_type source = 0; source < num_vertices (); ++ source ) {
     Vertex domain_cell = lookup ( source );
-    CellContainer children;
-    std::insert_iterator < CellContainer > cii ( children, children . begin () );
-    toplex_ . children ( cii, domain_cell );
-    if ( children . empty () ) {
-      evals . insert ( toplex_ . geometry ( domain_cell ) );
-    }
+    evals . insert ( domain_cell );
   }
   
-  // Compute and store the graph using a separate program
-  if ( num_vertices () > 10000 ) {
-    toplex_ . save ("grid.txt");
-    evals . save ( "mapevals.txt" );
-    system("./COMPUTEGRAPHSCRIPT");
-    evals . load ( "mapevals.txt" );
-  } else {
-    for ( size_t i = 0; i < evals . size (); ++ i ) {
-      evals . val ( i ) = f ( evals . arg ( i ) );
-    }
-  }
+  // Save the grid and a list of required evaluations to disk
+  toplex_ . save ("grid.txt");
+  evals . save ( "mapevals.txt" );
+  
+  // Call a program to compute the adjacency information
+  system("./COMPUTEGRAPHSCRIPT");
 
-  
+  // Load and store the adjacency information
+  evals . load ( "mapevals.txt" );
   adjacency_storage_ . resize ( num_vertices () );
-  size_type count = 0;
   for ( size_type source = 0; source < num_vertices (); ++ source ) {
-    std::vector < size_type > result;
-    Vertex domain_cell = lookup ( source );
-    //std::cout << "source = " << source << " and top cell = " << domain_cell << "\n";
-    CellContainer children;
-    std::insert_iterator < CellContainer > cii ( children, children . begin () );
-    toplex_ . children ( cii, domain_cell );
-    if ( children . empty () ) {
-      //std::cout << "geo(" << domain_cell << ") = " << toplex_ . geometry ( domain_cell ) << "\n";
-      CellContainer image;
-      std::insert_iterator < CellContainer > ii ( image, image . begin () );
-      toplex_ . cover ( ii, evals.val(count++) ); // here is the work
-      index ( & result, image );
-    } else {
-      index ( & result, children );
-    }
-    adjacency_storage_ [ source ] = result;
+    Vertex domain_cell = lookup ( source );    
+    adjacency_storage_ [ source ] = evals . val ( domain_cell );
   }
 #endif
 }
@@ -210,7 +194,10 @@ std::vector<typename MapGraph<Toplex,Map,CellContainer>::size_type>
 MapGraph<Toplex,Map,CellContainer>::
 adjacencies ( const size_type & source ) const {
 #ifdef CMDB_STORE_GRAPH
-  return adjacency_storage_ [ source ];
+  if ( stored_graph )
+    return adjacency_storage_ [ source ];
+  else
+    return compute_adjacencies ( source );
 #else
   return compute_adjacencies ( source );
 #endif

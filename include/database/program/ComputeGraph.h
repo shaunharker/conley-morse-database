@@ -8,29 +8,30 @@
 
 #include <boost/serialization/vector.hpp>
 #include "chomp/Rect.h"
-#include "chomp/Prism.h"
+#include "chomp/Toplex.h"
 
-template< class image_type >
 class MapEvals {
  private:
   friend class boost::serialization::access;
   chomp::Rect parameter_;
-  std::vector < chomp::Rect > arguments_;
-  std::vector < image_type > values_;
+  typedef chomp::Toplex::value_type GridElement;
+  std::vector < GridElement > arguments_;
+  std::vector < std::vector < GridElement > > values_;
  public:
   
-  void insert ( const chomp::Rect & rect ) {
-    arguments_ . push_back ( rect );
-    values_ . push_back ( image_type () );
+  void insert ( const GridElement & ge ) {
+    arguments_ . push_back ( ge );
+    values_ . push_back ( std::vector < GridElement > () );
   }
   chomp::Rect & parameter ( void ) {
     return parameter_;
   }
   
-  chomp::Rect arg ( size_t i ) const {
+  GridElement arg ( size_t i ) const {
     return arguments_ [ i ];
   }
-  image_type & val ( size_t i ) {
+  
+  std::vector<GridElement> & val ( size_t i ) {
     return values_ [ i ];
   }
   size_t size ( void ) const {
