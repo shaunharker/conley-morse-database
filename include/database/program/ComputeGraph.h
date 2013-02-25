@@ -37,8 +37,13 @@ class MapEvals {
     return values_ [ ge ];
   }
 
-  std::vector<GridElement> & val ( const GridElement & ge ) const {
-    return values_ [ ge ];
+  const std::vector<GridElement> & val ( const GridElement & ge ) const {
+    boost::unordered_map < GridElement, std::vector < GridElement > >::const_iterator it = values_ . find ( ge );
+    if ( it == values_ . end () ) {
+      std::cout << "Invalid access to MapEvals::val";
+      abort ();
+    }
+    return it -> second;
   }
   
   size_t size ( void ) const {
