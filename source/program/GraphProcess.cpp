@@ -17,7 +17,7 @@
 void GraphProcess::command_line ( int argc, char * argv [] ) {
   toplex_ . load ( "grid.txt" );
   evals . load ( "mapevals.txt" );
-  f_ = new ModelMap ( parameter );
+  f_ = new ModelMap ( evals . parameter () );
 }
 
 /* * * * * * * * * * * * */
@@ -26,7 +26,6 @@ void GraphProcess::command_line ( int argc, char * argv [] ) {
 void GraphProcess::initialize ( void ) {
   for ( size_t startjob = 0; startjob < evals . size (); startjob += ATONCE ) {
     Message Job;
-    Job << evals . parameter ();
     size_t endjob = std::min(evals . size (), startjob + ATONCE);
     size_t number_in_message = endjob - startjob;
     Job << number_in_message;
@@ -42,7 +41,6 @@ void GraphProcess::initialize ( void ) {
 /* * * * * * * * * */
 void GraphProcess::work ( Message & result, const Message & job ) const {
   chomp::Rect parameter;
-  job >> parameter;
   size_t number_in_message;
   job >> number_in_message;
   result << number_in_message;
