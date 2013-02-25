@@ -151,6 +151,7 @@ sentinel_ ( t . tree_size () ) {
   // Determine whether it is efficient to use an MPI job to store the graph
   if ( num_vertices () < 10000 ) {
     stored_graph = false;
+    return;
   }
   stored_graph = true;
   
