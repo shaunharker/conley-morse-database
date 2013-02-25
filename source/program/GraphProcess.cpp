@@ -56,16 +56,16 @@ void GraphProcess::work ( Message & result, const Message & job ) const {
     
     // If interior node, just give 2 children
     // cii stands for child insert iterator
-    std::insert_iterator < CellContainer > cii ( value, value . begin () );
+    std::insert_iterator < std::vector<chomp::Toplex::value_type > > cii ( value, value . begin () );
     toplex_ . children ( cii, argument );
     // If leaf, value is still empty. Apply the map.
     if ( value . empty () ) {
       argument_geo = toplex_ . geometry ( argument );
-      std::insert_iterator < CellContainer > ii ( value, value . begin () );
-      toplex_ . cover ( ii, argument_geo ); // here is the work
+      std::insert_iterator < std::vector<chomp::Toplex::value_type > > ii ( value, value . begin () );
+      toplex_ . cover ( ii, argument_geo ); 
     }
 
-    // Emit (argument, image) pair
+    // Emit (argument, value) pair
     result << argument;
     result << value 
   }
