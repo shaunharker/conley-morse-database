@@ -46,7 +46,6 @@ void GraphProcess::work ( Message & result, const Message & job ) const {
   result << number_in_message;
   ModelMap & f = *f_;
   for ( size_t i = 0; i < number_in_message; ++ i ) {
-    size_t j;
     chomp::Toplex::value_type argument;
     std::vector < chomp::Toplex::value_type > value;
     chomp::Rect argument_geo;

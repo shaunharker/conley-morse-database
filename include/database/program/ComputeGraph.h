@@ -7,6 +7,9 @@
 #include <boost/archive/text_iarchive.hpp>
 
 #include <boost/serialization/vector.hpp>
+
+#include "boost/serialization/unordered_map.hpp"
+
 #include "chomp/Rect.h"
 #include "chomp/Toplex.h"
 
@@ -16,12 +19,11 @@ class MapEvals {
   chomp::Rect parameter_;
   typedef chomp::Toplex::value_type GridElement;
   std::vector < GridElement > arguments_;
-  std::vector < std::vector < GridElement > > values_;
+  boost::unordered_map < std::vector < GridElement > > values_;
  public:
   
   void insert ( const GridElement & ge ) {
     arguments_ . push_back ( ge );
-    values_ . push_back ( std::vector < GridElement > () );
   }
   chomp::Rect & parameter ( void ) {
     return parameter_;
@@ -31,9 +33,14 @@ class MapEvals {
     return arguments_ [ i ];
   }
   
-  std::vector<GridElement> & val ( size_t i ) {
-    return values_ [ i ];
+  std::vector<GridElement> & val ( const GridElement & ge ) {
+    return values_ [ ge ];
   }
+
+  std::vector<GridElement> & val ( const GridElement & ge ) const {
+    return values_ [ ge ];
+  }
+  
   size_t size ( void ) const {
     return arguments_ . size ();
   }
