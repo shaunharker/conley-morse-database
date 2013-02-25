@@ -172,7 +172,7 @@ public:
     ar & periodic_;
   }
   // file operations
-  void save ( const char * filename ) {
+  void save ( const char * filename ) const {
     std::ofstream ofs(filename);
     assert(ofs.good());
     boost::archive::text_oarchive oa(ofs);
