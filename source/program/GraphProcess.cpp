@@ -47,8 +47,8 @@ void GraphProcess::work ( Message & result, const Message & job ) const {
   ModelMap & f = *f_;
   for ( size_t i = 0; i < number_in_message; ++ i ) {
     size_t j;
-    Toplex::value_type argument;
-    std::vector < Toplex::value_type > value;
+    chomp::Toplex::value_type argument;
+    std::vector < chomp::Toplex::value_type > value;
     chomp::Rect argument_geo;
     
     // Retrieve argument
@@ -81,8 +81,8 @@ void GraphProcess::finalize ( void ) {
     size_t number_in_message;
     result >> number_in_message;
     for ( size_t i = 0; i < number_in_message; ++ i ) {
-      Toplex::value_type argument;
-      std::vector < Toplex::value_type > value;
+      chomp::Toplex::value_type argument;
+      std::vector < chomp::Toplex::value_type > value;
       result >> argument;
       result >> value;
       evals . val ( argument ) = value;
