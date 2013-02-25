@@ -19,7 +19,7 @@ class MapEvals {
   chomp::Rect parameter_;
   typedef chomp::Toplex::value_type GridElement;
   std::vector < GridElement > arguments_;
-  boost::unordered_map < std::vector < GridElement > > values_;
+  boost::unordered_map < GridElement, std::vector < GridElement > > values_;
  public:
   
   void insert ( const GridElement & ge ) {
