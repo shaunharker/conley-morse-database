@@ -62,12 +62,12 @@ void GraphProcess::work ( Message & result, const Message & job ) const {
     if ( value . empty () ) {
       argument_geo = toplex_ . geometry ( argument );
       std::insert_iterator < std::vector<chomp::Toplex::value_type > > ii ( value, value . begin () );
-      toplex_ . cover ( ii, argument_geo ); 
+      toplex_ . cover ( ii, f ( argument_geo ) );
     }
 
     // Emit (argument, value) pair
     result << argument;
-    result << value 
+    result << value;
   }
 }
 
