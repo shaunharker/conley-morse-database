@@ -16,7 +16,7 @@ public:
   void finalize ( void );
 private:
   MapEvals evals;
-  Toplex toplex_;
+  chomp::Toplex toplex_;
   ModelMap * f_;
 };
 
