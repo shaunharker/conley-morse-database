@@ -14,7 +14,7 @@
 /* * * * * * * * * * * * * */
 /* command_line definition */
 /* * * * * * * * * * * * * */
-void command_line ( int argc, char * argv [] ) {
+void GraphProcess::command_line ( int argc, char * argv [] ) {
   toplex_ . load ( "grid.txt" );
   evals . load ( "mapevals.txt" );
   f_ = new ModelMap ( parameter );
