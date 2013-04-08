@@ -36,18 +36,18 @@ public:
   }
 };
 
-template < class Subset, class Map > void 
+template < class Grid, class Subset, class Map > void
 ConleyIndex ( ConleyIndex_t * output,
-		           const Toplex & toplex, 
+		           const Grid & grid,
 		           const Subset & S,
 		      /* const */ Map & F ) {
   /* Method.
-  1. Let F be the combinatorial map on "toplex" that "f" induces
+  1. Let F be the combinatorial map on "grid" that "f" induces
   2. Generate a combinatorial index pair (X, A)
      A combinatorial index pair satisfies the following:
       a) F(X\A) \subset X
       b) F(A) \cap X \subset A
-     Since S is a Path-SCC (Combinatorial Morse set) in "toplex" with respect to F,
+     Since S is a Path-SCC (Combinatorial Morse set) in "grid" with respect to F,
      the following is a combinatorial index pair:
      X = S \cup F(S), A = F(S) \ S.
      proof: We show (a). Observe that X \ A = S, so F(X\A) = F(S) \subset X trivially. Hence (a). 
@@ -64,10 +64,10 @@ ConleyIndex ( ConleyIndex_t * output,
   4. Return the Relative Homology G_* of G
   */
   
-  typedef typename Toplex::Top_Cell Cell;
+  typedef typename Grid::GridElement Cell;
   typedef std::map < Cell, Subset > Combinatorial_Map;
   
-  int depth = toplex . getDepth ( S );
+  int depth = grid . getDepth ( S );
 
   
   clock_t start, start0, stop;
@@ -89,7 +89,7 @@ ConleyIndex ( ConleyIndex_t * output,
     Subset image = Subset ();
 #endif
     std::insert_iterator<Subset> image_ii ( image, image . end () );
-    toplex . cover ( image_ii, F ( toplex . geometry ( toplex . find ( cell ) ) ) );
+    grid . cover ( image_ii, F ( grid . geometry ( grid . find ( cell ) ) ) );
     std::copy ( image . begin (), image . end (), Xc_ii );
   } /* boost_foreach */
   
@@ -112,7 +112,7 @@ ConleyIndex ( ConleyIndex_t * output,
   BOOST_FOREACH ( Cell cell, A ) {
     Subset image;
     std::insert_iterator<Subset> image_ii ( image, image . end () );
-    toplex . cover ( image_ii, F ( toplex . geometry ( toplex . find ( cell ) ) ) );
+    grid . cover ( image_ii, F ( grid . geometry ( grid . find ( cell ) ) ) );
     G [ cell ] = Subset ();
     std::insert_iterator<Subset> G_ii ( G [ cell ], G [ cell ] . begin () );
     BOOST_FOREACH ( Cell image_cell, image ) {
@@ -128,7 +128,7 @@ ConleyIndex ( ConleyIndex_t * output,
   start = clock ();
   
   std::cout << "ConleyIndex: calling RelativeMapHomology.\n";
-  int error_code = RelativeMapHomology ( &(output -> data ()), toplex, X, A, toplex, X, A, F, depth );
+  int error_code = RelativeMapHomology ( &(output -> data ()), grid, X, A, grid, X, A, F, depth );
   if ( error_code == 1 ) {
     std::cout << "Problem computing conley index. Returning undefined result.\n";
     output -> undefined () = true;

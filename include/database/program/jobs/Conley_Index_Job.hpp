@@ -8,13 +8,17 @@
 #include "database/program/jobs/Compute_Morse_Graph.h"
 #include "database/structures/Conley_Morse_Graph.h"
 #include "database/structures/Database.h"
+#include "database/structures/Grid.h"
+#include "database/structures/PointerGrid.h"
 
-template <class Toplex, class ParameterToplex >
+#include "chomp/Rect.h"
+
+template <class PhaseGrid >
 void Conley_Index_Job ( Message * result , const Message & job ) {
   using namespace chomp;
   // Read job
   size_t job_number;
-  typename Toplex::Geometric_Description geo;
+  chomp::Rect geo;
   std::pair < int, int > ms;
   int PHASE_SUBDIV_MIN;
   int PHASE_SUBDIV_MAX;
@@ -33,12 +37,10 @@ void Conley_Index_Job ( Message * result , const Message & job ) {
   std::cout << "CIJ: job_number = " << job_number << "  (" << ms . first << ", " << ms . second << ")\n";
 
   // Compute Morse Graph
-  typedef std::vector< typename Toplex::Top_Cell > Subset;
-  typedef ConleyMorseGraph< std::vector < typename Toplex::Top_Cell >, ConleyIndex_t> CMGraph;
-  CMGraph cmg;
+  MorseGraph mg;
   
-  Toplex phase_space;
-  phase_space . initialize ( PHASE_BOUNDS, PERIODIC );
+  boost::shared_ptr<Grid> phase_space ( new PhaseGrid );
+  phase_space -> initialize ( PHASE_BOUNDS, PERIODIC );
   
      std::cout << "CIJ: geo = " << geo << "\n";
   
@@ -46,15 +48,16 @@ void Conley_Index_Job ( Message * result , const Message & job ) {
 
   std::cout << "CIJ: calling Compute_Morse_Graph\n";
   
-  Compute_Morse_Graph ( & cmg, 
-                        & phase_space, 
-                          map,
-                          PHASE_SUBDIV_MIN, 
-                          PHASE_SUBDIV_MAX, 
-                          PHASE_SUBDIV_LIMIT );
+  Compute_Morse_Graph ( &mg,
+                        phase_space,
+                        map,
+                        PHASE_SUBDIV_MIN,
+                        PHASE_SUBDIV_MAX,
+                        PHASE_SUBDIV_LIMIT );
   
   // Select Subset
-  Subset subset = cmg . CellSet ( ms . second );
+  typedef std::vector < Grid::GridElement > Subset;
+  Subset subset = phase_space -> subset ( * mg . grid ( ms . second ) );
 
   std::cout << "CIJ: calling Conley_Index on Morse Set " << ms . second << "\n";
   
@@ -62,7 +65,7 @@ void Conley_Index_Job ( Message * result , const Message & job ) {
   ConleyRecord record;
   record . id_ = ms;
   ConleyIndex ( & record . ci_, // ConleyIndex_t
-                phase_space, 
+                *phase_space,
                 subset,
                 map );
 

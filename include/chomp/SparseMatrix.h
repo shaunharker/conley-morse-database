@@ -11,6 +11,7 @@
 #ifndef CHOMP_SPARSEMATRIX_H
 #define CHOMP_SPARSEMATRIX_H
 
+#include <cstdlib>
 #include <vector>
 #include <deque>
 #include <utility>

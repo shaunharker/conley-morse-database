@@ -5,6 +5,7 @@
 #ifndef CHOMP_GENERATORS_H
 #define CHOMP_GENERATORS_H
 
+#include <cstdlib>
 #include <vector>
 #include <algorithm>
 #include <iostream>

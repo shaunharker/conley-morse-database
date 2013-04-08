@@ -1,6 +1,8 @@
 /// Construct and display a conley morse graph for a given dynamical system
 
-//#define OLD_CMAP_METHOD
+#ifndef GRIDCHOICE
+#define GRIDCHOICE PointerGrid
+#endif
 
 // STANDARD HEADERS
 #include <iostream>
@@ -20,8 +22,11 @@
 #define ILLUSTRATE
 
 // HEADERS FOR DATA STRUCTURES
-#include "chomp/Toplex.h"
 #include "chomp/ConleyIndex.h"
+#include "database/structures/PointerGrid.h"
+#ifdef USE_SUCCINCT
+#include "database/structures/SuccinctGrid.h"
+#endif
 #include "database/structures/Conley_Morse_Graph.h"
 #include "database/program/jobs/Compute_Morse_Graph.h"
 
@@ -35,6 +40,8 @@
 #include "chomp/Rect.h"
 #include "chomp/Prism.h"
 
+
+
 using namespace chomp;
 
 // choose example
@@ -44,8 +51,8 @@ using namespace chomp;
 //#define PRISMLESLIE
 //#define FIVEDIMPRISMLESLIE
 
-int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 26;
-int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 30;
+int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 24;
+int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 32;
 int SINGLECMG_COMPLEXITY_LIMIT = 10000;
 
 
@@ -674,16 +681,15 @@ Rect initialize_parameter_space_box ( const Real bx, const Real by ) {
 ////////////////////////////////////////END USER EDIT//////////////////////////////////////////
 
 // TYPEDEFS
-typedef std::vector < GridElement > CellContainer;
-typedef ConleyMorseGraph < CellContainer , ConleyIndex_t > CMG;
+typedef std::vector < Grid::GridElement > CellContainer;
+typedef MorseGraph CMG;
 
 // Declarations
-void DrawMorseSets ( const Toplex & phase_space, const CMG & cmg );
+void DrawMorseSets ( const Grid & phase_space, const CMG & cmg );
 void CreateDotFile ( const CMG & cmg );
 
-template < class Toplex, class CellContainer >
-void output_cubes ( const Toplex & my_toplex, 
-                   const ConleyMorseGraph < CellContainer , chomp::ConleyIndex_t > & conley_morse_graph );
+void output_cubes ( const Grid & my_toplex,
+                   const MorseGraph & conley_morse_graph );
 
 
 // MAIN PROGRAM
@@ -710,8 +716,8 @@ int main ( int argc, char * argv [] )
   Rect parameter_box = initialize_parameter_space_box (bx, by);
 
   /* INITIALIZE PHASE SPACE */
-  Toplex phase_space;
-  phase_space . initialize ( phase_space_bounds );
+  boost::shared_ptr<GRIDCHOICE> phase_space (new GRIDCHOICE);
+  phase_space -> initialize ( phase_space_bounds );
   //phase_space . subdivide ();
   //phase_space . subdivide ();
   //phase_space . subdivide ();
@@ -721,10 +727,10 @@ int main ( int argc, char * argv [] )
   
   /* INITIALIZE CONLEY MORSE GRAPH (create an empty one) */
   CMG conley_morse_graph;
-
+   
   /* COMPUTE CONLEY MORSE GRAPH */
   Compute_Morse_Graph ( & conley_morse_graph, 
-                        & phase_space, 
+                        phase_space, 
                         map, 
                         SINGLECMG_MIN_PHASE_SUBDIVISIONS, 
                         SINGLECMG_MAX_PHASE_SUBDIVISIONS, 
@@ -740,12 +746,15 @@ int main ( int argc, char * argv [] )
     
   }
   /* DRAW MORSE SETS */
-  DrawMorseSets ( phase_space, conley_morse_graph );
+  std::cout << "Computed Morse Graphs. Now drawing morse sets...\n";
+  
+  DrawMorseSets ( *phase_space, conley_morse_graph );
 
+  std::cout << "Complete.\n";
   //output_cubes ( phase_space, conley_morse_graph );
   
   /* OUTPUT MORSE GRAPH */
-  //CreateDotFile ( conley_morse_graph );
+  CreateDotFile ( conley_morse_graph );
   
   return 0;
 } /* main */
@@ -756,15 +765,15 @@ int main ( int argc, char * argv [] )
 #include "database/tools/picture.h"
 #include "database/tools/lodepng/lodepng.h"
 
-void DrawMorseSets ( const Toplex & phase_space, const CMG & conley_morse_graph ) {
+void DrawMorseSets ( const Grid & phase_space, const CMG & conley_morse_graph ) {
   // Create a Picture
   int Width =  4096;
   int Height = 4096;
-  Picture * picture = draw_morse_sets<Toplex,CellContainer>( Width, Height, phase_space, conley_morse_graph );
+  Picture * picture = draw_morse_sets( Width, Height, phase_space, conley_morse_graph );
   LodePNG_encode32_file( "morse_sets.png", picture -> bitmap, picture -> Width, picture -> Height);
-  Picture * picture2 = draw_toplex <Toplex,CellContainer>( Width, Height, phase_space );
+  Picture * picture2 = draw_grid( Width, Height, phase_space );
   LodePNG_encode32_file( "toplex.png", picture2 -> bitmap, picture2 -> Width, picture2 -> Height);
-  Picture * picture3 = draw_toplex_and_morse_sets <Toplex,CellContainer>( Width, Height, phase_space, conley_morse_graph );
+  Picture * picture3 = draw_grid_and_morse_sets( Width, Height, phase_space, conley_morse_graph );
   LodePNG_encode32_file( "toplex_and_morse.png", picture3 -> bitmap, picture3 -> Width, picture3 -> Height);
   delete picture;
   delete picture2;
@@ -790,7 +799,7 @@ void CreateDotFile ( const CMG & cmg ) {
   int i = 0;
   for (boost::tie ( start, stop ) = cmg . Vertices (); start != stop; ++ start ) {
     vertex_to_index [ *start ] = i;
-    outfile << i << " [label=\""<< cmg . CellSet (*start) .size () << "\"]\n";
+    outfile << i << " [label=\""<< cmg . grid (*start) -> size () << "\"]\n";
     ++ i;
   }
   int N = cmg . NumVertices ();
@@ -843,20 +852,19 @@ void CreateDotFile ( const CMG & cmg ) {
   
 }
 
-template < class Toplex, class CellContainer >
-void output_cubes ( const Toplex & my_toplex, 
-                    const ConleyMorseGraph < CellContainer , chomp::ConleyIndex_t > & conley_morse_graph ) {
+void output_cubes ( const Grid & my_toplex, 
+                    const MorseGraph & conley_morse_graph ) {
   using namespace chomp;
-  typedef ConleyMorseGraph < CellContainer , ConleyIndex_t > CMG;
-    
+  typedef MorseGraph  CMG;
+  typedef std::vector<Grid::GridElement> CellContainer;
   // Loop Through Morse Sets to determine bounds
-  typedef typename CMG::VertexIterator VI;
+  typedef CMG::VertexIterator VI;
   VI it, stop;
   std::vector < std::vector < uint32_t > > cubes;
   for (boost::tie ( it, stop ) = conley_morse_graph . Vertices (); it != stop; ++ it ) {
-    CellContainer const & my_subset = conley_morse_graph . CellSet ( *it );
+    CellContainer my_subset = my_toplex . subset ( * conley_morse_graph . grid ( *it ) );
     int depth = my_toplex . getDepth ( my_subset );
-    BOOST_FOREACH ( const typename Toplex::Top_Cell & ge, my_subset ) {
+    BOOST_FOREACH ( const Grid::GridElement & ge, my_subset ) {
       my_toplex . GridElementToCubes ( & cubes, ge, depth  );
     }
   }

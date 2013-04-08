@@ -5,15 +5,16 @@
 #ifndef CHOMP_RELATIVEMAPHOMOLOGY_H
 #define CHOMP_RELATIVEMAPHOMOLOGY_H
 
+#include <cstdlib>
 #include <vector>
 #include <ctime>
 #include "boost/unordered_map.hpp"
 #include "boost/unordered_set.hpp"
 #include "chomp/Matrix.h"
 #include "chomp/Generators.h"
-#include "chomp/Toplex.h"
 #include "chomp/Closure.h"
 #include "chomp/FiberComplex.h"
+#include "chomp/RelativePair.h"
 
 
 //#include "Draw.h"
@@ -24,12 +25,12 @@ namespace chomp {
 
 typedef std::vector < SparseMatrix < Ring > > RelativeMapHomology_t;
 
-template < class Container, class RectMap > int 
+template < class Grid, class Container, class RectMap > int
 RelativeMapHomology (RelativeMapHomology_t * output, 
-                     const Toplex & source, 
+                     const Grid & source,
                      const Container & XE, 
                      const Container & AE,
-                     const Toplex & target, 
+                     const Grid & target,
                      const Container & YE, 
                      const Container & BE,
                      const RectMap & F,
@@ -200,7 +201,7 @@ RelativeMapHomology (RelativeMapHomology_t * output,
         //std::cout << "Dealing with fiber (" << t . index () << ", " << d << ") (*)\n";
         //std::cout << "   Term is " << t << "\n";
         // Determine fiber
-        boost::unordered_set < GridElement > X_nbs, A_nbs;
+        boost::unordered_set < Index > X_nbs, A_nbs;
         
         //std::cout << "domain_GridElements_X [ " << d << " ] . size () = " <<
         //domain_GridElements_X [ d ] . size () << "\n";
@@ -258,7 +259,7 @@ RelativeMapHomology (RelativeMapHomology_t * output,
           //std::cout << "   Chain is " << fiberchain . second << "\n";
           chain_memory += fiberchain . second () . size ();
           // Determine fiber
-          boost::unordered_set < GridElement > X_nbs, A_nbs;
+          boost::unordered_set < Index > X_nbs, A_nbs;
           X_nbs = domain_GridElements_X [ fd ] [ fiberchain . first ];
           A_nbs = domain_GridElements_A [ fd ] [ fiberchain . first ];    
           FiberComplex fiber ( X_nbs, A_nbs, full_domain, full_codomain, F );
@@ -383,7 +384,7 @@ RelativeMapHomology (RelativeMapHomology_t * output,
   for ( int d = 0; d <= D; ++ d ) {
     for ( Index i = 0; i < full_domain . size ( d ); ++ i ) {
       if ( rand () % 10 != 0 ) continue;
-      boost::unordered_set < GridElement > X_nbs, A_nbs;
+      boost::unordered_set < Index > X_nbs, A_nbs;
       X_nbs = domain_GridElements_X [ d ] [ i ];
       A_nbs = domain_GridElements_A [ d ] [ i ];   
       FiberComplex fiber ( X_nbs, A_nbs, full_domain, full_codomain, F );

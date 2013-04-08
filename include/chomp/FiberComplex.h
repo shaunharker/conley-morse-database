@@ -5,6 +5,7 @@
 #ifndef CHOMP_FIBERCOMPLEX_H
 #define CHOMP_FIBERCOMPLEX_H
 
+#include <cstdlib>
 #include <vector>
 #include "boost/unordered_set.hpp"
 #include "boost/unordered_map.hpp"

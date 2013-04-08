@@ -5,6 +5,7 @@
 #ifndef CHOMP_SIMPLICIALCOMPLEX_H
 #define CHOMP_SIMPLICIALCOMPLEX_H
 
+#include <cstdlib>
 #include <iostream>
 #include <vector>
 #include <fstream>
@@ -222,7 +223,7 @@ inline void SimplicialComplex::loadFromFile ( const char * FileName) {
 	
 	//startInserting ();
 	BOOST_FOREACH( const Simplex &s, processed_ ) {
-		std::cout << "Inserting cell " << s << "\n";
+		//std::cout << "Inserting cell " << s << "\n";
 		insertCell (s, s.dimension() );
 	}
 	//finishedInserting ();

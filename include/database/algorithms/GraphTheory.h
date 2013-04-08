@@ -4,64 +4,24 @@
 #define CMDP_GRAPHTHEORY
 
 #include <vector>
-
-#ifdef OLD_CMAP_METHOD
-
-/** class CombinatorialMap */
-template < class Toplex, class CellContainer >
-class CombinatorialMap {
-public:
-  typedef typename Toplex::size_type size_type;
-  typedef typename Toplex::Top_Cell Vertex;
-  CombinatorialMap ( const size_type N );
-  size_type insert ( const Vertex & v );
-  std::vector<size_type> & adjacencies ( const size_type & v );
-  const std::vector<size_type> & adjacencies ( const size_type & v ) const;
-
-  size_type sentinel ( void ) const;
-  size_type index ( const Vertex & input ) const;
-  size_type num_vertices ( void ) const;
-  Vertex lookup ( const size_type & input ) const;
-  void index ( std::vector < size_type > * output, const CellContainer & input ) const;
-  void lookup ( CellContainer * output, const std::vector < size_type > & input ) const;
-private:
-  std::vector<std::vector<size_type> > data_;
-  std::vector<Vertex> lookup_;
-  std::vector<size_type> index_;
-  size_type sentinel_;
-};
-  
-/** compute_combinatorial_map */
-template < class Toplex, class Map, class CellContainer>
-CombinatorialMap<Toplex,CellContainer>
-compute_combinatorial_map (const Toplex & my_toplex, 
-                           const Map & f);
+#include <boost/shared_ptr.hpp>
 
 
-template < class Toplex, class Map, class CellContainer >
-CombinatorialMap<Toplex,CellContainer>
-compute_combinatorial_map (const std::vector < CellContainer > & sets,
-                           const Toplex & my_toplex, 
-                           const Map & f);
 
-/** compute_morse_sets */
-template < class MorseGraph, class Toplex, class CellContainer >
-void compute_morse_sets (std::vector< CellContainer > * output, 
-                         const CombinatorialMap<Toplex,CellContainer> & G, 
-   /* optional output */ MorseGraph * MG = NULL);
+template < class Map >
+void computeMorseSetsAndReachability (std::vector< boost::shared_ptr<Grid> > * output,
+                                      std::vector<std::vector<unsigned int> > * reach,
+                                      const Grid & G,
+                                      const Map & f );
 
-#else
+#if 0
 
 /** compute_morse_sets */
 template < class MorseGraph, class Graph, class CellContainer >
-void compute_morse_sets (std::vector< CellContainer > * output, 
-                         const Graph & G, 
+void compute_morse_sets (std::vector< CellContainer > * output,
+                         const Graph & G,
                          /* optional output */ MorseGraph * MG = NULL);
 
-template < class Graph, class CellContainer >
-void computeMorseSetsAndReachability (std::vector< CellContainer > * output,
-                                      std::vector<std::vector<unsigned int> > * reach,
-                                      const Graph & G );
 #endif
 
 /** compute_strong_components */

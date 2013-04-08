@@ -12,9 +12,18 @@
 #include "database/program/jobs/Conley_Index_Job.h"
 #include "database/structures/UnionFind.hpp"
 
+#ifdef USE_SUCCINCT
+#include "database/structures/SuccinctGrid.h"
+#endif
+#include "database/structures/PointerGrid.h"
+
 #include "chomp/Rect.h"
 
 #include "ModelMap.h"
+
+#ifndef GRIDCHOICE
+#define GRIDCHOICE PointerGrid
+#endif
 
 /* * * * * * * * * * * * */
 /* initialize definition */
@@ -148,7 +157,7 @@ int ConleyProcess::prepare ( Message & job ) {
 /* work definition */
 /* * * * * * * * * */
 void ConleyProcess::work ( Message & result, const Message & job ) const {
-  Conley_Index_Job < chomp::Toplex, chomp::Toplex > ( &result , job ); 
+  Conley_Index_Job < GRIDCHOICE > ( &result , job );
   // debug
   /*
   Database job_database;

@@ -12,139 +12,50 @@
 #include "boost/unordered_map.hpp"
 #include "boost/foreach.hpp"
 
-#include "database/program/ComputeGraph.h"
+#include "database/structures/Grid.h"
 
-template < class Toplex, class Map, class CellContainer >
+#ifdef CMDB_STORE_GRAPH
+#include "database/program/ComputeGraph.h"
+#endif
+
+template < class Map >
 class MapGraph {
 public:
-  typedef typename Toplex::size_type size_type;
-  typedef typename Toplex::Top_Cell Vertex;
+  // Typedefs
+  typedef Grid::size_type size_type;
+  typedef Grid::GridElement Vertex;
   
-  MapGraph ( const Toplex & t, 
+  // Public Methods
+  
+  // Constructor. Requires Grid and Map.
+  MapGraph ( const Grid & t, 
              const Map & f );
   
-  MapGraph ( const std::vector < CellContainer > & sets, 
-             const Toplex & t,
-             const Map & f);
-
-  MapGraph ( const CellContainer & set, 
-            const Toplex & t,
-            const Map & f);
+  // Return vector of Vertices which are out-edge adjacencies of input v
+  std::vector<Vertex> adjacencies ( const Vertex & v ) const;
   
-  size_type insert ( const Vertex & v );
-
-  std::vector<size_type> adjacencies ( const size_type & v ) const;
-  std::vector<size_type> compute_adjacencies ( const size_type & v ) const;
-
-  size_type sentinel ( void ) const;
-  size_type index ( const Vertex & input ) const;
+  // Return number of vertices
   size_type num_vertices ( void ) const;
-  Vertex lookup ( const size_type & input ) const;
-  void index ( std::vector < size_type > * output, const CellContainer & input ) const;
-  void lookup ( CellContainer * output, const std::vector < size_type > & input ) const;
-  void leaves ( CellContainer * output, const std::vector < size_type > & input ) const;
 
 private:
-  const Toplex & toplex_;
+  // Private methods
+  std::vector<size_type> compute_adjacencies ( const size_type & v ) const;
+  // Private data
+  const Grid & grid_;
   const Map & f_;
-  std::vector<Vertex> lookup_;
-  std::vector<size_type> index_;
-  //boost::unordered_map<Vertex,size_type> index_;
-  size_type sentinel_;
-  
-#ifdef CMDB_STORE_GRAPH
-  std::vector<std::vector<size_type> > adjacency_storage_;
+  // Variables used if graph is stored in memory. (See CMDB_STORE_GRAPH define)
   bool stored_graph;
-#endif
-  
+  std::vector<std::vector<Vertex> > adjacency_storage_;
 };
 
 // Repeated code in constructors is bad practice -- should fix that below
-template < class Toplex, class Map, class CellContainer >
-MapGraph<Toplex,Map,CellContainer>::
-MapGraph ( const Toplex & t, 
+template < class Map >
+MapGraph<Map>::
+MapGraph ( const Grid & grid,
            const Map & f ) : 
-toplex_ ( t ),
+grid_ ( grid ),
 f_ ( f ),
-sentinel_ ( t . tree_size () ) {
-  index_ . resize ( sentinel (), sentinel () ); 
-  CellContainer allcells;
-  std::insert_iterator < CellContainer > ii ( allcells, 
-                                             allcells . begin () );
-  toplex_ . cover ( ii, toplex_ . bounds () );
-  CellContainer umbrella;
-  std::insert_iterator < CellContainer > uii ( umbrella, 
-                                              umbrella . begin () );
-  toplex_ . umbrella ( uii, allcells );
-  BOOST_FOREACH ( Vertex v, umbrella ) {
-    insert ( v );
-  }
-}
-
-template < class Toplex, class Map, class CellContainer >
-MapGraph<Toplex,Map,CellContainer>::
-MapGraph ( const std::vector < CellContainer > & sets, 
-           const Toplex & t, 
-           const Map & f ) : 
-toplex_ ( t ),
-f_ ( f ),
-sentinel_ ( t . tree_size () ) {
-  //std::cout << "Constructing MapGraph.\n";
-  index_ . resize ( sentinel (), sentinel () ); 
-
-  CellContainer allcells;
-  std::insert_iterator < CellContainer > ii ( allcells, 
-                                              allcells . begin () );
-  BOOST_FOREACH ( const CellContainer & cont, sets ) {
-    BOOST_FOREACH ( Vertex v, cont ) {
-      //std::cout << "Inserting " << v << " into allcells.\n";
-      * ii ++ = v;
-    }
-  }
-  CellContainer umbrella;
-  std::insert_iterator < CellContainer > uii ( umbrella, 
-                                               umbrella . begin () );
-  toplex_ . umbrella ( uii, allcells );
-  BOOST_FOREACH ( Vertex v, umbrella ) {
-    //std::cout << "Inserting " << v << " into graph.\n";
-    insert ( v );
-  }
-  //std::cout << "Finished constructing MapGraph.\n";
-
-}
-
-template < class Toplex, class Map, class CellContainer >
-MapGraph<Toplex,Map,CellContainer>::
-MapGraph ( const CellContainer & set, 
-          const Toplex & t, 
-          const Map & f ) : 
-toplex_ ( t ),
-f_ ( f ),
-sentinel_ ( t . tree_size () ) {
-  std::vector < CellContainer > sets;
-  sets . push_back ( set );
-  
-  //std::cout << "Constructing MapGraph.\n";
-  index_ . resize ( sentinel (), sentinel () ); 
-  
-  CellContainer allcells;
-  std::insert_iterator < CellContainer > ii ( allcells, 
-                                             allcells . begin () );
-  BOOST_FOREACH ( const CellContainer & cont, sets ) {
-    BOOST_FOREACH ( Vertex v, cont ) {
-      //std::cout << "Inserting " << v << " into allcells.\n";
-      * ii ++ = v;
-    }
-  }
-  CellContainer umbrella;
-  std::insert_iterator < CellContainer > uii ( umbrella, 
-                                              umbrella . begin () );
-  toplex_ . umbrella ( uii, allcells );
-  BOOST_FOREACH ( Vertex v, umbrella ) {
-    //std::cout << "Inserting " << v << " into graph.\n";
-    insert ( v );
-  }
-  //std::cout << "Finished constructing MapGraph.\n";
+stored_graph ( false ) {
   
 #ifdef CMDB_STORE_GRAPH
   
@@ -165,7 +76,7 @@ sentinel_ ( t . tree_size () ) {
   
   std::cout << "Saving grid to file.\n";
   // Save the grid and a list of required evaluations to disk
-  toplex_ . save ("grid.txt");
+  grid_ . save ("grid.txt");
   evals . save ( "mapevals.txt" );
   
   // Call a program to compute the adjacency information
@@ -184,126 +95,33 @@ sentinel_ ( t . tree_size () ) {
 #endif
 }
 
-
-template < class Toplex, class Map, class CellContainer >
-typename MapGraph<Toplex,Map,CellContainer>::size_type 
-MapGraph<Toplex,Map,CellContainer>::
-insert ( const Vertex & v ) {
-  index_ [ v ] = lookup_ . size ();
-  lookup_ . push_back ( v );
-  return index_ [ v ];
-}
-
-template < class Toplex, class Map, class CellContainer >
-std::vector<typename MapGraph<Toplex,Map,CellContainer>::size_type>
-MapGraph<Toplex,Map,CellContainer>::
+template < class Map >
+std::vector<typename MapGraph<Map>::Vertex>
+MapGraph<Map>::
 adjacencies ( const size_type & source ) const {
-#ifdef CMDB_STORE_GRAPH
   if ( stored_graph )
     return adjacency_storage_ [ source ];
   else
     return compute_adjacencies ( source );
-#else
-  return compute_adjacencies ( source );
-#endif
 }
 
-template < class Toplex, class Map, class CellContainer >
-std::vector<typename MapGraph<Toplex,Map,CellContainer>::size_type>
-MapGraph<Toplex,Map,CellContainer>::
-compute_adjacencies ( const size_type & source ) const {
-  std::vector < size_type > result;
-  Vertex domain_cell = lookup ( source );
-  //std::cout << "source = " << source << " and top cell = " << domain_cell << "\n";
-  CellContainer children;
-  std::insert_iterator < CellContainer > cii ( children, children . begin () );
-  toplex_ . children ( cii, domain_cell );
-  if ( children . empty () ) {
-    //std::cout << "geo(" << domain_cell << ") = " << toplex_ . geometry ( domain_cell ) << "\n";
-    CellContainer image;
-    std::insert_iterator < CellContainer > ii ( image, image . begin () );
-    toplex_ . cover ( ii, f_ ( toplex_ . geometry ( domain_cell ) ) ); // here is the work
-    index ( & result, image );
-  } else {
-    index ( & result, children );
-  }
-  return result;
+template < class Map >
+std::vector<typename MapGraph<Map>::Vertex>
+MapGraph<Map>::
+compute_adjacencies ( const Vertex & source ) const {
+  //std::cout << "compute_adjacencies.\n";
+  std::vector < Vertex > target;
+  std::insert_iterator < std::vector < Vertex > > ii ( target, target . begin () );
+  grid_ . cover ( ii, f_ ( grid_ . geometry ( source ) ) ); // here is the work
+  //std::cout << "computed.\n";
+  return target;
 }
 
 
-template < class Toplex, class Map, class CellContainer >
-typename MapGraph<Toplex,Map,CellContainer>::size_type 
-MapGraph<Toplex,Map,CellContainer>::
-sentinel ( void ) const {
-  return sentinel_;
-}
-
-template < class Toplex, class Map, class CellContainer >
-typename MapGraph<Toplex,Map,CellContainer>::size_type 
-MapGraph<Toplex,Map,CellContainer>::
-index ( const Vertex & input ) const {
-  return index_ [ input ];
-  //typename boost::unordered_map<Vertex,size_type>::const_iterator it;
-  //it = index_ . find ( input );
-  //if ( it == index_ . end () ) return sentinel ();
-  //return it -> second;
-}
-
-template < class Toplex, class Map, class CellContainer >
-typename MapGraph<Toplex,Map,CellContainer>::Vertex 
-MapGraph<Toplex,Map,CellContainer>::
-lookup ( const size_type & input ) const {
-  return lookup_ [ input ];
-}
-
-template < class Toplex, class Map, class CellContainer >
-void MapGraph<Toplex,Map,CellContainer>::
-index ( std::vector < size_type > * output, 
-        const CellContainer & input ) const {
-  output -> clear ();
-  BOOST_FOREACH ( Vertex cell, input ) {
-    size_type cell_index = index ( cell );
-    if ( cell_index != sentinel () ) output -> push_back ( cell_index );
-  }
-  // Remove duplicates 
-  std::sort ( output -> begin (), output -> end () );
-  typename std::vector<size_type>::iterator it = std::unique ( output->begin(),
-                                                     output->end());
-  output->resize( it - output->begin() );
-}
-
-template < class Toplex, class Map, class CellContainer >
-void MapGraph<Toplex,Map,CellContainer>::
-lookup ( CellContainer * output, 
-         const std::vector < size_type > & input ) const {
-  output -> clear ();
-  std::insert_iterator < CellContainer > ii ( *output, output -> begin () );
-  BOOST_FOREACH ( size_type cell_index, input ) {
-    * ii ++ = lookup ( cell_index );
-  }
-}
-
-/// MapGraph::leaves
-/// Filter out all non-leaf nodes while translating into Top Cell indexing
-template < class Toplex, class Map, class CellContainer >
-void MapGraph<Toplex,Map,CellContainer>::
-leaves ( CellContainer * output, 
-        const std::vector < size_type > & input ) const {
-  output -> clear ();
-  std::insert_iterator < CellContainer > ii ( *output, output -> begin () );
-  BOOST_FOREACH ( size_type cell_index, input ) {
-    Vertex domain_cell = lookup ( cell_index );
-    CellContainer children;
-    std::insert_iterator < CellContainer > cii ( children, children . begin () );
-    toplex_ . children ( cii, domain_cell );
-    if ( children . empty () ) * ii ++ = domain_cell;
-  }
-}
-
-template < class Toplex, class Map, class CellContainer >
-typename MapGraph<Toplex,Map,CellContainer>::size_type 
-MapGraph<Toplex,Map,CellContainer>::num_vertices ( void ) const {
-  return lookup_ . size ();
+template < class Map >
+typename MapGraph<Map>::size_type
+MapGraph<Map>::num_vertices ( void ) const {
+  return grid_ . size ();
 }
 
 #endif

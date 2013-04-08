@@ -5,12 +5,14 @@
 #include <iterator>
 #include "boost/foreach.hpp"
 #include "boost/tuple/tuple.hpp"
+#include "chomp/Rect.h"
+#include "database/structures/Grid.h"
 
-template < class Toplex, class CellContainer >
+template < class CellContainer >
 Picture * draw_picture (const int Width, const int Height,
                         unsigned char Red, unsigned char Green, unsigned char Blue,
-                        const Toplex & my_toplex, const CellContainer & my_subset ) {
-  typename Toplex::Geometric_Description bounds = my_toplex . bounds ();
+                        const Grid & my_grid, const CellContainer & my_subset ) {
+  chomp::Rect bounds = my_grid . bounds ();
   // Prepare variables for bounds finding loop
   Picture::Real x_min = bounds . upper_bounds [ 0 ];
   Picture::Real x_max = bounds . lower_bounds [ 0 ];
@@ -18,8 +20,8 @@ Picture * draw_picture (const int Width, const int Height,
   Picture::Real y_max = bounds . lower_bounds [ 1 ];
   
   // Find bounds of picture
-  BOOST_FOREACH ( typename Toplex::Top_Cell cell, my_subset ) {
-    typename Toplex::Geometric_Description box = my_toplex . geometry ( my_toplex . find ( cell ) );
+  BOOST_FOREACH ( Grid::GridElement cell, my_subset ) {
+    chomp::Rect box = my_grid . geometry ( my_grid . find ( cell ) );
     x_min = std::min ( x_min, box . lower_bounds [ 0 ] );
     x_max = std::max ( x_max, box . upper_bounds [ 0 ] );
     y_min = std::min ( y_min, box . lower_bounds [ 1 ] );
@@ -35,8 +37,8 @@ Picture * draw_picture (const int Width, const int Height,
   std::cout << "y_max = " << y_max << "\n";
 
   // Draw picture
-  BOOST_FOREACH ( typename Toplex::Top_Cell cell, my_subset ) {
-    typename Toplex::Geometric_Description box = my_toplex . geometry ( my_toplex . find ( cell ) );
+  BOOST_FOREACH ( Grid::GridElement cell, my_subset ) {
+    chomp::Rect box = my_grid . geometry ( my_grid . find ( cell ) );
     picture -> draw_square (Red, Green, Blue,
                             box . lower_bounds [ 0 ],
                             box . upper_bounds [ 0 ],
@@ -49,15 +51,19 @@ Picture * draw_picture (const int Width, const int Height,
 
 #include <cmath>
 #include "database/structures/Conley_Morse_Graph.h"
+#include "database/structures/Grid.h"
 #include "chomp/ConleyIndex.h"
 
-template < class Toplex, class CellContainer >
-Picture * draw_morse_sets (const int Width, const int Height,
-                           const Toplex & my_toplex, 
-                           const ConleyMorseGraph < CellContainer , chomp::ConleyIndex_t > & conley_morse_graph ) {
+inline
+Picture * draw_morse_sets (const int Width,
+                           const int Height,
+                           const Grid & my_grid,
+                           const MorseGraph & conley_morse_graph ) {
+  std::cout << "draw_morse_sets\n";
+  typedef std::vector<Grid::GridElement> CellContainer;
   using namespace chomp;
-  typedef ConleyMorseGraph < CellContainer , ConleyIndex_t > CMG;
-  typename Toplex::Geometric_Description bounds = my_toplex . bounds ();
+  typedef MorseGraph CMG;
+  chomp::Rect bounds = my_grid . bounds ();
   // Prepare variables for bounds finding loop
   Picture::Real x_min = bounds . upper_bounds [ 0 ];
   Picture::Real x_max = bounds . lower_bounds [ 0 ];
@@ -66,16 +72,17 @@ Picture * draw_morse_sets (const int Width, const int Height,
   
 
   // Loop Through Morse Sets to determine bounds
-  typedef typename CMG::VertexIterator VI;
+  typedef  CMG::VertexIterator VI;
   VI it, stop;
   for (boost::tie ( it, stop ) = conley_morse_graph . Vertices ();
        it != stop;
        ++ it ) {
     // Draw the Morse Set
-    CellContainer const & my_subset = conley_morse_graph . CellSet ( *it );
-    for ( typename CellContainer::const_iterator cellit = my_subset . begin (); 
+    boost::shared_ptr<const Grid> my_subgrid ( conley_morse_graph . grid ( *it ) );
+    CellContainer my_subset = my_grid . subset ( * my_subgrid );
+    for ( CellContainer::const_iterator cellit = my_subset . begin (); 
          cellit != my_subset . end (); ++ cellit ) {
-      typename Toplex::Geometric_Description box = my_toplex . geometry ( my_toplex . find ( *cellit ) );
+      chomp::Rect box = my_grid . geometry ( my_grid . find ( *cellit ) );
       x_min = std::min ( x_min, box . lower_bounds [ 0 ] );
       x_max = std::max ( x_max, box . upper_bounds [ 0 ] );
       y_min = std::min ( y_min, box . lower_bounds [ 1 ] );
@@ -96,14 +103,15 @@ Picture * draw_morse_sets (const int Width, const int Height,
     unsigned char Green = rand () % 255;
     unsigned char Blue = rand () % 255;
     // Draw the Morse Set
-    CellContainer const & my_subset = conley_morse_graph . CellSet ( *it );
+    boost::shared_ptr<const Grid> my_subgrid ( conley_morse_graph . grid ( *it ) );
+    CellContainer my_subset = my_grid . subset ( * my_subgrid );
     if ( my_subset . size () < 10 ) std::cout << "Small Morse Set " << count << ": ";
     ++ count;
 
-    for ( typename CellContainer::const_iterator cellit = my_subset . begin (); 
+    for ( CellContainer::const_iterator cellit = my_subset . begin (); 
          cellit != my_subset . end (); ++ cellit ) {
 
-      typename Toplex::Geometric_Description box = my_toplex . geometry ( my_toplex . find ( *cellit ) );
+      chomp::Rect box = my_grid . geometry ( my_grid . find ( *cellit ) );
 
       // DEBUG
       if ( my_subset . size () < 10 ) std::cout << box << " ";
@@ -122,10 +130,13 @@ Picture * draw_morse_sets (const int Width, const int Height,
   return picture;
 } /* draw_morse_sets */
 
-template < class Toplex, class CellContainer >
-Picture * draw_toplex (const int Width, const int Height,
-                       const Toplex & my_toplex ) {
-  typename Toplex::Geometric_Description bounds = my_toplex . bounds ();
+inline
+Picture * draw_grid (const int Width,
+                       const int Height,
+                       const Grid & my_grid ) {
+  typedef std::vector<Grid::GridElement> CellContainer;
+
+  chomp::Rect bounds = my_grid . bounds ();
   // Prepare variables for bounds finding loop
   Picture::Real x_min = bounds . lower_bounds [ 0 ];
   Picture::Real x_max = bounds . upper_bounds [ 0 ];
@@ -138,14 +149,14 @@ Picture * draw_toplex (const int Width, const int Height,
   // Loop through top cells to draw them
   CellContainer my_subset;
   std::insert_iterator<CellContainer> ii ( my_subset, my_subset . begin () );
-  my_toplex . cover ( ii, my_toplex . bounds () );
-  for ( typename CellContainer::const_iterator cellit = my_subset . begin (); 
+  my_grid . cover ( ii, my_grid . bounds () );
+  for ( CellContainer::const_iterator cellit = my_subset . begin ();
        cellit != my_subset . end (); ++ cellit ) {
     // Draw the outline of the cell
     unsigned char Red = rand () % 255;
     unsigned char Green = rand () % 255;
     unsigned char Blue = rand () % 255;
-    typename Toplex::Geometric_Description box = my_toplex . geometry ( my_toplex . find ( *cellit ) );
+    chomp::Rect box = my_grid . geometry ( my_grid . find ( *cellit ) );
     Picture::Real volume = ( box . upper_bounds [ 0 ] - box . lower_bounds [ 0 ] )*( box . upper_bounds [ 1 ] - box . lower_bounds [ 1 ] ) ;
     Picture::Real total_volume = ( bounds . upper_bounds [ 0 ] - bounds . lower_bounds [ 0 ] )*( bounds . upper_bounds [ 1 ] - bounds . lower_bounds [ 1 ] ) ;
     Picture::Real ratio = total_volume / volume;
@@ -161,15 +172,16 @@ Picture * draw_toplex (const int Width, const int Height,
 
 
   return picture;
-} /* draw_toplex */
+} /* draw_grid */
 
-template < class Toplex, class CellContainer >
-Picture * draw_toplex_and_morse_sets (const int Width, const int Height,
-                       const Toplex & my_toplex,
-                                      const ConleyMorseGraph < CellContainer, chomp::ConleyIndex_t > & conley_morse_graph ) {
+inline
+Picture * draw_grid_and_morse_sets (const int Width, const int Height,
+                       const Grid & my_grid,
+                       const MorseGraph  & conley_morse_graph ) {
+  typedef std::vector<Grid::GridElement> CellContainer;
   using namespace chomp;
-  typedef ConleyMorseGraph < CellContainer , ConleyIndex_t > CMG;
-  typename Toplex::Geometric_Description bounds = my_toplex . bounds ();
+  typedef MorseGraph  CMG;
+  chomp::Rect bounds = my_grid . bounds ();
   // Prepare variables for bounds finding loop
   Picture::Real x_min = bounds . lower_bounds [ 0 ];
   Picture::Real x_max = bounds . upper_bounds [ 0 ];
@@ -182,14 +194,14 @@ Picture * draw_toplex_and_morse_sets (const int Width, const int Height,
   // Loop through top cells to draw them
   CellContainer my_subset;
   std::insert_iterator<CellContainer> ii ( my_subset, my_subset . begin () );
-  my_toplex . cover ( ii, my_toplex . bounds () );
+  my_grid . cover ( ii, my_grid . bounds () );
   
-  BOOST_FOREACH ( typename Toplex::Top_Cell cell, my_subset ) {
+  BOOST_FOREACH ( Grid::GridElement cell, my_subset ) {
     // Draw the outline of the cell
     unsigned char Red = rand () % 255;
     unsigned char Green = rand () % 255;
     unsigned char Blue = rand () % 255;
-    typename Toplex::Geometric_Description box = my_toplex . geometry ( my_toplex . find ( cell ) );
+    chomp::Rect box = my_grid . geometry ( my_grid . find ( cell ) );
     Picture::Real volume = ( box . upper_bounds [ 0 ] - box . lower_bounds [ 0 ] )*( box . upper_bounds [ 1 ] - box . lower_bounds [ 1 ] ) ;
     Picture::Real total_volume = ( bounds . upper_bounds [ 0 ] - bounds . lower_bounds [ 0 ] )*( bounds . upper_bounds [ 1 ] - bounds . lower_bounds [ 1 ] ) ;
     Picture::Real ratio = total_volume / volume;
@@ -206,7 +218,7 @@ Picture * draw_toplex_and_morse_sets (const int Width, const int Height,
   // Loop through Morse Sets to draw them
   
   // first white them out
-  typedef typename CMG::VertexIterator VI;
+  typedef CMG::VertexIterator VI;
   VI it, stop;
   for (boost::tie ( it, stop ) = conley_morse_graph . Vertices ();
        it != stop;
@@ -215,9 +227,10 @@ Picture * draw_toplex_and_morse_sets (const int Width, const int Height,
     unsigned char Green = 255; // rand () % 255;
     unsigned char Blue = 255; //rand () % 255;
     // Draw the Morse Set
-    CellContainer const & my_subset = conley_morse_graph . CellSet ( *it );
-    BOOST_FOREACH ( typename Toplex::Top_Cell cell, my_subset ) {
-      typename Toplex::Geometric_Description box = my_toplex . geometry ( my_toplex . find ( cell ) );
+    boost::shared_ptr<const Grid> my_subgrid ( conley_morse_graph . grid ( *it ) );
+    CellContainer my_subset = my_grid . subset ( * my_subgrid );
+    BOOST_FOREACH ( Grid::GridElement cell, my_subset ) {
+      chomp::Rect box = my_grid . geometry ( my_grid . find ( cell ) );
       picture -> draw_square (Red, Green, Blue,
                               box . lower_bounds [ 0 ],
                               box . upper_bounds [ 0 ],
@@ -243,9 +256,10 @@ Picture * draw_toplex_and_morse_sets (const int Width, const int Height,
       default : break;
     }
     // Draw the Morse Set
-    CellContainer const & my_subset = conley_morse_graph . CellSet ( *it );
-    BOOST_FOREACH ( typename Toplex::Top_Cell cell, my_subset ) {
-      typename Toplex::Geometric_Description box = my_toplex . geometry ( my_toplex . find ( cell ) );
+    boost::shared_ptr<const Grid> my_subgrid ( conley_morse_graph . grid ( *it ) );
+    CellContainer my_subset = my_grid . subset ( * my_subgrid );
+    BOOST_FOREACH ( Grid::GridElement cell, my_subset ) {
+      chomp::Rect box = my_grid . geometry ( my_grid . find ( cell ) );
       picture -> draw_square (Red, Green, Blue,
                               box . lower_bounds [ 0 ],
                               box . upper_bounds [ 0 ],
@@ -254,4 +268,4 @@ Picture * draw_toplex_and_morse_sets (const int Width, const int Height,
     }
   }  
   return picture;
-} /* draw_toplex_and_morse_sets */
+} /* draw_grid_and_morse_sets */

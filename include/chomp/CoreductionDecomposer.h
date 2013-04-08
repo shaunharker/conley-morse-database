@@ -11,6 +11,7 @@
 #define CHOMP_COREDUCTIONDECOMPOSER_H 
 
 #include <iostream>
+#include <cstdlib>
 #include <vector>
 #include <stack>
 

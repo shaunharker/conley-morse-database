@@ -9,6 +9,7 @@
 
 #include <iostream>
 #include <vector>
+#include <cstdlib>
 
 #include "boost/foreach.hpp"
 #include "boost/unordered_map.hpp"

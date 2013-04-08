@@ -7,7 +7,7 @@
 
 #include "delegator/Message.h"
 
-template <class Toplex, class ParameterToplex, class ConleyIndex>
+template < class PhaseGrid >
 void Clutching_Graph_Job ( Message * result , const Message & job ); 
 
 #include "database/program/jobs/Clutching_Graph_Job.hpp"

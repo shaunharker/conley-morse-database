@@ -4,292 +4,123 @@
 #include <stack>
 #include <queue>
 #include <algorithm>
+#include <memory>
+
 #include "boost/foreach.hpp"
+#include "database/structures/MapGraph.h"
 
 #define DEBUGPRINT if(0)
 
-#ifdef OLD_CMAP_METHOD
-
-/* Combinatorial Map */
-template < class Toplex, class CellContainer >
-CombinatorialMap<Toplex,CellContainer>::CombinatorialMap ( const size_type N ) : sentinel_ ( N ) {
-  index_ . resize ( N, sentinel_ );
-}
-
-template < class Toplex, class CellContainer >
-typename CombinatorialMap<Toplex,CellContainer>::size_type 
-CombinatorialMap<Toplex,CellContainer>::insert ( const Vertex & v ) {
-  index_ [ v ] = lookup_ . size ();
-  lookup_ . push_back ( v );
-  data_ . push_back ( std::vector < size_type > () );
-  return index_ [ v ];
-}
-
-template < class Toplex, class CellContainer >
-std::vector<typename CombinatorialMap<Toplex,CellContainer>::size_type> & 
-CombinatorialMap<Toplex,CellContainer>::adjacencies ( const size_type & v ) {
-  return data_ [ v ];
-}
-
-template < class Toplex, class CellContainer >
-const std::vector<typename CombinatorialMap<Toplex,CellContainer>::size_type> & 
-CombinatorialMap<Toplex,CellContainer>::adjacencies ( const size_type & v ) const {
-  return data_ [ v ];
-}
-
-template < class Toplex, class CellContainer >
-typename CombinatorialMap<Toplex,CellContainer>::size_type 
-CombinatorialMap<Toplex,CellContainer>::sentinel ( void ) const {
-  return sentinel_;
-}
-
-template < class Toplex, class CellContainer >
-typename CombinatorialMap<Toplex,CellContainer>::size_type 
-CombinatorialMap<Toplex,CellContainer>::index ( const Vertex & input ) const {
-  return index_ [ input ];
-}
-
-template < class Toplex, class CellContainer >
-typename CombinatorialMap<Toplex,CellContainer>::Vertex 
-CombinatorialMap<Toplex,CellContainer>::lookup ( const size_type & input ) const {
-  return lookup_ [ input ];
-}
-
-template < class Toplex, class CellContainer >
-void CombinatorialMap<Toplex,CellContainer>::index ( std::vector < size_type > * output, 
-                                       const CellContainer & input ) const {
-  output -> clear ();
-  BOOST_FOREACH ( Vertex cell, input ) {
-    size_type cell_index = index_ [ cell ];
-    if ( cell_index != sentinel_ ) output -> push_back ( cell_index );
-  }
-}
-
-template < class Toplex, class CellContainer >
-void CombinatorialMap<Toplex,CellContainer>::lookup ( CellContainer * output, 
-                                        const std::vector < size_type > & input ) const {
-  output -> clear ();
-  std::insert_iterator < CellContainer > ii ( *output, output -> begin () );
-  BOOST_FOREACH ( size_type cell_index, input ) {
-    * ii ++ = lookup_ [ cell_index ];
-  }
-}
-template < class Toplex, class CellContainer >
-typename CombinatorialMap<Toplex,CellContainer>::size_type 
-CombinatorialMap<Toplex,CellContainer>::num_vertices ( void ) const {
-  return lookup_ . size ();
-}
-
-/* compute_combinatorial_map */
-template < class Toplex, class Map, class CellContainer >
-CombinatorialMap < Toplex, CellContainer >
-compute_combinatorial_map (const Toplex & my_toplex, 
-                           const Map & f) {
-  typedef typename Toplex::size_type size_type;
-  CombinatorialMap<Toplex, CellContainer> graph ( my_toplex . tree_size () );
-#ifdef CMG_VERBOSE
-  std::cout << "   Computing Full Combinatorial Map. Tree Size = " << my_toplex . tree_size () << "\n";
-#endif
-  /* First, we develop an indexing system for the top cells in "sets" */
-  // BoOST_FOREACH ( typename Toplex::Top_Cell cell, my_toplex ) {
-
-  for ( typename Toplex::const_iterator it = my_toplex . begin (); it != my_toplex . end ();
-       ++ it ) {
-    graph . insert ( *it );
-  }
-  /* Next, we compute the graph and store it via the indexing scheme. */
-  // BoOST_FOREACH ( typename Toplex::Top_Cell domain_cell, my_toplex ) {
-  for ( typename Toplex::const_iterator it = my_toplex . begin (); it != my_toplex . end ();
-         ++ it ) {
-    typename Toplex::Top_Cell domain_cell = *it;
-    size_type source = graph . index ( domain_cell );
-    CellContainer image;
-    std::insert_iterator < CellContainer > ii ( image, image . begin () );
-    my_toplex . cover ( ii, f ( my_toplex . geometry ( domain_cell ) ) );
-    graph . index ( & graph . adjacencies ( source ), image );
-  } /* boost_foreach */
-  return graph;
-} /* compute_combinatorial_map */
-
-
-template < class Toplex, class Map, class CellContainer >
-CombinatorialMap < Toplex, CellContainer >
-compute_combinatorial_map (const std::vector < CellContainer > & sets,
-                           const Toplex & my_toplex, 
-                           const Map & f) {
-  typedef typename Toplex::size_type size_type;
-  CombinatorialMap<Toplex,CellContainer> graph ( my_toplex . tree_size () );
-#ifdef CMG_VERBOSE
-  std::cout << "   Computing partial Combinatorial Map. Tree Size = " << my_toplex . tree_size () << "\n";
-#endif
-  /* First, we develop an indexing system for the top cells in "sets" */
-  BOOST_FOREACH ( const CellContainer & my_subset, sets ) {
-    BOOST_FOREACH ( typename Toplex::Top_Cell cell, my_subset ) {
-      graph . insert ( cell );
-    }
-  }
-  /* Next, we compute the graph and store it via the indexing scheme. */
-  BOOST_FOREACH ( const CellContainer & my_subset, sets ) {
-    bool debugflag = false;
-    if ( my_subset . size () == 4 ) debugflag = true;
-    BOOST_FOREACH ( typename Toplex::Top_Cell domain_cell, my_subset ) {
-      size_type source = graph . index ( domain_cell );    
-      CellContainer image;
-      std::insert_iterator < CellContainer > ii ( image, image . begin () );
-      my_toplex . cover ( ii, f ( my_toplex . geometry ( domain_cell ) ) );
-      if ( 0 && debugflag ) {
-        std::cout << "f(" << my_toplex . geometry ( domain_cell ) << ") = \n";
-      
-        BOOST_FOREACH( typename Toplex::Top_Cell image_cell, image ) {
-          std::cout << "          " << my_toplex . geometry ( image_cell ) << "\n";
-        }
-      }
-      graph . index ( & graph . adjacencies ( source ), image );
-    } /* boost_foreach */
-  } /* boost_foreach */
-  return graph;
-} /* compute_combinatorial_map */
-
-/* compute_morse_sets */
-template < class MorseGraph, class Toplex, class CellContainer >
-void compute_morse_sets (std::vector< CellContainer > * output, 
-                         const CombinatorialMap<Toplex,CellContainer> & G, 
-                         /* optional output */ MorseGraph * MG ) {
-  typedef typename CombinatorialMap<Toplex,CellContainer>::size_type size_type;
-  std::vector<std::vector< size_type > > untranslated;
-  output -> clear ();
-  if ( MG == NULL ) {
-    // The user doesn't want a Morse Graph.
-    compute_strong_components ( &untranslated, G );
-    BOOST_FOREACH ( std::vector < size_type > & translate_me, untranslated ) {      
-      output -> push_back ( CellContainer () );
-      G . lookup ( & (output -> back ()), translate_me );
-    }
-  } else {
-    // The user wants us to determine reachability and provide a Morse Graph.
-    /* Produce Strong Components and Topological Sort */
-    std::vector< size_type > topological_sort;
-    compute_strong_components ( &untranslated, G, &topological_sort );
-    BOOST_FOREACH ( std::vector < size_type > & translate_me, untranslated ) {
-      output -> push_back ( CellContainer () );
-      G . lookup ( & (output -> back ()), translate_me );
-    }
-    /* Produce Reachability Information */
-    std::vector < std::vector < unsigned int > > reach_info;
-    compute_reachability ( & reach_info, untranslated, G, topological_sort );
-    
-    /* Produce Morse Graph Vertices */
-    typedef typename MorseGraph::Vertex cmg_vertex_t;
-    std::map < unsigned int, cmg_vertex_t > translate_to_cmg;
-    for (unsigned int s = 0; s < output -> size (); ++ s ) {
-      cmg_vertex_t new_vertex = MG -> AddVertex ();
-      translate_to_cmg [ s ] = new_vertex;
-      MG -> CellSet ( new_vertex ) = (*output) [ s ];
-    }
-    
-    /* Produce Morse Graph Edges */
-    for (unsigned int s = 0; s < reach_info . size (); ++ s ) {
-      BOOST_FOREACH ( unsigned int t, reach_info [ s ] ) {
-        MG -> AddEdge ( translate_to_cmg [ s ], translate_to_cmg [ t ] );
-      }
-    }
-    
-  } /* if-else */
-  
-}
-
-#else
-
-/* compute_morse_sets */
-template < class MorseGraph, class Graph, class CellContainer >
-void compute_morse_sets (std::vector< CellContainer > * output, 
-                         const Graph & G, 
-                         /* optional output */ MorseGraph * MG ) {
-  //std::cout << "compute_morse_sets new\n";
-  typedef typename Graph::size_type size_type;
-  std::vector<std::vector< size_type > > untranslated;
-  output -> clear ();
-  if ( MG == NULL ) {
-    // The user doesn't want a Morse Graph.
-    compute_strong_components ( &untranslated, G );
-    BOOST_FOREACH ( std::vector < size_type > & translate_me, untranslated ) {      
-      output -> push_back ( CellContainer () );
-      G . leaves ( & (output -> back ()), translate_me );
-    }
-  } else {
-    // The user wants us to determine reachability and provide a Morse Graph.
-    /* Produce Strong Components and Topological Sort */
-    std::vector< size_type > topological_sort;
-    compute_strong_components ( &untranslated, G, &topological_sort );
-    BOOST_FOREACH ( std::vector < size_type > & translate_me, untranslated ) {
-      output -> push_back ( CellContainer () );
-      G . leaves ( & (output -> back ()), translate_me );
-    }
-    /* Produce Reachability Information */
-    std::vector < std::vector < unsigned int > > reach_info;
-    compute_reachability ( & reach_info, untranslated, G, topological_sort );
-    
-    /* Produce Morse Graph Vertices */
-    typedef typename MorseGraph::Vertex cmg_vertex_t;
-    std::map < unsigned int, cmg_vertex_t > translate_to_cmg;
-    for (unsigned int s = 0; s < output -> size (); ++ s ) {
-      cmg_vertex_t new_vertex = MG -> AddVertex ();
-      translate_to_cmg [ s ] = new_vertex;
-      MG -> CellSet ( new_vertex ) = (*output) [ s ];
-    }
-    
-    /* Produce Morse Graph Edges */
-    for (unsigned int s = 0; s < reach_info . size (); ++ s ) {
-      BOOST_FOREACH ( unsigned int t, reach_info [ s ] ) {
-        MG -> AddEdge ( translate_to_cmg [ s ], translate_to_cmg [ t ] );
-      }
-    }
-    
-  } /* if-else */
-  
-}
+/*******************
+ *   MORSE THEORY  *
+ *******************/
 
 
 /* computeMorseSetsAndReachability */
-template < class Graph, class CellContainer >
-void computeMorseSetsAndReachability (std::vector< CellContainer > * output,
+template < class Map >
+void computeMorseSetsAndReachability (std::vector< boost::shared_ptr<Grid> > * output,
                                       std::vector<std::vector<unsigned int> > * reach,
-                                      const Graph & G ) {
-  //std::cout << "compute_morse_sets new\n";
-  typedef typename Graph::size_type size_type;
-  std::vector<std::vector< size_type > > untranslated;
-  output -> clear ();
-  
+                                      const Grid & G,
+                                      const Map & f ) {
+  //std::cout << "Create Graph\n";// Create Graph
+  MapGraph < Map > mapgraph ( G, f );
+
   /* Produce Strong Components and Reachability */
-  std::vector< size_type > topological_sort;
-  compute_strong_components ( &untranslated, G, &topological_sort );
+  std::vector < std::vector < Grid::GridElement > > components;
+  std::vector < Grid::size_type > topological_sort;
+  //std::cout << "Compute Strong Components\n";
+  computeStrongComponents ( &components, mapgraph, &topological_sort );
 #ifdef CMG_VERBOSE
-  std::cout << "Found " << untranslated . size () << " morse sets.\n";
+  std::cout << "Found " << components . size () << " morse sets.\n";
 #endif
 #ifndef NO_REACHABILITY
-  compute_reachability ( reach, untranslated, G, topological_sort );
+  //std::cout << "Compute Reachability\n";
+  computeReachability ( reach, components, mapgraph, topological_sort );
 #endif
-  /* Translate to Grid Elements */
-  BOOST_FOREACH ( std::vector < size_type > & translate_me, untranslated ) {
-    output -> push_back ( CellContainer () );
-    G . leaves ( & (output -> back ()), translate_me );
+  /* Create output grids */
+  //std::cout << "Create Output Grids\n";
+  output -> clear ();
+  BOOST_FOREACH ( const std::vector<Grid::GridElement> & component, components ) {
+    boost::shared_ptr < Grid > component_grid ( G . subgrid ( component ) );
+    output -> push_back ( component_grid );
   }
 }
 
+#if 0
+
+// CURRENTLY UNUSABLE. Need to update to use auto_ptr
+// Need to use new grid interface.
+// is shared_ptr more appropriate? confusion.
+/* compute_morse_sets */
+template < class MorseGraph, class Grid, class Map >
+void computeMorseSets (std::vector< std::auto_ptr<Grid> > * output,
+                       const Grid & G,
+                       const Map & f,
+                       /* optional output */ MorseGraph * MG ) {
+  
+  // Clear output
+  output -> clear ();
+  
+  // Create Graph
+  MapGraph < Grid, Map > mapgraph ( G, f );
+  
+  // Check if Morse Graph output required.
+  if ( MG == NULL ) {
+    // The user doesn't want a Morse Graph.
+    std::vector < typename MapGraph::set > components;
+    computeStrongComponents ( &components, mapgraph );
+    BOOST_FOREACH ( const typename MapGraph::set & component, components ) {
+      (*output) . push_back ( std::auto_ptr<Grid> (G . subgrid ( component )) );
+    }
+  } else {
+    // The user wants us to determine reachability and provide a Morse Graph.
+    /* Produce Strong Components and Topological Sort */
+    std::vector< typename MapGraph::vertex > topological_sort;
+    std::vector < typename MapGraph::set > components;
+    computeStrongComponents ( &components, mapgraph, &topological_sort );
+    BOOST_FOREACH ( const typename MapGraph::set & component, components ) {
+      (*output) . push_back ( std::auto_ptr<Grid> (G . subgrid ( component )) );
+    }
+    
+    /* Produce Reachability Information */
+    std::vector < std::vector < unsigned int > > reach_info;
+    computeReachability ( &reach_info, components, mapgraph, topological_sort );
+    
+    /* Produce Morse Graph Vertices */
+    typedef typename MorseGraph::Vertex cmg_vertex_t;
+    std::map < unsigned int, cmg_vertex_t > translate_to_cmg;
+    for (unsigned int s = 0; s < output -> size (); ++ s ) {
+      cmg_vertex_t new_vertex = MG -> AddVertex ();
+      translate_to_cmg [ s ] = new_vertex;
+      MG -> CellSet ( new_vertex ) = (*output) [ s ];
+    }
+    
+    /* Produce Morse Graph Edges */
+    for (unsigned int s = 0; s < reach_info . size (); ++ s ) {
+      BOOST_FOREACH ( unsigned int t, reach_info [ s ] ) {
+        MG -> AddEdge ( translate_to_cmg [ s ], translate_to_cmg [ t ] );
+      }
+    }
+    
+  } /* if-else */
+  
+}
 #endif
 
-
+/*******************
+ *   GRAPH THEORY  *
+ *******************/
 
 /* compute_strong_components */
 template < class OutEdgeGraph >
-void compute_strong_components (std::vector<std::vector<typename OutEdgeGraph::size_type> > * output, 
-                                const OutEdgeGraph & G, 
-          /* optional output */ std::vector<typename OutEdgeGraph::size_type> * topological_sort ) {
+void computeStrongComponents (std::vector<std::vector<typename OutEdgeGraph::size_type> > * output,
+                              const OutEdgeGraph & G,
+         /* optional output */std::vector<typename OutEdgeGraph::size_type> * topological_sort ) {
   // typedefs and const variables
   long int effort = 0;
   typedef typename OutEdgeGraph::size_type size_type;
   typedef std::pair<size_type, size_type> Edge;
-  const size_type sentinel = G . sentinel ();
+  const size_type sentinel = G . num_vertices ();
   // Things that could be put in external memory
   std::deque<Edge> dfs_stack;
   std::stack<Edge> lowlink_stack;
@@ -307,8 +138,10 @@ void compute_strong_components (std::vector<std::vector<typename OutEdgeGraph::s
   // Main Loop
 #ifdef CMG_VERBOSE
   long num_edges = 0;
-  std::cout << "   Computing Strongly Connected Components.\n";
+  std::cout << "Computing Strongly Connected Components.\n";
   std::cout . flush ();
+  size_type progress = 0;
+  size_type progresspercent = 0;
 #endif
   //std::cout << "sentinel = " << sentinel << "\n";
   for ( size_type root = 0; root < N; ++ root ) {
@@ -356,6 +189,15 @@ void compute_strong_components (std::vector<std::vector<typename OutEdgeGraph::s
       size_type & v = S . second;
       if ( index [ v ] == sentinel ) {
         // FIRST VISIT
+#ifdef CMG_VERBOSE
+        ++ progress;
+        if ( (100*progress)/N > progresspercent) {
+          progresspercent = (100*progress)/N;
+          std::cout << "\r" << progresspercent << "%    ";
+          std::cout . flush ();
+        }
+#endif
+        
         //std::cout << "First visit to vertex " << v << ".\n";
         index [ v ] = current_index;
         //std::cout << "index [ " << v << " ] := " << index[v] << "\n";
@@ -440,7 +282,6 @@ void compute_strong_components (std::vector<std::vector<typename OutEdgeGraph::s
           }
           /* Send the SCC to output if contains at least one edge */
           if ( SCC . size () > 1 || self_connected ) {
-            //output -> push_back (SCC);
             output -> push_back ( std::vector < size_type > () );
             std::swap ( output -> back (), SCC );
           }
@@ -454,6 +295,7 @@ void compute_strong_components (std::vector<std::vector<typename OutEdgeGraph::s
     } // while dfs stack non-empty
   } // while not all nodes explored
 #ifdef CMG_VERBOSE
+  std::cout << "\r100%    ";
   std::cout << "       V = " << N << " E = " << num_edges << "  E/V = " << (double) num_edges / (double) N << "\n";
 #endif
   DEBUGPRINT std::cout << "SCC effort = " << effort << "\n";
@@ -461,14 +303,17 @@ void compute_strong_components (std::vector<std::vector<typename OutEdgeGraph::s
 
 /* compute_reachability */
 template < class Graph >
-void compute_reachability ( std::vector < std::vector < unsigned int > > * output, 
+void computeReachability ( std::vector < std::vector < unsigned int > > * output,
                            std::vector<std::vector<typename Graph::size_type> > & morse_sets, 
                            const Graph & G, 
                            const std::vector<typename Graph::size_type> & topological_sort ) {
   typedef typename Graph::size_type size_type;
   //size_type sentinel = G . sentinel ();
 #ifdef CMG_VERBOSE
-  std::cout << "   Computing Reachability Information.\n";
+  std::cout << "Computing Reachability Information.\n";
+  std::cout . flush ();
+  size_type progress = 0;
+  size_type progresspercent = 0;
 #endif
   /* Count the Morse Sets */
   unsigned long effort = 0;
@@ -495,6 +340,10 @@ void compute_reachability ( std::vector < std::vector < unsigned int > > * outpu
   //std::cout << "Group Loop\n";
 
   size_type groups = ( (number_of_morse_sets - 1) / 64 ) + 1;
+  
+#ifdef CMG_VERBOSE
+  size_type total_work_to_do = topological_sort . size () * groups;
+#endif
   // We use a vector called morse_code. It's function it to maintain
   // information about which morse sets can reach a given vertex.
   // By processing in topological order, it is possible to give morse_code
@@ -509,7 +358,7 @@ void compute_reachability ( std::vector < std::vector < unsigned int > > * outpu
     //std::cout << "Process Group " << group_number << "\n";
 
     ++ effort;
-    size_type group_size = std::min((unsigned int) 64, number_of_morse_sets - 64 * group_number);
+    size_type group_size = std::min((size_type) 64, number_of_morse_sets - 64 * group_number);
     size_type offset = 64 * group_number;
     //std::cout << "group_size = " << group_size << "\n";
     morse_code . clear ();
@@ -533,6 +382,14 @@ void compute_reachability ( std::vector < std::vector < unsigned int > > * outpu
     // The intermediate information is stored in "morse_code"
     //std::cout << "Loop through top sort \n";
     for ( size_type vi = topological_sort . size () - 1; vi != 0; -- vi ) {
+#ifdef CMG_VERBOSE
+      ++ progress;
+      if ( (100*progress)/total_work_to_do > progresspercent) {
+        progresspercent = (100*progress)/total_work_to_do;
+        std::cout << "\r" << progresspercent << "%    ";
+        std::cout . flush ();
+      }
+#endif
       size_type v = topological_sort [ vi ];
       std::vector < size_type > children = G . adjacencies ( v ); // previously const &
       BOOST_FOREACH ( size_type w, children ) {
@@ -541,6 +398,9 @@ void compute_reachability ( std::vector < std::vector < unsigned int > > * outpu
         condensed_code [ morse_paint [ w ] ] |= morse_code [ v ];
       }
     } // its okay to ignore 0
+#ifdef CMG_VERBOSE
+    ++ progress;
+#endif
     {
     size_type v = topological_sort [ 0 ];
     std::vector < size_type > children = G . adjacencies ( v );
@@ -573,6 +433,9 @@ void compute_reachability ( std::vector < std::vector < unsigned int > > * outpu
       } // for bit index
     } // for morse set
   } // for groups
+#ifdef CMG_VERBOSE
+  std::cout << "\r100%  Reachability Analysis Complete.\n ";
+#endif
   DEBUGPRINT std::cout << "reach effort = " << effort << "\n";
 } /* compute_reachability */
 

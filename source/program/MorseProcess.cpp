@@ -14,11 +14,20 @@
 #include "database/program/jobs/Clutching_Graph_Job.h"
 #include "database/structures/UnionFind.hpp"
 
+#ifdef USE_SUCCINCT
+#include "database/structures/SuccinctGrid.h"
+#endif
+#include "database/structures/PointerGrid.h"
+
 #include "chomp/Rect.h"
 #include "chomp/Complex.h"
 #include "chomp/Chain.h"
 
 #include "ModelMap.h"
+
+#ifndef GRIDCHOICE
+#define GRIDCHOICE PointerGrid
+#endif
 
 /* * * * * * * * * * * * */
 /* initialize definition */
@@ -287,7 +296,7 @@ int MorseProcess::prepare ( Message & job ) {
 /* * * * * * * * * */
 void MorseProcess::work ( Message & result, const Message & job ) const {
   using namespace chomp;
-	Clutching_Graph_Job < Toplex, Toplex, ConleyIndex_t > ( &result , job );
+	Clutching_Graph_Job < GRIDCHOICE > ( &result , job );
   //result << (size_t)0;
   //result << Database ();
 }

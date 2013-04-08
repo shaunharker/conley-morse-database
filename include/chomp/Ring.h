@@ -5,7 +5,10 @@
 #ifndef CHOMP_RING_H
 #define CHOMP_RING_H
 
+#include <cstdlib>
 #include <iostream>
+#include <stdint.h>
+
 #include <boost/serialization/serialization.hpp>
 #include <boost/serialization/nvp.hpp>
 

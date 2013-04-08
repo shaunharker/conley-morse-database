@@ -5,6 +5,9 @@
 #ifndef CHOMP_TOPLEX_H
 #define CHOMP_TOPLEX_H
 
+#include <cstdlib>
+#include <stdint.h>
+
 #include <vector>
 #include <stack>
 #include <boost/unordered_set.hpp>

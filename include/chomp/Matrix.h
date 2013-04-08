@@ -5,6 +5,7 @@
 #ifndef CHOMP_MATRIX_H
 #define CHOMP_MATRIX_H
 
+#include <cstdlib>
 #include "chomp/SparseMatrix.h"
 #include "chomp/Chain.h"
 #include "chomp/Complex.h"

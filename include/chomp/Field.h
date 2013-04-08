@@ -6,6 +6,8 @@
 #define CHOMP_FIELD_H
 
 #include <iostream>
+#include <stdint.h>
+
 #include <boost/serialization/serialization.hpp>
 #include <boost/serialization/nvp.hpp>
 

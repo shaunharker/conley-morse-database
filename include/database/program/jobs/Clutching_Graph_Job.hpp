@@ -19,189 +19,184 @@
 #include "database/program/jobs/Compute_Morse_Graph.h"
 #include "database/structures/UnionFind.hpp"
 #include "database/structures/Database.h"
+#include "database/structures/Tree.h"
 
 #include "chomp/Rect.h"
 
-/* Prefix Tree Structure Used in Clutching Algorithm */
+void Clutching(ClutchingRecord * result,
+               const MorseGraph & graph1,
+               const MorseGraph & graph2 ) {
 
-template < class T >
-class PrefixNode {
-  PrefixNode * left_;
-  PrefixNode * right_;
-  PrefixNode * parent_;
-  std::vector<T> tag_;
-public:
-  PrefixNode ( void ) : left_ ( NULL ), right_ ( NULL ), parent_ ( NULL ), tag_ () {}
-  PrefixNode ( PrefixNode * parent ) : left_ ( NULL ), right_ ( NULL ), parent_ ( parent ) {}
-  ~PrefixNode ( void ) {
-    if ( left_ != NULL ) delete left_;
-    if ( right_ != NULL ) delete right_;
-  }
-  PrefixNode * left ( void ) {
-    if ( left_ == NULL ) {
-      left_ = new PrefixNode < T >;
-      left_ -> parent_ = this;
-    }
-    return left_;
-  }
-  PrefixNode * right ( void ) {
-    if ( right_ == NULL ) {
-      right_ = new PrefixNode < T >;
-      right_ -> parent_ = this;
-    }
-    return right_;
-  }  
-  PrefixNode * parent ( void ) {
-    return parent_;
-  } 
-  std::vector<T> & tag ( void ) {
-    return tag_;
-  }
-};
-
-template < class T >
-class PrefixTree {
-  PrefixNode <T> * root_;
-public:
-  typedef std::vector<unsigned char> Prefix;
-  typedef PrefixNode<T> * PrefixIterator;
-  PrefixTree ( void ) : root_ ( NULL ) {}
-  ~PrefixTree ( void ) {
-    if ( root_ != NULL ) delete root_;
-  }
-  PrefixIterator insert ( const Prefix & p, const T & item ) {
-    if ( root_ == NULL ) root_ = new PrefixNode < T >;
-    PrefixNode <T> * node = root_;
-    for ( unsigned int i = 0; i < p . size (); ++ i ) {
-      if ( p [ i ] == 0 ) {
-        node = node -> left ();
-      } else {
-        node = node -> right ();
-      }
-    }
-    node -> tag () . push_back ( item );
-    return node;
-  }
-};
-
-/** Compute Clutching of Adjacent Parameter Boxes */
-
-template<class CMGraph, class Toplex>
-void Clutching( ClutchingRecord * result,
-                const CMGraph &graph1,
-                const CMGraph &graph2,
-                const Toplex &toplex1,
-                const Toplex &toplex2 ) {
-  unsigned long effort = 0;
-  typedef typename Toplex::Top_Cell Top_Cell;
-  typedef typename CMGraph::Vertex Vertex;
-  typedef std::vector<unsigned char> Prefix;
-  typedef typename CMGraph::CellContainer CellContainer;
-  /* Build a Prefix Tree */
-  //std::cout << "Building Prefix Tree 1.\n";
-  PrefixTree<Vertex> tree;
-  std::stack < PrefixNode<Vertex> * > first_cells, second_cells;
-  BOOST_FOREACH (Vertex v, graph1.Vertices()) {
-    //std::cout << "Size of Cellset = " << graph1 . CellSet ( v ) . size () << "\n";
-    
-    // CREEPY BUG ON CONLEY2 -- I SUSPECT SUBTLE COMPILER OPTIMIZATION BUG INTERACTING WITH BOOST_FOREACH
-#if 0
-    BOOST_FOREACH ( Top_Cell t, graph1 . CellSet ( v ) ) { }// here 
-#else
-    for ( typename CellContainer::const_iterator it1 = graph1 . CellSet ( v ) . begin (), 
-         it2 = graph1 . CellSet ( v ) . end (); it1 != it2; ++ it1 ) {
-      Top_Cell t = *it1;
-#endif
-      
-      Prefix p = toplex1 . prefix ( t );
-      first_cells . push ( tree . insert ( p, v ) );
-      ++ effort;
-    }
-  }
-  //std::cout << "Building Prefix Tree 2.\n";
-  
-  BOOST_FOREACH (Vertex v, graph2.Vertices()) {
-    BOOST_FOREACH ( Top_Cell t, graph2 . CellSet ( v ) ) {
-      Prefix p = toplex2 . prefix ( t );
-      second_cells . push ( tree . insert ( p, v ) );
-      ++ effort;
-    }
-  }  
-  /* Climb from each item place in tree and record which pairs we get */
+  typedef MorseGraph::Vertex Vertex;
   std::set < std::pair < Vertex, Vertex > > bipartite_graph;
-  //std::cout << "Climbing Prefix Tree 1.\n";
+
+  size_t N1 = graph1 . NumVertices ();
+  size_t N2 = graph2 . NumVertices ();
   
-  while ( not first_cells . empty () ) {
-    ++ effort;
-    PrefixNode < Vertex > * node = first_cells . top ();
-    first_cells . pop ();
-    Vertex a, b;
-    a = node -> tag () [ 0 ];
-    // If there are two items here, then we don't need to climb.
-    if ( node -> tag () . size () > 1 ) {
-      ++ effort;
-      b = node -> tag () [ 1 ];
-      bipartite_graph . insert ( std::pair < Vertex, Vertex > ( a, b ) );
-      continue;
-    } 
-    // Otherwise, we do need to climb.
-    while ( node -> parent () != NULL ) {
-      ++ effort;
-      node = node -> parent ();
-      if ( node -> tag () . size () > 0 ) {
-        ++ effort;
-        b = node -> tag () [ 0 ];
-        bipartite_graph . insert ( std::pair < Vertex, Vertex > ( a, b ) );
-        //std::cout << "(" << a << ", " << b << ")\n";
-        break; // Konstantin pointed this out
+  typedef Tree::iterator iterator;
+
+  // How this works:
+  // We want to advance through the trees simultaneously, but they aren't all the same tree
+  // If we explore a subtree in some trees that does not exist in others, we remain halted on the others
+  // until the subtree finishes.
+  //
+  // initialize iterators
+  
+  // State machine:
+  // State 0: Try to go left. If can't, set success to false and try to go right. Otherwise success is true and try to go left on next iteration.
+  // State 1: Try to go right. If can't, set success to false and rise. Otherwise success is true and try to go left on next iteration.
+  // State 2: Rise. If rising from the right, rise again on next iteration. Otherwise try to go right on the next iteration.
+  std::vector < iterator > iters1 ( N1 );
+  std::vector < iterator > iters2 ( N2 );
+  for ( size_t i = 0; i < N1; ++ i ) iters1[i] = graph1 . grid ( i ) -> tree () . begin ();
+  for ( size_t i = 0; i < N2; ++ i ) iters2[i] = graph2 . grid ( i ) -> tree () . begin ();
+  std::vector < size_t > depth1 ( N1, 0 );
+  std::vector < size_t > depth2 ( N2, 0 );
+  size_t depth = 0;
+  int state = 0;
+  
+  //std::cout << "Clutching Function.\n";
+  //std::cout << "N1 = " << N1 << " and N2 = " << N2 << "\n";
+  while ( 1 ) {
+    if ( (depth == 0) && ( state == 2 ) ) break;
+    //std::cout << "Position 0. depth = " << depth << " and state = " << state << "\n";
+    bool success = false;
+    Vertex set1 = N1;
+    Vertex set2 = N2;
+    for ( size_t i = 0; i < N1; ++ i ) {
+      //std::cout << "Position 1. i = " << i << ", depth = " << depth << " and state = " << state << "\n";
+      // If node is halted, continue
+      if ( depth1[i] == depth ) {
+        iterator end = graph1 . grid ( i ) -> tree () . end ();
+        switch ( state ) {
+          case 0:
+          {
+            iterator left = graph1 . grid ( i ) -> tree () . left ( iters1 [ i ] );
+            if ( left == end ) break;
+            iters1[i] = left;
+            ++ depth1[i];
+            success = true;
+            break;
+          }
+          case 1:
+          {
+            iterator right = graph1 . grid ( i ) -> tree () . right ( iters1 [ i ] );
+            if ( right == end ) break;
+            iters1[i] = right;
+            ++ depth1[i];
+            success = true;
+            break;
+          }
+          case 2:
+          {
+            if ( graph1 . grid ( i ) -> tree () . isright ( iters1 [ i ] ) ) success = true;
+            iters1[i] = graph1 . grid ( i ) -> tree () . parent ( iters1 [ i ] );
+            -- depth1[i];
+            break;
+          }
+        }
+      }
+      if ( graph1 . grid ( i ) -> tree () . isleaf ( iters1 [ i ] ) ) {
+        if ( set1 != (Vertex)N1 ) std::cout << "Warning, morse sets are not disjoint.\n";
+        set1 = (Vertex)i;
+      }
+      
+    }
+    for ( size_t i = 0; i < N2; ++ i ) {
+      //std::cout << "Position 2. i = " << i << ", depth = " << depth << " and state = " << state << "\n";
+      // If node is halted, continue
+      if ( depth2[i] == depth ) {
+        iterator end = graph2 . grid ( i ) -> tree () . end ();
+        switch ( state ) {
+          case 0:
+          {
+            iterator left = graph2 . grid ( i ) -> tree () . left ( iters2 [ i ] );
+            if ( left == end ) break;
+            iters2[i] = left;
+            ++ depth2[i];
+            success = true;
+            break;
+          }
+          case 1:
+          {
+            iterator right = graph2 . grid ( i ) -> tree () . right ( iters2 [ i ] );
+            if ( right == end ) break;
+            iters2[i] = right;
+            ++ depth2[i];
+            success = true;
+            break;
+          }
+          case 2:
+          {
+            if ( graph2 . grid ( i ) -> tree () . isright ( iters2 [ i ] ) ) success = true;
+            iters2[i] = graph2 . grid ( i ) -> tree () . parent ( iters2 [ i ] );
+            -- depth2[i];
+            break;
+          }
+        }
+      }
+      if ( graph2 . grid ( i ) -> tree () . isleaf ( iters2 [ i ] ) ) {
+        if ( set2 != (Vertex)N2 ) std::cout << "Warning, morse sets are not disjoint.\n";
+        set2 = (Vertex)i;
       }
     }
-  }
-  //std::cout << "Climbing Prefix Tree 2.\n";
-  
-  // Now an exact repeat for the other case
-  while ( not second_cells . empty () ) {
-    ++ effort;
-    PrefixNode < Vertex > * node = second_cells . top ();
-    second_cells . pop ();
-    Vertex a, b;
-    a = node -> tag () [ 0 ];
-    // If there are two items here, then we don't need to climb.
-    if ( node -> tag () . size () > 1 ) {
-      ++ effort;
-      b = node -> tag () [ 1 ];
-      bipartite_graph . insert ( std::pair < Vertex, Vertex > ( a, b ) ); // pointless, actually; already there
-      continue;
-    } 
-    // Otherwise, we do need to climb.
-    while ( node -> parent () != NULL ) {
-      ++ effort;
-      node = node -> parent ();
-      if ( node -> tag () . size () > 0 ) {
-        ++ effort;
-        b = node -> tag () [ 0 ];
-        bipartite_graph . insert ( std::pair < Vertex, Vertex > ( b, a ) ); // notice the reversal
-        //std::cout << "(" << b << ", " << a << ")\n";
-        break; // Konstantin pointed this out
-      }
+    //std::cout << "Position 3. depth = " << depth << " and state = " << state << "\n";
+    //std::cout << ( success ? "success" : "failure" );
+    switch ( state ) {
+      case 0: // Tried to go left
+        if ( success ) {
+          // Success. Try to go left again.
+          state = 0;
+          ++ depth;
+        } else {
+          // Failure. Try to go right instead.
+          state = 1;
+        }
+        break;
+      case 1: // Tried to go right
+        if ( success ) {
+          // Sucess. Try to go left now.
+          state = 0;
+          ++ depth;
+        } else {
+          // Failure. Rise.
+          state = 2;
+        }
+        break;
+      case 2: // Rose
+        -- depth;
+        if ( success ) {
+          // Rose from right, continue to rise
+          state = 2;
+        } else {
+          // Rose from left, try to go right
+          state = 1;
+        }
+        break;
+    }
+    // Gather all intersection information
+    if ( (set1 != (Vertex)N1 ) && (set2 != (Vertex)N2 ) ) {
+      //std::cout << "Record intersection (" << set1 << ", " << set2 << ")\n";
+
+      bipartite_graph . insert ( std::pair < Vertex, Vertex > ( set1, set2 ) );
     }
   }
   
-  // Report matching information
-  BOOST_FOREACH ( const typename CMGraph::Edge & edge, bipartite_graph ) {
+  // Advance iterators to end, collecting intersections
+  // Return result
+  //std::cout << "Collate Results.\n";
+  BOOST_FOREACH ( const MorseGraph::Edge & edge, bipartite_graph ) {
     result -> clutch_ . push_back ( edge );
   }
-  
 }
-  
+
 /** Main function for clutching graph job.
  *
  *  This function is called from worker, and compare graph structure
  *  for each two adjacent boxes.
  */
-template <class Toplex, class ParameterToplex, class ConleyIndex >
+template <class PhaseGrid>
 void Clutching_Graph_Job ( Message * result , const Message & job ) {
-  typedef ConleyMorseGraph< std::vector < typename Toplex::Top_Cell >, ConleyIndex> CMGraph;
   
   // Read Job Message
 
@@ -225,50 +220,55 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   job >> PERIODIC;
   
   // Prepare data structures
-  std::map < size_t, Toplex> phase_space_toplexes;  
-  std::map < size_t, CMGraph> conley_morse_graphs;
+  std::map < size_t, boost::shared_ptr<PhaseGrid> > phase_space_grids;
+  std::map < size_t, MorseGraph> conley_morse_graphs;
   std::map < size_t, size_t > box_index;
   std::vector < ClutchingRecord > clutching_graphs;
   
 
   // Compute Morse Graphs
-  //std::cout << "CLUTCHING JOB " << job_number << ": " << box_names . size () << ".\n";
+  //std::cout << "CLUTCHING JOB " << job_number << ": " << box_names . size () << " BEGINNING.\n";
+  //std::cout << "--------- 1. Compute Morse Graphs ---------\n";
   for ( unsigned int i = 0; i < box_names . size (); ++ i ) {
-    //std::cout << " Doing box " << i << "\n";
+    //std::cout << " Processing parameter box " << i << "/" << box_names . size () << "\n";
     //Prepare phase space and map
     size_t box = box_names [ i ];
     box_index [ box ] = i;
-    phase_space_toplexes [ box ] . initialize ( PHASE_BOUNDS, PERIODIC );
+    phase_space_grids [ box ] . reset ( new PhaseGrid );
+    phase_space_grids [ box ] -> initialize ( PHASE_BOUNDS, PERIODIC );
     GeometricMap map ( box_geometries [ i ] );
     // perform computation
     Compute_Morse_Graph 
     ( & conley_morse_graphs  [ box ],
-      & phase_space_toplexes [ box ], 
+      phase_space_grids [ box ], 
       map, 
       PHASE_SUBDIV_MIN, 
       PHASE_SUBDIV_MAX, 
       PHASE_SUBDIV_LIMIT);
+    //std::cout << "Morse Graph computed.\n";
     //if ( conley_morse_graphs [ box ] . NumVertices () == 0 ) std::cout << "WARNING. Box # " << box << " Clutching Job #" << job_number << ", box = " << box_geometries [ i ] << " had no morse sets.\n"; else std::cout << "SUCCESS. Box # " << box << " Clutching Job #" << job_number << ", box = " << box_geometries [ i ] << " had " << conley_morse_graphs [ box ] . NumVertices () << " morse sets.\n";
   }
   
   // Compute Clutching Graphs
+  //std::cout << "--------- 2. Compute Clutching Graphs ---------\n";
   typedef std::pair < size_t, size_t > Adjacency;
   BOOST_FOREACH ( const Adjacency & A, box_adjacencies ) {
     clutching_graphs . push_back ( ClutchingRecord () );
-    Clutching < CMGraph, Toplex > ( & clutching_graphs . back (),
-                                      conley_morse_graphs [ A . first ],
-                                      conley_morse_graphs [ A . second ],
-                                      phase_space_toplexes [ A . first ],
-                                      phase_space_toplexes [ A . second ] );
+    //std::cout << "Adjacency pair (" << A.first << ", " << A.second << ")\n";
+    Clutching ( & clutching_graphs . back (),
+                conley_morse_graphs [ A . first ],
+                conley_morse_graphs [ A . second ]);
     clutching_graphs . back () . id1_ = A . first;
     clutching_graphs . back () . id2_ = A . second;
   }
   
   // Create Database
+  //std::cout << "--------- 3. Creating Database ---------\n";
+
   Database database;
   
   // Create Parameter Box Records
-  typedef std::pair < size_t, CMGraph > indexed_cmg_t;
+  typedef std::pair < size_t, MorseGraph > indexed_cmg_t;
   BOOST_FOREACH ( const indexed_cmg_t & cmg, conley_morse_graphs ) {
     database . insert ( ParameterBoxRecord (cmg . first, 
                                             box_geometries [ box_index [ cmg.first ] ],   
@@ -280,6 +280,8 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   }
   
   // Return Result
+  //std::cout << "CLUTCHING JOB " << job_number << ": " << box_names . size () << " COMPLETE.\n";
+
   *result << job_number;
   *result << database;
 }

@@ -5,6 +5,7 @@
 #ifndef CHOMP_MORSECOMPLEX_H
 #define CHOMP_MORSECOMPLEX_H
 
+#include <cstdlib>
 #include <vector>
 #include <queue>
 #include <set>
@@ -273,13 +274,16 @@ inline void MorseComplex::colower ( Chain * output, const Chain & input ) const 
 /// DEBUG methods
 
 inline void MorseSanity ( const MorseComplex & c ) {
+  std::cout << "MorseSanity Check.\n";
   const Complex & base = c . base ();
   int D = base . dimension ();
   for ( int d = 0; d <= D; ++ d ) {
     Index N = base . size ( d );
     std::cout << "Dimension " << d << " has " << N << " cells.\n";
     for ( Index i = 0; i < N; ++ i ) {
+      std::cout << "Index " << i << "\n";
       if ( c.type ( i, d ) == Decomposer::QUEEN ) {
+        std::cout << "Queen.\n";
         if ( c.type ( c.mate ( i, d ), d + 1 ) != Decomposer::KING ) {
           std::cout << "problem with morse decomposition.\n";
           std::cout << "Queen(i,d) = (" << i << ", " << d << ")\n"; 
@@ -288,6 +292,7 @@ inline void MorseSanity ( const MorseComplex & c ) {
         }
       }
       if ( c.type ( i, d ) == Decomposer::KING ) {
+        std::cout << "King.\n";
         if ( c.type ( c.mate ( i, d ), d - 1 ) != Decomposer::QUEEN ) {
           std::cout << "problem with morse decomposition.\n";
           std::cout << "King(i,d) = (" << i << ", " << d << ")\n"; 
@@ -309,7 +314,9 @@ inline void MorseComplex::boundary ( Chain * output,
                                      const Index input, 
                                      int dim ) const {
   if ( boundary_cache_ [ dim ] . count ( input ) == 0 ) {
-    boundary_cache_ [ dim ] [ input ] = 
+    //debug
+    //std::cout << "debug1: " << base () . boundary ( indexToCell ( input, dim ), dim ) << "\n";
+    boundary_cache_ [ dim ] [ input ] =
     lower ( base () . boundary ( indexToCell ( input, dim ), dim ) );
   }
   *output = boundary_cache_ [ dim ] [ input ];

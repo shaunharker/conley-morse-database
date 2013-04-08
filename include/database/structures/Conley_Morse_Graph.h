@@ -1,20 +1,16 @@
-/*
+/* TODO: Rename this file
  *  Conley_Morse_Graph.h
  */
 
 #ifndef _CMDP_CONLEY_MORSE_GRAPH_
 #define _CMDP_CONLEY_MORSE_GRAPH_
 
-//#include <boost/archive/text_oarchive.hpp>  don't need?
-
-// Note. The usage of map and set could be replaced by unordered_set and unordered_map,
-//       however serialization support does not yet exist. It exists for hash_set and
-//       hash_map, but the chosen solution is to just use set and map, and unordered can
-//       be introduced on the next version (1.47) of Boost, when this issue is resolved.
-
 #include <boost/iterator/counting_iterator.hpp>
 #include <boost/serialization/serialization.hpp>
 #include <boost/version.hpp>
+#include <boost/shared_ptr.hpp>
+
+#include "database/structures/Grid.h"
 
 // For now we use the old hash_set and hash_map 
 #if 0
@@ -38,13 +34,10 @@
  *  NOTE: ConleyIndex must be serializable.
  *  TODO: Add a field for a phase space toplex.
  */
-template<class CellSet_t, class ConleyIndex_t>
-class ConleyMorseGraph {
+class MorseGraph {
 
  public:
-  
-  typedef CellSet_t CellContainer;
- 
+   
   // Vertex types
   typedef int Vertex;  
   typedef boost::counting_iterator<Vertex> VertexIterator;
@@ -60,13 +53,13 @@ class ConleyMorseGraph {
   typedef std::pair<EdgeIterator, EdgeIterator> EdgeIteratorPair;
 
   /** Create an empty graph */
-  ConleyMorseGraph();
+  MorseGraph();
 
   // WRITE FUNCTIONS
   
   /** Create a new vertex and return the descriptor of the vertex.
    *  The vertex is not connected to anywhere.
-   *  An empty CellSet and ConleyIndex are allocated and
+   *  An empty grid and ConleyIndex are allocated and
    *  assigned to the vertex just after this function is called.
    *  ("empty" objects mean the objects created by default-constructor.)
    */
@@ -93,17 +86,13 @@ class ConleyMorseGraph {
   /** return a iterator pair to all edges */
   EdgeIteratorPair Edges() const;
   
-  ConleyMorseGraph Subgraph ( const std::set < Vertex > & vertices ) const;
+  MorseGraph Subgraph ( const std::set < Vertex > & vertices ) const;
   
   //// PROPERTY ACCESS
   
-  /** Get a Cellset of the vertex. */
-  CellSet_t &CellSet(Vertex vertex);
-  const CellSet_t &CellSet(Vertex vertex) const ;
-  
-  /** Get a Conley-Index of the vertex. */
-  const ConleyIndex_t &ConleyIndex(Vertex vertex) const;
-  ConleyIndex_t &ConleyIndex(Vertex vertex);
+  /** Get the grid associated with the vertex. */
+  boost::shared_ptr<Grid> & grid(Vertex vertex);
+  boost::shared_ptr<const Grid> grid(Vertex vertex) const;
   
 private:
   // DATA
@@ -119,15 +108,13 @@ private:
 #endif
   // PROPERTY
   struct VertexData {
-    CellSet_t cell_set_;
-    ConleyIndex_t conley_index_;
+    boost::shared_ptr<Grid> cell_set_;
     
     VertexData() {}
     virtual ~VertexData() {}
     
     template<class Archive>
     void serialize(Archive& ar, const unsigned int version) {
-      ar & conley_index_;
     }
   };
   

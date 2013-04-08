@@ -6,10 +6,13 @@
 #define CHOMP_CUBICALCOMPLEX_H
 
 #include <iostream>
+#include <cstdlib>
 #include <vector>
 #include <fstream>
 #include <iterator>
 #include <stack>
+#include <set>
+#include <stdint.h>
 
 #include "boost/unordered_set.hpp"
 
@@ -45,7 +48,8 @@ namespace chomp {
     /// Cubical format with full cubes. (n1, n2, ... ).
     /// It automatically translates the tuples so that the minimal entry for a given
     /// ordinate is set to 0.
-    void loadFromFile ( const char * FileName );
+    /// If a second filename is provided, those cubes are removed. This accomplishes relative homology.
+    void loadFromFile ( const char * FileName, const char * relFile );
     
     /// LOW-LEVEL INTERFACE
     /// To use, use calls "initialize" with a desired bitmap size, then
@@ -277,7 +281,7 @@ namespace chomp {
     } /* for */
   } /* CubicalComplex::coboundary */
   
-  inline void CubicalComplex::loadFromFile ( const char * FileName ) {
+  inline void CubicalComplex::loadFromFile ( const char * FileName, const char * relFile = NULL ) {
     char text_buffer[512];
     char *ptr;
     std::ifstream input_file ( FileName ); 
@@ -350,6 +354,7 @@ namespace chomp {
     input_file . seekg ( 0, std::ios::beg );
     
     /* Now scan through every line of text and read in full cubes */
+    {
     std::vector<uint32_t> cube_coordinates( dimension (), 0);
     while ( not input_file . eof () ) {
       input_file . getline ( text_buffer, 512, '\n' );
@@ -368,10 +373,45 @@ namespace chomp {
       /* Now Add the Cube to the complex. */
       addFullCube ( cube_coordinates ); 
     } /* while */
-    finalize ();
+    }
+    //finalize ();
     /* We are done reading. Close the file. */
     input_file . close ();
+    
+    
+    if ( relFile != NULL ) {
+      std::ifstream input_rel_file ( relFile );
+      if ( not input_rel_file . good () ) {
+        std::cout << "CubicalComplex::loadRelativeFromFile. Fatal Error. "
+        << relFile << " not found.\n";
+        exit ( 1 ); } /* if */
+      index = 0;
+      /* Now scan through every line of text and read in full cubes */
+      std::vector<uint32_t> cube_coordinates( dimension (), 0);
+      while ( not input_rel_file . eof () ) {
+        input_rel_file . getline ( text_buffer, 512, '\n' );
+        index = 0;
+        while ( text_buffer[index] != '(' && text_buffer[index] != 0 ) index++;
+        if ( text_buffer [ index ] == 0 ) continue;
+        ++ index;
+        /* Read the coordinates of the cube from the line */
+        for ( int d = 0; d < dimension (); ++ d ) {
+          ptr = text_buffer + index;
+          while ( text_buffer[index] != ',' && text_buffer[index] != ')') index++;
+          text_buffer[index] = 0;
+          ++ index;
+          cube_coordinates[d] = atoi(ptr) - min_entry[d];
+        } /* for */
+        /* Now Remove the Cube to the complex. */
+        removeFullCube ( cube_coordinates );
+      } /* while */
+      /* We are done reading. Close the file. */
+      input_rel_file . close ();
+    }
+    finalize ();
+
   } /* CubicalComplex::loadFromFile */
+  
   
   inline void CubicalComplex::initialize ( const std::vector<uint32_t> & user_dimension_sizes ) {
     dimension () = user_dimension_sizes . size ();

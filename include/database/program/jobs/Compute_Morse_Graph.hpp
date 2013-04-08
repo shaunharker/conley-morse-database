@@ -13,10 +13,13 @@ using namespace cimg_library;
 #include <stack>
 #include <vector>
 #include "boost/foreach.hpp"
+#include "boost/shared_ptr.hpp"
+
 #include "database/algorithms/GraphTheory.h"
 #include "database/structures/MapGraph.h"
 
 #include <ctime>
+
 
 #ifdef DO_CONLEY_INDEX
 #include "chomp/ConleyIndex.h"
@@ -53,212 +56,165 @@ std::cout << ".\n";
 #endif
 
 
-template < class Toplex, class CellContainer >
-void subdivide ( Toplex * phase_space, CellContainer & morse_set ) {
-  CellContainer new_morse_set;
-  std::insert_iterator<CellContainer> ii ( new_morse_set, new_morse_set . begin () );
-  phase_space -> subdivide (ii, morse_set);
-  std::swap ( new_morse_set, morse_set );
-}
-
-template < class Toplex >
 class MorseDecomposition {
 public:
-  typedef std::vector<typename Toplex::Top_Cell> CellContainer;
-  // Member Data
-  CellContainer set;
-  std::vector < MorseDecomposition * > children;
-  std::vector < std::vector < unsigned int > > reachability;
-  bool subdivided;
-  bool spurious;
+
   // Constructor
-  template < class Map >
-  MorseDecomposition (Toplex * phase_space, 
-                      const Map & interval_map,
-                      const unsigned int Min, 
-                      const unsigned int Max, 
-                      const unsigned int Limit,
-                      const unsigned int depth,
-                      const CellContainer & set ) : set(set) {
-#ifdef IGNORE_SMALL_MORSE_SETS
-    if ( set . size () < 1000 ) return;
-#endif
-    CMG_VERBOSE_PRINT("Depth = " << depth << "\n");
-    typedef MapGraph<Toplex,Map,CellContainer> Graph;  
-    // Check subdivision condition. (condition true -> dont subdivide)
-    if ( depth >= Min && ( set . size () > Limit || depth >= Max ) ) {
-      CMG_VERBOSE_PRINT("Condition to halt subdivision met.\n");
-      subdivided = false;
-      spurious = false;
-#ifdef DO_CONLEY_INDEX
-      if ( depth == Min ) {
-        using namespace chomp;
-        ConleyIndex_t output;
-        ConleyIndex ( &output,
-                   *phase_space, 
-                   set,
-                   interval_map );
-      }
-#endif
-      CMG_VERBOSE_PRINT("Returning from depth " << depth << ".\n");
-
-      return;
-    }
-    #ifdef DO_EVERY_CONLEY_INDEX
-    if ( (depth > 0) && (depth < Min) ) {
-      using namespace chomp;
-      ConleyIndex_t output;
-      ConleyIndex ( &output,
-                   *phase_space, 
-                   set,
-                   interval_map );
-    }
-    #endif
-    // Subdivide
-    subdivided = true;
-    spurious = true; // This may be changed below.
-
-    CellContainer newset = set;
-    subdivide ( phase_space, newset );
-    // Create children.
-    std::vector < CellContainer > morse_sets;
-    Graph G ( newset, * phase_space, interval_map );
-#ifdef CMG_VISUALIZE
-      // TODO: call visualizeMorseSet
-#endif
-    
-    computeMorseSetsAndReachability <Graph,CellContainer>
-    ( &morse_sets, &reachability, G );
-#ifdef CMG_VERBOSE 
-    if ( morse_sets . size () > 1 ) {
-      std::cout << "Splits into " << morse_sets . size () << " morse sets.\n";
-    }
-    std::cout << "Sizes of children: ";
-    BOOST_FOREACH ( const CellContainer & morse_set, morse_sets ) {
-      std::cout << morse_set . size () << " "; 
-    }
-    std::cout << "\n";
-#endif 
-    BOOST_FOREACH ( const CellContainer & morse_set, morse_sets ) {
-#ifdef IGNORE_SMALL_MORSE_SETS
-      if ( morse_set . size () < 10 ) continue;
-#endif
-      MorseDecomposition * child =
-      new MorseDecomposition (phase_space,
-                              interval_map,
-                              Min,
-                              Max,
-                              Limit,
-                              depth + 1,
-                              morse_set);
-      
-      children . push_back ( child );
-      if ( not child -> spurious ) spurious = false;
-      if ( not spurious && depth >= Min ) {
-        CMG_VERBOSE_PRINT("Not spurious.\n");
-        break;
-      }
-    }
-    // If deeper than min, erase sub-hierarchy and coarsen grid.
-#ifdef MONOTONICSUBDIVISIONPROPERTY
-    if ( not spurious )
-#endif
-    if ( depth == Min ) {
-      CMG_VERBOSE_PRINT("Coarsening to min-level\n");
-      phase_space -> coarsen ( set );
-      BOOST_FOREACH ( const MorseDecomposition * child, children ) {
-        delete child;
-      }
-      children . clear ();
-      reachability . clear ();
-      
-#ifdef DO_CONLEY_INDEX
-      if ( not spurious ) {
-      using namespace chomp;
-      ConleyIndex_t output;
-      ConleyIndex ( &output,
-                   *phase_space, 
-                   set,
-                   interval_map );
-      }
-#endif
-
-    }
-    CMG_VERBOSE_PRINT("Returning from depth " << depth << ".\n");
+  template < class GridPtr >
+  MorseDecomposition ( GridPtr grid, int depth ) : grid_ ( grid ), spurious_(false), depth_(depth) {
+    if ( grid_ . get () == NULL ) {std::cout << "Error Compute_Morse_Graph.hpp line 65\n"; abort (); }
   }
+  
+  // Deconstructor
   ~MorseDecomposition ( void ) {
-    BOOST_FOREACH ( const MorseDecomposition * child, children ) {
+    BOOST_FOREACH ( MorseDecomposition * child, children_ ) {
       delete child;
     }
   }
-};
-
-
-template < class Morse_Graph, class Toplex, class Map >
-void Compute_Morse_Graph (Morse_Graph * MG, 
-                          Toplex * phase_space, 
-                          const Map & interval_map,
-                          const unsigned int Min, 
-                          const unsigned int Max, 
-                          const unsigned int Limit) {
   
-#if 0
-  std::cout << "c = (" << interval_map . c . lower () << ", " << interval_map . c . upper () << ")\n";
-  std::cout << "phi = (" << interval_map . phi . lower () << ", " << interval_map . phi . upper () << ")\n";
+  /// MorseDecomposition::size
+  /// return size of grid
+  size_t size ( void ) const { return grid_ -> size (); }
+  
+  /// MorseDecomposition::depth
+  /// tell how deep in hierarchical decomposition we are
+  size_t depth ( void ) const { return depth_; }
 
-  std::cout << "phase_space bounds = " << phase_space -> bounds () << "\n";
-  std::cout << "phase_space tree size = " << phase_space -> tree_size () << "\n";
-  std::cout << "phase_space periodic:" << phase_space -> periodic () . size () << "\n";
-  for ( int d = 0; d < phase_space -> periodic () . size (); ++ d ) {
-    std::cout << "PERIODIC[" << d << "] = " << (phase_space -> periodic ()[d]? "true":"false") << "\n";
+  /// MorseDecomposition::children
+  /// accessor method to return vector of MorseDecomposition * pointing to hierarchical children.
+  /// note: empty until "decompose" is called.
+  const std::vector < MorseDecomposition * > & children ( void ) const {
+    return children_;
   }
 
-  std::cout << "Min = " << Min << "\n";
-  std::cout << "Max = " << Max << "\n";
-  std::cout << "Limit = " << Limit << "\n";
-#endif
+  /// MorseDecomposition::reachability
+  /// accessor method to obtain reachability_ private data member
+  const std::vector < std::vector < unsigned int > > & reachability ( void ) const {
+    return reachability_;
+  }
   
-  using namespace chomp;
-  typedef std::vector<typename Toplex::Top_Cell> CellContainer;
-  // Produce initial Morse Set
-  CellContainer morse_set;
-  std::insert_iterator < CellContainer > ii (morse_set, 
-                                             morse_set . begin () );
-  phase_space -> cover ( ii, phase_space -> bounds () );
+  /// MorseDecomposition::grid
+  /// accessor method to obtain grid_ shared_ptr data member
+  boost::shared_ptr < Grid > grid ( void ) {
+    return grid_;
+  }
   
-  // Produce Morse Set Decomposition
-  MorseDecomposition<Toplex> D (phase_space,
-                                interval_map,
-                                Min,
-                                Max,
-                                Limit,
-                                0,
-                                morse_set);
+  /// MorseDecomposition::spurious
+  /// accessor method to obtain spurious_ data member
+  bool & spurious ( void ) { return spurious_; }
   
+  /// MorseDecomposition::decompose
+  ///
+  /// Use graph theory to find SCC components, which are stored as type Grid
+  /// Fill these into "decomposition_"
+  /// Fill children_ with an equal sized vector of pointers to new MorseDecomposition objects seeded with those sets.
+  /// Put reachability information obtained in "reachability_"
+  template < class Map >
+  const std::vector < MorseDecomposition * > & decompose ( const Map & f ) {
+    //std::cout << "Perform Morse Decomposition\n"; // Perform Morse Decomposition
+    computeMorseSetsAndReachability <Map> ( &decomposition_, &reachability_, * (grid_ . get ()), f );
+    //std::cout << "Create Hierarchy Structure\n";// Create Hierarchy Structure with Subdivided Grids for Morse Sets
+    for ( size_t i = 0; i < decomposition_ . size (); ++ i ) {      
+      decomposition_ [ i ] -> subdivide ();
+      children_ . push_back ( new MorseDecomposition ( decomposition_ [ i ], depth() + 1 ) );
+    }
+    return children_;
+  }
+  
+  
+private:
+  // Member Data
+  boost::shared_ptr<Grid> grid_;
+  std::vector< boost::shared_ptr<Grid> > decomposition_;
+  std::vector < MorseDecomposition * > children_;
+  std::vector < std::vector < unsigned int > > reachability_;
+  bool spurious_;
+  size_t depth_;
+};
+
+class MorseDecompCompare {
+public:
+  bool operator () ( const MorseDecomposition * lhs, const MorseDecomposition * rhs ) {
+    return lhs -> size () < rhs -> size ();
+  }
+};
+
+// ConstructMorseDecomposition
+template < class Map >
+void
+ConstructMorseDecomposition (MorseDecomposition * root,
+                             const Map & f,
+                             const unsigned int Min,
+                             const unsigned int Max,
+                             const unsigned int Limit ) {
+  // We use a priority queue in order to do the more difficult computations first.
+  std::priority_queue < MorseDecomposition *, std::vector<MorseDecomposition *>, MorseDecompCompare > pq;
+  pq . push ( root );
+  while ( not pq . empty () ) {
+    MorseDecomposition * work_node = pq . top ();
+    pq . pop ();
+    std::vector < MorseDecomposition * > children = work_node -> decompose ( f );
+    if ( children . empty () ) {
+      // Mark as spurious
+      work_node -> spurious () = true;
+    }
+    BOOST_FOREACH ( MorseDecomposition * child, children ) {
+      if ( child -> depth () == Max ) continue;
+      if ( child -> depth () >= Min && child -> size () >= Limit ) continue;
+      pq . push ( child );
+    }
+  }
+}
+
+
+// ConstructMorseDecomposition
+template < class Map >
+void ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
+                     MorseGraph * MG,
+                     MorseDecomposition * root,
+                     const unsigned int Min ) {
 #ifndef MONOTONICSUBDIVISIONPROPERTY
   // Produce Morse Graph
-  typedef typename Morse_Graph::Vertex Vertex;
-  std::map < MorseDecomposition<Toplex> *, std::vector<Vertex> > temp;
-  std::stack < std::pair < MorseDecomposition<Toplex> *, unsigned int > > eulertourstack;
-  eulertourstack . push ( std::make_pair( &D, 0 ) );
+  typedef MorseGraph::Vertex Vertex;
+  // "temp" will store which MorseGraph vertices are hierarchically under a given decomposition node
+  std::map < MorseDecomposition *, std::vector<Vertex> > temp;
+  std::stack < std::pair < MorseDecomposition *, unsigned int > > eulertourstack;
+  eulertourstack . push ( std::make_pair( root, 0 ) );
   while (  not eulertourstack . empty () ) {
-    MorseDecomposition<Toplex> * MD = eulertourstack . top () . first;
+    MorseDecomposition * MD = eulertourstack . top () . first;
     unsigned int childnum = eulertourstack . top () . second;
     eulertourstack . pop ();
-    unsigned int N = MD -> children . size ();
+    unsigned int N = MD -> children () . size ();
     if ( childnum == N ) {
       // Exhausted children already.
+      // Check for Spuriousness
+      // If it has children that are all marked spurious, then it is spurious.
+      // If it does not have children, it is spurious if and only if it is already marked spurious
+      if ( N > 0 ) {
+        MD -> spurious () = true;
+        for ( unsigned int i = 0; i < N; ++ i ) {
+          if ( not MD -> children () [ i ] -> spurious () ) MD -> spurious () = false;
+        }
+      }
+      if ( MD -> spurious () ) continue;
+
+      // Adjoin grid to master grid
+      master_grid -> adjoin ( * MD -> grid () );
+      if ( MD -> depth () > Min ) continue;
       // Amalgamate reachability information
 #ifndef NO_REACHABILITY
       for ( unsigned int i = 0; i < N; ++ i ) {
-        const std::vector < unsigned int > & reaches = MD -> reachability [ i ];
+        // "reaches" will tell us which children of MD are reachable from the ith child of MD
+        const std::vector < unsigned int > & reaches = MD -> reachability () [ i ];
         //std::cout << "reaching info: " << reaches . size () << "\n";
+        // We loop through the MorseGraph vertices corresponding to the ith child
+        // and the jth child, and record the reachability.
         BOOST_FOREACH ( unsigned int j, reaches ) {
           if ( i == j ) continue;
-          BOOST_FOREACH ( Vertex u, 
-                         temp [ MD -> children [ i ] ] ) {
-            BOOST_FOREACH ( Vertex v, 
-                           temp [ MD -> children [ j ] ] ) {
+          BOOST_FOREACH ( Vertex u,
+                         temp [ MD -> children () [ i ] ] ) {
+            BOOST_FOREACH ( Vertex v,
+                           temp [ MD -> children () [ j ] ] ) {
               //std::cout << "Adding edge (" << u << ", " << v << ")\n";
               MG -> AddEdge ( u, v );
             }
@@ -268,31 +224,67 @@ void Compute_Morse_Graph (Morse_Graph * MG,
 #endif
       // Aggregate temp data
       temp [ MD ] = std::vector < Vertex > ();
-      if ( N == 0 ) {
-        if ( MD -> spurious == false ) {  
-          Vertex v = MG -> AddVertex ();
-          MG -> CellSet ( v ) = MD -> set;
-          temp [ MD ] . push_back ( v );
+      
+      if ( (MD -> depth () == Min) && (MD -> spurious () == false) ) {
+        if ( MD -> grid () . get () == NULL ) {
+          std::cout << "Error at ComputeMorseGraph.hpp line 230\n";
+          abort ();
         }
-      } else {
+        Vertex v = MG -> AddVertex ();
+        MG -> grid ( v ) = MD -> grid ();
+        if ( MG -> grid ( v ) . get () == NULL ) {
+          std::cout << "Error at ComputeMorseGraph.hpp line 236\n";
+          abort ();
+        }
+        temp [ MD ] . push_back ( v );
+      } else if ( N > 0 ) {
         for ( unsigned int i = 0; i < N; ++ i ) {
-          temp [ MD ] . insert (temp [ MD ] . begin (), 
-                                temp [ MD -> children [ i ] ] . begin (),
-                                temp [ MD -> children [ i ] ] . end ());
-          temp . erase ( MD -> children [ i ] );
+          temp [ MD ] . insert (temp [ MD ] . begin (),
+                                temp [ MD -> children () [ i ] ] . begin (),
+                                temp [ MD -> children () [ i ] ] . end ());
+          temp . erase ( MD -> children () [ i ] );
         }
       }
     } else {
       eulertourstack . push ( std::make_pair ( MD, childnum + 1 ) );
-      eulertourstack . push ( std::make_pair ( MD -> children [ childnum ], 0 ) );
+      eulertourstack . push ( std::make_pair ( MD -> children () [ childnum ], 0 ) );
     }
   }
 #else
-  typedef MapGraph<Toplex,Map,CellContainer> Graph;
-  Graph G ( * phase_space, interval_map );
-  std::vector < CellContainer > morse_sets;
-  compute_morse_sets<Morse_Graph,Graph,CellContainer> ( &morse_sets, G, MG );
+  std::cout << "MONOTONICSUBDIVISIONPROPERTY FEATURE CURRENTLY DISABLED\n";
+  abort ();
+  //typedef MapGraph<Toplex,Map,CellContainer> Graph;
+  //Graph G ( * phase_space, interval_map );
+  //std::vector < CellContainer > morse_sets;
+  //compute_morse_sets<Morse_Graph,Graph,CellContainer> ( &morse_sets, G, MG );
 #endif
+ 
+}
+
+
+template < class Map >
+void Compute_Morse_Graph (MorseGraph * MG,
+                          boost::shared_ptr<Grid> phase_space,
+                          const Map & f,
+                          const unsigned int Min, 
+                          const unsigned int Max, 
+                          const unsigned int Limit) {
+  // Produce Morse Set Decomposition Hierarchy
+  //std::cout << "COMPUTE MORSE GRAPH\n";
+  //std::cout << "Initializing root MorseDecomposition\n";
+  MorseDecomposition * root = new MorseDecomposition ( phase_space, 0 );
+  //std::cout << "Calling ConstructMorseDecomposition\n";
+  ConstructMorseDecomposition<Map> (root,
+                                    f,
+                                    Min,
+                                    Max,
+                                    Limit);
+  //std::cout << "Calling ConstructMorseGraph\n";
+  // Stitch together Morse Graph from Decomposition Hierarchy
+  ConstructMorseGraph<Map> ( phase_space, MG, root, Min );
+  // Free memory used in decomposition hierarchy
+  delete root;
+  //std::cout << "Returning from COMPUTE MORSE GRAPH\n";
 }
 
 #endif

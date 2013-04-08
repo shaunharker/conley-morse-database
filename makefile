@@ -1,9 +1,8 @@
 # makefile for CMDP project 
-include makefile.config
-
 COMPUTE_MORSE_SETS := yes
 COMPUTE_CONLEY_INDEX := yes
 USE_CAPD := yes
+USE_SUCCINCT := no
 CHECKIFMAPISGOOD := no
 # if modelmap has good() implemented
 PARAM_SPACE_METHOD := PATCHMETHOD
@@ -11,6 +10,10 @@ MONOTONICSUBDIVISION := no
 
 include makefile.config
 CXXFLAGS += -D $(PARAM_SPACE_METHOD) 
+ifeq ($(USE_SUCCINCT),yes)
+	CXXFLAGS += -DGRIDCHOICE=SuccinctGrid -DUSE_SUCCINCT
+endif
+
 ifeq ($(MONOTONICSUBDIVISION),yes)
 	CXXFLAGS += -D MONOTONICSUBDIVISIONPROPERTY
 endif
