@@ -28,10 +28,11 @@
 /*************************/
 
 #ifndef GRIDCHOICE
-#define GRIDCHOICE SuccinctGrid
+#define GRIDCHOICE PointerGrid
 #endif
 
-#include "database/structures/SuccinctGrid.h"
+#include "database/structures/PointerGrid.h"
+//#include "database/structures/SuccinctGrid.h"
 
 using namespace chomp;
 int INITIALSUBDIVISIONS = 20;
