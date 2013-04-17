@@ -19,7 +19,6 @@
 #define NO_REACHABILITY
 //#define CMDB_STORE_GRAPH
 
-#include "database/structures/SuccinctGrid.h"
 #include "database/structures/Conley_Morse_Graph.h"
 #include "database/program/jobs/Compute_Morse_Graph.h"
 #include "chomp/Rect.h"
@@ -27,6 +26,11 @@
 /*************************/
 /* Subdivision Settings  */
 /*************************/
+
+#ifndef GRIDCHOICE
+#define GRIDCHOICE SuccinctGrid
+#include "database/structures/SuccinctGrid.h"
+#endif
 
 using namespace chomp;
 int INITIALSUBDIVISIONS = 20;
@@ -102,7 +106,7 @@ int main ( int argc, char * argv [] )
   ModelMap map ( parameter_box );
   
   /* INITIALIZE CONLEY MORSE GRAPH (create an empty one) */
-  CMG conley_morse_graph;
+  ConleyMorseGraph conley_morse_graph;
 
   /* COMPUTE CONLEY MORSE GRAPH */
   Compute_Morse_Graph ( & conley_morse_graph, 
