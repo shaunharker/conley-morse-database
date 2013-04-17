@@ -96,9 +96,9 @@ int main ( int argc, char * argv [] )
   Rect parameter_box = initialize_parameter_space_box ();
 
   /* INITIALIZE PHASE SPACE */
-  SuccinctGrid phase_space;
-  phase_space . initialize ( phase_space_bounds );
-  
+  boost::shared_ptr<GRIDCHOICE> phase_space (new GRIDCHOICE);
+  phase_space -> initialize ( phase_space_bounds );
+
   for ( int i = 0; i < INITIALSUBDIVISIONS; ++ i )
     phase_space . subdivide ();
   
