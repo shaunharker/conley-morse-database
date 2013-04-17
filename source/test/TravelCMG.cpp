@@ -101,13 +101,13 @@ int main ( int argc, char * argv [] )
   phase_space -> initialize ( phase_space_bounds );
 
   for ( int i = 0; i < INITIALSUBDIVISIONS; ++ i )
-    phase_space . subdivide ();
+    phase_space -> subdivide ();
   
   /* INITIALIZE MAP */
   ModelMap map ( parameter_box );
   
   /* INITIALIZE CONLEY MORSE GRAPH (create an empty one) */
-  ConleyMorseGraph conley_morse_graph;
+  MorseGraph conley_morse_graph;
 
   /* COMPUTE CONLEY MORSE GRAPH */
   Compute_Morse_Graph ( & conley_morse_graph, 
