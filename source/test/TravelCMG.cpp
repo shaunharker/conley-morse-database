@@ -29,8 +29,9 @@
 
 #ifndef GRIDCHOICE
 #define GRIDCHOICE SuccinctGrid
-#include "database/structures/SuccinctGrid.h"
 #endif
+
+#include "database/structures/SuccinctGrid.h"
 
 using namespace chomp;
 int INITIALSUBDIVISIONS = 20;
