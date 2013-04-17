@@ -14,7 +14,9 @@
 #include "database/structures/Tree.h"
 #include "database/structures/SuccinctTree.h"
 
-
+#include "boost/serialization/serialization.hpp"
+#include "boost/serialization/vector.hpp"
+#include "boost/serialization/export.hpp"
 
 /**
  * @file
@@ -72,11 +74,14 @@ private:
   template<class Archive>
   void serialize(Archive & ar, const unsigned int version)
   {
+    ar & boost::serialization::base_object<Grid>(*this);
     ar & tree_;
     ar & leaves_rs_;
   }
   
 };
+
+BOOST_CLASS_EXPORT_KEY(SuccinctGrid);
 
 inline SuccinctGrid::SuccinctGrid ( void ) {
   // Create the basic binary tree, with only one node

@@ -111,7 +111,7 @@ int main ( int argc, char * argv [] )
 
   /* COMPUTE CONLEY MORSE GRAPH */
   Compute_Morse_Graph ( & conley_morse_graph, 
-                        & phase_space, 
+                        phase_space, 
                         map, 
                         SINGLECMG_MIN_PHASE_SUBDIVISIONS, 
                         SINGLECMG_MAX_PHASE_SUBDIVISIONS, 

@@ -5,9 +5,14 @@
 #include "database/structures/SDSLFullBinaryTree.h"
 #include "database/structures/RankSelect.h"
 
+
+#include "boost/serialization/serialization.hpp"
+#include "boost/serialization/vector.hpp"
+#include "boost/serialization/export.hpp"
+
 /**
  * @file
- * @author Arnaud Goullet
+ * @author Arnaud Goullet, Shaun Harker
  * @version 1.0
  * 
  * @description
