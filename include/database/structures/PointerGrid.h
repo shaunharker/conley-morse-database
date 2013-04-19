@@ -49,7 +49,7 @@ private:
   boost::shared_ptr<PointerTree> tree_;
   std::vector < Grid::iterator > grid_iterators_;
   std::vector < Tree::iterator > tree_iterators_;
-  void rebuildIteratorConversions ( void );
+  void rebuild ( void );
   
   friend class boost::serialization::access;
 public:
@@ -57,7 +57,7 @@ public:
   void serialize(Archive & ar, const unsigned int file_version) {
     ar & boost::serialization::base_object<Grid>(*this);
     ar & tree_;
-    rebuildIteratorConversions();
+    rebuild();
   }
   // file operations
   void save ( const char * filename ) const {
@@ -87,7 +87,7 @@ BOOST_CLASS_EXPORT_KEY(PointerGrid);
 // Definitions
 
 inline PointerGrid::PointerGrid ( void ) : tree_ ( new PointerTree ) {
-  rebuildIteratorConversions ();
+  rebuild ();
 }
 
 inline PointerGrid::~PointerGrid ( void ) {
@@ -118,13 +118,13 @@ inline void PointerGrid::subdivide ( void ) {
   // First we subdivide the underlying tree
   //std::cout << "PointerGrid::subdivide, currently have " << size() << " grid elements.\n";
   tree () . subdivide ();
-  rebuildIteratorConversions ();
+  rebuild ();
   //std::cout << "finished PointerGrid::subdivide, now have " << size() << " grid elements.\n";
 }
 
 inline void PointerGrid::adjoin( const Grid & other ) {
   tree_ -> adjoin ( other . tree () );
-  rebuildIteratorConversions ();
+  rebuild ();
 }
 
 
@@ -142,12 +142,13 @@ inline PointerGrid * PointerGrid::subgrid ( const std::vector < GridElement > & 
   result -> tree_ = subtree; // Remark: This deallocates the initial "pointertree" object
   result -> size_ = grid_elements . size ();
   result -> initialize ( bounds (), periodicity () );
+  result -> rebuild ();
   return result;
 }
 
 // Private methods for PointerGrid
 inline
-void PointerGrid::rebuildIteratorConversions ( void ) {
+void PointerGrid::rebuild ( void ) {
   // Now we rebuild the GridIterator to TreeIterator conversions
   grid_iterators_ . clear ();
   tree_iterators_ . clear ();

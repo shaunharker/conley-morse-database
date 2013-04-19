@@ -138,6 +138,7 @@ inline SuccinctGrid * SuccinctGrid::subgrid ( const std::vector < Grid::GridElem
   result -> tree_ =  * tree () . subtree ( leaves );
   result -> size_ = grid_elements . size ();
   result -> initialize ( bounds (), periodicity () );
+  result -> rebuild ();
   return result;
 }
 

@@ -73,6 +73,7 @@ struct LorenzMap {
       for (int i =0; i<10; ++i ) {
         rect.move(*T);
       }
+      
       IMatrix B = rect . get_B ();
       IVector r = rect . get_r ();
       IVector x = rect . get_x ();

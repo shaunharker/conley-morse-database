@@ -31,7 +31,9 @@ void computeMorseSetsAndReachability (std::vector< boost::shared_ptr<Grid> > * o
   //std::cout << "Compute Strong Components\n";
   computeStrongComponents ( &components, mapgraph, &topological_sort );
 #ifdef CMG_VERBOSE
+  if ( G . size () > 1024 ) {
   std::cout << "Found " << components . size () << " morse sets.\n";
+  }
 #endif
 #ifndef NO_REACHABILITY
   //std::cout << "Compute Reachability\n";
@@ -44,6 +46,80 @@ void computeMorseSetsAndReachability (std::vector< boost::shared_ptr<Grid> > * o
     boost::shared_ptr < Grid > component_grid ( G . subgrid ( component ) );
     output -> push_back ( component_grid );
   }
+}
+
+/* computeMorseSetsAndReachability */
+template < class Map >
+void computeMorseSets (std::vector< boost::shared_ptr<Grid> > * output,
+                       std::vector<std::vector<unsigned int> > * reach,
+                       const boost::shared_ptr<Grid> & G,
+                       const std::vector<Map> & maps ) {
+  
+  std::cout << "computeMorseSets\n";
+  std::vector< boost::shared_ptr<Grid> > grids;
+  
+  grids . push_back ( G );
+  
+  bool give_up = false;
+  
+  BOOST_FOREACH ( const Map & f, maps ) {
+    f . exception () = false;
+    std::cout << "Applying a map with timestep " << f . step << "\n";
+    std::vector< boost::shared_ptr<Grid> > newgrids;
+    
+    //std::cout << "Create Graph\n";// Create Graph
+    BOOST_FOREACH ( const boost::shared_ptr<Grid> & grid, grids ) {
+      //std::cout << "Analyzing a grid. " << grid . get () << "\n";
+      //std::cout << " grid size = " << grid -> size () << "\n";
+      //for ( Grid::iterator it = grid -> begin (); it != grid -> end (); ++ it ) {
+      //  std::cout << grid -> geometry ( it ) << "\n";
+      //}
+      //std::cout << "list out done.\n";
+      MapGraph < Map > mapgraph ( *grid , f );
+      
+      /* Produce Strong Components and Reachability */
+      std::vector < std::vector < Grid::GridElement > > components;
+      std::vector < Grid::size_type > topological_sort;
+      
+      //std::cout << "Compute Strong Components\n";
+      try {
+        computeStrongComponents ( &components, mapgraph, &topological_sort );
+        
+        
+        /* Create new grids */
+        //std::cout << "Create Output Grids\n";
+        BOOST_FOREACH ( const std::vector<Grid::GridElement> & component, components ) {
+          //std::cout << "Component size = " << component . size () << "\n";
+          //for ( size_t i = 0; i < component . size () ; ++ i )
+          //  std::cout << component [ i ] << "\n";
+          
+          boost::shared_ptr < Grid > component_grid ( grid -> subgrid ( component ) );
+          //std::cout << "Pushing an output grid. " << component_grid . get () << "\n";
+          newgrids . push_back ( component_grid );
+          //std::cout << " grid size = " << component_grid -> size () << "\n";
+          //for ( Grid::iterator it = component_grid -> begin (); it != component_grid -> end (); ++ it ) {
+          //  std::cout << component_grid -> geometry ( it ) << "\n";
+          //}
+          //std::cout << "list out done.\n";
+        }
+        
+      } catch ( std::exception & e ) {
+        newgrids . push_back ( grid );
+        give_up = true;
+      }
+    }
+    std::swap(grids, newgrids);
+    if ( give_up ) break;
+    //if ( f . exception () ) break;
+  }
+  // Copy to output
+  output -> clear ();
+  for ( size_t i = 0; i < grids . size (); ++ i ) output -> push_back ( grids [ i ] );
+#ifdef CMG_VERBOSE
+  if ( G -> size () > 1024 ) {
+    std::cout << "Found " << output -> size () << " morse sets.\n";
+  }
+#endif
 }
 
 #if 0
@@ -138,10 +214,12 @@ void computeStrongComponents (std::vector<std::vector<typename OutEdgeGraph::siz
   // Main Loop
 #ifdef CMG_VERBOSE
   long num_edges = 0;
-  std::cout << "Computing Strongly Connected Components.\n";
-  std::cout . flush ();
   size_type progress = 0;
   size_type progresspercent = 0;
+  if ( N > 1024 ) {
+  std::cout << "Computing Strongly Connected Components.\n";
+  std::cout . flush ();
+  }
 #endif
   //std::cout << "sentinel = " << sentinel << "\n";
   for ( size_type root = 0; root < N; ++ root ) {
@@ -190,11 +268,14 @@ void computeStrongComponents (std::vector<std::vector<typename OutEdgeGraph::siz
       if ( index [ v ] == sentinel ) {
         // FIRST VISIT
 #ifdef CMG_VERBOSE
+        if ( N > 1024 ) {
+
         ++ progress;
         if ( (100*progress)/N > progresspercent) {
           progresspercent = (100*progress)/N;
           std::cout << "\r" << progresspercent << "%    ";
           std::cout . flush ();
+        }
         }
 #endif
         
@@ -295,8 +376,11 @@ void computeStrongComponents (std::vector<std::vector<typename OutEdgeGraph::siz
     } // while dfs stack non-empty
   } // while not all nodes explored
 #ifdef CMG_VERBOSE
+  if ( N > 1024 ) {
+
   std::cout << "\r100%    ";
   std::cout << "       V = " << N << " E = " << num_edges << "  E/V = " << (double) num_edges / (double) N << "\n";
+  }
 #endif
   DEBUGPRINT std::cout << "SCC effort = " << effort << "\n";
 }

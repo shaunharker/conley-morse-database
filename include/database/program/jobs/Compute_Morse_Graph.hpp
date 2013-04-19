@@ -120,7 +120,19 @@ public:
     }
     return children_;
   }
-  
+
+  template < class Map >
+  const std::vector < MorseDecomposition * > & decomposeODE ( const std::vector<Map> & maps ) {
+    //std::cout << "Perform Morse Decomposition\n"; // Perform Morse Decomposition
+    computeMorseSets <Map> ( &decomposition_, &reachability_, grid_, maps );
+    //std::cout << "Create Hierarchy Structure\n";// Create Hierarchy Structure with Subdivided Grids for Morse Sets
+    for ( size_t i = 0; i < decomposition_ . size (); ++ i ) {
+      decomposition_ [ i ] -> subdivide ();
+      children_ . push_back ( new MorseDecomposition ( decomposition_ [ i ], depth() + 1 ) );
+    }
+    return children_;
+  }
+
   
 private:
   // Member Data
@@ -147,13 +159,21 @@ ConstructMorseDecomposition (MorseDecomposition * root,
                              const unsigned int Min,
                              const unsigned int Max,
                              const unsigned int Limit ) {
+  size_t nodes_processed = 0;
   // We use a priority queue in order to do the more difficult computations first.
   std::priority_queue < MorseDecomposition *, std::vector<MorseDecomposition *>, MorseDecompCompare > pq;
   pq . push ( root );
   while ( not pq . empty () ) {
+    ++ nodes_processed;
+    if ( nodes_processed % 1000 == 0 ) std::cout << nodes_processed << " nodes have been encountered on Morse Decomposition Hierarchy.\n";
     MorseDecomposition * work_node = pq . top ();
     pq . pop ();
+    //if ( work_node -> size () < 8 ) continue; // DEBUG
+#ifndef ODE_METHOD
     std::vector < MorseDecomposition * > children = work_node -> decompose ( f );
+#else
+    std::vector < MorseDecomposition * > children = work_node -> decomposeODE ( f );
+#endif
     if ( children . empty () ) {
       // Mark as spurious
       work_node -> spurious () = true;
@@ -166,6 +186,10 @@ ConstructMorseDecomposition (MorseDecomposition * root,
   }
 }
 
+// Efficiently merge grids
+boost::shared_ptr<Grid> adjoin ( std::vector < boost::shared_ptr < Grid > > grids ) {
+  
+}
 
 // ConstructMorseDecomposition
 template < class Map >
@@ -199,6 +223,7 @@ void ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
       if ( MD -> spurious () ) continue;
 
       // Adjoin grid to master grid
+      //if ( MD -> grid () -> size () > 16 ) //DEBUG NEEDS TO BE REMOVED
       master_grid -> adjoin ( * MD -> grid () );
       if ( MD -> depth () > Min ) continue;
       // Amalgamate reachability information

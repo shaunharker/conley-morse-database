@@ -205,7 +205,7 @@ Picture * draw_grid_and_morse_sets (const int Width, const int Height,
     Picture::Real volume = ( box . upper_bounds [ 0 ] - box . lower_bounds [ 0 ] )*( box . upper_bounds [ 1 ] - box . lower_bounds [ 1 ] ) ;
     Picture::Real total_volume = ( bounds . upper_bounds [ 0 ] - bounds . lower_bounds [ 0 ] )*( bounds . upper_bounds [ 1 ] - bounds . lower_bounds [ 1 ] ) ;
     Picture::Real ratio = total_volume / volume;
-    Picture::Real log_of_ratio = (16.0f - log ( ratio ) / log ( 4.0f) ) * 16.0f;
+    Picture::Real log_of_ratio = (32.0 - log ( ratio ) / log ( 2.0) ) * 8.0f;
     Red = Green = Blue = (unsigned char) log_of_ratio;
     picture -> draw_square (Red, Green, Blue,
                             box . lower_bounds [ 0 ],

@@ -13,86 +13,134 @@
 #include <stdexcept>
 #include <fstream>
 
+#include "boost/shared_ptr.hpp"
+
 class VanderPolRect {
 public:
-  capd::IMap f;
-  double step;
-  capd::interval timestep;
-  int order;
-  capd::ITaylor * T;
-  capd::ITimeMap * timemap;
-  int dim_;
+  
+  typedef chomp::Rect Rect;
+  typedef chomp::Rect image_type;
+  int D;
+  mutable int order;
+  mutable capd::interval step;
+  mutable boost::shared_ptr<capd::IMap> f;
+  mutable boost::shared_ptr < capd::ITaylor > solver;
+  mutable bool exception_thrown;
+  
+  VanderPolRect ( void ) {
+    std::cout << "VandelPolRect default constructor.\n";
+  }
   
   VanderPolRect ( const chomp::Rect & rectangle ) {
     using namespace capd;
-    dim_ = 2;
-    f = "par:c;var:x,y;fun:y,-x+c*(1-x*x)*y;";
-    f . setParameter ( "c", interval(rectangle.lower_bounds[0],
-                                     rectangle.upper_bounds[0]));
-    timestep = interval(1.0)/10.0;
-    step = .001;
-    order = 3;
-    //f.setParameter("c",interval(1.0));
-    //f.setParameter("c", parameter1 );
+    D = 2;
+    f . reset ( new IMap );
+    *f = "par:c;var:x,y;fun:y,-x+c*(1-x*x)*y;";
+    //f = "par:c;var:x,y;fun:-y,x-c*(1-x*x)*y;";
+    f -> setParameter ( "c", interval(rectangle.lower_bounds[0],
+                                      rectangle.upper_bounds[0]));
     
-    T = new ITaylor (f,order,step);
-    timemap = new ITimeMap ( *T );
+    step= interval(1.0/(256.0),1.0/(256.0));
+    order = 3;
+    solver . reset ( new ITaylor (*f,order,step) );
     return;
   }
   
-  ~VanderPolRect ( void ) {
-    delete T;
-    delete timemap;
+  VanderPolRect ( const chomp::Rect & rectangle, double timestep ) {
+    using namespace capd;
+    D = 2;
+    f . reset ( new IMap );
+    //*f = "par:c;var:x,y;fun:y,-x+c*(1-x^2)*y;";
+    *f = "par:c;var:x,y;fun:y/(1.0+(y^2+(-x+c*(1-x^2)*y)^2)),(-x+c*(1-x^2)*y)/(1.0+(y^2+(-x+c*(1-x^2)*y)^2));";
+
+    //f = "par:c;var:x,y;fun:-y,x-c*(1-x*x)*y;";
+    f -> setParameter ( "c", interval(rectangle.lower_bounds[0],
+                                      rectangle.upper_bounds[0]));
+    
+    step= interval(timestep, timestep);
+    order = 3;
+    solver . reset ( new ITaylor (*f,order,step) );
+    std::cout << "Construct. timestep = " << timestep << "  solver = " << solver . get () << "\n";
+    
+    return;
   }
   
-  chomp::Prism operator () ( const chomp::Rect & rectangle ) const {
+  bool & exception ( void ) const { return exception_thrown; }
+  
+  chomp::Rect intervalMethod ( const chomp::Rect & rectangle ) const {
     using namespace capd;
     
-    /* Read input */
-    IVector x0 ( dim_ );
-    for ( int d = 0; d < dim_; ++ d )
-      x0 [ d ] = interval ( rectangle . lower_bounds [ d ],
-                           rectangle . upper_bounds [ d ] );
-      C0RectSet rect ( x0 );
-      
-      //Rect return_value ( dim_ );
-      Prism P ( dim_ );
-      try{
-        /* Compute forward image */
-        //rect.move(*T);
-        
-        /* Write output */
-        //IVector w = (*timemap) ( timestep, rect );
-        for (int i =0; i<10; ++i ) {
-          rect.move(*T);
-        }
-        IMatrix B = rect . get_B ();
-        IVector r = rect . get_r ();
-        IVector x = rect . get_x ();
-        // x + Br
-        IMatrix D ( dim_, dim_ );
-        for ( int d = 0; d < dim_; ++ d ) {
-          D (d+1, d+1) = std::max ( abs ( r [ d ] . rightBound () ),
-                                   abs ( r [ d ] . leftBound () ) );
-        }
-        B = B * D;
-        
-        for ( int d = 0; d < dim_; ++ d ) P . c ( d ) = (x [ d ] . leftBound () + x [ d ] . rightBound ()) / 2.0;
-        for ( int i = 0; i < dim_; ++ i ){
-          for ( int j = 0; j < dim_; ++ j ) {
-            P . A (i,j) = (B ( i + 1, j + 1 ) . leftBound () + B ( i+1, j+1) . rightBound () ) / 2.0;
-          }
-        }
-      }
-    catch (std::exception& e)
-    {
-      std::cout << "Exception thrown.\n";
-      for ( int d = 0; d < dim_; ++ d ) P . A ( d, d ) = 100.0;
-      
+    //std::cout << rectangle << "\n";
+    
+    // Count executions
+    static size_t execution_count = 0;
+    ++ execution_count;
+    //std::cout << rectangle << "\n";
+#if 0
+    if ( execution_count % 10000 == 0 ) {
+      std::cout << "Execution count = " << execution_count << "\n";
+      std::cout << "Rect = " << rectangle << "\n";
     }
-    return P;//return_value;
+#endif
+    
+    // Put input into IVector structure "c"
+    IVector c ( D );
+    for ( int d = 0; d < D; ++ d ) {
+      c [ d ] = interval (rectangle . lower_bounds [ d ],
+                          rectangle . upper_bounds [ d ] );
+    }
+    // Use integrator
+    capd::dynset::C0Rect2Set<IMatrix> s(c);
+    s . move ( *solver ); // move the set under the flow
+    IVector mapped ( s );
+    
+    // Return result
+    chomp::Rect result ( D );
+    for ( int d = 0; d < D; ++ d ) {
+      result . lower_bounds [ d ] = mapped[d].leftBound();
+      result . upper_bounds [ d ] = mapped[d].rightBound();
+    }
+    return result;
   }
   
+  
+  chomp::Rect  operator () ( const chomp::Rect & rectangle ) const {
+    static size_t exception_count = 0;
+    chomp::Rect result ( 2 );
+    try {
+      result = intervalMethod ( rectangle );
+    } catch (std::exception& e) {
+      //std::cout << e . what () << "\n";
+
+      exception_thrown = true;
+      // Count exceptions
+      ++ exception_count;
+      //std::cout << rectangle << "\n";
+      
+      //result . lower_bounds [ 0 ] = -100.0;
+      //result . upper_bounds [ 0 ] = 100.0;
+      //result . lower_bounds [ 1 ] = -100.0;
+      //result . upper_bounds [ 1 ] = 100.0;
+      result = rectangle;
+      if ( exception_count > 100 ) {
+        std::cout << e . what () << "\n";
+        exception_count = 0;
+        throw e;
+      }
+      
+    }
+    return result;
+  }
+  
+  
+  
+  bool good ( void ) const { return true; }
 };
 
+#endif
+
+#if 0
+if ( exception_count % 10000 == 0 ) {
+  std::cout << "Exception count = " << exception_count << "\n";
+  }
 #endif

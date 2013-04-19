@@ -2,7 +2,7 @@
 COMPUTE_MORSE_SETS := yes
 COMPUTE_CONLEY_INDEX := yes
 USE_CAPD := yes
-USE_SUCCINCT := yes
+USE_SUCCINCT := no
 CHECKIFMAPISGOOD := no
 # if modelmap has good() implemented
 PARAM_SPACE_METHOD := PATCHMETHOD
@@ -64,50 +64,34 @@ ExportXML: $(EXPORTXML)
 	$(CC) $(LDFLAGS) $(EXPORTXML) -o $@ $(LDLIBS)
 
 SINGLECMG := ./build/test/SingleCMG.o 
-SINGLECMG += ./build/tools/picture.o 
-SINGLECMG += ./build/tools/lodepng/lodepng.o
 SingleCMG: $(SINGLECMG)
 	$(CC) $(LDFLAGS) $(SINGLECMG) -o $@ $(LDLIBS)
 
 RMHTEST := ./build/test/RMHTest.o
-RMHTEST += ./build/tools/picture.o
-RMHTEST += ./build/tools/lodepng/lodepng.o
 RMHTest: $(RMHTEST)
 	$(CC) $(LDFLAGS) $(RMHTEST) -o $@ $(LDLIBS)
 
 HENONCMG := ./build/test/HenonCMG.o
-HENONCMG += ./build/tools/picture.o
-HENONCMG += ./build/tools/lodepng/lodepng.o
 HenonCMG: $(HENONCMG)
 	$(CC) $(LDFLAGS) $(HENONCMG) -o $@ $(LDLIBS)
 
 NEWTONCMG := ./build/test/NewtonCMG.o
-NEWTONCMG += ./build/tools/picture.o
-NEWTONCMG += ./build/tools/lodepng/lodepng.o
 NewtonCMG: $(NEWTONCMG)
 	$(CC) $(LDFLAGS) $(NEWTONCMG) -o $@ $(LDLIBS)
 
 JUSTINCMG := ./build/test/JustinCMG.o
-JUSTINCMG += ./build/tools/picture.o
-JUSTINCMG += ./build/tools/lodepng/lodepng.o
 JustinCMG: $(JUSTINCMG)
 	$(CC) $(LDFLAGS) $(JUSTINCMG) -o $@ $(LDLIBS)
 
 ALLANCMG := ./build/test/AllanCMG.o
-ALLANCMG += ./build/tools/picture.o
-ALLANCMG += ./build/tools/lodepng/lodepng.o
 AllanCMG: $(ALLANCMG)
 	$(CC) $(LDFLAGS) $(ALLANCMG) -o $@ $(LDLIBS)
 
 TRAVELCMG := ./build/test/TravelCMG.o
-TRAVELCMG += ./build/tools/picture.o
-TRAVELCMG += ./build/tools/lodepng/lodepng.o
 TravelCMG: $(TRAVELCMG)
 	$(CC) $(LDFLAGS) $(TRAVELCMG) -o $@ $(LDLIBS)
 
 SUBMAPTEST := ./build/test/SubdividedMapTest.o
-SUBMAPTEST += ./build/tools/picture.o
-SUBMAPTEST += ./build/tools/lodepng/lodepng.o
 SubdividedMapTest: $(SUBMAPTEST)
 	$(CC) $(LDFLAGS) $(SUBMAPTEST) -o $@ $(LDLIBS)
 
