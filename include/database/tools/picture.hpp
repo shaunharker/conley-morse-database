@@ -134,6 +134,8 @@ inline
 Picture * draw_grid (const int Width,
                        const int Height,
                        const Grid & my_grid ) {
+  std::cout << "draw_grid\n";
+
   typedef std::vector<Grid::GridElement> CellContainer;
 
   chomp::Rect bounds = my_grid . bounds ();
@@ -178,6 +180,8 @@ inline
 Picture * draw_grid_and_morse_sets (const int Width, const int Height,
                        const Grid & my_grid,
                        const MorseGraph  & conley_morse_graph ) {
+  std::cout << "draw_grid_and_morse_sets\n";
+
   typedef std::vector<Grid::GridElement> CellContainer;
   using namespace chomp;
   typedef MorseGraph  CMG;

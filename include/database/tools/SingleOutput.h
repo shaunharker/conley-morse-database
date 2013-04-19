@@ -20,14 +20,24 @@ inline void DrawMorseSets ( const Grid & phase_space, const MorseGraph & conley_
   int Height = 4096;
   
   Picture * picture = draw_morse_sets( Width, Height, phase_space, conley_morse_graph );
-  picture -> saveAsPNG ( "morse_sets.png" );
-  
   Picture * picture2 = draw_grid ( Width, Height, phase_space );
-  picture2 -> saveAsPNG ( "grid.png" );
-
   Picture * picture3 = draw_grid_and_morse_sets( Width, Height, phase_space, conley_morse_graph );
-  picture3 -> saveAsPNG ( "grid_and_morse.png" );
   
+  std::cout << "Saving output... ";
+  std::cout . flush ();
+  //picture -> saveAsPNG ( "morse_sets.png" );
+  //picture2 -> saveAsPNG ( "grid.png" );
+  //picture3 -> saveAsPNG ( "grid_and_morse.png" );
+  
+  picture -> saveAsBMP ( "morse_sets.bmp" );
+  picture2 -> saveAsBMP ( "grid.bmp" );
+  picture3 -> saveAsBMP ( "grid_and_morse.bmp" );
+  std::cout << "Output saved.\n";
+  
+  //picture -> saveAsTIFF ( "morse_sets.tiff" );
+  //picture2 -> saveAsTIFF ( "grid.tiff" );
+  //picture3 -> saveAsTIFF ( "grid_and_morse.tiff" );
+
   delete picture;
   delete picture2;
   delete picture3;

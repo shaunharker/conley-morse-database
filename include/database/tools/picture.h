@@ -22,6 +22,7 @@ struct Picture {
   Picture ( int Width, int Height, Real x_min, Real x_max, Real y_min, Real y_max );
   
   void saveAsPNG ( const char * filename ) const;
+  void saveAsBMP ( const char * filename ) const;
   
   /// Draw a square around the specified locations of the given color
   ///    Does not overwrite -- rather, it takes the min of the color value of what
@@ -68,6 +69,10 @@ Width(Width), Height(Height), x_min(x_min), x_max(x_max), y_min(y_min), y_max(y_
 
 inline void Picture::saveAsPNG ( const char * filename ) const {
   bitmap . save_png ( filename );
+}
+
+inline void Picture::saveAsBMP ( const char * filename ) const {
+  bitmap . save_bmp ( filename );
 }
 
 

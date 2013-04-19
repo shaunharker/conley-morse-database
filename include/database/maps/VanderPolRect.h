@@ -50,15 +50,15 @@ public:
     using namespace capd;
     D = 2;
     f . reset ( new IMap );
-    //*f = "par:c;var:x,y;fun:y,-x+c*(1-x^2)*y;";
-    *f = "par:c;var:x,y;fun:y/(1.0+(y^2+(-x+c*(1-x^2)*y)^2)),(-x+c*(1-x^2)*y)/(1.0+(y^2+(-x+c*(1-x^2)*y)^2));";
+    *f = "par:c;var:x,y;fun:y,-x+c*(1-x^2)*y;";
+    //*f = "par:c;var:x,y;fun:y/(1.0+(y^2+(-x+c*(1-x^2)*y)^2)),(-x+c*(1-x^2)*y)/(1.0+(y^2+(-x+c*(1-x^2)*y)^2));";
 
     //f = "par:c;var:x,y;fun:-y,x-c*(1-x*x)*y;";
     f -> setParameter ( "c", interval(rectangle.lower_bounds[0],
                                       rectangle.upper_bounds[0]));
     
     step= interval(timestep, timestep);
-    order = 3;
+    order = 10;
     solver . reset ( new ITaylor (*f,order,step) );
     std::cout << "Construct. timestep = " << timestep << "  solver = " << solver . get () << "\n";
     

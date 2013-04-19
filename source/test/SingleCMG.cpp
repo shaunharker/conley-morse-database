@@ -732,7 +732,7 @@ int main ( int argc, char * argv [] )
   std::cout << "Total Time for Finding Morse Sets and reachability relation: " <<
   (float) (stop - start ) / (float) CLOCKS_PER_SEC << "\n";
   
-  std::cout << "Creating PNG file...\n";
+  std::cout << "Creating image files...\n";
   DrawMorseSets ( *phase_space, conley_morse_graph );
   std::cout << "Creating DOT file...\n";
   CreateDotFile ( conley_morse_graph );

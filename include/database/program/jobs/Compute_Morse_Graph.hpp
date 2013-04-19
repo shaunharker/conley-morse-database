@@ -168,7 +168,9 @@ ConstructMorseDecomposition (MorseDecomposition * root,
     if ( nodes_processed % 1000 == 0 ) std::cout << nodes_processed << " nodes have been encountered on Morse Decomposition Hierarchy.\n";
     MorseDecomposition * work_node = pq . top ();
     pq . pop ();
-    //if ( work_node -> size () < 8 ) continue; // DEBUG
+#ifdef ODE_METHOD
+    if ( work_node -> size () < 8 ) continue; // DEBUG
+#endif
 #ifndef ODE_METHOD
     std::vector < MorseDecomposition * > children = work_node -> decompose ( f );
 #else
@@ -223,7 +225,9 @@ void ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
       if ( MD -> spurious () ) continue;
 
       // Adjoin grid to master grid
-      //if ( MD -> grid () -> size () > 16 ) //DEBUG NEEDS TO BE REMOVED
+#ifdef ODE_METHOD
+      if ( MD -> grid () -> size () > 16 ) //DEBUG NEEDS TO BE REMOVED
+#endif
       master_grid -> adjoin ( * MD -> grid () );
       if ( MD -> depth () > Min ) continue;
       // Amalgamate reachability information
