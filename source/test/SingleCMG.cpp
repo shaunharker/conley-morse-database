@@ -15,7 +15,7 @@
 /***************************/
 
 #define CMG_VERBOSE
-#define NO_REACHABILITY
+//#define NO_REACHABILITY
 //#define CMDB_STORE_GRAPH
 //#define ODE_METHOD
 

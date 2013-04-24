@@ -1,0 +1,27 @@
+conley-morse-database -- computational dynamics software
+
+See "INSTALL" for installation notes.
+
+To compile the database:
+./CMDB ./data/model_directory
+To run the database:
+mpiexec -np <number_of_processors> ./Conley_Morse_Database ./data/model_directory
+However you may wish to do this inside of a script in a cluster scheduler if you want to run the software on a shared resource. Consult with your system admin.)
+
+To compile the single parameter box test programs:
+make clean
+make SingleCMG
+or
+make clean
+make <name of another example program in ./source/test/>
+
+To run the single parameter box test program:
+./SingleCMG 20 20
+
+
+Please e-mail Shaun Harker sharker81@gmail.com
+to for problems or feature requests.
+
+License Information
+This project includes a copy of CImg.h, governed by the CeCILL-C license.
+See CImg.h for details.

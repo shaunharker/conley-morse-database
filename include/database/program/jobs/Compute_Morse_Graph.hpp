@@ -189,7 +189,7 @@ ConstructMorseDecomposition (MorseDecomposition * root,
 }
 
 // Efficiently merge grids
-boost::shared_ptr<Grid> adjoin ( std::vector < boost::shared_ptr < Grid > > grids ) {
+inline boost::shared_ptr<Grid> adjoin ( std::vector < boost::shared_ptr < Grid > > grids ) {
   
 }
 
