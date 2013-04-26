@@ -15,9 +15,6 @@ Details:
   
 
 (2) Install Boost. 
- (Note. V1.48.0 has a problem with
-  assignment of temporaries with boost::unordered_map, 
-  use V1.47.0 until this is resolved)
 Details:
  A) Download the boost tarball,
     decompress it, 
@@ -25,17 +22,13 @@ Details:
     you can even delete it when you are done.)
  B) TYPE sudo ./bootstrap.sh
  C) TYPE sudo ./b2 install
-  Note: I've noticed (C) doesn't work for some older macs.
-        Try installing instead with 
-         sudo ./bjam install     
-        if you are having problems.
  D) Check the boost installation was successful by seeing that
     /usr/local/include/boost/ exists and has lots of header files.
   and /usr/local/lib/ contains boost libraries (.a, .so, and/or .dylib files)
 
 (3) Install MPI if it is not installed already. 
 Notes: Mac Users: For Mac OS X 10.4 - 10.6, this comes standard.
-                  For Mac OS X 10.7, it does not.  
+                  For Mac OS X 10.7 - 10.8, it does not.  
     You can check if it is installed by seeing if the command
     "mpicxx" is recognized.
 Details:
@@ -44,44 +37,77 @@ Details:
  C) sudo ./configure --prefix=/usr/local
  D) sudo make all install
 
-(4) Install CImg
-I recommend placing CImg.h in /usr/local/include
-(You can put it anywhere and edit the makefile)
+--EXTRAS, REQUIRED FOR SOME FEATURES--
+(4) Install CAPD
+  CAPD provides an integrator which can be used to create time-t 
+  maps arising from ordinary differential equations (ODEs).
 
-(5) Install CAPD
-This seems to involve getting a package pkg-config to start.
-Then from the CAPD folder do "./configure" "make" "make install"
+  See the CAPD documentation for up to date details on installation.
+  
+  As of this writing, the following seems to work:
+    A package called "pkg-config" is required.
+    This is often pre-installed. 
+    On Mac OS X, it can be obtained with the brew installer with
+      brew install pkg-config
+    (See (5) below for more information on obtaining "brew".)
 
-CHOMP SOFTWARE:
-The chomp software is header-only and can be used by
-including files in ./conley-morse-database/include/chomp/
-You don't need to build anything except your own program!
+  Now from the CAPD folder:
+    ./configure
+    make
+    make install
 
-DATABASE SOFTWARE:
-Brief instructions on using the database software:
-  A) Change directory to conley-morse-database
-  B) TYPE: make clean
-  C) TYPE: make SingleCMG
-  D) TYPE: ./SingleCMG 20 20
-     Output should start streaming down the screen
-     Pretty quickly the program should terminate 
-     and some output files ought to be produced.
-     You can tinker with this example by editing
-     ./source/test/SingleCMG.cpp 
-  E) TYPE: ./CMDB ./data/leslie12/
-     It should compile "Conley_Morse_Database"
-     If you are on a cluster with PBS, it will attempt
-      to submit a job with qsub.
-     Otherwise, it will complain that it doesn't know the
-      command qsub. Proceed to:
-  F) TYPE: mpiexec -np 5 ./Conley_Morse_Database ./data/leslie12/
-     It should start computing. The file "progress.txt" should be
-     periodically refreshed to indicate progress. 
-     Likely you'll want to do this on a cluster, however.
 
-To compute on different models, produce a different data directory, with
-config.xml and ModelMap.h files following the example of the "leslie12"
-example. Beware of errors in these files, however!
+(5) Install "cmake"
+We require "cmake" to use "sdsl"
+
+  On Mac OS X:
+    cmake can be installed using "brew". See
+    http://mxcl.github.io/homebrew/
+    ruby -e "$(curl -fsSL https://raw.github.com/mxcl/homebrew/go)"
+    brew update
+    brew install cmake
+
+    See http://mxcl.github.io/homebrew/ 
+
+  On Linux:
+    Download and decompress the tarball from 
+    http://www.cmake.org/cmake/resources/software.html
+    
+    This might be done from the command line with:
+
+    curl http://www.cmake.org/files/v2.8/cmake-2.8.10.2.tar.gz \
+      -o cmake-2.8.10.2.tar.gz
+    tar xvfz cmake-2.8.10.2.tar.gz
+
+    As superuser: (install in /usr/local/)
+      ./bootstrap
+      sudo make
+      sudo make install
+    Not as superuser: (install in <install_prefix>)
+      ./bootstrap --prefix=<install_prefix>
+      make
+      make install
+     Since the installation isn't in a default path, 
+     you need to make the cmake binaries to be visible. 
+     Edit the ~/.bash_profile file to contain the line
+     PATH="<install_prefix>/bin:${PATH}"
+     You may need to restart your terminal program at this point.
+
+(6) Install "sdsl"
+  SDSL is maintained as a git repository. 
+  https://github.com/simongog/sdsl
+
+  To install it, try the following::
+  cd <install-directory>
+  curl -L -o sdsl-master.tar.gz \
+    https://api.github.com/repos/simongog/sdsl/tarball
+  tar xvfz sdsl-master.tar.gz
+  mkdir sdsl
+  cd simongog-sdsl-4e85037    #this might change; whatever folder was created
+  ./install.sh <install-directory>/sdsl
+
+
+See README file for further instructions.
 
 Email sharker@math.rutgers.edu
 if you can't get it to work or have any 

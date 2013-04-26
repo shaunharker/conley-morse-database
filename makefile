@@ -2,7 +2,7 @@
 COMPUTE_MORSE_SETS := yes
 COMPUTE_CONLEY_INDEX := yes
 USE_CAPD := yes
-USE_SUCCINCT := no
+USE_SUCCINCT := yes
 CHECKIFMAPISGOOD := no
 # if modelmap has good() implemented
 PARAM_SPACE_METHOD := PATCHMETHOD
