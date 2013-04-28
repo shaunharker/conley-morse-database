@@ -102,8 +102,8 @@ void MorseProcess::initialize ( void ) {
     }
   }
   
-  int strides = num_across / patch_width; // distance between center of patches in box-units
-  std::cout << "strides = " << strides << "\n";
+  int patches_across = 1 + num_across / patch_width; // distance between center of patches in box-units
+  std::cout << "patches_across = " << patches_across << "\n";
   // Create the patches.
   std::vector < chomp::Rect > patches;
   // Loop through D-tuples
@@ -115,9 +115,9 @@ void MorseProcess::initialize ( void ) {
       // tol shouldn't be necessary if cover is rigorous
       double tol = (config.PARAM_BOUNDS . upper_bounds [ d ] - config.PARAM_BOUNDS . lower_bounds [ d ]) / (double) (1000 * num_across);
       patch . lower_bounds [ d ] = config.PARAM_BOUNDS . lower_bounds [ d ] + ( (double) coordinates[d] ) *
-      (config.PARAM_BOUNDS . upper_bounds [ d ] - config.PARAM_BOUNDS . lower_bounds [ d ]) / (double)strides - tol;
+      (config.PARAM_BOUNDS . upper_bounds [ d ] - config.PARAM_BOUNDS . lower_bounds [ d ]) / (double)patches_across - tol;
       patch . upper_bounds [ d ] = config.PARAM_BOUNDS . lower_bounds [ d ] + ((double)(1 + coordinates[d])) *
-      (config.PARAM_BOUNDS . upper_bounds [ d ] - config.PARAM_BOUNDS . lower_bounds [ d ]) / (double)strides + tol;
+      (config.PARAM_BOUNDS . upper_bounds [ d ] - config.PARAM_BOUNDS . lower_bounds [ d ]) / (double)patches_across + tol;
       
       if ( patch . lower_bounds [ d ] < config.PARAM_BOUNDS . lower_bounds [ d ] ) patch . lower_bounds [ d ] = config.PARAM_BOUNDS . lower_bounds [ d ];
       if ( patch . upper_bounds [ d ] > config.PARAM_BOUNDS . upper_bounds [ d ] ) patch . upper_bounds [ d ] = config.PARAM_BOUNDS . upper_bounds [ d ];
@@ -128,7 +128,7 @@ void MorseProcess::initialize ( void ) {
     finished = true;
     for ( int d = 0; d < config.PARAM_DIM; ++ d ) {
       ++ coordinates [ d ];
-      if ( coordinates [ d ] == strides ) {
+      if ( coordinates [ d ] == patches_across ) {
         coordinates [ d ] = 0;
       } else {
         finished = false;
