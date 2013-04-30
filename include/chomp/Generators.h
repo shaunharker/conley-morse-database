@@ -30,8 +30,8 @@ namespace chomp {
 /// but x is not.
 typedef std::vector < std::vector < std::pair < Chain, Ring > > >  Generators_t;
 
-Generators_t SmithGenerators ( const Complex & complex );
-Generators_t MorseGenerators ( const Complex & complex );
+Generators_t SmithGenerators ( const Complex & complex, int cutoff_dimension );
+Generators_t MorseGenerators ( const Complex & complex, int cutoff_dimension );
 
 
 /* Compute Homology Groups and also Homology generators */
@@ -71,8 +71,9 @@ Generators_t MorseGenerators ( const Complex & complex );
  
  */
 
-inline Generators_t SmithGenerators ( const Complex & complex ) {
-
+inline Generators_t SmithGenerators (const Complex & complex,
+                                     int cutoff_dimension = -1 ) {
+  if ( cutoff_dimension == -1 ) cutoff_dimension = complex . dimension ();
   // Prepare output.
   Generators_t return_value ( complex . dimension () + 1 );
 	
@@ -82,7 +83,7 @@ inline Generators_t SmithGenerators ( const Complex & complex ) {
   int first_t, second_s, second_t;
 	/* The d_{0} boundary matrix is zero, so its SNF has no non-zero elements on its diagonal. */
 	first_t = 0;
-	for ( int d = 0; d <= complex . dimension (); ++ d ) {
+	for ( int d = 0; d <= cutoff_dimension; ++ d ) {
 		/*******************************************************************
      * Compute the SNF of the new boundary matrix, d_{d} *             *
      *******************************************************************/
@@ -196,13 +197,16 @@ inline Generators_t SmithGenerators ( const Complex & complex ) {
 	return return_value; 
 } /* void SmithGenerators(...) */
 
-inline Generators_t MorseGenerators ( Complex & complex ) {
+  inline Generators_t MorseGenerators ( Complex & complex,
+                                        int cutoff_dimension = -1 ) {
+    if ( cutoff_dimension == -1 ) cutoff_dimension = complex . dimension ();
+                                     
   Generators_t return_value;
   /* Perform Single Morse Reductions to complex */
   // TODO: make more than one. Use a tower.
   MorseComplex morse_complex ( complex );
   /* Get the Homology Generators on the Morse level */
-  Generators_t deep_gen = SmithGenerators ( morse_complex );  
+  Generators_t deep_gen = SmithGenerators ( morse_complex, cutoff_dimension );
   /* Lift the Homology Generators to the top level */
   return_value . resize ( complex . dimension () + 1 );
   for (unsigned int d = 0; d < deep_gen . size (); ++ d) {
