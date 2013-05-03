@@ -2,7 +2,7 @@
 COMPUTE_MORSE_SETS := yes
 COMPUTE_CONLEY_INDEX := yes
 USE_CAPD := yes
-USE_SUCCINCT := yes
+USE_SUCCINCT := no
 CHECKIFMAPISGOOD := no
 # if modelmap has good() implemented
 PARAM_SPACE_METHOD := PATCHMETHOD
@@ -90,6 +90,10 @@ AllanCMG: $(ALLANCMG)
 TRAVELCMG := ./build/test/TravelCMG.o
 TravelCMG: $(TRAVELCMG)
 	$(CC) $(LDFLAGS) $(TRAVELCMG) -o $@ $(LDLIBS)
+
+LVCMG := ./build/test/LVCMG.o
+LVCMG: $(LVCMG)
+	$(CC) $(LDFLAGS) $(LVCMG) -o $@ $(LDLIBS)
 
 SUBMAPTEST := ./build/test/SubdividedMapTest.o
 SubdividedMapTest: $(SUBMAPTEST)

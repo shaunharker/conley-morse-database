@@ -181,6 +181,11 @@ public:
    */
   void memory_usage ( void ) const;
   /**
+   * Return the memory usage of the Full Binary Tree.
+   */
+  inline uint64_t memory ( void ) const;
+
+  /**
    * Display the balanced parentheses sequence.
    */
   void display_bp ( void ) const;
@@ -684,6 +689,14 @@ inline void SDSLFullBinaryTree::memory_usage ( void ) const {
   std::cout << "\nMemory usage for SDSLFullBinaryTree : ";
   std::cout << 8 * ( bp_mem_size + tree_mem_size ) / size_ << " bits per node\n";
   //
+}
+
+/**
+ * Return the memory usage in bytes.
+ */
+inline uint64_t SDSLFullBinaryTree::memory ( void ) const {
+  return sdsl::util::get_size_in_bytes ( bp_ ) +
+  sdsl::util::get_size_in_bytes ( tree_ );
 }
 
 inline void SDSLFullBinaryTree::export_graphviz ( const char *filename ) {

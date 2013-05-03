@@ -4,6 +4,8 @@
 #define CMDB_TREE_H
 
 #include <memory>
+#include <deque>
+#include <boost/iterator/counting_iterator.hpp>
 #include <stdint.h>
 #include "boost/serialization/serialization.hpp"
 
@@ -41,9 +43,12 @@ public:
   // Builder Methods
   virtual void subdivide ( void ) = 0;
   virtual void adjoin ( const Tree & other ) = 0;
-  virtual Tree * subtree ( const std::vector < Tree::iterator > & leaves ) const = 0;
+  virtual Tree * subtree ( const std::deque < Tree::iterator > & leaves ) const = 0;
   
+  // Test and Debug
+  virtual uint64_t memory ( void ) const = 0;
   virtual void debug ( void ) const = 0;
+  
 protected:
   uint64_t size_;
   

@@ -114,6 +114,7 @@ compute_adjacencies ( const Vertex & source ) const {
   std::insert_iterator < std::vector < Vertex > > ii ( target, target . begin () );
   grid_ . cover ( ii, f_ ( grid_ . geometry ( source ) ) ); // here is the work
   //std::cout << "computed.\n";
+
   return target;
 }
 

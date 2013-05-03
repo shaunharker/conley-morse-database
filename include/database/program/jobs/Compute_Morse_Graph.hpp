@@ -20,6 +20,10 @@ using namespace cimg_library;
 
 #include <ctime>
 
+#ifdef MEMORYBOOKKEEPING
+uint64_t max_grid_internal_memory = 0;
+uint64_t max_grid_external_memory = 0;
+#endif
 
 #ifdef DO_CONLEY_INDEX
 #include "chomp/ConleyIndex.h"
@@ -63,6 +67,10 @@ public:
   template < class GridPtr >
   MorseDecomposition ( GridPtr grid, int depth ) : grid_ ( grid ), spurious_(false), depth_(depth) {
     if ( grid_ . get () == NULL ) {std::cout << "Error Compute_Morse_Graph.hpp line 65\n"; abort (); }
+#ifdef MEMORYBOOKKEEPING
+    max_grid_external_memory += grid -> memory ();
+    max_grid_internal_memory = std::max( max_grid_internal_memory, grid -> memory () );
+#endif
   }
   
   // Deconstructor
@@ -313,6 +321,17 @@ void Compute_Morse_Graph (MorseGraph * MG,
   ConstructMorseGraph<Map> ( phase_space, MG, root, Min );
   // Free memory used in decomposition hierarchy
   delete root;
+#ifdef MEMORYBOOKKEEPING
+
+  std::cout << "Total Grid Memory (can be external) = " << max_grid_external_memory << "\n";
+  std::cout << "Max Memory For Single Grid (must be internal)= " << max_grid_internal_memory << "\n";
+  std::cout << "Max SCC Random Acces memory use (must be internal)= " << max_scc_memory_internal << "\n";
+  std::cout << "Max SCC stack memory use (can be external memory) = " << max_scc_memory_external << "\n";
+  std::cout << " ---- SUMMARY ---- \n";
+  std::cout << "Internal Memory Requirement = " << max_grid_internal_memory + max_scc_memory_internal << "\n";
+  std::cout << "External Memory Requirement = " << max_grid_external_memory + max_scc_memory_external << "\n";
+  std::cout << "Max graph memory size (never stored, however) = " << max_graph_memory << "\n";
+#endif
   //std::cout << "Returning from COMPUTE MORSE GRAPH\n";
 }
 

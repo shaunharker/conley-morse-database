@@ -114,6 +114,14 @@ public:
     std::cout << 8 * ( bits_mem_size + rank_mem_size + select_mem_size ) / bits_.size ( ) << " bits per node\n";
   }
 
+  /**
+   * Return the memory usage in bytes.
+   */
+  uint64_t memory ( void ) const {
+    return sdsl::util::get_size_in_bytes ( bits_ ) +
+    sdsl::util::get_size_in_bytes ( rank_ ) +
+    sdsl::util::get_size_in_bytes ( select_ );
+  }
 
 private:
   sdsl::bit_vector bits_;

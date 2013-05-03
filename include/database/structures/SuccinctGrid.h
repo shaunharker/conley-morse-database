@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <stack>
+#include <deque>
 #include <boost/unordered_set.hpp>
 #include <boost/unordered_map.hpp>
 
@@ -54,7 +55,7 @@ public:
   virtual SuccinctTree & tree ( void );
   virtual void subdivide ( void );
   virtual void adjoin( const Grid & other );
-  virtual SuccinctGrid * subgrid ( const std::vector < GridElement > & grid_elements ) const;
+  virtual SuccinctGrid * subgrid ( const std::deque < GridElement > & grid_elements ) const;
   void rebuild ( void );
 
   // Features
@@ -69,6 +70,8 @@ private:
   SuccinctTree tree_;
   RankSelect leaves_rs_;
   
+
+  
   // Serialization
   friend class boost::serialization::access;
   template<class Archive>
@@ -78,7 +81,14 @@ private:
     ar & tree_;
     ar & leaves_rs_;
   }
-  
+public:
+  // Test and Debug
+  virtual uint64_t memory ( void ) const {
+    return sizeof ( SuccinctTree ) +
+    sizeof ( RankSelect ) +
+    tree_ . memory () +
+    leaves_rs_ . memory ();
+  }
 };
 
 BOOST_CLASS_EXPORT_KEY(SuccinctGrid);
@@ -126,9 +136,9 @@ inline void SuccinctGrid::adjoin( const Grid & other ) {
   rebuild ();
 }
 
-inline SuccinctGrid * SuccinctGrid::subgrid ( const std::vector < Grid::GridElement > & grid_elements ) const {
+inline SuccinctGrid * SuccinctGrid::subgrid ( const std::deque < Grid::GridElement > & grid_elements ) const {
   // First we must convert the grid_elements to leaves
-  std::vector < Tree::iterator > leaves;
+  std::deque < Tree::iterator > leaves;
   BOOST_FOREACH ( GridElement ge, grid_elements ) {
     leaves . push_back ( GridToTree ( iterator ( ge ) ) );
   }

@@ -15,7 +15,8 @@
 /***************************/
 
 #define CMG_VERBOSE
-//#define NO_REACHABILITY
+#define MEMORYBOOKKEEPING
+#define NO_REACHABILITY
 //#define CMDB_STORE_GRAPH
 //#define ODE_METHOD
 
@@ -30,17 +31,21 @@
 /* Subdivision Settings  */
 /*************************/
 
-#ifndef GRIDCHOICE
-#define GRIDCHOICE PointerGrid
-#endif
+#undef GRIDCHOICE
 
 #include "database/structures/PointerGrid.h"
-//#include "database/structures/SuccinctGrid.h"
+#ifdef USE_SUCCINCT
+#define GRIDCHOICE SuccinctGrid
+#include "database/structures/SuccinctGrid.h"
+#else
+#define GRIDCHOICE PointerGrid
+#include "database/structures/PointerGrid.h"
+#endif
 
 using namespace chomp;
 int INITIALSUBDIVISIONS = 0;
-int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 24 - INITIALSUBDIVISIONS;
-int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 32 - INITIALSUBDIVISIONS;
+int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 28 - INITIALSUBDIVISIONS;
+int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 34 - INITIALSUBDIVISIONS;
 int SINGLECMG_COMPLEXITY_LIMIT = 10000;
 
 /**************/
@@ -733,9 +738,9 @@ int main ( int argc, char * argv [] )
   (float) (stop - start ) / (float) CLOCKS_PER_SEC << "\n";
   
   std::cout << "Creating image files...\n";
-  DrawMorseSets ( *phase_space, conley_morse_graph );
+  //DrawMorseSets ( *phase_space, conley_morse_graph );
   std::cout << "Creating DOT file...\n";
-  CreateDotFile ( conley_morse_graph );
+  //CreateDotFile ( conley_morse_graph );
   
   return 0;
 } /* main */

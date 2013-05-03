@@ -6,6 +6,7 @@
 #include <memory>
 #include <vector>
 #include <stack>
+#include <deque>
 
 #include <boost/foreach.hpp>
 #include <boost/iterator/counting_iterator.hpp>
@@ -36,9 +37,12 @@ public:
   virtual Tree & tree ( void ) = 0;
   virtual void subdivide ( void ) = 0;
   virtual void adjoin( const Grid & other ) = 0;
-  virtual Grid * subgrid ( const std::vector < GridElement > & grid_elements ) const = 0;
+  virtual Grid * subgrid ( const std::deque < GridElement > & grid_elements ) const = 0;
   virtual std::vector<GridElement> subset ( const Grid & other ) const;
-
+  
+  // Test and Debug
+  virtual uint64_t memory ( void ) const = 0;
+  
   // Construction methods
 protected:
   Grid ( void );

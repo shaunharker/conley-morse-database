@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <memory>
 #include <vector>
+#include <deque>
 #include <stack>
 
 #include <boost/foreach.hpp>
@@ -68,10 +69,12 @@ public:
   // Mutation Methods
   virtual void subdivide ( void );
   virtual void adjoin ( const Tree & other );
-  virtual PointerTree * subtree ( const std::vector < Tree::iterator > & leaves ) const;
+  virtual PointerTree * subtree ( const std::deque < Tree::iterator > & leaves ) const;
+  
 private:
 
   std::vector < PointerTreeNode * > nodes_;
+
 
   // Serialization Methods
   friend class boost::serialization::access;
@@ -80,7 +83,13 @@ private:
     ar & boost::serialization::base_object<Tree>(*this);
     ar & nodes_;
   }
-  
+public:
+  // Test and Debug
+  virtual uint64_t memory ( void ) const {
+    return sizeof ( std::vector < PointerTreeNode * > ) +
+    sizeof ( PointerTreeNode * ) * nodes_ . size () +
+    sizeof ( PointerTreeNode ) * nodes_ . size ();
+  }
   void debug ( void ) const;
 };
 
@@ -209,7 +218,7 @@ inline void PointerTree::adjoin ( const Tree & other ) {
 }
 
 inline PointerTree * PointerTree::subtree
-( const std::vector < Tree::iterator > & leaves ) const {
+( const std::deque < Tree::iterator > & leaves ) const {
   //std::cout << "PointerTree::raw_subtree with " << leaves.size () << " leaves.\n";
   if ( leaves . empty () ) {
     std::cout << "Error in subtree: expect nonempty set of leaves\n";

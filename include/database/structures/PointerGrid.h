@@ -7,6 +7,8 @@
 
 #include <vector>
 #include <stack>
+#include <deque>
+
 #include <boost/unordered_set.hpp>
 
 #include "database/structures/Grid.h"
@@ -41,18 +43,30 @@ public:
   virtual PointerTree & tree ( void );
   virtual void subdivide ( void );
   virtual void adjoin( const Grid & other );
-  virtual PointerGrid * subgrid ( const std::vector < GridElement > & grid_elements ) const;
-
-private:
+  virtual PointerGrid * subgrid ( const std::deque < GridElement > & grid_elements ) const;
   
+private:
+
+  void rebuild ( void );
+
   // Data to translate between tree and grid iterators
   boost::shared_ptr<PointerTree> tree_;
   std::vector < Grid::iterator > grid_iterators_;
   std::vector < Tree::iterator > tree_iterators_;
-  void rebuild ( void );
+public:
+ 
+  // Test and Debug
+  virtual uint64_t memory ( void ) const {
+    return sizeof ( boost::shared_ptr<PointerTree> ) +
+           sizeof ( std::vector < Grid::iterator >  ) +
+           sizeof ( std::vector < Tree::iterator >  ) +
+           tree_ -> memory () +
+           sizeof ( Grid::iterator ) * grid_iterators_ . size () +
+           sizeof ( Tree::iterator ) * tree_iterators_ . size ();
+  }
+  
   
   friend class boost::serialization::access;
-public:
   template<typename Archive>
   void serialize(Archive & ar, const unsigned int file_version) {
     ar & boost::serialization::base_object<Grid>(*this);
@@ -128,9 +142,9 @@ inline void PointerGrid::adjoin( const Grid & other ) {
 }
 
 
-inline PointerGrid * PointerGrid::subgrid ( const std::vector < GridElement > & grid_elements ) const {
+inline PointerGrid * PointerGrid::subgrid ( const std::deque < GridElement > & grid_elements ) const {
   // First we must convert the grid_elements to leaves
-  std::vector < Tree::iterator > leaves;
+  std::deque < Tree::iterator > leaves;
   BOOST_FOREACH ( GridElement ge, grid_elements ) {
     leaves . push_back ( GridToTree ( iterator ( ge ) ) );
   }

@@ -1,6 +1,9 @@
 #ifndef CMDB_SUCCINCTTREE_H
 #define CMDB_SUCCINCTTREE_H
 
+#include <vector>
+#include <deque>
+
 #include "database/structures/Tree.h"
 #include "database/structures/SDSLFullBinaryTree.h"
 #include "database/structures/RankSelect.h"
@@ -42,15 +45,16 @@ public:
   // Builder Methods
   virtual void subdivide ( void );
   virtual void adjoin ( const Tree & other );
-  virtual SuccinctTree * subtree ( const std::vector < Tree::iterator > & leaves ) const;
+  virtual SuccinctTree * subtree ( const std::deque < Tree::iterator > & leaves ) const;
   
   virtual void debug ( void ) const;
   
-  // Features
+  // Test and Debug
   void export_graphviz ( const char * filename ) const;
   void info ( void ) const;
   void memory_usage ( void ) const;
-
+  uint64_t memory ( void ) const;
+  
 private:
   // Private methods
   SDSLFullBinaryTree::iterator ActualToFull ( iterator it ) const;
@@ -367,7 +371,7 @@ inline void SuccinctTree::adjoin ( const Tree & other ) {
 
 }
 
-inline SuccinctTree * SuccinctTree::subtree ( const std::vector < iterator > & leaves ) const {
+inline SuccinctTree * SuccinctTree::subtree ( const std::deque < iterator > & leaves ) const {
 
   if ( leaves . empty () ) {
     std::cout << "Error, empty set. SuccinctTree::subtree\n";
@@ -583,6 +587,10 @@ inline void SuccinctTree::memory_usage ( void ) const {
   //
   fulltree_ . memory_usage ( );
   valid_rs_ . memory_usage ( );
+}
+
+inline uint64_t SuccinctTree::memory ( void ) const {
+  return fulltree_ . memory () + valid_rs_ . memory ();
 }
 
 #if 0

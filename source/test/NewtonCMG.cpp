@@ -1,51 +1,61 @@
-/// Construct and display a conley morse graph for a given dynamical system
 
-//#define OLD_CMAP_METHOD
-
-// STANDARD HEADERS
+/********************/
+/* Standard Headers */
+/********************/
 #include <iostream>
 #include <fstream>
 #include <ctime>
+#include <cmath>
 #include <vector>
 #include <set>
 #include <map>
 
-// To get SCC chatter
-#define CMG_VERBOSE 
-#define DO_CONLEY_INDEX
-#define MONOTONICSUBDIVISIONPROPERTY
+/***************************/
+/* Preprocessor directives */
+/***************************/
 
-// HEADERS FOR DATA STRUCTURES
-#include "chomp/Toplex.h"
+#define CMG_VERBOSE
+#define MEMORYBOOKKEEPING
+//#define NO_REACHABILITY
+//#define CMDB_STORE_GRAPH
+//#define ODE_METHOD
 
 #include "database/structures/Conley_Morse_Graph.h"
 #include "database/program/jobs/Compute_Morse_Graph.h"
-
-// HEADERS FOR DEALING WITH PICTURES
-#include "database/tools/picture.h"
-#include "database/tools/lodepng/lodepng.h"
-
-
-// MAP FUNCTION OBJECT
-#include <cmath>
-#include "database/maps/simple_interval.h"   // for interval arithmetic
+#include "chomp/ConleyIndex.h"
 #include "chomp/Rect.h"
-#include "chomp/Prism.h"
 
-#include "chomp/GraphComplex.h"
-#include "chomp/SimplicialComplex.h"
+#include "database/tools/SingleOutput.h"
+
+
+/*************************/
+/* Subdivision Settings  */
+/*************************/
+
+#undef GRIDCHOICE
+
+#include "database/structures/PointerGrid.h"
+#ifdef USE_SUCCINCT
+#define GRIDCHOICE SuccinctGrid
+#include "database/structures/SuccinctGrid.h"
+#else
+#define GRIDCHOICE PointerGrid
+#include "database/structures/PointerGrid.h"
+#endif
+
 using namespace chomp;
-
-// SUBDIVISION RULES
-
-int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 13;
-int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 18;
+int INITIALSUBDIVISIONS = 0;
+int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 13 - INITIALSUBDIVISIONS;
+int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 18 - INITIALSUBDIVISIONS;
 int SINGLECMG_COMPLEXITY_LIMIT = 100;
 
-// MAP INFORMATION
-#include "/Users/sharker/CMDBFiles/Wes/2D/7-13/ModelMap.h"
 
+/**************/
+/*    MAP     */
+/**************/
+#include "/Users/sharker/CMDBFiles/Wes/2D/7-13/ModelMap.h"
 //#include "data/newton2d/ModelMap.h"
+
 Rect initialize_phase_space_box ( void ) {
   const Real pi = 3.14159265358979323846264338327950288;
   int phase_space_dimension = 1;
@@ -69,18 +79,10 @@ Rect initialize_parameter_space_box ( void ) {
   return parameter_space_limits;
 }
 
-// TYPEDEFS
-typedef std::vector < GridElement > CellContainer;
-typedef ConleyMorseGraph < CellContainer , ConleyIndex_t > CMG;
-
-// Declarations
-void DrawMorseSets ( const Toplex & phase_space, const CMG & cmg );
-void CreateDotFile ( const CMG & cmg );
-
-
-
-// MAIN PROGRAM
-int main ( void ) 
+/*****************/
+/* Main Program  */
+/*****************/
+int main ( int argc, char * argv [] )
 {
   
   clock_t start, stop;
@@ -88,111 +90,53 @@ int main ( void )
   
   /* SET PHASE SPACE REGION */
   Rect phase_space_bounds = initialize_phase_space_box ();
-
+  
   /* SET PARAMETER SPACE REGION */
   Rect parameter_box = initialize_parameter_space_box ();
-
+  
   /* INITIALIZE PHASE SPACE */
-  Toplex phase_space;
-  phase_space . initialize ( phase_space_bounds, std::vector<bool>(1,true) );
+  boost::shared_ptr<GRIDCHOICE> phase_space (new GRIDCHOICE);
+  phase_space -> initialize ( phase_space_bounds );
+  
+  for ( int i = 0; i < INITIALSUBDIVISIONS; ++ i )
+    phase_space -> subdivide ();
   
   /* INITIALIZE MAP */
   ModelMap map ( parameter_box );
   
   /* INITIALIZE CONLEY MORSE GRAPH (create an empty one) */
-  CMG conley_morse_graph;
-
+  MorseGraph mg;
+  
   /* COMPUTE CONLEY MORSE GRAPH */
-  Compute_Morse_Graph ( & conley_morse_graph, 
-                        & phase_space, 
-                        map, 
-                        SINGLECMG_MIN_PHASE_SUBDIVISIONS, 
-                        SINGLECMG_MAX_PHASE_SUBDIVISIONS, 
-                        SINGLECMG_COMPLEXITY_LIMIT );
+  Compute_Morse_Graph ( & mg,
+                       phase_space,
+                       map,
+                       SINGLECMG_MIN_PHASE_SUBDIVISIONS,
+                       SINGLECMG_MAX_PHASE_SUBDIVISIONS,
+                       SINGLECMG_COMPLEXITY_LIMIT );
+  
+  typedef std::vector < Grid::GridElement > Subset;
+  for ( size_t v = 0; v < mg . NumVertices (); ++ v) {
+    Subset subset = phase_space -> subset ( * mg . grid ( v ) );
+    std::cout << "Calling Conley_Index on Morse Set " << v << "\n";
+    ConleyIndex_t conley;
+    ConleyIndex ( & conley,
+                 *phase_space,
+                 subset,
+                 map );
+    
+  }
 
   
   stop = clock ();
-  std::cout << "Total Time for Finding Morse Sets and reachability relation: " << 
-    (float) (stop - start ) / (float) CLOCKS_PER_SEC << "\n";
+  std::cout << "Total Time for Finding Morse Sets and reachability relation: " <<
+  (float) (stop - start ) / (float) CLOCKS_PER_SEC << "\n";
   
-  /* DRAW MORSE SETS */
-  //DrawMorseSets ( phase_space, conley_morse_graph );
-  
-  /* OUTPUT MORSE GRAPH */
-  CreateDotFile ( conley_morse_graph );
+  std::cout << "Creating image files...\n";
+  //DrawMorseSets ( *phase_space, mg );
+  std::cout << "Creating DOT file...\n";
+  CreateDotFile ( mg );
   
   return 0;
 } /* main */
-
-/* ----------------------------  OUTPUT FUNCTIONS ---------------------------- */
-
-
-
-void CreateDotFile ( const CMG & cmg ) {
-  typedef CMG::Vertex V;
-  typedef CMG::Edge E;
-  typedef CMG::VertexIterator VI;
-  typedef CMG::EdgeIterator EI;
-
-  std::ofstream outfile ("morsegraph.gv");
-  
-  outfile << "digraph G { \n";
-  //outfile << "node [ shape = point, color=black  ];\n";
-  //outfile << "edge [ color=red  ];\n";
-
-  // LOOP THROUGH VERTICES AND GIVE THEM NAMES
-  std::map < V, int > vertex_to_index;
-  VI start, stop;
-  int i = 0;
-  for (boost::tie ( start, stop ) = cmg . Vertices (); start != stop; ++ start ) {
-    vertex_to_index [ *start ] = i;
-    outfile << i << " [label=\""<< cmg . CellSet (*start) .size () << "\"]\n";
-    ++ i;
-  }
-  int N = cmg . NumVertices ();
-  
-  // LOOP THROUGH CMG EDGES
-  EI estart, estop;
-  typedef std::pair<int, int> int_pair;
-  std::set < int_pair > edges;
-  for (boost::tie ( estart, estop ) = cmg . Edges ();
-       estart != estop;
-       ++ estart ) {
-    V source = estart -> first; 
-    V target = estart -> second; 
-    int index_source = vertex_to_index [ source ];
-    int index_target = vertex_to_index [ target ];
-    if ( index_source != index_target ) // Cull the self-edges
-      edges . insert ( std::make_pair ( index_source, index_target ) );
-  }
-  // TRANSITIVE REDUCTION (n^5, non-optimal)
-  // We determine those edges (a, c) for which there are edges (a, b) and (b, c)
-  // and store them in "transitive_edges"
-  std::set < int_pair > transitive_edges;
-  BOOST_FOREACH ( int_pair edge, edges ) {
-    for ( int j = 0; j < N; ++ j ) {
-      bool left = false;
-      bool right = false;
-      BOOST_FOREACH ( int_pair edge2, edges ) {
-        if ( edge2 . first == edge . first && edge2 . second == j ) left = true;
-        if ( edge2 . first == j && edge2 . second == edge . second ) right = true;
-      }
-      if ( left && right ) transitive_edges . insert ( edge );
-    }
-  }
-  
-  // PRINT OUT EDGES OF TRANSITIVE CLOSURE
-  BOOST_FOREACH ( int_pair edge, edges ) {
-    if ( transitive_edges . count ( edge ) == 0 )
-      outfile << edge . first << " -> " << edge . second << ";\n";
-  }
-  
-  edges . clear ();
-  transitive_edges . clear ();
-
-  outfile << "}\n";
-  
-  outfile . close ();
-  
-}
 
