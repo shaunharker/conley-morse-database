@@ -115,6 +115,7 @@ int main ( int argc, char * argv [] )
                        SINGLECMG_MAX_PHASE_SUBDIVISIONS,
                        SINGLECMG_COMPLEXITY_LIMIT );
   
+  std::cout << "Number of Morse Sets = " << mg . NumVertices () << "\n";
   typedef std::vector < Grid::GridElement > Subset;
   for ( size_t v = 0; v < mg . NumVertices (); ++ v) {
     Subset subset = phase_space -> subset ( * mg . grid ( v ) );

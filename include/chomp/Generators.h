@@ -74,6 +74,7 @@ Generators_t MorseGenerators ( const Complex & complex, int cutoff_dimension );
 inline Generators_t SmithGenerators (const Complex & complex,
                                      int cutoff_dimension = -1 ) {
   if ( cutoff_dimension == -1 ) cutoff_dimension = complex . dimension ();
+   if ( cutoff_dimension > complex . dimension () ) cutoff_dimension = complex . dimension ();
   // Prepare output.
   Generators_t return_value ( complex . dimension () + 1 );
 	
@@ -200,6 +201,7 @@ inline Generators_t SmithGenerators (const Complex & complex,
   inline Generators_t MorseGenerators ( Complex & complex,
                                         int cutoff_dimension = -1 ) {
     if ( cutoff_dimension == -1 ) cutoff_dimension = complex . dimension ();
+    if ( cutoff_dimension > complex . dimension () ) cutoff_dimension = complex . dimension ();
                                      
   Generators_t return_value;
   /* Perform Single Morse Reductions to complex */
