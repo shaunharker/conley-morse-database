@@ -141,7 +141,7 @@ inline void PointerGrid::adjoin( const Grid & other ) {
   rebuild ();
 }
 
-
+// WARNING: WHAT IF THERE ARE DUPLICATES IN GRID_ELEMENTS?
 inline PointerGrid * PointerGrid::subgrid ( const std::deque < GridElement > & grid_elements ) const {
   // First we must convert the grid_elements to leaves
   std::deque < Tree::iterator > leaves;

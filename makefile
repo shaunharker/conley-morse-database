@@ -95,6 +95,10 @@ LVCMG := ./build/test/LVCMG.o
 LVCMG: $(LVCMG)
 	$(CC) $(LDFLAGS) $(LVCMG) -o $@ $(LDLIBS)
 
+SELKOVCMG := ./build/test/SelkovCMG.o
+SelkovCMG: $(SELKOVCMG)
+	$(CC) $(LDFLAGS) $(SELKOVCMG) -o $@ $(LDLIBS)
+
 SUBMAPTEST := ./build/test/SubdividedMapTest.o
 SubdividedMapTest: $(SUBMAPTEST)
 	$(CC) $(LDFLAGS) $(SUBMAPTEST) -o $@ $(LDLIBS)

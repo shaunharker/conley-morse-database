@@ -67,16 +67,44 @@ Rect initialize_phase_space_box ( void ) {
 }
 
 Rect initialize_parameter_space_box ( void ) {
-  int parameter_space_dimension = 2;
   //[-0.84375, -0.828125]x[0.245437, 0.269981]
   
+  int bx, by, bz;
+  bx = 2;
+  by = 26;
+  bz = 17;
+  int parameter_space_dimension = 3;
   Rect parameter_space_limits ( parameter_space_dimension ); 
-  parameter_space_limits . lower_bounds [ 0 ] = -0.84375;
-  parameter_space_limits . upper_bounds [ 0 ] = -0.828125;
-  parameter_space_limits . lower_bounds [ 1 ] = 0.245437;
-  parameter_space_limits . upper_bounds [ 1 ] = 0.269981;
-  std::cout << "Parameter Space Bounds = " << parameter_space_limits << "\n";
-  return parameter_space_limits;
+  parameter_space_limits . lower_bounds [ 0 ] = -1.0;
+  parameter_space_limits . upper_bounds [ 0 ] = 1.0;
+  parameter_space_limits . lower_bounds [ 1 ] = 0.0;
+  parameter_space_limits . upper_bounds [ 1 ] = 3.14159265358979;
+  parameter_space_limits . lower_bounds [ 2 ] = -1.0;
+  parameter_space_limits . upper_bounds [ 2 ] = 1.0;
+  int PARAMETER_BOXES = 32;
+  Rect parameter_box ( parameter_space_dimension );
+  
+  parameter_box . lower_bounds [ 0 ] = parameter_space_limits . lower_bounds [ 0 ] + ( parameter_space_limits . upper_bounds [ 0 ] - parameter_space_limits . lower_bounds [ 0 ] ) * bx / (float) PARAMETER_BOXES;
+  
+  parameter_box . upper_bounds [ 0 ] = parameter_space_limits . lower_bounds [ 0 ] + ( parameter_space_limits . upper_bounds [ 0 ] - parameter_space_limits . lower_bounds [ 0 ] ) * ( bx + 1.0 ) / (float) PARAMETER_BOXES;
+  
+  parameter_box . lower_bounds [ 1 ] = parameter_space_limits . lower_bounds [ 1 ] +  ( parameter_space_limits . upper_bounds [ 1 ] - parameter_space_limits . lower_bounds [ 1 ] ) * by / (float) PARAMETER_BOXES;
+  
+  parameter_box . upper_bounds [ 1 ] = parameter_space_limits . lower_bounds [ 1 ] +  ( parameter_space_limits . upper_bounds [ 1 ] - parameter_space_limits . lower_bounds [ 1 ] ) * ( by + 1.0 ) / (float) PARAMETER_BOXES;
+  
+  parameter_box . lower_bounds [ 2 ] = parameter_space_limits . lower_bounds [ 2 ] +  ( parameter_space_limits . upper_bounds [ 2 ] - parameter_space_limits . lower_bounds [ 2 ] ) * bz / (float) PARAMETER_BOXES;
+  
+  parameter_box . upper_bounds [ 2 ] = parameter_space_limits . lower_bounds [ 2 ] +  ( parameter_space_limits . upper_bounds [ 2 ] - parameter_space_limits . lower_bounds [ 2 ] ) * ( bz + 1.0 ) / (float) PARAMETER_BOXES;
+  
+  std::cout << "Parameter Box Choice = " << parameter_box << "\n";
+
+  //  Rect parameter_space_limits ( parameter_space_dimension ); 
+  //parameter_space_limits . lower_bounds [ 0 ] = -0.84375;
+  //parameter_space_limits . upper_bounds [ 0 ] = -0.828125;
+  //parameter_space_limits . lower_bounds [ 1 ] = 0.245437;
+  //parameter_space_limits . upper_bounds [ 1 ] = 0.269981;
+  //std::cout << "Parameter Space Bounds = " << parameter_space_limits << "\n";
+  return parameter_box;
 }
 
 /*****************/
@@ -96,7 +124,8 @@ int main ( int argc, char * argv [] )
   
   /* INITIALIZE PHASE SPACE */
   boost::shared_ptr<GRIDCHOICE> phase_space (new GRIDCHOICE);
-  phase_space -> initialize ( phase_space_bounds );
+  std::vector<bool> periodicity ( 1, true );
+  phase_space -> initialize ( phase_space_bounds, periodicity );
   
   for ( int i = 0; i < INITIALSUBDIVISIONS; ++ i )
     phase_space -> subdivide ();
