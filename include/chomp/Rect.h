@@ -81,6 +81,26 @@ private:
   BOOST_SERIALIZATION_SPLIT_MEMBER()
 };
 
+  Rect operator * ( double scalar, const Rect & rhs ) {
+    Rect result = rhs;
+    int d = rhs . dimension ();
+    for ( int i = 0; i < d; ++ i ) {
+      result . lower_bounds [ i ] *= scalar;
+      result . upper_bounds [ i ] *= scalar;
+    }
+    return result;
+  }
+  
+  Rect operator + ( const Rect & lhs, const Rect & rhs ) {
+    // SHOULD THROW
+    Rect result = lhs;
+    int d = rhs . dimension ();
+    for ( int i = 0; i < d; ++ i ) {
+      result . lower_bounds [ i ] += rhs . lower_bounds [ i ];
+      result . upper_bounds [ i ] += rhs . upper_bounds [ i ];
+    }
+    return result;
+  }
 std::ostream & operator << ( std::ostream & output_stream, const Rect & print_me );
 
 inline bool operator==(Rect x, Rect y) {
