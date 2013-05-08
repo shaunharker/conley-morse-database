@@ -28,6 +28,9 @@ public:
   Rect ( void ) {};
   Rect ( unsigned int size ) { lower_bounds . resize ( size );
                                 upper_bounds . resize ( size ); }
+  unsigned int dimension ( void ) const {
+    return lower_bounds . size ();
+  }
   Rect ( unsigned int size, const Real & value ) 
   { lower_bounds . resize ( size, value );
     upper_bounds . resize ( size, value ); }
