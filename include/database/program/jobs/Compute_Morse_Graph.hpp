@@ -233,6 +233,9 @@ void ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
 #ifdef USE_SUCCINCT
         grids . push_back ( MD -> grid () );
 #else
+#ifdef IGNORE_SMALL_MORSE
+      if ( MD -> grid () -> size () > 20 )
+#endif
       master_grid -> adjoin ( * MD -> grid () ); //SNOWBALL, QUADRATIC INEFFICIENCY. REPLACED WITH JOIN TECHNIQUE.
 #endif
       if ( MD -> depth () > Min ) continue;
