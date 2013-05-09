@@ -230,14 +230,14 @@ void ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
 
       // Obtain grid to form master grid
       //TODO: GET POINTER GRID WORKING WITH BETTER JOIN MECHANISM
-#ifdef USE_SUCCINCT
+//#ifdef USE_SUCCINCT
         grids . push_back ( MD -> grid () );
-#else
-#ifdef IGNORE_SMALL_MORSE
-      if ( MD -> grid () -> size () > 20 )
-#endif
-      master_grid -> adjoin ( * MD -> grid () ); //SNOWBALL, QUADRATIC INEFFICIENCY. REPLACED WITH JOIN TECHNIQUE.
-#endif
+//#else
+//#ifdef IGNORE_SMALL_MORSE
+//      if ( MD -> grid () -> size () > 20 )
+///#endif
+//      master_grid -> adjoin ( * MD -> grid () ); //SNOWBALL, QUADRATIC INEFFICIENCY. REPLACED WITH JOIN TECHNIQUE.
+//#endif
       if ( MD -> depth () > Min ) continue;
       // Amalgamate reachability information
 #ifndef NO_REACHABILITY
@@ -265,13 +265,13 @@ void ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
       
       if ( (MD -> depth () == Min) && (MD -> spurious () == false) ) {
         if ( MD -> grid () . get () == NULL ) {
-          std::cout << "Error at ComputeMorseGraph.hpp line 261\n";
+          std::cout << "Error at ComputeMorseGraph.hpp line 268\n";
           abort ();
         }
         Vertex v = MG -> AddVertex ();
         MG -> grid ( v ) = MD -> grid ();
         if ( MG -> grid ( v ) . get () == NULL ) {
-          std::cout << "Error at ComputeMorseGraph.hpp line 267\n";
+          std::cout << "Error at ComputeMorseGraph.hpp line 274\n";
           abort ();
         }
         temp [ MD ] . push_back ( v );
@@ -288,10 +288,10 @@ void ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
       eulertourstack . push ( std::make_pair ( MD -> children () [ childnum ], 0 ) );
     }
   }
-#ifdef USE_SUCCINCT
+//#ifdef USE_SUCCINCT
   boost::shared_ptr<CompressedGrid> joinup ( Grid::join ( grids . begin (), grids . end () ) );
   master_grid -> assign ( * joinup );
-#endif
+//#endif
 }
 
 

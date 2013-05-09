@@ -279,7 +279,7 @@ inline chomp::Rect Grid::geometry ( const const_iterator & cell_iterator ) const
   int division_dimension = tree () . depth ( it ) % dimension ();
   while ( it != root ) {
     //std::cout << "visiting " << *it << " with parent " <<  * tree().parent(it) << "\n";
-    std::cout . flush ();
+    //std::cout . flush ();
     Tree::iterator parent = tree () . parent ( it );
     -- division_dimension; if ( division_dimension < 0 ) division_dimension = dimension () - 1;
     if ( tree () . left ( parent ) == it ) {

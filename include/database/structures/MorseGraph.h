@@ -56,7 +56,7 @@ class MorseGraph {
    *  assigned to the vertex just after this function is called.
    *  ("empty" objects mean the objects created by default-constructor.)
    */
-  Vertex AddVertex();
+  Vertex AddVertex ( void );
   
   /** Add a edge from the "from" vertex to the "to" vertex.
    */
@@ -71,13 +71,13 @@ class MorseGraph {
   //// READ FUNCTIONS
   
   /** return a number of vertices */
-  unsigned int NumVertices() const;
+  unsigned int NumVertices ( void ) const;
   
   /** return a iterator pair to all vertices */
-  VertexIteratorPair Vertices() const;
+  VertexIteratorPair Vertices ( void ) const;
   
   /** return a iterator pair to all edges */
-  EdgeIteratorPair Edges() const;
+  EdgeIteratorPair Edges ( void ) const;
     
   //// PROPERTY ACCESS
   
@@ -155,10 +155,10 @@ MorseGraph::MorseGraph ( const char * filename ) {
  *  assigned to the vertex just after this function is called.
  *  ("empty" objects mean the objects created by default-constructor.)
  */
-inline MorseGraph::Vertex MorseGraph::AddVertex() {
+inline MorseGraph::Vertex MorseGraph::AddVertex ( void ) {
   int v = num_vertices_ ++;
-  grids_ . resize ( num_vertices_ );
-  conleyindexes_ . resize ( num_vertices_ );
+  grids_ . push_back ( boost::shared_ptr <Grid > ());
+  conleyindexes_ . push_back ( boost::shared_ptr <chomp::ConleyIndex_t > ());
   return v;
 }
 
@@ -173,19 +173,19 @@ inline void MorseGraph::RemoveEdge(Vertex from, Vertex to) {
 }
 
 /** return a number of vertices */
-inline unsigned int MorseGraph::NumVertices() const {
+inline unsigned int MorseGraph::NumVertices ( void ) const {
   return num_vertices_;
 }
 
 /** return a iterator pair to all vertices */
 inline MorseGraph::VertexIteratorPair
-MorseGraph::Vertices() const {
+MorseGraph::Vertices ( void ) const {
   return VertexIteratorPair ( 0, num_vertices_ );
 }
 
 /** return a iterator pair to all edges */
 inline MorseGraph::EdgeIteratorPair
-MorseGraph::Edges() const {
+MorseGraph::Edges ( void ) const {
   return EdgeIteratorPair(edges_.begin(), edges_.end());
 }
 

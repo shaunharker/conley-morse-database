@@ -51,7 +51,7 @@ BOOST_CLASS_EXPORT_IMPLEMENT(PointerGrid);
 using namespace chomp;
 int INITIALSUBDIVISIONS = 0;
 int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 24 - INITIALSUBDIVISIONS;
-int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 26 - INITIALSUBDIVISIONS;
+int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 27 - INITIALSUBDIVISIONS;
 int SINGLECMG_COMPLEXITY_LIMIT = 10000;
 
 
@@ -711,9 +711,8 @@ void computeConleyMorseGraph (MorseGraph & morsegraph,
 void computeMorseGraph ( MorseGraph & morsegraph,
                         ModelMap & map,
                         const char * outputfile ) {
-  /* COMPUTE CONLEY MORSE GRAPH */
 #ifdef CMG_VERBOSE
-  std::cout << "Computing Morse Graph\n";
+  std::cout << "computeMorseGraph.\n";
 #endif
   boost::shared_ptr < Grid > phase_space = morsegraph . phaseSpace ();
   Compute_Morse_Graph ( & morsegraph,
@@ -722,10 +721,6 @@ void computeMorseGraph ( MorseGraph & morsegraph,
                        SINGLECMG_MIN_PHASE_SUBDIVISIONS,
                        SINGLECMG_MAX_PHASE_SUBDIVISIONS,
                        SINGLECMG_COMPLEXITY_LIMIT );
-  std::cout << phase_space -> size () << "\n";
-  for ( int i = 0; i < phase_space -> size (); ++ i ) {
-    std::cout << phase_space -> geometry ( Grid::GridElement ( i ) );
-  }
   if ( outputfile != NULL ) {
     morsegraph . save ( outputfile );
   }
@@ -738,6 +733,7 @@ void computeConleyMorseGraph ( MorseGraph & morsegraph,
                               ModelMap & map,
                               const char * outputfile,
                               const char * inputfile ) {
+  std::cout << "computeConleyMorseGraph.\n";
   if ( inputfile != NULL ) {
     morsegraph . load ( inputfile );
   }

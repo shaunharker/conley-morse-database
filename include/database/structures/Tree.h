@@ -110,6 +110,8 @@ CompressedTree * Tree::join ( InputIterator start, InputIterator stop ) {
   std::vector<bool> & balanced_parentheses = result -> balanced_parentheses;
   std::vector<bool> & valid_tree_nodes = result -> valid_tree_nodes;
   
+  //std::cout << "(1";
+
   balanced_parentheses.push_back ( true );
   valid_tree_nodes.push_back ( true );
   typedef Tree::iterator iterator;
@@ -181,6 +183,7 @@ CompressedTree * Tree::join ( InputIterator start, InputIterator stop ) {
         if ( success ) {
           balanced_parentheses . push_back ( true );
           valid_tree_nodes . push_back ( true );
+          //std::cout << "(1";
           // Success. Try to go left again.
           state = 0;
           ++ depth;
@@ -197,9 +200,11 @@ CompressedTree * Tree::join ( InputIterator start, InputIterator stop ) {
             valid_tree_nodes . push_back ( false );
             balanced_parentheses . push_back ( true );
             balanced_parentheses . push_back ( false );
+            //std::cout << "(0)";
           }
           balanced_parentheses . push_back ( true );
           valid_tree_nodes . push_back ( true );
+          //std::cout << "(1";
           // Sucess. Try to go left now.
           state = 0;
           ++ depth;
@@ -210,6 +215,7 @@ CompressedTree * Tree::join ( InputIterator start, InputIterator stop ) {
             balanced_parentheses . push_back ( true );
             balanced_parentheses . push_back ( false );
             valid_tree_nodes . push_back ( false ); // right node not valid
+            //std::cout << "(0)";
           }
           // Failure. Rise.
           state = 2;
@@ -218,6 +224,7 @@ CompressedTree * Tree::join ( InputIterator start, InputIterator stop ) {
       case 2: // Rose
         -- depth;
         balanced_parentheses . push_back ( false );
+        //std::cout << ")";
         if ( success ) {
           // Rose from right, continue to rise
           state = 2;
@@ -230,6 +237,10 @@ CompressedTree * Tree::join ( InputIterator start, InputIterator stop ) {
     
   }
   balanced_parentheses.push_back ( false );
+  //std::cout << ")\n\n";
+  //std::cout << balanced_parentheses . size () << "\n";
+  //std::cout << valid_tree_nodes . size () << "\n";
+
   return result;
 }
 
