@@ -22,6 +22,8 @@
 #include "chomp/CubicalComplex.h"
 #include "chomp/BitmapSubcomplex.h"
 
+#include "database/structures/CompressedGrid.h"
+
 // Declaration
 class Grid {
 public:
@@ -39,11 +41,16 @@ public:
   virtual void adjoin( const Grid & other ) = 0;
   virtual Grid * subgrid ( const std::deque < GridElement > & grid_elements ) const = 0;
   virtual std::vector<GridElement> subset ( const Grid & other ) const;
-  
+  virtual void rebuild ( void ) = 0;
+
   // Test and Debug
   virtual uint64_t memory ( void ) const = 0;
   
   // Construction methods
+  template < class InputIterator >
+  static CompressedGrid * join ( InputIterator start, InputIterator stop );
+  void assign ( const CompressedGrid & compressed );
+  
 protected:
   Grid ( void );
 
@@ -171,6 +178,35 @@ inline std::vector<Grid::GridElement> Grid::subset ( const Grid & other ) const 
 
 // Construction/Initialization Methods
 
+template < class InputIterator >
+CompressedGrid * Grid::join ( InputIterator start, InputIterator stop ) {
+  CompressedGrid * result = new CompressedGrid;
+  if ( start == stop ) return result;
+  result -> bounds_ = (*start) -> bounds_;
+  result -> dimension_ = (*start) -> dimension_;
+  result -> periodic_ = (*start) -> periodic_;
+  // TODO: the next couple of line are inelegant. (Will auto help?)
+  std::vector < Tree * > tree_pointers;
+  for ( InputIterator it = start; it != stop; ++ it ) tree_pointers . push_back ( &((*it)->tree()) );
+  result -> tree_ . reset ( Tree::join ( tree_pointers . begin (), tree_pointers . end () ) );
+  result -> size_ = 0;
+  size_t valid_size = result -> tree_ -> valid_tree_nodes . size ();
+  for ( uint64_t i = 0; i < valid_size; ++ i )
+    if ( result -> tree_ -> valid_tree_nodes [ i ] )
+      ++ result -> size_;
+  
+  return result;
+}
+
+inline void Grid::assign ( const CompressedGrid & compressed ) {
+  size_ = compressed . size_;
+  bounds_ = compressed . bounds_;
+  dimension_ = compressed . dimension_;
+  periodic_ = compressed . periodic_;
+  tree () . assign ( * compressed . tree_ );
+  rebuild ();
+}
+
 inline Grid::Grid ( void ) {
   size_ = 1;
 }
@@ -258,6 +294,7 @@ inline chomp::Rect Grid::geometry ( const const_iterator & cell_iterator ) const
     it = parent;
   } /* while */
   for ( int dimension_index = 0; dimension_index < dimension_; ++ dimension_index ) {
+    //std::cout << "dimension_index =  " << dimension_index << "\n";
     /* Produce convex combinations */
     return_value . lower_bounds [ dimension_index ] = return_value . lower_bounds [ dimension_index ] * bounds_ . upper_bounds [ dimension_index ] +
     ( Real ( 1 ) - return_value . lower_bounds [ dimension_index ] ) * bounds_ . lower_bounds [ dimension_index ];

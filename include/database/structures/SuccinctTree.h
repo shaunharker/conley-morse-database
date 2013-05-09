@@ -48,7 +48,8 @@ public:
   virtual void subdivide ( void );
   virtual void adjoin ( const Tree & other );
   virtual SuccinctTree * subtree ( const std::deque < Tree::iterator > & leaves ) const;
-  
+  virtual void assign ( const CompressedTree & compressed );
+
   virtual void debug ( void ) const;
   
   // Test and Debug
@@ -509,6 +510,10 @@ inline SuccinctTree * SuccinctTree::subtree ( const std::deque < iterator > & le
   result -> initialize ( newbp , newvalid );
   return result;
 #endif
+}
+
+inline void SuccinctTree::assign ( const CompressedTree & compressed ) {
+  initialize ( compressed . balanced_parentheses, compressed . valid_tree_nodes );
 }
 
 inline void SuccinctTree::debug ( void ) const {  

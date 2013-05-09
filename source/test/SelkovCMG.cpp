@@ -224,7 +224,7 @@ int main ( int argc, char * argv [] )
   /* DRAW IMAGES ***********************************************************/
   TIC;                                                                     //
   std::cout << "Creating image file...\n";                                 //
-  DrawMorseSets ( * conleymorsegraph -> phaseSpace (), conleymorsegraph ); //
+  DrawMorseSets ( * (conleymorsegraph . phaseSpace ()), conleymorsegraph );//
   std::cout << "Creating graphviz .dot file...\n";                         //
   CreateDotFile ( conleymorsegraph );                                      //
   TOC;                                                                     //

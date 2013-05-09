@@ -56,7 +56,7 @@ public:
   virtual void subdivide ( void );
   virtual void adjoin( const Grid & other );
   virtual SuccinctGrid * subgrid ( const std::deque < GridElement > & grid_elements ) const;
-  void rebuild ( void );
+  virtual void rebuild ( void );
 
   // Features
   size_type depth ( const iterator & it ) const;

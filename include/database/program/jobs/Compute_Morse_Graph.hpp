@@ -196,10 +196,6 @@ ConstructMorseDecomposition (MorseDecomposition * root,
   }
 }
 
-// Efficiently merge grids
-inline boost::shared_ptr<Grid> adjoin ( std::vector < boost::shared_ptr < Grid > > grids ) {
-  
-}
 
 // ConstructMorseDecomposition
 template < class Map >
@@ -207,7 +203,7 @@ void ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
                      MorseGraph * MG,
                      MorseDecomposition * root,
                      const unsigned int Min ) {
-#ifndef MONOTONICSUBDIVISIONPROPERTY
+  std::vector < boost::shared_ptr < Grid > > grids;
   // Produce Morse Graph
   typedef MorseGraph::Vertex Vertex;
   // "temp" will store which MorseGraph vertices are hierarchically under a given decomposition node
@@ -232,11 +228,13 @@ void ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
       }
       if ( MD -> spurious () ) continue;
 
-      // Adjoin grid to master grid
-#ifdef ODE_METHOD
-      if ( MD -> grid () -> size () > 16 ) //DEBUG NEEDS TO BE REMOVED
+      // Obtain grid to form master grid
+      //TODO: GET POINTER GRID WORKING WITH BETTER JOIN MECHANISM
+#ifdef USE_SUCCINCT
+        grids . push_back ( MD -> grid () );
+#else
+      master_grid -> adjoin ( * MD -> grid () ); //SNOWBALL, QUADRATIC INEFFICIENCY. REPLACED WITH JOIN TECHNIQUE.
 #endif
-      master_grid -> adjoin ( * MD -> grid () );
       if ( MD -> depth () > Min ) continue;
       // Amalgamate reachability information
 #ifndef NO_REACHABILITY
@@ -264,13 +262,13 @@ void ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
       
       if ( (MD -> depth () == Min) && (MD -> spurious () == false) ) {
         if ( MD -> grid () . get () == NULL ) {
-          std::cout << "Error at ComputeMorseGraph.hpp line 230\n";
+          std::cout << "Error at ComputeMorseGraph.hpp line 261\n";
           abort ();
         }
         Vertex v = MG -> AddVertex ();
         MG -> grid ( v ) = MD -> grid ();
         if ( MG -> grid ( v ) . get () == NULL ) {
-          std::cout << "Error at ComputeMorseGraph.hpp line 236\n";
+          std::cout << "Error at ComputeMorseGraph.hpp line 267\n";
           abort ();
         }
         temp [ MD ] . push_back ( v );
@@ -287,15 +285,10 @@ void ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
       eulertourstack . push ( std::make_pair ( MD -> children () [ childnum ], 0 ) );
     }
   }
-#else
-  std::cout << "MONOTONICSUBDIVISIONPROPERTY FEATURE CURRENTLY DISABLED\n";
-  abort ();
-  //typedef MapGraph<Toplex,Map,CellContainer> Graph;
-  //Graph G ( * phase_space, interval_map );
-  //std::vector < CellContainer > morse_sets;
-  //compute_morse_sets<Morse_Graph,Graph,CellContainer> ( &morse_sets, G, MG );
+#ifdef USE_SUCCINCT
+  boost::shared_ptr<CompressedGrid> joinup ( Grid::join ( grids . begin (), grids . end () ) );
+  master_grid -> assign ( * joinup );
 #endif
- 
 }
 
 

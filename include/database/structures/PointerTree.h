@@ -12,7 +12,9 @@
 #include <stack>
 
 #include <boost/foreach.hpp>
+
 #include "database/structures/Tree.h"
+#include "database/structures/CompressedTree.h"
 
 #include "boost/serialization/serialization.hpp"
 #include "boost/serialization/vector.hpp"
@@ -70,7 +72,8 @@ public:
   virtual void subdivide ( void );
   virtual void adjoin ( const Tree & other );
   virtual PointerTree * subtree ( const std::deque < Tree::iterator > & leaves ) const;
-  
+  virtual void assign ( const CompressedTree & compressed );
+
 private:
 
   std::vector < PointerTreeNode * > nodes_;
@@ -286,6 +289,86 @@ inline PointerTree * PointerTree::subtree
   }
   //result -> debug ();
   return result;
+}
+
+inline void PointerTree::assign ( const CompressedTree & compressed ) {
+  
+  const std::vector<bool> & balanced_parentheses = compressed . balanced_parentheses;
+  const std::vector<bool> & valid_tree_nodes = compressed . valid_tree_nodes;
+  
+  for ( size_t i = 0; i < nodes_ . size (); ++ i ) delete nodes_[i];
+  size_ = 0;
+  
+  // Method. We use a "sentinel" pointer as a placeholder for missing left children
+  PointerTreeNode * sentinel = new PointerTreeNode; // assert( sentinel != NULL )
+  PointerTreeNode * parent = NULL;
+  size_t N = balanced_parentheses . size ();
+  size_t bp_pos = 0;
+  size_t valid_pos = 0;
+  while ( bp_pos < N ) {
+    if ( balanced_parentheses [ bp_pos ] ) {
+      // An open parentheses ( 
+      std::cout << "(";
+      if ( valid_tree_nodes [ valid_pos ++ ] ) {
+        // We have found a valid child.
+        PointerTreeNode * child = new PointerTreeNode;
+        child -> contents_ = size_;
+        if ( parent ) {
+          if ( parent -> left_ != NULL ) {
+            std::cout << "right";
+            parent -> right_ = child;
+            child -> parent_ = parent;
+            if ( parent -> left_ == sentinel ) parent -> left_ = NULL; // premature!
+          } else {
+            parent -> left_ = child;
+            child -> parent_ = parent;
+            std::cout << "left";
+          }
+        }
+        nodes_ . push_back ( child );
+        ++ size_;
+        ++ bp_pos; // consume (
+        parent = child;
+      } else {
+        // This is an invalid node, don't create it,
+        //  just consume the parentheses and move on.
+        if ( balanced_parentheses [ bp_pos + 1 ] != 0 ) {
+          std::cout << "I will eat my shorts on live television A.\n";
+          throw 1;
+        }
+        bp_pos += 2; // consume ()
+        if ( balanced_parentheses [ bp_pos - 2 ] != 1 ||
+             balanced_parentheses [ bp_pos - 1 ] != 0 ) {
+          std::cout << "I will eat my shorts on live television A.\n";
+          throw 1;
+        }
+        std::cout << "(invalid)"; abort ();
+        if ( parent -> left_ != NULL ) {
+          // It was the right child that was invalid.
+          if ( parent -> left_ == sentinel ) parent -> left_ = NULL;
+          parent -> right_ = NULL;
+          // Rise up.
+          parent = parent -> parent_;
+          if ( balanced_parentheses [ bp_pos ] != 0 ) {
+            std::cout << "I will eat my shorts on live television B.\n";
+            throw 1;
+          }
+          ++ bp_pos; // consume )
+          std::cout << ")";
+        } else {
+          // It was the left child that was invalid.
+          // Mark it temporarily with "sentinel"
+          parent -> left_ = sentinel;
+        }
+      }
+    } else {
+      std::cout << ")";
+      // We have read a closed parenthesis )
+      parent = parent -> parent_;
+      ++ bp_pos; // consume )
+    }
+  }
+  delete sentinel;
 }
 
 inline void PointerTree::debug ( void ) const {

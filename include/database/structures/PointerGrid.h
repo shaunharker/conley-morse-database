@@ -45,9 +45,10 @@ public:
   virtual void adjoin( const Grid & other );
   virtual PointerGrid * subgrid ( const std::deque < GridElement > & grid_elements ) const;
   
+  virtual void rebuild ( void );
+
 private:
 
-  void rebuild ( void );
 
   // Data to translate between tree and grid iterators
   boost::shared_ptr<PointerTree> tree_;

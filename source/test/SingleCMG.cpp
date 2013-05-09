@@ -17,6 +17,9 @@
 #define CMG_VERBOSE
 #define MEMORYBOOKKEEPING
 #define NO_REACHABILITY
+#define COMPUTE_MORSE_GRAPH
+#define COMPUTE_CONLEY_MORSE_GRAPH
+#define DRAW_IMAGES
 //#define CMDB_STORE_GRAPH
 //#define ODE_METHOD
 
@@ -32,21 +35,25 @@
 /*************************/
 
 #undef GRIDCHOICE
+#include <boost/serialization/export.hpp>
 
-#include "database/structures/PointerGrid.h"
 #ifdef USE_SUCCINCT
 #define GRIDCHOICE SuccinctGrid
 #include "database/structures/SuccinctGrid.h"
+BOOST_CLASS_EXPORT_IMPLEMENT(SuccinctGrid);
+
 #else
 #define GRIDCHOICE PointerGrid
 #include "database/structures/PointerGrid.h"
+BOOST_CLASS_EXPORT_IMPLEMENT(PointerGrid);
 #endif
 
 using namespace chomp;
 int INITIALSUBDIVISIONS = 0;
-int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 28 - INITIALSUBDIVISIONS;
-int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 34 - INITIALSUBDIVISIONS;
+int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 24 - INITIALSUBDIVISIONS;
+int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 26 - INITIALSUBDIVISIONS;
 int SINGLECMG_COMPLEXITY_LIMIT = 10000;
+
 
 /**************/
 /*  EXAMPLES  */
@@ -62,7 +69,7 @@ int SINGLECMG_COMPLEXITY_LIMIT = 10000;
 
 #ifdef TWODIMLESLIEPRISMCAPD
 #include "data/leslie12prism2/ModelMap.h"
-Rect initialize_phase_space_box ( void ) {
+Rect phaseBounds ( void ) {
   // Two dimensional phase space
   // [0, 320.056] x [0.0, 224.040]
   //  int phase_space_dimension = 2;
@@ -76,7 +83,7 @@ Rect initialize_phase_space_box ( void ) {
   return phase_space_bounds;
 }
 
-Rect initialize_parameter_space_box ( const Real bx, const Real by ) {
+Rect parameterBounds ( const Real bx, const Real by ) {
   // Two dimensional parameter space
   // A box chosen from [8, 37] x [3, 50]
   int parameter_space_dimension = 2;
@@ -105,7 +112,7 @@ Rect initialize_parameter_space_box ( const Real bx, const Real by ) {
 #ifdef FIVEDIMPRISMLESLIE
 #include "database/maps/leslie5d.h"
 
-Rect initialize_phase_space_box ( void ) {
+Rect phaseBounds ( void ) {
   int phase_space_dimension = 5;
   Rect phase_space_bounds ( phase_space_dimension );
   phase_space_bounds . lower_bounds [ 0 ] = 0.0;// -25.0
@@ -122,7 +129,7 @@ Rect initialize_phase_space_box ( void ) {
   return phase_space_bounds;
 }
 
-Rect initialize_parameter_space_box ( const Real bx, const Real by ) {
+Rect parameterBounds ( const Real bx, const Real by ) {
   // Two dimensional parameter space
   // A box chosen from [8, 37] x [3, 50]
   int parameter_space_dimension = 2;
@@ -153,7 +160,7 @@ Rect initialize_parameter_space_box ( const Real bx, const Real by ) {
 #include "database/maps/VanderPol.h"
 typedef VanderPol ModelMap;
 
-Rect initialize_phase_space_box ( void ) {
+Rect phaseBounds ( void ) {
   // Two dimensional phase space
   // [0, 320.056] x [0.0, 224.040]
   //  int phase_space_dimension = 2;
@@ -168,7 +175,7 @@ Rect initialize_phase_space_box ( void ) {
   return phase_space_bounds;
 }
 
-Rect initialize_parameter_space_box ( const Real bx, const Real by ) {
+Rect parameterBounds ( const Real bx, const Real by ) {
   return Rect ( 2 );
 }
 
@@ -179,7 +186,7 @@ Rect initialize_parameter_space_box ( const Real bx, const Real by ) {
 #include "database/maps/LorenzMap.h"
 typedef LorenzMap ModelMap;
 
-Rect initialize_phase_space_box ( void ) {
+Rect phaseBounds ( void ) {
   // Two dimensional phase space
   // [0, 320.056] x [0.0, 224.040]
   //  int phase_space_dimension = 2;
@@ -195,7 +202,7 @@ Rect initialize_phase_space_box ( void ) {
   return phase_space_bounds;
 }
 
-Rect initialize_parameter_space_box ( const Real bx, const Real by ) {
+Rect parameterBounds ( const Real bx, const Real by ) {
   return Rect ( 2 );
 }
   
@@ -237,7 +244,7 @@ struct ModelMap {
   
 };
 
-Rect initialize_phase_space_box ( void ) {
+Rect phaseBounds ( void ) {
   // Two dimensional phase space
   // [0, 320.056] x [0.0, 224.040]
   //  int phase_space_dimension = 2;
@@ -251,7 +258,7 @@ Rect initialize_phase_space_box ( void ) {
   return phase_space_bounds;
 }
 
-Rect initialize_parameter_space_box ( const Real bx, const Real by ) {
+Rect parameterBounds ( const Real bx, const Real by ) {
   // Two dimensional parameter space
   // A box chosen from [8, 37] x [3, 50]
   int parameter_space_dimension = 2;
@@ -280,7 +287,7 @@ Rect initialize_parameter_space_box ( const Real bx, const Real by ) {
 
 #ifdef PRISMLESLIE
 #include "data/leslie12prism/ModelMap.h"
-Rect initialize_phase_space_box ( void ) {
+Rect phaseBounds ( void ) {
   // Two dimensional phase space
   // [0, 320.056] x [0.0, 224.040]
   //  int phase_space_dimension = 2;
@@ -294,7 +301,7 @@ Rect initialize_phase_space_box ( void ) {
   return phase_space_bounds;
 }
 
-Rect initialize_parameter_space_box ( const Real bx, const Real by ) {
+Rect parameterBounds ( const Real bx, const Real by ) {
   // Two dimensional parameter space
   // A box chosen from [8, 37] x [3, 50]
   int parameter_space_dimension = 2;
@@ -355,7 +362,7 @@ struct ModelMap {
   
 };
 
-Rect initialize_phase_space_box ( void ) {
+Rect phaseBounds ( void ) {
   // Two dimensional phase space
   // [0, 320.056] x [0.0, 224.040]
   //  int phase_space_dimension = 2;
@@ -369,7 +376,7 @@ Rect initialize_phase_space_box ( void ) {
   return phase_space_bounds;
 }
 
-Rect initialize_parameter_space_box ( const Real bx, const Real by ) {
+Rect parameterBounds ( const Real bx, const Real by ) {
   // Two dimensional parameter space
   // A box chosen from [8, 37] x [3, 50]
   int parameter_space_dimension = 2;
@@ -437,7 +444,7 @@ struct ModelMap {
   
 };
 
-Rect initialize_phase_space_box ( void ) {
+Rect phaseBounds ( void ) {
   // Two dimensional phase space
   // [0, 320.056] x [0.0, 224.040]
   //  int phase_space_dimension = 2;
@@ -459,7 +466,7 @@ Rect initialize_phase_space_box ( void ) {
   return phase_space_bounds;
 }
 
-Rect initialize_parameter_space_box ( const Real bx, const Real by ) {
+Rect parameterBounds ( const Real bx, const Real by ) {
   // Two dimensional parameter space
   // A box chosen from [8, 37] x [3, 50]
   int parameter_space_dimension = 2;
@@ -574,7 +581,7 @@ struct ModelMap {
 };
 
 // you mean depth 9
-Rect initialize_phase_space_box ( void ) {
+Rect phaseBounds ( void ) {
   // Two dimensional phase space
   //phase space = [-1.1, 1.1]^3
   //parameter space = [.78125, .785625] [-.005, -.00125] [.06, .06]
@@ -592,7 +599,7 @@ Rect initialize_phase_space_box ( void ) {
   return phase_space_bounds;
 }
 
-Rect initialize_parameter_space_box ( const Real bx, const Real by ) {
+Rect parameterBounds ( const Real bx, const Real by ) {
   // Three dimensional parameter space
   //parameter space = [.78125, .785625] [-.005, -.00125] [.06, .06]
   // One example: 
@@ -645,7 +652,7 @@ struct ModelMap {
   
 };
 
-Rect initialize_phase_space_box ( void ) {
+Rect phaseBounds ( void ) {
   // Two dimensional phase space
   // [0, 320.056] x [0.0, 224.040]
   int phase_space_dimension = 2;
@@ -658,7 +665,7 @@ Rect initialize_phase_space_box ( void ) {
   return phase_space_bounds;
 }
 
-Rect initialize_parameter_space_box ( const Real bx, const Real by ) {
+Rect parameterBounds ( const Real bx, const Real by ) {
   // Two dimensional parameter space
   // A box chosen from [8, 37] x [3, 50]
   int parameter_space_dimension = 2;
@@ -686,16 +693,90 @@ Rect initialize_parameter_space_box ( const Real bx, const Real by ) {
 
 ////////////////////////////////////////END USER EDIT//////////////////////////////////////////
 
+/*************************/
+/* FORWARD DECLARATIONS  */
+/*************************/
+void computeMorseGraph (MorseGraph & morsegraph,
+                        ModelMap & map,
+                        const char * outputfile = NULL );
+void computeConleyMorseGraph (MorseGraph & morsegraph,
+                              ModelMap & map,
+                              const char * outputfile = NULL,
+                              const char * inputfile = NULL );
+
+
+/*******************************/
+/* Computation of Morse Graph  */
+/*******************************/
+void computeMorseGraph ( MorseGraph & morsegraph,
+                        ModelMap & map,
+                        const char * outputfile ) {
+  /* COMPUTE CONLEY MORSE GRAPH */
+#ifdef CMG_VERBOSE
+  std::cout << "Computing Morse Graph\n";
+#endif
+  boost::shared_ptr < Grid > phase_space = morsegraph . phaseSpace ();
+  Compute_Morse_Graph ( & morsegraph,
+                       phase_space,
+                       map,
+                       SINGLECMG_MIN_PHASE_SUBDIVISIONS,
+                       SINGLECMG_MAX_PHASE_SUBDIVISIONS,
+                       SINGLECMG_COMPLEXITY_LIMIT );
+  std::cout << phase_space -> size () << "\n";
+  for ( int i = 0; i < phase_space -> size (); ++ i ) {
+    std::cout << phase_space -> geometry ( Grid::GridElement ( i ) );
+  }
+  if ( outputfile != NULL ) {
+    morsegraph . save ( outputfile );
+  }
+}
+
+/**************************************/
+/* Computation of Conley Morse Graph  */
+/**************************************/
+void computeConleyMorseGraph ( MorseGraph & morsegraph,
+                              ModelMap & map,
+                              const char * outputfile,
+                              const char * inputfile ) {
+  if ( inputfile != NULL ) {
+    morsegraph . load ( inputfile );
+  }
+  boost::shared_ptr < Grid > phase_space = morsegraph . phaseSpace ();
+#ifdef CMG_VERBOSE
+  std::cout << "Number of Morse Sets = " << morsegraph . NumVertices () << "\n";
+#endif
+  typedef std::vector < Grid::GridElement > Subset;
+  for ( size_t v = 0; v < morsegraph . NumVertices (); ++ v) {
+    Subset subset = phase_space -> subset ( * morsegraph . grid ( v ) );
+#ifdef CMG_VERBOSE
+    std::cout << "Calling Conley_Index on Morse Set " << v << "\n";
+#endif
+    boost::shared_ptr<ConleyIndex_t> conley ( new ConleyIndex_t );
+    morsegraph . conleyIndex ( v ) = conley;
+    ConleyIndex ( conley . get (),
+                 *phase_space,
+                 subset,
+                 map );
+    
+  }
+  if ( outputfile != NULL ) {
+    morsegraph . save ( outputfile );
+  }
+}
+
+/*****************/
+/* Timer Macros  */
+/*****************/
+clock_t global_timer;
+#define TIC global_timer=clock()
+#define TOC std::cout << (float)(clock()-global_timer)/(float)CLOCKS_PER_SEC << " seconds elapsed.\n";
+
 /*****************/
 /* Main Program  */
 /*****************/
 int main ( int argc, char * argv [] )
 {
-  
-  clock_t start, stop;
-  start = clock ();
-  
-  
+  /* INITIALIZE MAP ************************************************/
   /* READ TWO INPUTS (which will give a parameter space box) */
   if ( argc != 3 ) {
     std::cout << "Usage: Supply 2 (not " << argc << ") arguments:\n";
@@ -704,43 +785,52 @@ int main ( int argc, char * argv [] )
   }
   Real bx = ( Real ) atoi ( argv [ 1 ] );
   Real by = ( Real ) atoi ( argv [ 2 ] );
-  
-  /* SET PHASE SPACE REGION */
-  Rect phase_space_bounds = initialize_phase_space_box ();
-  
-  /* SET PARAMETER SPACE REGION */
-  Rect parameter_box = initialize_parameter_space_box (bx, by);
-  
-  /* INITIALIZE PHASE SPACE */
-  boost::shared_ptr<GRIDCHOICE> phase_space (new GRIDCHOICE);
-  phase_space -> initialize ( phase_space_bounds );
-  
-  for ( int i = 0; i < INITIALSUBDIVISIONS; ++ i )
-    phase_space -> subdivide ();
-  
-  /* INITIALIZE MAP */
+  Rect parameter_box = parameterBounds (bx, by);
   ModelMap map ( parameter_box );
+  /*****************************************************************/
   
-  /* INITIALIZE CONLEY MORSE GRAPH (create an empty one) */
-  MorseGraph conley_morse_graph;
+#ifdef COMPUTE_MORSE_GRAPH
+  /* INITIALIZE MORSE GRAPH WITH PHASE SPACE *********************/
+  MorseGraph morsegraph ( new GRIDCHOICE );                      //
+  morsegraph . phaseSpace () -> initialize ( phaseBounds () );   //
+  for ( int i = 0; i < INITIALSUBDIVISIONS; ++ i )               //
+    morsegraph . phaseSpace () -> subdivide ();                  //
+  /***************************************************************/
   
-  /* COMPUTE CONLEY MORSE GRAPH */
-  Compute_Morse_Graph ( & conley_morse_graph,
-                       phase_space,
-                       map,
-                       SINGLECMG_MIN_PHASE_SUBDIVISIONS,
-                       SINGLECMG_MAX_PHASE_SUBDIVISIONS,
-                       SINGLECMG_COMPLEXITY_LIMIT );
+  /* COMPUTE MORSE GRAPH *************************************/
+  TIC;                                                       //
+  computeMorseGraph ( morsegraph, map, "leslie.mg" );        //
+  std::cout << "Total Time for Finding Morse Sets ";         //
+#ifndef NO_REACHABILITY                                      //
+  std::cout << "and reachability relation: ";                //
+#elseif                                                      //
+  std::cout << ": ";                                         //
+#endif                                                       //
+  TOC;                                                       //
+  /***********************************************************/
+#endif
   
+#ifdef COMPUTE_CONLEY_MORSE_GRAPH
+  /* COMPUTE CONLEY MORSE GRAPH ***************************************/
+  TIC;                                                                //
+  ConleyMorseGraph conleymorsegraph ( "leslie.mg" );                  //
+  computeConleyMorseGraph ( conleymorsegraph, map, "leslie.cmg" );    //
+  TOC;                                                                //
+  /********************************************************************/
+#else
+  ConleyMorseGraph & conleymorsegraph = morsegraph;
+#endif
   
-  stop = clock ();
-  std::cout << "Total Time for Finding Morse Sets and reachability relation: " <<
-  (float) (stop - start ) / (float) CLOCKS_PER_SEC << "\n";
-  
-  std::cout << "Creating image files...\n";
-  //DrawMorseSets ( *phase_space, conley_morse_graph );
-  std::cout << "Creating DOT file...\n";
-  //CreateDotFile ( conley_morse_graph );
-  
+#ifdef DRAW_IMAGES
+  /* DRAW IMAGES ***********************************************************/
+  TIC;                                                                     //
+  std::cout << "Creating image file...\n";                                 //
+  DrawMorseSets ( * (conleymorsegraph . phaseSpace ()), conleymorsegraph );//
+  std::cout << "Creating graphviz .dot file...\n";                         //
+  CreateDotFile ( conleymorsegraph );                                      //
+  TOC;                                                                     //
+  /*************************************************************************/
+#endif
   return 0;
 } /* main */
+
