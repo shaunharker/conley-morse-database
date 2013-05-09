@@ -1,6 +1,6 @@
 #include <cppcutter.h>
 
-#include <database/structures/Conley_Morse_Graph.h>
+#include <database/structures/MorseGraph.h>
 
 namespace TestConleyMorseGraph {
 

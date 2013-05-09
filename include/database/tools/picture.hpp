@@ -50,7 +50,7 @@ Picture * draw_picture (const int Width, const int Height,
 } /* draw_bitmap */
 
 #include <cmath>
-#include "database/structures/Conley_Morse_Graph.h"
+#include "database/structures/MorseGraph.h"
 #include "database/structures/Grid.h"
 #include "chomp/ConleyIndex.h"
 

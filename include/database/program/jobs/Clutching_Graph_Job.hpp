@@ -15,7 +15,7 @@
 #include "boost/serialization/set.hpp"
 
 #include "database/program/Configuration.h"
-#include "database/structures/Conley_Morse_Graph.h"
+#include "database/structures/MorseGraph.h"
 #include "database/program/jobs/Compute_Morse_Graph.h"
 #include "database/structures/UnionFind.hpp"
 #include "database/structures/Database.h"

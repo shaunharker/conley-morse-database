@@ -4,7 +4,7 @@
 
 #include "database/tools/picture.h"
 
-#include "database/structures/Conley_Morse_Graph.h"
+#include "database/structures/MorseGraph.h"
 #include "database/structures/Grid.h"
 
 /***********/

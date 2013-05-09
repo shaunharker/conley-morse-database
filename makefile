@@ -112,7 +112,13 @@ clean:
 	rm -f SingleCMG
 	rm -f ExportXML
 	rm -f NewtonCMG
-
+	rm -f AllanCMG
+	rm -f JustinCMG
+	rm -f SelkovCMG
+	rm -f TravelCMG
+	rm -f RMHTest
+	rm -f SubdividedMapTest
+	rm -f LVCMG
 
 # Create build directories
 .PHONY: build-dirs

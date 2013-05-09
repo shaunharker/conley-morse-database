@@ -6,7 +6,7 @@
 
 #include "database/program/Configuration.h"
 #include "database/program/jobs/Compute_Morse_Graph.h"
-#include "database/structures/Conley_Morse_Graph.h"
+#include "database/structures/MorseGraph.h"
 #include "database/structures/Database.h"
 #include "database/structures/Grid.h"
 #include "database/structures/PointerGrid.h"

@@ -21,7 +21,7 @@
 // HEADERS FOR DATA STRUCTURES
 #include "chomp/Toplex.h"
 #include "chomp/ConleyIndex.h"
-#include "database/structures/Conley_Morse_Graph.h"
+#include "database/structures/MorseGraph.h"
 #include "database/program/jobs/Compute_Morse_Graph.h"
 
 

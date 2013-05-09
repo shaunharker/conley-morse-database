@@ -1,7 +1,7 @@
 
 #include <chomp/Toplex.h>
 #include <database/structures/MapGraph.h>
-#include <database/structures/Conley_Morse_Graph.h>
+#include <database/structures/MorseGraph.h>
 #include <chomp/ConleyIndex.h>
 #include <database/algorithms/GraphTheory.h>
 

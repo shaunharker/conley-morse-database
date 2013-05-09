@@ -1,5 +1,5 @@
 /*
- *  Compute_Conley_Morse_Graph.h
+ *  Compute_MorseGraph.h
  */
 
 #ifndef _CMDP_COMPUTE_CONLEY_MORSE_GRAPH_
@@ -7,7 +7,7 @@
 
 #include <boost/shared_ptr.hpp>
 
-#include "database/structures/Conley_Morse_Graph.h"
+#include "database/structures/MorseGraph.h"
 #include "database/structures/Grid.h"
 
 /// Computes the Morse decomposition with respect to the given map

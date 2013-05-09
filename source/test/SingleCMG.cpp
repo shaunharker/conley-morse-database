@@ -20,7 +20,7 @@
 //#define CMDB_STORE_GRAPH
 //#define ODE_METHOD
 
-#include "database/structures/Conley_Morse_Graph.h"
+#include "database/structures/MorseGraph.h"
 #include "database/program/jobs/Compute_Morse_Graph.h"
 #include "chomp/Rect.h"
 
