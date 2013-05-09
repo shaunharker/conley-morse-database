@@ -34,7 +34,7 @@ public:
 
   // Constructor/Deconstructor Methods
   PointerGrid ( void );
-  ~PointerGrid ( void );
+  virtual ~PointerGrid ( void );
   
   // Virtual Methods
   virtual Tree::iterator GridToTree ( Grid::iterator it ) const;
@@ -79,7 +79,6 @@ public:
     assert(ofs.good());
     boost::archive::text_oarchive oa(ofs);
     oa << * this;
-    ofs . close ();
   }
   
   void load ( const char * filename ) {
@@ -90,7 +89,6 @@ public:
     }
     boost::archive::text_iarchive ia(ifs);
     ia >> * this;    
-    ifs . close ();
   }
  
   

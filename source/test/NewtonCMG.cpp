@@ -148,8 +148,9 @@ int main ( int argc, char * argv [] )
   for ( size_t v = 0; v < mg . NumVertices (); ++ v) {
     Subset subset = phase_space -> subset ( * mg . grid ( v ) );
     std::cout << "Calling Conley_Index on Morse Set " << v << "\n";
-    ConleyIndex_t conley;
-    ConleyIndex ( & conley,
+    boost::shared_ptr<ConleyIndex_t> conley ( new ConleyIndex_t );
+    mg . conleyIndex ( v ) = conley;
+    ConleyIndex ( conley . get (),
                  *phase_space,
                  subset,
                  map );

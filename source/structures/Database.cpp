@@ -101,7 +101,7 @@ void Database::save ( const char * filename ) {
   assert(ofs.good()); 
   boost::archive::xml_oarchive oa(ofs);
   oa << boost::serialization::make_nvp("database", * this);
-  ofs . close ();
+  //ofs . close ();
 }
 
 void Database::load ( const char * filename ) {
@@ -114,5 +114,5 @@ void Database::load ( const char * filename ) {
   boost::archive::xml_iarchive ia(ifs);
   // read class state from archive
   ia >> boost::serialization::make_nvp("database",*this);
-  ifs . close ();
+  //ifs . close ();
 }

@@ -46,7 +46,7 @@ class SuccinctGrid : public Grid {
 public:
   // Constructor/Deconstructor Methods
   SuccinctGrid ( void );
-  ~SuccinctGrid ( void );
+  virtual ~SuccinctGrid ( void );
   
   // Virtual Methods
   virtual Tree::iterator GridToTree ( Grid::iterator it ) const;

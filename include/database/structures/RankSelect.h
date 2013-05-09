@@ -1,6 +1,9 @@
 #ifndef RANKSELECT_H
 #define	RANKSELECT_H
 
+#include "boost/serialization/serialization.hpp"
+#include "boost/serialization/vector.hpp"
+
 #include <inttypes.h>
 #include "sdsl/rank_support_v5.hpp"
 #include "sdsl/select_support_mcl.hpp"

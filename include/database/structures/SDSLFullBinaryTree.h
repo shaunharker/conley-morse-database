@@ -10,9 +10,10 @@
 // includes for serialization
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
+#include "boost/serialization/serialization.hpp"
+#include "boost/serialization/vector.hpp"
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/split_member.hpp>
-#include <boost/serialization/vector.hpp>
 
 // includes for sdsl library : succinct binary tree represensation
 #include "sdsl/bp_support.hpp"

@@ -21,6 +21,8 @@
 
 #define CMG_VERBOSE
 #define NO_REACHABILITY
+#define COMPUTE_MORSE_GRAPH
+#define COMPUTE_CONLEY_MORSE_GRAPH
 //#define CMDB_STORE_GRAPH
 //#define ODE_METHOD
 
@@ -29,51 +31,61 @@
 #include "chomp/Rect.h"
 #include "database/tools/SingleOutput.h"
 
-//#include "extra_routines.h"
-
 /*************************/
 /* Subdivision Settings  */
 /*************************/
 
 #undef GRIDCHOICE
+#include <boost/serialization/export.hpp>
 
 #ifdef USE_SUCCINCT
 #define GRIDCHOICE SuccinctGrid
 #include "database/structures/SuccinctGrid.h"
+BOOST_CLASS_EXPORT_IMPLEMENT(SuccinctGrid);
+
 #else
 #define GRIDCHOICE PointerGrid
 #include "database/structures/PointerGrid.h"
+BOOST_CLASS_EXPORT_IMPLEMENT(PointerGrid);
 #endif
 
 
 using namespace chomp;
 int INITIALSUBDIVISIONS = 8;
-int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 18 - INITIALSUBDIVISIONS;
-int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 19 - INITIALSUBDIVISIONS;
+int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 10 - INITIALSUBDIVISIONS;
+int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 12 - INITIALSUBDIVISIONS;
 int SINGLECMG_COMPLEXITY_LIMIT = 10000;
 
-
-/**************************************************/
-/* Map, Parameter Space and Phase space Settings  */
-/**************************************************/
 
 #include "database/maps/Selkov.h"
 typedef MapRect ModelMap;
 
+/*************************/
+/* FORWARD DECLARATIONS  */
+/*************************/
+Rect phaseBounds ( void );
+Rect parameterBounds ( void );
+ModelMap initializeMap (double timestep,
+                        int steps,
+                        int samples );
+void computeMorseGraph (MorseGraph & morsegraph,
+                        ModelMap & map,
+                        const char * outputfile = NULL );
+void computeConleyMorseGraph (MorseGraph & morsegraph,
+                              ModelMap & map,
+                              const char * outputfile = NULL,
+                              const char * inputfile = NULL );
 
-std::vector < chomp::Rect > generateTimeSeries ( const chomp::Rect & x0,
-                                                 const ModelMap & map, int N,
-                                                 int tail );
+/**************************************************/
+/* Map, Parameter Space and Phase space Settings  */
+/**************************************************/
+ModelMap initializeMap ( double timestep, int steps, int samples ) {
+  Rect parameter_box = parameterBounds ();
+  ModelMap map ( parameter_box, timestep, steps, samples );
+  return map;
+}
 
-ModelMap generateMap ( double timestep, int steps, int samples );
-
-boost::shared_ptr<GRIDCHOICE> generateInitialPhaseSpace ( const std::vector < chomp::Rect > & time_series );
-
-
-Rect initialize_phase_space_box ( void ) {
-  // Two dimensional phase space
-  // [0, 320.056] x [0.0, 224.040]
-  //  int phase_space_dimension = 2;
+Rect phaseBounds ( void ) {
   int phase_space_dimension = 2;
   Rect phase_space_bounds ( phase_space_dimension );
   phase_space_bounds . lower_bounds [ 0 ] = 0.0;
@@ -84,7 +96,7 @@ Rect initialize_phase_space_box ( void ) {
   return phase_space_bounds;
 }
 
-Rect initialize_parameter_space_box ( void ) {
+Rect parameterBounds ( void ) {
   Rect parambox ( 4 );
   // nu
   parambox . lower_bounds[0] = 0.0285;
@@ -98,171 +110,125 @@ Rect initialize_parameter_space_box ( void ) {
    // gamma
   parambox . lower_bounds[3] = 2.0;
   parambox . upper_bounds[3] = 2.0;
-  
+  std::cout << "Parameter Choice = " << parambox << "\n";
   return parambox;
 }
 
 
+
+/*******************************/
+/* Computation of Morse Graph  */
+/*******************************/
+void computeMorseGraph ( MorseGraph & morsegraph,
+                         ModelMap & map,
+                         const char * outputfile ) {
+  /* COMPUTE CONLEY MORSE GRAPH */
+#ifdef CMG_VERBOSE
+  std::cout << "Computing Morse Graph\n";
+#endif
+  boost::shared_ptr < Grid > phase_space = morsegraph . phaseSpace ();
+  Compute_Morse_Graph ( & morsegraph,
+                       phase_space,
+                       map,
+                       SINGLECMG_MIN_PHASE_SUBDIVISIONS,
+                       SINGLECMG_MAX_PHASE_SUBDIVISIONS,
+                       SINGLECMG_COMPLEXITY_LIMIT );
+  if ( outputfile != NULL ) {
+    morsegraph . save ( outputfile );
+  }
+}
+
+/**************************************/
+/* Computation of Conley Morse Graph  */
+/**************************************/
+void computeConleyMorseGraph ( MorseGraph & morsegraph,
+                               ModelMap & map,
+                               const char * outputfile,
+                               const char * inputfile ) {
+  if ( inputfile != NULL ) {
+    morsegraph . load ( inputfile );
+  }
+  boost::shared_ptr < Grid > phase_space = morsegraph . phaseSpace ();
+#ifdef CMG_VERBOSE
+  std::cout << "Number of Morse Sets = " << morsegraph . NumVertices () << "\n";
+#endif
+  typedef std::vector < Grid::GridElement > Subset;
+  for ( size_t v = 0; v < morsegraph . NumVertices (); ++ v) {
+    Subset subset = phase_space -> subset ( * morsegraph . grid ( v ) );
+#ifdef CMG_VERBOSE
+    std::cout << "Calling Conley_Index on Morse Set " << v << "\n";
+#endif
+    boost::shared_ptr<ConleyIndex_t> conley ( new ConleyIndex_t );
+    morsegraph . conleyIndex ( v ) = conley;
+    ConleyIndex ( conley . get (),
+                 *phase_space,
+                 subset,
+                 map );
+    
+  }
+  if ( outputfile != NULL ) {
+    morsegraph . save ( outputfile );
+  }
+}
+
+/*****************/
+/* Timer Macros  */
+/*****************/
+clock_t global_timer;
+#define TIC global_timer=clock()
+#define TOC std::cout << (float)(clock()-global_timer)/(float)CLOCKS_PER_SEC << " seconds elapsed.\n";
 
 /*****************/
 /* Main Program  */
 /*****************/
 int main ( int argc, char * argv [] )
 {
-  
-  clock_t start, stop;
-  start = clock ();
-/*  
-  chomp::Rect x0 ( 2 );
-  x0 . lower_bounds [ 0 ] = .3;
-  x0 . upper_bounds [ 0 ] = .3;
-  x0 . lower_bounds [ 1 ] = .8;
-  x0 . upper_bounds [ 1 ] = .8;
-  
-  int N =  100000;
-  int tail = 10000;
-  double timeseriestimestep = .01;
-  ModelMap timeseriesmap = generateMap ( timeseriestimestep );
-  std::vector < chomp::Rect > time_series = generateTimeSeries ( x0, timeseriesmap, N, tail );
-*/
+  /* INITIALIZE MAP ************************************************/
+  double time_of_flight = .1;                                      //
+  ModelMap map = initializeMap ( time_of_flight, STEPS, SAMPLES ); //
+  /*****************************************************************/
 
+#ifdef COMPUTE_MORSE_GRAPH
+  /* INITIALIZE MORSE GRAPH WITH PHASE SPACE *********************/
+  MorseGraph morsegraph ( new GRIDCHOICE );                      //
+  morsegraph . phaseSpace () -> initialize ( phaseBounds () );   //
+  for ( int i = 0; i < INITIALSUBDIVISIONS; ++ i )               //
+    morsegraph . phaseSpace () -> subdivide ();                  //
+  /***************************************************************/
 
-//  std::vector < chomp::Rect > time_series = ImportTimeSeries ( "Selkov_TS.dat" );
-//  boost::shared_ptr<GRIDCHOICE> phase_space = generateInitialPhaseSpace ( time_series );
+  /* COMPUTE MORSE GRAPH *************************************/
+  TIC;                                                       //
+  computeMorseGraph ( morsegraph, map, "selkov.mg" );        //
+  std::cout << "Total Time for Finding Morse Sets ";         //
+#ifndef NO_REACHABILITY                                      //
+  std::cout << "and reachability relation: ";                //
+#elseif                                                      //
+  std::cout << ": ";                                         //
+#endif                                                       //
+  TOC;                                                       //
+  /***********************************************************/
+#endif
   
-
- /* SET PHASE SPACE REGION */
-  Rect phase_space_bounds = initialize_phase_space_box ();
+#ifdef COMPUTE_CONLEY_MORSE_GRAPH
+  /* COMPUTE CONLEY MORSE GRAPH ***************************************/
+  TIC;                                                                //
+  ConleyMorseGraph conleymorsegraph ( "selkov.mg" );                  //
+  computeConleyMorseGraph ( conleymorsegraph, map, "selkov.cmg" );    //
+  TOC;                                                                //
+  /********************************************************************/
+#else
+  ConleyMorseGraph & conleymorsegraph = morsegraph;
+#endif
   
-  /* SET PARAMETER SPACE REGION */
-  Rect parameter_box = initialize_parameter_space_box ();
-  
-  /* INITIALIZE PHASE SPACE */
-  boost::shared_ptr<GRIDCHOICE> phase_space (new GRIDCHOICE);
-  phase_space -> initialize ( phase_space_bounds );
-
-  for ( int i = 0; i < INITIALSUBDIVISIONS; ++ i )
-    phase_space -> subdivide ();
-
-  /* INITIALIZE CONLEY MORSE GRAPH (create an empty one) */
-  double time_of_flight = .1;
-  ModelMap map = generateMap ( time_of_flight, STEPS, SAMPLES );
-
-  MorseGraph conley_morse_graph;
-  
-  /* COMPUTE CONLEY MORSE GRAPH */
-  Compute_Morse_Graph ( & conley_morse_graph,
-                       phase_space,
-                       map,
-                       SINGLECMG_MIN_PHASE_SUBDIVISIONS,
-                       SINGLECMG_MAX_PHASE_SUBDIVISIONS,
-                       SINGLECMG_COMPLEXITY_LIMIT );
-  
-  
-  stop = clock ();
-  std::cout << "Total Time for Finding Morse Sets and reachability relation: " <<
-  (float) (stop - start ) / (float) CLOCKS_PER_SEC << "\n";
-  
-  std::cout << "Creating PNG file...\n";
-  DrawMorseSets ( *phase_space, conley_morse_graph );
-  std::cout << "Creating DOT file...\n";
-  CreateDotFile ( conley_morse_graph );
-
-  SaveMorseSets ( "morse_sets.dat", "morse_sets_size.dat", conley_morse_graph, phase_space );
-
-
+#ifdef DRAW_IMAGES
+  /* DRAW IMAGES ***********************************************************/
+  TIC;                                                                     //
+  std::cout << "Creating image file...\n";                                 //
+  DrawMorseSets ( * conleymorsegraph -> phaseSpace (), conleymorsegraph ); //
+  std::cout << "Creating graphviz .dot file...\n";                         //
+  CreateDotFile ( conleymorsegraph );                                      //
+  TOC;                                                                     //
+  /*************************************************************************/
+#endif
   return 0;
 } /* main */
-
-
-
-
-
-
-/*******************/
-/* Map of Interest */
-/*******************/
-ModelMap generateMap ( double timestep, int steps, int samples ) {
-  Rect parameter_box = initialize_parameter_space_box ();
-  ModelMap map ( parameter_box, timestep, steps, samples );
-  return map;
-}
-
-#if 0
-/************************/
-/* Generate Time Series */
-/************************/
-std::vector < chomp::Rect > generateTimeSeries ( const chomp::Rect & x0,
-                                                 const ModelMap & map, int N,
-                                                 int tail = 0 ) {
-  std::cout << "Generating time series.\n";
-
-  std::vector < chomp::Rect > result;
-  result . reserve ( N - tail );
-  chomp::Rect x = x0;
-  int percent= 0;
-  for ( int i = 0; i < N; ++ i ) {
-    int newpercent = (i*100)/N;
-    if ( newpercent > percent ) {
-      std::cout << "\r            \r" << newpercent << "%";
-      std::cout . flush ();
-      percent = newpercent;
-    }
-    if ( i >= tail ) result . push_back ( x );
-    x = map ( x );
-    x . lower_bounds [ 0 ] = x . upper_bounds [ 0 ] = (x . lower_bounds [ 0 ] + x . upper_bounds [ 0 ])/2.0;
-    x . lower_bounds [ 1 ] = x . upper_bounds [ 1 ] = (x . lower_bounds [ 1 ] + x . upper_bounds [ 1 ])/2.0;
-  }
-  std::cout << "\rTime Series Generated.\n";
-  return result;
-}
-
-/********************************/
-/* Generate Initial Phase Space */
-/********************************/
-boost::shared_ptr<GRIDCHOICE> generateInitialPhaseSpace ( const std::vector < chomp::Rect > & time_series ) {
-  std::cout << "Generating Initial Phase Space.\n";
-
-  chomp::Rect phase_space_bounds = initialize_phase_space_box ();
-  boost::shared_ptr<GRIDCHOICE> phase_space (new GRIDCHOICE);
-  phase_space -> initialize ( phase_space_bounds );
-  for ( int subdivision_depth = 0; subdivision_depth < INITIALSUBDIVISIONS; ++ subdivision_depth ) {
-    std::cout << "\r          Depth = " << subdivision_depth;
-    boost::unordered_set < Grid::GridElement > subset_of_time_series;
-    std::insert_iterator < boost::unordered_set < Grid::GridElement > >
-      tsii ( subset_of_time_series, subset_of_time_series . begin () );
-    int percent= 0;
-    size_t n = time_series . size ();
-    size_t i = 0;
-    BOOST_FOREACH ( const chomp::Rect & rect, time_series ) {
-      int newpercent = (i++ * 100)/n;
-      if ( newpercent > percent ) {
-        std::cout << "\r" << newpercent << "%";
-        std::cout . flush ();
-        percent = newpercent;
-      }
-
-      chomp::Rect collared_rect = rect;
-      collared_rect . lower_bounds [ 0 ] -= WIDTH;
-      collared_rect . upper_bounds [ 0 ] += WIDTH;
-      collared_rect . lower_bounds [ 1 ] -= WIDTH;
-      collared_rect . upper_bounds [ 1 ] += WIDTH;
-      
-      phase_space -> cover ( tsii, collared_rect );
-    }
-    std::deque < Grid::GridElement > deque_of_time_series;
-    BOOST_FOREACH ( const Grid::GridElement ge, subset_of_time_series ) {
-      deque_of_time_series . push_back ( ge );
-    }
-    boost::shared_ptr<GRIDCHOICE> subgrid ( phase_space -> subgrid ( deque_of_time_series ) );
-    subgrid -> subdivide ();
-    phase_space = subgrid;
-  }
-  std::cout << "\rInitial Phase Space Generated.\n";
-  return phase_space;
-}
-#endif
-
-
-
-

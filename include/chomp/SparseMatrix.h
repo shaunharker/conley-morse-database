@@ -111,8 +111,8 @@ public: // not friends with different templated versions, weirdly
   // Garbage Collection structure
   std::deque < Index > garbage_;
   // data to assist in O(1) random access times
-  std::tr1::unordered_map < Position, Index, boost::hash< Position > > access_;
-  typedef std::tr1::unordered_map < Position, Index, boost::hash< Position > >::const_iterator access_iterator;
+  boost::unordered_map < Position, Index, boost::hash< Position > > access_;
+  typedef boost::unordered_map < Position, Index, boost::hash< Position > >::const_iterator access_iterator;
   // data to store the beginning of the rows and columns
   std::vector < Index > row_begin_;
   std::vector < Index > column_begin_;

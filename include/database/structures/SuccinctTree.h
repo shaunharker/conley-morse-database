@@ -29,6 +29,8 @@ public:
 
   // Construction and Initialization
   SuccinctTree ( void );
+  virtual ~SuccinctTree ( void ) {}
+  
   void initialize ( std::vector < bool > bp , std::vector < bool > valid );
  
   // Iteration methods
@@ -67,7 +69,7 @@ private:
   // Serialization
   friend class boost::serialization::access;
   template<class Archive>
-  void serialize ( Archive & ar , const unsigned int version ) const {
+  void serialize ( Archive & ar , const unsigned int version ) {
     ar & boost::serialization::base_object<Tree>(*this);
     ar & fulltree_;
     ar & valid_rs_;   
