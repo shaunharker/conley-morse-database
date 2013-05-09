@@ -298,6 +298,7 @@ SHOWLINE
         Vertex v = MG -> AddVertex ();
         SHOWLINE
         MG -> grid ( v ) = MD -> grid ();
+        SHOWLINE
         if ( MG -> grid ( v ) . get () == NULL ) {
         SHOWLINE
           std::cout << "Error at ComputeMorseGraph.hpp line 274\n";
