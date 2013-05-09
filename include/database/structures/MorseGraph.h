@@ -45,7 +45,7 @@ class MorseGraph {
   MorseGraph();
   /** Initialize MorseGraph with phase space */
   template < class grid_ptr >
-  MorseGraph ( grid_ptr phasespace ) : phasespace_(phasespace) {}
+  MorseGraph ( grid_ptr phasespace ) : num_vertices_(0), phasespace_(phasespace) {}
   /** Load MorseGraph from file */
   MorseGraph ( const char * filename );
   // WRITE FUNCTIONS
