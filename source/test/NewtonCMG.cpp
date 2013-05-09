@@ -34,7 +34,6 @@
 
 #undef GRIDCHOICE
 
-#include "database/structures/PointerGrid.h"
 #ifdef USE_SUCCINCT
 #define GRIDCHOICE SuccinctGrid
 #include "database/structures/SuccinctGrid.h"

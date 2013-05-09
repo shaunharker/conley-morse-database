@@ -10,7 +10,7 @@
 #include "chomp/Rect.h"
 #include "chomp/Prism.h"
 
-//#include "database/maps/simple_interval.h"
+//#include "database/numerics/simple_interval.h"
 #include "capd/intervals/lib.h"
 
 

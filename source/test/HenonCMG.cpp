@@ -32,7 +32,7 @@
 
 // MAP FUNCTION OBJECT
 #include <cmath>
-#include "database/maps/simple_interval.h"   // for interval arithmetic
+#include "database/numerics/simple_interval.h"   // for interval arithmetic
 
 #include "capd/capdlib.h"
 #include "capd/dynsys/DynSysMap.h"

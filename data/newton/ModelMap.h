@@ -5,7 +5,7 @@
 
 //#include <boost/numeric/interval.hpp>
 #include "chomp/Rect.h"
-#include "database/maps/simple_interval.h"
+#include "database/numerics/simple_interval.h"
 #include <vector>
 
 struct ModelMap {

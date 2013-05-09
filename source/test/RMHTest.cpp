@@ -30,7 +30,7 @@
 
 // MAP FUNCTION OBJECT
 #include <cmath>
-#include "database/maps/simple_interval.h"   // for interval arithmetic
+#include "database/numerics/simple_interval.h"   // for interval arithmetic
 #include "chomp/Rect.h"
 #include "chomp/Prism.h"
 

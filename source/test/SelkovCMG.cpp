@@ -15,7 +15,9 @@
 /* Preprocessor directives */
 /***************************/
 
-#define WIDTH 1.0/512.0
+#define WIDTH 1.0/128.0
+#define STEPS 100
+#define SAMPLES 4
 
 #define CMG_VERBOSE
 #define NO_REACHABILITY
@@ -27,21 +29,27 @@
 #include "chomp/Rect.h"
 #include "database/tools/SingleOutput.h"
 
+//#include "extra_routines.h"
+
 /*************************/
 /* Subdivision Settings  */
 /*************************/
 
-#ifndef GRIDCHOICE
+#undef GRIDCHOICE
+
+#ifdef USE_SUCCINCT
+#define GRIDCHOICE SuccinctGrid
+#include "database/structures/SuccinctGrid.h"
+#else
 #define GRIDCHOICE PointerGrid
+#include "database/structures/PointerGrid.h"
 #endif
 
-#include "database/structures/PointerGrid.h"
-//#include "database/structures/SuccinctGrid.h"
 
 using namespace chomp;
-int INITIALSUBDIVISIONS = 30;
-int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 32 - INITIALSUBDIVISIONS;
-int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 34 - INITIALSUBDIVISIONS;
+int INITIALSUBDIVISIONS = 8;
+int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 18 - INITIALSUBDIVISIONS;
+int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 19 - INITIALSUBDIVISIONS;
 int SINGLECMG_COMPLEXITY_LIMIT = 10000;
 
 
@@ -51,6 +59,15 @@ int SINGLECMG_COMPLEXITY_LIMIT = 10000;
 
 #include "database/maps/Selkov.h"
 typedef MapRect ModelMap;
+
+
+std::vector < chomp::Rect > generateTimeSeries ( const chomp::Rect & x0,
+                                                 const ModelMap & map, int N,
+                                                 int tail );
+
+ModelMap generateMap ( double timestep, int steps, int samples );
+
+boost::shared_ptr<GRIDCHOICE> generateInitialPhaseSpace ( const std::vector < chomp::Rect > & time_series );
 
 
 Rect initialize_phase_space_box ( void ) {
@@ -86,15 +103,92 @@ Rect initialize_parameter_space_box ( void ) {
 }
 
 
+
+/*****************/
+/* Main Program  */
+/*****************/
+int main ( int argc, char * argv [] )
+{
+  
+  clock_t start, stop;
+  start = clock ();
+/*  
+  chomp::Rect x0 ( 2 );
+  x0 . lower_bounds [ 0 ] = .3;
+  x0 . upper_bounds [ 0 ] = .3;
+  x0 . lower_bounds [ 1 ] = .8;
+  x0 . upper_bounds [ 1 ] = .8;
+  
+  int N =  100000;
+  int tail = 10000;
+  double timeseriestimestep = .01;
+  ModelMap timeseriesmap = generateMap ( timeseriestimestep );
+  std::vector < chomp::Rect > time_series = generateTimeSeries ( x0, timeseriesmap, N, tail );
+*/
+
+
+//  std::vector < chomp::Rect > time_series = ImportTimeSeries ( "Selkov_TS.dat" );
+//  boost::shared_ptr<GRIDCHOICE> phase_space = generateInitialPhaseSpace ( time_series );
+  
+
+ /* SET PHASE SPACE REGION */
+  Rect phase_space_bounds = initialize_phase_space_box ();
+  
+  /* SET PARAMETER SPACE REGION */
+  Rect parameter_box = initialize_parameter_space_box ();
+  
+  /* INITIALIZE PHASE SPACE */
+  boost::shared_ptr<GRIDCHOICE> phase_space (new GRIDCHOICE);
+  phase_space -> initialize ( phase_space_bounds );
+
+  for ( int i = 0; i < INITIALSUBDIVISIONS; ++ i )
+    phase_space -> subdivide ();
+
+  /* INITIALIZE CONLEY MORSE GRAPH (create an empty one) */
+  double time_of_flight = .1;
+  ModelMap map = generateMap ( time_of_flight, STEPS, SAMPLES );
+
+  MorseGraph conley_morse_graph;
+  
+  /* COMPUTE CONLEY MORSE GRAPH */
+  Compute_Morse_Graph ( & conley_morse_graph,
+                       phase_space,
+                       map,
+                       SINGLECMG_MIN_PHASE_SUBDIVISIONS,
+                       SINGLECMG_MAX_PHASE_SUBDIVISIONS,
+                       SINGLECMG_COMPLEXITY_LIMIT );
+  
+  
+  stop = clock ();
+  std::cout << "Total Time for Finding Morse Sets and reachability relation: " <<
+  (float) (stop - start ) / (float) CLOCKS_PER_SEC << "\n";
+  
+  std::cout << "Creating PNG file...\n";
+  DrawMorseSets ( *phase_space, conley_morse_graph );
+  std::cout << "Creating DOT file...\n";
+  CreateDotFile ( conley_morse_graph );
+
+  SaveMorseSets ( "morse_sets.dat", "morse_sets_size.dat", conley_morse_graph, phase_space );
+
+
+  return 0;
+} /* main */
+
+
+
+
+
+
 /*******************/
 /* Map of Interest */
 /*******************/
-ModelMap generateMap ( double timestep ) {
+ModelMap generateMap ( double timestep, int steps, int samples ) {
   Rect parameter_box = initialize_parameter_space_box ();
-  ModelMap map ( parameter_box, timestep );
+  ModelMap map ( parameter_box, timestep, steps, samples );
   return map;
 }
 
+#if 0
 /************************/
 /* Generate Time Series */
 /************************/
@@ -167,53 +261,8 @@ boost::shared_ptr<GRIDCHOICE> generateInitialPhaseSpace ( const std::vector < ch
   std::cout << "\rInitial Phase Space Generated.\n";
   return phase_space;
 }
+#endif
 
-/*****************/
-/* Main Program  */
-/*****************/
-int main ( int argc, char * argv [] )
-{
-  
-  clock_t start, stop;
-  start = clock ();
-  
-  chomp::Rect x0 ( 2 );
-  x0 . lower_bounds [ 0 ] = .2;
-  x0 . upper_bounds [ 0 ] = .2;
-  x0 . lower_bounds [ 1 ] = .85;
-  x0 . upper_bounds [ 1 ] = .85;
-  
-  int N =  1000000;
-  int tail = 100000;
-  double timeseriestimestep = .01;
-  ModelMap timeseriesmap = generateMap ( timeseriestimestep );
-  std::vector < chomp::Rect > time_series = generateTimeSeries ( x0, timeseriesmap, N, tail );
-  boost::shared_ptr<GRIDCHOICE> phase_space = generateInitialPhaseSpace ( time_series );
- 
-  
-  /* INITIALIZE CONLEY MORSE GRAPH (create an empty one) */
-  double time_of_flight = .02;
-  ModelMap map = generateMap ( time_of_flight );
 
-  MorseGraph conley_morse_graph;
-  
-  /* COMPUTE CONLEY MORSE GRAPH */
-  Compute_Morse_Graph ( & conley_morse_graph,
-                       phase_space,
-                       map,
-                       SINGLECMG_MIN_PHASE_SUBDIVISIONS,
-                       SINGLECMG_MAX_PHASE_SUBDIVISIONS,
-                       SINGLECMG_COMPLEXITY_LIMIT );
-  
-  
-  stop = clock ();
-  std::cout << "Total Time for Finding Morse Sets and reachability relation: " <<
-  (float) (stop - start ) / (float) CLOCKS_PER_SEC << "\n";
-  
-  std::cout << "Creating PNG file...\n";
-  DrawMorseSets ( *phase_space, conley_morse_graph );
-  std::cout << "Creating DOT file...\n";
-  CreateDotFile ( conley_morse_graph );
 
-  return 0;
-} /* main */
+

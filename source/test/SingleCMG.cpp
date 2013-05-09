@@ -320,7 +320,7 @@ Rect initialize_parameter_space_box ( const Real bx, const Real by ) {
 #endif
 
 #ifdef TWODIMLESLIE
-#include "database/maps/simple_interval.h"
+#include "database/numerics/simple_interval.h"
 
 struct ModelMap {
   
