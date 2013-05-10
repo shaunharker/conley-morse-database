@@ -87,7 +87,7 @@ public:
       lookup [ input ] = x;
       ++ cache_miss;
       //if ( cache_miss % 1000 == 0 ) std::cout << "cache MISS = " << cache_miss << "\n";
-      i//f ( cache_miss % 100000 == 0 ) std::cout << "MISS RATE = " << (double)cache_miss/(double)(cache_hits + cache_miss) << "  " << "Miss =" << cache_miss << "  HIT = " << cache_hits << " Total=" << cache_hits + cache_miss << "\n";
+      //if ( cache_miss % 100000 == 0 ) std::cout << "MISS RATE = " << (double)cache_miss/(double)(cache_hits + cache_miss) << "  " << "Miss =" << cache_miss << "  HIT = " << cache_hits << " Total=" << cache_hits + cache_miss << "\n";
 
       
     } else {
