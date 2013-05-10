@@ -1,10 +1,7 @@
 #ifndef RK4_H
 #define RK4_H
 
-#include "chomp/Rect.h"
-
-typedef chomp::Rect Point;
-template < class ODEMap >
+template < class Point, class ODEMap >
 Point RK4 ( double dt, const Point & x, const ODEMap & f ) { 
 
   Point k1, k2, k3, k4; 

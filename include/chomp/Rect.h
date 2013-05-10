@@ -103,10 +103,25 @@ private:
   }
 std::ostream & operator << ( std::ostream & output_stream, const Rect & print_me );
 
-inline bool operator==(Rect x, Rect y) {
-  return x.lower_bounds == y.lower_bounds && x.upper_bounds == y.upper_bounds;
-}
-
+  // We downcast to float, assuming that == testing is for hashing
+  inline bool operator==(Rect x, Rect y) {
+    for ( size_t d = 0; d < x . dimension (); ++ d ) {
+      if ( (float) x . lower_bounds [ d ] != (float) y . lower_bounds [ d ] ) return false;
+      if ( (float) x . upper_bounds [ d ] != (float) y . upper_bounds [ d ] ) return false;
+    }
+    return true;
+  }
+  
+  std::size_t hash_value(Rect const& x)
+  {
+    std::size_t seed = 0;
+    for ( size_t d = 0; d < x . dimension (); ++ d ) {
+      boost::hash_combine(seed, (float) x . lower_bounds [ d ] );
+      boost::hash_combine(seed, (float) x . upper_bounds [ d ] );
+    }
+    return seed;
+  }
+  
 ///////////// Definitions
 
 // really bad temporary solution

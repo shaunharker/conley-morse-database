@@ -63,6 +63,10 @@ EXPORTXML += ./build/structures/XMLExporter.o
 ExportXML: $(EXPORTXML)
 	$(CC) $(LDFLAGS) $(EXPORTXML) -o $@ $(LDLIBS)
 
+WAVEPOOLCMG := ./build/test/WavePoolCMG.o
+WavePoolCMG: $(WAVEPOOLCMG)
+	$(CC) $(LDFLAGS) $(WAVEPOOLCMG) -o $@ $(LDLIBS)
+
 SINGLECMG := ./build/test/SingleCMG.o 
 SingleCMG: $(SINGLECMG)
 	$(CC) $(LDFLAGS) $(SINGLECMG) -o $@ $(LDLIBS)
