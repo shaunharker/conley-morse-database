@@ -227,7 +227,7 @@ void computeStrongComponents (std::vector<std::deque<typename OutEdgeGraph::size
   size_type progress = 0;
   size_type progresspercent = 0;
   if ( N > 1024 ) {
-  std::cout << "Computing Strongly Connected Components for a graph with " << N << "vertices.\n";
+  std::cout << "Computing Strongly Connected Components for a graph with " << N << " vertices.\n";
   std::cout . flush ();
   }
 #endif

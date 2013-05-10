@@ -149,7 +149,9 @@ RelativeMapHomology (RelativeMapHomology_t * output,
   clock_t lift_time_start = clock ();
   bool acyclic_map = true;
   for ( int d = 0; d <= D; ++ d ) {
-
+#ifdef CONLEYINDEXCUTOFF
+    if ( d == CONLEYINDEXCUTOFF ) break;
+#endif
     if ( not acyclic_map ) break;
     int number_of_domain_gen = domain_gen [ d ] . size ();
     codomain_cycles [ d ] . resize ( number_of_domain_gen );
@@ -358,6 +360,9 @@ RelativeMapHomology (RelativeMapHomology_t * output,
  clock_t algebra_time_start = clock ();
   // Loop through each Codomain Cycle
   for ( int d = 0; d <= codomain_morse . dimension (); ++ d ) {
+#ifdef CONLEYINDEXCUTOFF
+    if ( d == CONLEYINDEXCUTOFF ) break;
+#endif
     Matrix G = chainsToMatrix ( codomain_morse_gen [ d ], codomain_morse, d );
     Matrix Z = chainsToMatrix ( codomain_cycles [ d ], codomain_morse, d );
     Matrix MapHom = SmithSolve (G, Z);
@@ -382,6 +387,9 @@ RelativeMapHomology (RelativeMapHomology_t * output,
   long graph_size = 0;
   long edge_graph_size = 0;
   for ( int d = 0; d <= D; ++ d ) {
+#ifdef CONLEYINDEXCUTOFF
+    if ( d == CONLEYINDEXCUTOFF ) break;
+#endif
     for ( Index i = 0; i < full_domain . size ( d ); ++ i ) {
       if ( rand () % 10 != 0 ) continue;
       boost::unordered_set < Index > X_nbs, A_nbs;

@@ -15,9 +15,9 @@
 /* Preprocessor directives */
 /***************************/
 
-#define WIDTH 1.0/128.0
+#define WIDTH 1.0
 #define TIMESTEP .01
-#define STEPS 20
+#define STEPS 200
 #define SAMPLES 4
 
 #define CMG_VERBOSE
@@ -51,10 +51,10 @@ BOOST_CLASS_EXPORT_IMPLEMENT(PointerGrid);
 #endif
 
 int TIMESERIESLENGTH = 100000;
-
+int TAIL =              10000;
 using namespace chomp;
-int INITIALSUBDIVISIONS = 0;
-int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 27 - INITIALSUBDIVISIONS;
+int INITIALSUBDIVISIONS = 16;
+int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 28 - INITIALSUBDIVISIONS;
 int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 30 - INITIALSUBDIVISIONS;
 int SINGLECMG_COMPLEXITY_LIMIT = 10000;
 
@@ -265,7 +265,7 @@ int main ( int argc, char * argv [] )
   x0 . upper_bounds [ 3 ] = 0.1;
   //
   std::vector < chomp::Rect > time_series =
-  generateTimeSeries ( x0, tsmap, TIMESERIESLENGTH, 0 );
+  generateTimeSeries ( x0, tsmap, TIMESERIESLENGTH, TAIL );
   // Define the phase space based on the trajectory
   // we have to encapsulate the IC and the possible attractor
   boost::shared_ptr<GRIDCHOICE> phase_space = generateInitialPhaseSpace ( time_series, WIDTH );
@@ -273,8 +273,8 @@ int main ( int argc, char * argv [] )
 #ifdef COMPUTE_MORSE_GRAPH
   /* INITIALIZE MORSE GRAPH WITH PHASE SPACE *********************/
   MorseGraph morsegraph ( phase_space );                         //
-  for ( int i = 0; i < INITIALSUBDIVISIONS; ++ i )               //
-    morsegraph . phaseSpace () -> subdivide ();                  //
+  //for ( int i = 0; i < INITIALSUBDIVISIONS; ++ i )               //
+   // morsegraph . phaseSpace () -> subdivide ();                  //
   /***************************************************************/
   
   /* COMPUTE MORSE GRAPH *************************************/
@@ -434,7 +434,10 @@ boost::shared_ptr<GRIDCHOICE> generateInitialPhaseSpace ( const std::vector < ch
       collared_rect . upper_bounds [ 0 ] += delta_box;
       collared_rect . lower_bounds [ 1 ] -= delta_box;
       collared_rect . upper_bounds [ 1 ] += delta_box;
-      
+      collared_rect . lower_bounds [ 2 ] -= delta_box;
+      collared_rect . upper_bounds [ 2 ] += delta_box;
+      collared_rect . lower_bounds [ 3 ] -= delta_box;
+      collared_rect . upper_bounds [ 3 ] += delta_box;
       phase_space -> cover ( tsii, collared_rect );
     }
     std::deque < Grid::GridElement > deque_of_time_series;

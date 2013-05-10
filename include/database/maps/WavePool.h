@@ -137,7 +137,13 @@ public:
         result . upper_bounds [ d ] = std::max ( result . upper_bounds [ d ], points [ i ] . upper_bounds [ d ] );
       }
     }
-    
+    /*
+    for ( int d = 0; d < D; ++ d ) {
+      double width = result.upper_bounds[d] - result.lower_bounds[d];
+      result . lower_bounds [ d ] -= width/4.0;
+      result . upper_bounds [ d ] += width/4.0;
+    }
+    */
     return result;
     
   }

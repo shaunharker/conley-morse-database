@@ -2,7 +2,6 @@
 #ifndef CMDB_SINGLEOUTPUT_H
 #define CMDB_SINGLEOUTPUT_H
 
-
 #include "database/tools/picture.h"
 
 #include "database/structures/MorseGraph.h"
