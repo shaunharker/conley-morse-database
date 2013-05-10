@@ -126,15 +126,19 @@ RelativeMapHomology (RelativeMapHomology_t * output,
 //  MorseComplex debugcomplex ( domain );
 //  MorseSanity ( debugcomplex );
   //////////////////////////////////////////
-               
+  
+  int cutoff_dimension = full_domain . dimension ();
+#ifdef CONLEYINDEXCUTOFF
+  cutoff_dimension = CONLEYINDEXCUTOFF;
+#endif
   // Compute the homology generators
   clock_t homology_time_start = clock ();
   PRINT "RMH: Computing Domain Generators with MorseGenerators\n";
-  Generators_t domain_gen = MorseGenerators ( domain );
+  Generators_t domain_gen = MorseGenerators ( domain, cutoff_dimension );
   PRINT "RMH: Computing Morse Complex of Codomain (codomain_morse)\n";
   MorseComplex codomain_morse ( codomain );
   PRINT "RMH: Computing Generators of codomain_morse\n";
-  Generators_t codomain_morse_gen = SmithGenerators ( codomain_morse );
+  Generators_t codomain_morse_gen = SmithGenerators ( codomain_morse, cutoff_dimension );
   // Compute the cycles projected into the codomain through the graph 
   std::vector < std::vector < Chain > > codomain_cycles ( D + 1 );
   double homology_time = ((double)(clock()-homology_time_start)/(double)CLOCKS_PER_SEC);
