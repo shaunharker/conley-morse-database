@@ -52,8 +52,7 @@ int SINGLECMG_COMPLEXITY_LIMIT = 100;
 /**************/
 /*    MAP     */
 /**************/
-#include "/Users/sharker/CMDBFiles/Wes/2D/7-13/ModelMap.h"
-//#include "data/newton2d/ModelMap.h"
+#include "database/maps/Newton.h"
 
 Rect initialize_phase_space_box ( void ) {
   const Real pi = 3.14159265358979323846264338327950288;
@@ -65,9 +64,27 @@ Rect initialize_phase_space_box ( void ) {
   return phase_space_bounds;
 }
 
+Rect initialize_parameter_space_box ( double a, 
+				      double b, 
+				      double c,
+				      double phi ) {
+  int parameter_space_dimension = 4;
+  Rect parameter_box ( parameter_space_dimension );
+  parameter_box.lower_bounds[0]=c;
+  parameter_box.upper_bounds[0]=c;
+  parameter_box.lower_bounds[1]=phi;
+  parameter_box.upper_bounds[1]=phi;
+  parameter_box.lower_bounds[2]=a;
+  parameter_box.upper_bounds[2]=a;
+  parameter_box.lower_bounds[3]=b;
+  parameter_box.upper_bounds[3]=b;
+  std::cout << "Parameter Box Choice = " << parameter_box << "\n";
+  return parameter_box;
+}
+
 Rect initialize_parameter_space_box ( void ) {
   //[-0.84375, -0.828125]x[0.245437, 0.269981]
-  
+  abort ();
   int bx, by, bz;
   bx = 2;
   by = 26;
@@ -109,8 +126,7 @@ Rect initialize_parameter_space_box ( void ) {
 /*****************/
 /* Main Program  */
 /*****************/
-int main ( int argc, char * argv [] )
-{
+int main ( int argc, char * argv [] ) {
   
   clock_t start, stop;
   start = clock ();
@@ -119,7 +135,16 @@ int main ( int argc, char * argv [] )
   Rect phase_space_bounds = initialize_phase_space_box ();
   
   /* SET PARAMETER SPACE REGION */
-  Rect parameter_box = initialize_parameter_space_box ();
+  Rect parameter_box;
+  if ( argc == 5 ) {
+    parameter_box = initialize_parameter_space_box ( atof(argv[1]),
+						     atof(argv[2]),
+						     atof(argv[3]),
+						     atof(argv[4]));
+  } else {
+    parameter_box = initialize_parameter_space_box ();
+  }
+
   
   /* INITIALIZE PHASE SPACE */
   boost::shared_ptr<GRIDCHOICE> phase_space (new GRIDCHOICE);
