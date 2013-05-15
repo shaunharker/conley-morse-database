@@ -1,7 +1,7 @@
-/* Leslie Map */
+/* Newton Map */
 
-#ifndef CMDP_LESLIEMAP_H
-#define CMDP_LESLIEMAP_H
+#ifndef CMDP_NEWTONMAP_H
+#define CMDP_NEWTONMAP_H
 
 //#include <boost/numeric/interval.hpp>
 #include "chomp/Rect.h"

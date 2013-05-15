@@ -67,6 +67,11 @@ WAVEPOOLCMG := ./build/test/WavePoolCMG.o
 WavePoolCMG: $(WAVEPOOLCMG)
 	$(CC) $(LDFLAGS) $(WAVEPOOLCMG) -o $@ $(LDLIBS)
 
+NEWWAVEPOOLCMG := ./build/test/NewWavePoolCMG.o
+NewWavePoolCMG: $(NEWWAVEPOOLCMG)
+	$(CC) $(LDFLAGS) $(NEWWAVEPOOLCMG) -o $@ $(LDLIBS)
+
+
 SINGLECMG := ./build/test/SingleCMG.o 
 SingleCMG: $(SINGLECMG)
 	$(CC) $(LDFLAGS) $(SINGLECMG) -o $@ $(LDLIBS)

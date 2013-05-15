@@ -64,8 +64,10 @@ public:
   typedef chomp::Rect Rect;
   typedef chomp::Rect image_type;
   double dt;
+  double lscale;
   int steps;
   int samples;
+
   WavePoolODEMap * f;
   MapRect ( void ) {}
   
@@ -73,6 +75,12 @@ public:
   dt(dt), steps(steps), samples(samples) {
     f = new WavePoolODEMap ( rectangle );
   }
+  MapRect ( const chomp::Rect & rectangle, double dt, double lscale, int steps, int samples ) :
+  dt(dt), lscale(lscale), steps(steps), samples(samples) {
+    f = new WavePoolODEMap ( rectangle );
+  }
+
+
   ~MapRect ( void ) {
     if ( f != NULL ) delete f;
   }
@@ -88,16 +96,38 @@ public:
       ++ cache_miss;
       //if ( cache_miss % 1000 == 0 ) std::cout << "cache MISS = " << cache_miss << "\n";
       //if ( cache_miss % 100000 == 0 ) std::cout << "MISS RATE = " << (double)cache_miss/(double)(cache_hits + cache_miss) << "  " << "Miss =" << cache_miss << "  HIT = " << cache_hits << " Total=" << cache_hits + cache_miss << "\n";
-
-      
     } else {
       ++ cache_hits;
       //if ( cache_hits % 100000 == 0 ) std::cout << "cache hits = " << cache_hits << "\n";
-
     }
-
     return lookup [ input ];
   }
+
+  // Make a adaptative version of pointMap
+  chomp::Rect pointMap ( const chomp::Rect & input, double & timestep, double lscale ) const {
+    static size_t cache_hits = 0;
+    static size_t cache_miss = 0;
+    if ( lookup . count ( input ) == 0 ) {
+      chomp::Rect x = input;
+      // adaptative RK4
+      for ( int i = 0; i < steps; ++ i ) x = RK4adapt ( timestep, lscale, x, *f );
+      // update value of dt, in case. currently does not work
+      //dt = timestep;
+      //
+      lookup [ input ] = x;
+      ++ cache_miss;
+      //if ( cache_miss % 1000 == 0 ) std::cout << "cache MISS = " << cache_miss << "\n";
+      //if ( cache_miss % 100000 == 0 ) std::cout << "MISS RATE = " << (double)cache_miss/(double)(cache_hits + cache_miss) << "  " << "Miss =" << cache_miss << "  HIT = " << cache_hits << " Total=" << cache_hits + cache_miss << "\n";
+    } else {
+      ++ cache_hits;
+      //if ( cache_hits % 100000 == 0 ) std::cout << "cache hits = " << cache_hits << "\n";
+    }
+    return lookup [ input ];
+  }
+
+
+
+
   
   //std::vector<chomp::Rect>  operator () ( const chomp::Rect & rectangle ) const {
   chomp::Rect  operator () ( const chomp::Rect & rectangle ) const {
@@ -137,13 +167,62 @@ public:
         result . upper_bounds [ d ] = std::max ( result . upper_bounds [ d ], points [ i ] . upper_bounds [ d ] );
       }
     }
-    /*
+    
     for ( int d = 0; d < D; ++ d ) {
       double width = result.upper_bounds[d] - result.lower_bounds[d];
       result . lower_bounds [ d ] -= width/4.0;
       result . upper_bounds [ d ] += width/4.0;
     }
-    */
+    
+    return result;
+    
+  }
+ 
+// ADAPTATIVE VERSION 
+  chomp::Rect  operator () ( const chomp::Rect & rectangle, double timestep, double scale ) const {
+    const int D = 4;   // dimension of phase space
+    const int N = 81;  // N == 3^D
+
+    // Choose N points to integrate forward
+    static chomp::Rect points[N];
+    int i = 0;
+    for ( double u = 0; u < 1.1; u += (1.0/2.0) ) {
+      for ( double v = 0; v < 1.1; v += (1.0/2.0) ) {
+        for ( double w = 0; w < 1.1; w += (1.0/2.0) ) {
+          for ( double s = 0; s < 1.1; s += (1.0/2.0) ) {
+            chomp::Rect & x = points [ i ++ ];
+            x = rectangle;
+            x . lower_bounds [ 0 ] = x . upper_bounds [ 0 ] =
+            u * x . lower_bounds [ 0 ] + (1.0 - u ) * x . upper_bounds [ 0 ];
+            x . lower_bounds [ 1 ] = x . upper_bounds [ 1 ] =
+            v * x . lower_bounds [ 1 ] + (1.0 - v ) * x . upper_bounds [ 1 ];
+            x . lower_bounds [ 2 ] = x . upper_bounds [ 2 ] =
+            w * x . lower_bounds [ 2 ] + (1.0 - w ) * x . upper_bounds [ 2 ];
+            x . lower_bounds [ 3 ] = x . upper_bounds [ 3 ] =
+            s * x . lower_bounds [ 3 ] + (1.0 - s ) * x . upper_bounds [ 3 ];
+          }
+        }
+      }
+    }
+    
+    // Integrate
+    for ( i = 0 ; i < N; ++ i ) points [ i ] = pointMap ( points [ i ], timestep, scale );
+      
+    // Find bounding box
+    chomp::Rect result = points [ 0 ];
+    for ( i = 1 ; i < N; ++ i ) {
+      for ( int d = 0; d < D; ++ d ) {
+        result . lower_bounds [ d ] = std::min ( result . lower_bounds [ d ], points [ i ] . lower_bounds [ d ] );
+        result . upper_bounds [ d ] = std::max ( result . upper_bounds [ d ], points [ i ] . upper_bounds [ d ] );
+      }
+    }
+    
+    for ( int d = 0; d < D; ++ d ) {
+      double width = result.upper_bounds[d] - result.lower_bounds[d];
+      result . lower_bounds [ d ] -= width/4.0;
+      result . upper_bounds [ d ] += width/4.0;
+    }
+    
     return result;
     
   }

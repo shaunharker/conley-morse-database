@@ -1,5 +1,7 @@
 /// Construct and display a conley morse graph for a given dynamical system
 
+#define CONLEYINDEXCUTOFF 2
+
 /********************/
 /* Standard Headers */
 /********************/
@@ -15,15 +17,24 @@
 /* Preprocessor directives */
 /***************************/
 
-#define WIDTH 1.0
-#define TIMESTEP .01
-#define STEPS 200
+//#define WIDTH 1.0/8.0
+#define TIMESTEP .05
+#define STEPS 50
 #define SAMPLES 4
+
+// This is to set a common spatial scale when we vary parameters
+// The number of subdivisions will be found from COMMONSCALE
+// NOTE : This spatial scale is guaranteed along the longest phase space direction
+// but in the smallest phase space direction, we will have much smaller scale
+//#define COMMONSCALE 0.25
 
 #define CMG_VERBOSE
 #define NO_REACHABILITY
-#define COMPUTE_MORSE_GRAPH
+//#define COMPUTE_MORSE_GRAPH
 #define COMPUTE_CONLEY_MORSE_GRAPH
+
+#define DRAW_IMAGES
+
 //#define CMDB_STORE_GRAPH
 //#define ODE_METHOD
 
@@ -50,14 +61,19 @@ BOOST_CLASS_EXPORT_IMPLEMENT(SuccinctGrid);
 BOOST_CLASS_EXPORT_IMPLEMENT(PointerGrid);
 #endif
 
-int TIMESERIESLENGTH = 100000;
-int TAIL =              10000;
+int TIMESERIESLENGTH = 1000000;
+int TAIL = 0;
+
 using namespace chomp;
 int INITIALSUBDIVISIONS = 16;
-int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 28 - INITIALSUBDIVISIONS;
-int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 30 - INITIALSUBDIVISIONS;
+int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 60; //36 - INITIALSUBDIVISIONS;
+int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 65; //37 - INITIALSUBDIVISIONS;
 int SINGLECMG_COMPLEXITY_LIMIT = 10000;
 
+
+double Ndivisions;
+double WIDTH;
+double COMMONSCALE;
 
 #include "database/maps/WavePool.h"
 typedef MapRect ModelMap;
@@ -86,6 +102,11 @@ std::vector < chomp::Rect > generateTimeSeries ( const chomp::Rect & x0,
                                                 const ModelMap & map, int N,
                                                 int tail );
 
+std::vector < chomp::Rect > generateTimeSeries ( const chomp::Rect & x0,
+                                                const ModelMap & map, double dt, double lscale, int N,
+                                                int tail );
+
+
 
 Rect BoundingBox ( std::vector < Rect > listrect,  boost::shared_ptr < Grid > phase_space );
 
@@ -98,6 +119,13 @@ ModelMap initializeMap ( Rect parameter_box, double timestep, int steps, int sam
   ModelMap map ( parameter_box, timestep, steps, samples );
   return map;
 }
+
+ModelMap initializeMap ( Rect parameter_box, double timestep, int steps, double lscale, int samples ) {
+  //Rect parameter_box = parameterBounds ();
+  ModelMap map ( parameter_box, timestep, steps, lscale, samples );
+  return map;
+}
+
 
 Rect phaseBounds ( void ) {
   int phase_space_dimension = 4;
@@ -168,11 +196,16 @@ void computeMorseGraph ( MorseGraph & morsegraph,
   std::cout << "Computing Morse Graph\n";
 #endif
   boost::shared_ptr < Grid > phase_space = morsegraph . phaseSpace ();
+std::cout << "Ndivisions " << Ndivisions << "\n";
   Compute_Morse_Graph ( & morsegraph,
                        phase_space,
                        map,
-                       SINGLECMG_MIN_PHASE_SUBDIVISIONS,
-                       SINGLECMG_MAX_PHASE_SUBDIVISIONS,
+//                       SINGLECMG_MIN_PHASE_SUBDIVISIONS,
+//                       SINGLECMG_MAX_PHASE_SUBDIVISIONS,
+//Ndivisions + 1,
+//Ndivisions + 3,
+5,
+6,
                        SINGLECMG_COMPLEXITY_LIMIT );
   if ( outputfile != NULL ) {
     morsegraph . save ( outputfile );
@@ -241,6 +274,10 @@ int main ( int argc, char * argv [] )
   parambox . upper_bounds [ 6 ] = newalpha21;
   parambox . lower_bounds [ 8 ] = newalpha22;
   parambox . upper_bounds [ 8 ] = newalpha22;
+
+
+  COMMONSCALE = 0.5;
+  WIDTH = COMMONSCALE;
   
   // Compute the trajectory from the same initial condition
   // First initialize the map with a small dt for better accuracy
@@ -248,8 +285,8 @@ int main ( int argc, char * argv [] )
   // Initialize the map and the parameters
   
   /* INITIALIZE MAP ************************************************/
-  ModelMap map = initializeMap ( parambox, TIMESTEP*20.0, 1, SAMPLES );
-  ModelMap tsmap = initializeMap ( parambox, TIMESTEP*20.0, 1, SAMPLES );
+  ModelMap map = initializeMap ( parambox, TIMESTEP, STEPS, SAMPLES );
+  ModelMap tsmap = initializeMap ( parambox, TIMESTEP, WIDTH/4.0, 1,  SAMPLES );
   /*****************************************************************/
   
   // Generate the time series, i.e. the trajectory
@@ -263,18 +300,19 @@ int main ( int argc, char * argv [] )
   x0 . upper_bounds [ 2 ] = 1.0;
   x0 . lower_bounds [ 3 ] = 0.1;
   x0 . upper_bounds [ 3 ] = 0.1;
-  //
+  // Two consecutive iterates are less than WIDTH/4.0 away from each other
   std::vector < chomp::Rect > time_series =
-  generateTimeSeries ( x0, tsmap, TIMESERIESLENGTH, TAIL );
+  generateTimeSeries ( x0, tsmap, TIMESTEP, WIDTH/4.0, TIMESERIESLENGTH, TAIL );
   // Define the phase space based on the trajectory
   // we have to encapsulate the IC and the possible attractor
+  // WIDTH is the size of the boxes covering the trajectory
   boost::shared_ptr<GRIDCHOICE> phase_space = generateInitialPhaseSpace ( time_series, WIDTH );
-  
+ 
 #ifdef COMPUTE_MORSE_GRAPH
   /* INITIALIZE MORSE GRAPH WITH PHASE SPACE *********************/
   MorseGraph morsegraph ( phase_space );                         //
   //for ( int i = 0; i < INITIALSUBDIVISIONS; ++ i )               //
-   // morsegraph . phaseSpace () -> subdivide ();                  //
+  //  morsegraph . phaseSpace () -> subdivide ();                  //
   /***************************************************************/
   
   /* COMPUTE MORSE GRAPH *************************************/
@@ -381,6 +419,41 @@ std::vector < chomp::Rect > generateTimeSeries ( const chomp::Rect & x0,
   return result;
 }
 
+
+std::vector < chomp::Rect > generateTimeSeries ( const chomp::Rect & x0,
+                                                const ModelMap & map, double dt, double lscale, int N,
+                                                int tail = 0 ) {
+  
+  std::cout << "Generating time series.\n";
+  
+  std::vector < chomp::Rect > result;
+  result . reserve ( N - tail );
+  chomp::Rect x = x0;
+  int dim;
+  dim = x0 . dimension ( );
+  int percent= 0;
+  for ( int i = 0; i < N; ++ i ) {
+    //std::cout << x << "\n";
+    int newpercent = (i*100)/N;
+    if ( newpercent > percent ) {
+      std::cout << "\r            \r" << newpercent << "%";
+      std::cout . flush ();
+      percent = newpercent;
+    }
+    if ( i >= tail ) result . push_back ( x );
+    x = map ( x, dt, lscale );
+    for ( int j=0; j<dim; ++j ) {
+      x . lower_bounds [ j ] = x . upper_bounds [ j ] = (x . lower_bounds [ j ] + x . upper_bounds [ j ])/2.0;
+    }
+  }
+  std::cout << "\rTime Series Generated.\n";
+  
+  //for ( int i=0; i<result.size(); ++i ) std::cout << result[i].lower_bounds[0]<<"\n";
+  
+  return result;
+}
+
+
 /********************************/
 /* Generate Initial Phase Space */
 /********************************/
@@ -403,7 +476,7 @@ boost::shared_ptr<GRIDCHOICE> generateInitialPhaseSpace ( const std::vector < ch
   dim = 4;//phase_space_bounds . dimension ( );
   for ( int i=0; i<dim; ++i ) {
     double width = outerbox . upper_bounds [ i ]
-    - outerbox . lower_bounds [ i ];
+    - outerbox . lower_bounds [ i ] + 1.0 ;  // add 1.0 to avoid crashing if we remove trajectory tail
     outerbox . upper_bounds [ i ] += width/2.0;
     outerbox . lower_bounds [ i ] -= width/2.0;
   }
@@ -412,8 +485,23 @@ boost::shared_ptr<GRIDCHOICE> generateInitialPhaseSpace ( const std::vector < ch
   
   phase_space -> initialize ( outerbox );
   std::cout << "New phase space: " << outerbox << "\n";
-  
-  for ( int subdivision_depth = 0; subdivision_depth < INITIALSUBDIVISIONS; ++ subdivision_depth ) {
+ 
+
+  // to guarantee consistency of the subdivision we subdivide till a certain accuracy level is met
+  // the accuracy is set by COMMONSCALE
+  //
+  double mymax ( outerbox . upper_bounds[0] - outerbox . lower_bounds[0] );
+  for ( int i=0; i<dim; ++i ) {
+    if ( outerbox . upper_bounds[i] - outerbox . lower_bounds[i] > mymax ) 
+      mymax = outerbox . upper_bounds[i] - outerbox . lower_bounds[i]; 
+  }
+ 
+  //int Ndivisions;
+  Ndivisions = (int) ( dim * log2 ( mymax / COMMONSCALE ) ) + 1;
+  std::cout << "we need : " << Ndivisions << " subdivisions.\n";
+//  for ( int subdivision_depth = 0; subdivision_depth < INITIALSUBDIVISIONS; ++ subdivision_depth ) {
+  for ( int subdivision_depth = 0; subdivision_depth < Ndivisions; ++ subdivision_depth ) {
+
     std::cout << "\r          Depth = " << subdivision_depth;
     boost::unordered_set < Grid::GridElement > subset_of_time_series;
     std::insert_iterator < boost::unordered_set < Grid::GridElement > >
@@ -434,10 +522,7 @@ boost::shared_ptr<GRIDCHOICE> generateInitialPhaseSpace ( const std::vector < ch
       collared_rect . upper_bounds [ 0 ] += delta_box;
       collared_rect . lower_bounds [ 1 ] -= delta_box;
       collared_rect . upper_bounds [ 1 ] += delta_box;
-      collared_rect . lower_bounds [ 2 ] -= delta_box;
-      collared_rect . upper_bounds [ 2 ] += delta_box;
-      collared_rect . lower_bounds [ 3 ] -= delta_box;
-      collared_rect . upper_bounds [ 3 ] += delta_box;
+      
       phase_space -> cover ( tsii, collared_rect );
     }
     std::deque < Grid::GridElement > deque_of_time_series;

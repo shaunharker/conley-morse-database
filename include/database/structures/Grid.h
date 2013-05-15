@@ -49,7 +49,7 @@ public:
   // Construction methods
   template < class InputIterator >
   static CompressedGrid * join ( InputIterator start, InputIterator stop );
-  void assign ( const CompressedGrid & compressed );
+  void assign ( const CompressedGrid & compressed ); // should this be virtual?
   
 protected:
   Grid ( void );

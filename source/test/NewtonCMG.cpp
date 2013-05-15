@@ -9,6 +9,8 @@
 #include <vector>
 #include <set>
 #include <map>
+#include <iterator>     // std::insert_iterator
+#include <cassert>
 
 /***************************/
 /* Preprocessor directives */
@@ -27,6 +29,9 @@
 
 #include "database/tools/SingleOutput.h"
 
+
+#include "CImg.h"
+//#undef None
 
 /*************************/
 /* Subdivision Settings  */
@@ -63,6 +68,7 @@ Rect initialize_phase_space_box ( void ) {
   std::cout << "Phase Space Bounds = " << phase_space_bounds << "\n";
   return phase_space_bounds;
 }
+
 
 Rect initialize_parameter_space_box ( double a, 
 				      double b, 
@@ -123,6 +129,89 @@ Rect initialize_parameter_space_box ( void ) {
   return parameter_box;
 }
 
+void test_map ( const ModelMap & map ) {
+  std::ofstream lowerfile ( "newtonmaplower.txt" );
+  std::ofstream upperfile ( "newtonmapupper.txt" );
+  double h = .1;
+  for ( double x = -3.1415926535; x < 3.1415926535; x += h ) {
+    chomp::Rect r(1);
+    r . lower_bounds[0] = x;
+    r . upper_bounds[0] = x + h;
+    chomp::Rect result = map ( r );
+    lowerfile << x + h/2.0 << " " << result . lower_bounds [ 0 ] << "\n";
+    upperfile << x + h/2.0 << " " << result . upper_bounds [ 0 ] << "\n";
+  }
+  lowerfile . close ();
+  upperfile . close ();
+  
+}
+
+void test_grid ( const ModelMap & map, const Grid & grid ) {
+  using namespace cimg_library;
+
+  std::cout << "Size of grid = " << grid . size () << "\n";
+  double pi = 3.1415926535;
+  int PICSIZE = 512;
+  CImg<unsigned char> img ( PICSIZE, PICSIZE, 1, 3, 0 );
+  BOOST_FOREACH ( Grid::GridElement ge, grid ) {
+    chomp::Rect x = grid . geometry ( ge );
+    {
+    int i = PICSIZE*(x . lower_bounds [ 0 ] + pi)/ (2.0*pi);
+    for ( int j = 0; j < PICSIZE; ++ j ) {
+      img (i,j,0,0)=255;
+      img (i,j,0,1)=255;
+      img (i,j,0,2)=255;
+    }
+    }
+    {
+    int j = PICSIZE*(x . lower_bounds [ 0 ] + pi)/ (2.0*pi);
+    for ( int i = 0; i < PICSIZE; ++ i ) {
+      img (i,j,0,0)=255;
+      img (i,j,0,1)=255;
+      img (i,j,0,2)=255;
+    }
+    }
+  }
+  BOOST_FOREACH ( Grid::GridElement ge, grid ) {
+    chomp::Rect x = grid . geometry ( ge );
+    chomp::Rect y = map ( x );
+    //std::cout << ge << ": " << x << " -> " << y << "\n";
+    std::vector < Grid::GridElement > image;
+    std::insert_iterator < std::vector < Grid::GridElement > >
+    ii ( image, image.begin () );
+    grid . cover ( ii, y );
+    assert ( image . size () != 0 );
+    BOOST_FOREACH ( Grid::GridElement co_ge, image ) {
+      chomp::Rect z = grid . geometry ( co_ge );
+      //std::cout << "DRAW" << ge << ": " << x << " -> " << z << "\n";
+      int left = PICSIZE*(x . lower_bounds [ 0 ] + pi)/ (2.0*pi);
+      int right = PICSIZE*(x . upper_bounds [ 0 ] + pi)/ (2.0*pi);
+      int bottom = PICSIZE*(z . lower_bounds [ 0 ] + pi)/ (2.0*pi);
+      int top = PICSIZE*(z . upper_bounds [ 0 ] + pi)/ (2.0*pi);
+      left = std::max ( 0, left ); right = std::min ( 1023, right );
+      bottom = std::max ( 0, bottom ); top = std::min ( 1023, top );
+      //std::cout << "LR = " << left << ", " << right << "\n";
+      //std::cout << "BT = " << bottom << ", " << top << "\n";
+
+      for ( int i = left; i < right; ++ i ) {
+        bool iflag = false;
+        if ( i == left ) iflag = true;
+        for ( int j = bottom; j < top; ++ j ) {
+          bool jflag = false;
+          if ( j == bottom  ) jflag = true;
+          if ( iflag || jflag ) img ( i, j, 0, 0 ) = 255;
+          img ( i, j, 0, 1 ) = 255;
+        }
+      }
+    }
+  }
+  CImgDisplay main_disp(img,"behold, a combinatorial map");
+  while (!main_disp.is_closed() ) {
+    main_disp.wait();
+  }
+
+}
+
 /*****************/
 /* Main Program  */
 /*****************/
@@ -156,7 +245,8 @@ int main ( int argc, char * argv [] ) {
   
   /* INITIALIZE MAP */
   ModelMap map ( parameter_box );
-  
+  test_map ( map );
+
   /* INITIALIZE CONLEY MORSE GRAPH (create an empty one) */
   MorseGraph mg;
   
@@ -169,6 +259,7 @@ int main ( int argc, char * argv [] ) {
                        SINGLECMG_COMPLEXITY_LIMIT );
   
   std::cout << "Number of Morse Sets = " << mg . NumVertices () << "\n";
+  #if 1
   typedef std::vector < Grid::GridElement > Subset;
   for ( size_t v = 0; v < mg . NumVertices (); ++ v) {
     Subset subset = phase_space -> subset ( * mg . grid ( v ) );
@@ -179,18 +270,20 @@ int main ( int argc, char * argv [] ) {
                  *phase_space,
                  subset,
                  map );
+    check_index ( std::cout, *conley );
     
   }
-
+#endif
   
   stop = clock ();
   std::cout << "Total Time for Finding Morse Sets and reachability relation: " <<
   (float) (stop - start ) / (float) CLOCKS_PER_SEC << "\n";
   
-  std::cout << "Creating image files...\n";
+  test_grid ( map, *phase_space );
+  //std::cout << "Creating image files...\n";
   //DrawMorseSets ( *phase_space, mg );
-  std::cout << "Creating DOT file...\n";
-  CreateDotFile ( mg );
+  //std::cout << "Creating DOT file...\n";
+  //CreateDotFile ( mg );
   
   return 0;
 } /* main */

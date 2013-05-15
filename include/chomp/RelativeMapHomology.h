@@ -228,10 +228,12 @@ RelativeMapHomology (RelativeMapHomology_t * output,
         FiberComplex fiber ( X_nbs, A_nbs, full_domain, full_codomain, F );
         //std::cout << "CHECKPOINT Y\n";
 
+#ifndef CONLEY_INDEX_NO_ACYCLIC_CHECKS
         if ( not fiber . acyclic () ) {
           acyclic_map = false;
           break;
         }
+#endif
         if ( fiber . size () == 0 ) {
           std::cout << "UNEXPECTED: CANT LIFT CHAIN DUE TO EMPTY FIBER.\n";
           acyclic_map = false;
@@ -269,10 +271,15 @@ RelativeMapHomology (RelativeMapHomology_t * output,
           X_nbs = domain_GridElements_X [ fd ] [ fiberchain . first ];
           A_nbs = domain_GridElements_A [ fd ] [ fiberchain . first ];    
           FiberComplex fiber ( X_nbs, A_nbs, full_domain, full_codomain, F );
-          if ( not fiber . acyclic () ) {
+          
+          // TODO: option to turn this check off.
+#ifndef CONLEY_INDEX_NO_ACYCLIC_CHECKS
+          if ( not fiber . acyclic_or_trivial () ) {
             acyclic_map = false;
             break;
           }
+#endif
+          
           ++ number_of_analyzed_fibers; // run statistics
           explored_graph_complex += fiber . size (); // run statistics
           // Determine chain in fiber

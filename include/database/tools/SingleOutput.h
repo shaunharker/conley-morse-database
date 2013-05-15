@@ -6,6 +6,9 @@
 
 #include "database/structures/MorseGraph.h"
 #include "database/structures/Grid.h"
+#include "chomp/ConleyIndex.h"
+#include "chomp/Matrix.h"
+#include "chomp/PolyRing.h"
 
 /***********/
 /* Output  */
@@ -111,6 +114,61 @@ inline void CreateDotFile ( const MorseGraph & cmg ) {
   
   outfile . close ();
   
+}
+
+int check_index ( std::ostream & outstream, const chomp::ConleyIndex_t & ci ) {
+  using namespace chomp;
+  if ( ci . undefined () ) outstream << "Conley Index not computed for this Morse Set.\n";
+  int biggest = 0;
+  static int corrupt = 0;
+  //std::cout << "check index.\n";
+  //std::cout << "data . size () = " << ci . data () . size () << "\n";
+  for ( unsigned int i = 0; i < ci . data () . size (); ++ i ) {
+    typedef SparseMatrix < PolyRing < Ring > > PolyMatrix;
+    if ( ( ci . data () [ i ] . number_of_rows () !=
+          ci . data () [ i ] . number_of_columns () ) ||
+        ci . data () [ i ] . number_of_rows () < 0 ) {
+      outstream << "Corrupt.\n";
+      outstream << ++ corrupt << "\n";
+      continue;
+    }
+    //if ( ci . data () [ i ] . number_of_rows () < 4 ) continue;
+    //std::cout << "Dimension " << i << "\n";
+    //print_matrix ( ci . data () [ i ] );
+    
+    PolyMatrix poly = ci . data () [ i ];
+    
+    int N = poly . number_of_rows ();
+    PolyRing<Ring> X;
+    X . resize ( 2 );
+    X [ 1 ] = Ring ( -1 );
+    for ( int i = 0; i < N; ++ i ) {
+      poly . add ( i, i, X );
+    }
+    PolyMatrix U, Uinv, V, Vinv, D;
+    //std::cout << "SNF:\n";
+    SmithNormalForm ( &U, &Uinv, &V, &Vinv, &D, poly );
+    //std::cout << "SNF complete.\n";
+    bool is_trivial = true;
+    PolyRing < Ring > x;
+    x . resize ( 2 );
+    x [ 1 ] = Ring ( 1 );
+    for ( int j = 0; j < D . number_of_rows (); ++ j ) {
+      //std::stringstream ss; //
+      PolyRing < Ring > entry = D . read ( j, j );
+      while ( ( entry . degree () >= 0 )
+             && ( entry [ 0 ] == Ring ( 0 ) )) {
+        entry = entry / x;
+      }
+      if ( entry . degree () <= 0 ) continue;
+      is_trivial = false;
+      //ss << "   " << entry << "\n";
+      outstream << entry << "\n";
+      if ( entry . degree () > biggest ) biggest = entry . degree ();
+    }
+    if ( is_trivial ) outstream << "Trivial.\n";
+  }
+  return biggest;
 }
 
 #if 0

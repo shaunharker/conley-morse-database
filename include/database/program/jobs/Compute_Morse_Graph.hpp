@@ -119,11 +119,13 @@ public:
   /// Put reachability information obtained in "reachability_"
   template < class Map >
   const std::vector < MorseDecomposition * > & decompose ( const Map & f ) {
+    // Subdivide self
+    grid_ -> subdivide (); // better here i guess
     //std::cout << "Perform Morse Decomposition\n"; // Perform Morse Decomposition
     computeMorseSetsAndReachability <Map> ( &decomposition_, &reachability_, * (grid_ . get ()), f );
     //std::cout << "Create Hierarchy Structure\n";// Create Hierarchy Structure with Subdivided Grids for Morse Sets
     for ( size_t i = 0; i < decomposition_ . size (); ++ i ) {      
-      decomposition_ [ i ] -> subdivide ();
+      //decomposition_ [ i ] -> subdivide ();
       children_ . push_back ( new MorseDecomposition ( decomposition_ [ i ], depth() + 1 ) );
     }
     return children_;
@@ -131,11 +133,12 @@ public:
 
   template < class Map >
   const std::vector < MorseDecomposition * > & decomposeODE ( const std::vector<Map> & maps ) {
+    grid_ -> subdivide (); // better here i guess
     //std::cout << "Perform Morse Decomposition\n"; // Perform Morse Decomposition
     computeMorseSets <Map> ( &decomposition_, &reachability_, grid_, maps );
     //std::cout << "Create Hierarchy Structure\n";// Create Hierarchy Structure with Subdivided Grids for Morse Sets
     for ( size_t i = 0; i < decomposition_ . size (); ++ i ) {
-      decomposition_ [ i ] -> subdivide ();
+      //decomposition_ [ i ] -> subdivide ();
       children_ . push_back ( new MorseDecomposition ( decomposition_ [ i ], depth() + 1 ) );
     }
     return children_;
@@ -209,124 +212,72 @@ void ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
   std::map < MorseDecomposition *, std::vector<Vertex> > temp;
   std::stack < std::pair < MorseDecomposition *, unsigned int > > eulertourstack;
   eulertourstack . push ( std::make_pair( root, 0 ) );
-  
   while (  not eulertourstack . empty () ) {
-    
     MorseDecomposition * MD = eulertourstack . top () . first;
-    
     unsigned int childnum = eulertourstack . top () . second;
-    
     eulertourstack . pop ();
-    
     unsigned int N = MD -> children () . size ();
-    
-    if ( childnum == N ) {
+    if ( childnum < N ) {
+        eulertourstack . push ( std::make_pair ( MD, childnum + 1 ) );
+        eulertourstack . push ( std::make_pair ( MD -> children () [ childnum ], 0 ) );
+    } else {
       // Exhausted children already.
       // Check for Spuriousness
       // If it has children that are all marked spurious, then it is spurious.
       // If it does not have children, it is spurious if and only if it is already marked spurious
-    
       if ( N > 0 ) {
-    
-        MD -> spurious () = true;
-    
+        MD -> spurious () = true; // by default, we may switch it back to false
         for ( unsigned int i = 0; i < N; ++ i ) {
-    
           if ( not MD -> children () [ i ] -> spurious () ) MD -> spurious () = false;
-          
         }
-        
       }
-      
       if ( MD -> spurious () ) continue;
-
-      // Obtain grid to form master grid
-      //TODO: GET POINTER GRID WORKING WITH BETTER JOIN MECHANISM
-//#ifdef USE_SUCCINCT
-        grids . push_back ( MD -> grid () );
-      
-//#else
-//#ifdef IGNORE_SMALL_MORSE
-//      if ( MD -> grid () -> size () > 20 )
-///#endif
-//      master_grid -> adjoin ( * MD -> grid () ); //SNOWBALL, QUADRATIC INEFFICIENCY. REPLACED WITH JOIN TECHNIQUE.
-//#endif
+      grids . push_back ( MD -> grid () );
       if ( MD -> depth () > Min ) continue;
-      
       // Amalgamate reachability information
 #ifndef NO_REACHABILITY
       for ( unsigned int i = 0; i < N; ++ i ) {
-        
         // "reaches" will tell us which children of MD are reachable from the ith child of MD
         const std::vector < unsigned int > & reaches = MD -> reachability () [ i ];
-        
         //std::cout << "reaching info: " << reaches . size () << "\n";
         // We loop through the MorseGraph vertices corresponding to the ith child
         // and the jth child, and record the reachability.
         BOOST_FOREACH ( unsigned int j, reaches ) {
-          
           if ( i == j ) continue;
-          
           BOOST_FOREACH ( Vertex u,
                          temp [ MD -> children () [ i ] ] ) {
-            
             BOOST_FOREACH ( Vertex v,
                            temp [ MD -> children () [ j ] ] ) {
-              
               //std::cout << "Adding edge (" << u << ", " << v << ")\n";
               MG -> AddEdge ( u, v );
-              
             }
           }
         }
       }
-      
 #endif
       // Aggregate temp data
       temp [ MD ] = std::vector < Vertex > ();
-      
       if ( (MD -> depth () == Min) && (MD -> spurious () == false) ) {
-        
         if ( MD -> grid () . get () == NULL ) {
-          
           std::cout << "Error at ComputeMorseGraph.hpp line 268\n";
-          
           abort ();
         }
-        
         Vertex v = MG -> AddVertex ();
-        
         MG -> grid ( v ) = MD -> grid ();
-        
         if ( MG -> grid ( v ) . get () == NULL ) {
-        
           std::cout << "Error at ComputeMorseGraph.hpp line 274\n";
           abort ();
         }
-        
         temp [ MD ] . push_back ( v );
       } else if ( N > 0 ) {
-        
         for ( unsigned int i = 0; i < N; ++ i ) {
-        
           temp [ MD ] . insert (temp [ MD ] . begin (),
                                 temp [ MD -> children () [ i ] ] . begin (),
                                 temp [ MD -> children () [ i ] ] . end ());
-         
           temp . erase ( MD -> children () [ i ] );
-        
         }
-        
       }
-      
-    } else {
-      
-      eulertourstack . push ( std::make_pair ( MD, childnum + 1 ) );
-      
-      eulertourstack . push ( std::make_pair ( MD -> children () [ childnum ], 0 ) );
-    
-    }
-    
+    } 
   }
 //#ifdef USE_SUCCINCT
   boost::shared_ptr<CompressedGrid> joinup ( Grid::join ( grids . begin (), grids . end () ) );
