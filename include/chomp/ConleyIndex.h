@@ -204,9 +204,12 @@ ConleyIndex ( ConleyIndex_t * output,
     grid . relativeComplex ( &domain_pair, X, A, depth );
     
     PRINT "ConleyIndexODE: Constructing Relative Complex Of Morse Set and Exit Set (X, A) \n";
+    PRINT "ConleyIndexODE: Note: X . size () = " << X . size () << " and A . size () = " << A . size () << "\n";
     
     CubicalComplex & full_domain = domain_pair . base ();
     BitmapSubcomplex & domain = domain_pair . pair ();
+    BitmapSubcomplex & exit = domain_pair . relative ();
+
     int D = full_domain . dimension ();
     
     PRINT "ConleyIndexODE: Size of Relative Complex = " << full_domain . size () << "\n";
@@ -216,8 +219,10 @@ ConleyIndex ( ConleyIndex_t * output,
 #ifdef CONLEYINDEXCUTOFF
     cutoff_dimension = CONLEYINDEXCUTOFF;
 #endif
-    // Compute the homology generators
-    PRINT "ConleyIndexODE: Computing Relative Homology Of Morse Set and Exit Set\n";
+    
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    // Compute the homology generators (X, A)
+    PRINT "ConleyIndexODE: Computing Relative Homology H_*(X, A)\n";
     Generators_t domain_gen = MorseGenerators ( domain, cutoff_dimension );
     for ( int d = 0; d <= domain . dimension (); ++ d ) {
 #ifdef CONLEYINDEXCUTOFF
@@ -230,6 +235,32 @@ ConleyIndex ( ConleyIndex_t * output,
       output -> data () . push_back ( MapHom );
     }
     
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    // Compute the homology generators of exit set
+    PRINT "ConleyIndexODE: Computing H_*(A)\n";
+    Generators_t exit_gen = MorseGenerators ( exit, cutoff_dimension );
+    for ( int d = 0; d <= exit . dimension (); ++ d ) {
+#ifdef CONLEYINDEXCUTOFF
+      if ( d == CONLEYINDEXCUTOFF ) break;
+#endif
+      int num_gen = domain_gen [ d ] . size ();
+      std::cout << "ConleyIndexODE: Betti Number at Dimension " << d << ": " << num_gen << "\n";
+    }
+    
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    // Compute the homology generators
+    PRINT "ConleyIndexODE: Computing H_*(X) \n";
+    Generators_t exit_gen = MorseGenerators ( full_domain, cutoff_dimension );
+    for ( int d = 0; d <= full_domain . dimension (); ++ d ) {
+#ifdef CONLEYINDEXCUTOFF
+      if ( d == CONLEYINDEXCUTOFF ) break;
+#endif
+      int num_gen = domain_gen [ d ] . size ();
+      std::cout << "ConleyIndexODE: Betti Number at Dimension " << d << ": " << num_gen << "\n";
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
     double total_time = ((double)(clock()-total_time_start)/(double)CLOCKS_PER_SEC);
     PRINT "ConleyIndexODE: Time Elapsed (total) = " << total_time << "\n";
 
