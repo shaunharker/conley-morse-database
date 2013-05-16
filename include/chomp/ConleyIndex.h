@@ -243,19 +243,19 @@ ConleyIndex ( ConleyIndex_t * output,
 #ifdef CONLEYINDEXCUTOFF
       if ( d == CONLEYINDEXCUTOFF ) break;
 #endif
-      int num_gen = domain_gen [ d ] . size ();
+      int num_gen = exit_gen [ d ] . size ();
       std::cout << "ConleyIndexODE: Betti Number at Dimension " << d << ": " << num_gen << "\n";
     }
     
     ///////////////////////////////////////////////////////////////////////////////////////////
     // Compute the homology generators
     PRINT "ConleyIndexODE: Computing H_*(X) \n";
-    Generators_t exit_gen = MorseGenerators ( full_domain, cutoff_dimension );
+    Generators_t full_gen = MorseGenerators ( full_domain, cutoff_dimension );
     for ( int d = 0; d <= full_domain . dimension (); ++ d ) {
 #ifdef CONLEYINDEXCUTOFF
       if ( d == CONLEYINDEXCUTOFF ) break;
 #endif
-      int num_gen = domain_gen [ d ] . size ();
+      int num_gen = full_gen [ d ] . size ();
       std::cout << "ConleyIndexODE: Betti Number at Dimension " << d << ": " << num_gen << "\n";
     }
 
