@@ -234,7 +234,7 @@ void computeConleyMorseGraph ( MorseGraph & morsegraph,
 #endif
     boost::shared_ptr<ConleyIndex_t> conley ( new ConleyIndex_t );
     morsegraph . conleyIndex ( v ) = conley;
-    ConleyIndex ( conley . get (),
+    ConleyIndexODE ( conley . get (),
                  *phase_space,
                  subset,
                  map );

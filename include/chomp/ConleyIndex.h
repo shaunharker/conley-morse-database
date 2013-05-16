@@ -145,6 +145,95 @@ ConleyIndex ( ConleyIndex_t * output,
   return;
 } /* void ConleyIndex(...) */
 
+  
+  template < class Grid, class Subset, class Map > void
+  ConleyIndexODE ( ConleyIndex_t * output,
+                  const Grid & grid,
+                  const Subset & S,
+                  /* const */ Map & F ) {
+    
+    
+    typedef typename Grid::GridElement Cell;
+    
+    int depth = grid . getDepth ( S );
+    
+    clock_t total_time_start = clock ();
+    
+    
+    // note: All cells in X may be obtained as images of cells in S.
+    typedef boost::unordered_set<Cell> CellDictionary;
+    CellDictionary X_cells; // The cells in the total index pair (X, A)
+    CellDictionary S_cells; // The cells just in the morse set S
+    
+    PRINT "ConleyIndexODE: Computing forward image of Morse Set S to find exit set A \n";
+
+    std::insert_iterator<CellDictionary> Xc_ii ( X_cells, X_cells . begin () );
+    BOOST_FOREACH ( Cell cell, S ) {
+      S_cells . insert ( cell );
+      Subset image = Subset ();
+      std::insert_iterator<Subset> image_ii ( image, image . end () );
+      grid . cover ( image_ii, F ( grid . geometry ( grid . find ( cell ) ) ) );
+      std::copy ( image . begin (), image . end (), Xc_ii );
+    } /* boost_foreach */
+    
+    PRINT "ConleyIndexODE: Constructing Index Pair (X, A) (note: X = S \\cup A) \n";
+
+    /* Construct X and A */
+    // note: The cells in A are those in X not in S.
+    Subset X, A;
+    std::insert_iterator<Subset> X_ii ( X, X . begin () );
+    std::insert_iterator<Subset> A_ii ( A, A . begin () );
+    BOOST_FOREACH ( Cell cell, X_cells ) {
+      * X_ii ++ = cell;
+      if ( S_cells . count ( cell ) == 0 ) {
+        * A_ii ++ = cell;
+        
+      }
+    } /* boost_foreach */
+    
+    
+    /// NOW WE HAVE grid, X, A, F, depth
+    
+    
+    
+    
+    // Create the Relative Complexes
+    RelativePair domain_pair;
+    // Determine depth.
+    // TODO: determine it, don't ask for it as input
+    grid . relativeComplex ( &domain_pair, X, A, depth );
+    
+    PRINT "ConleyIndexODE: Constructing Relative Complex Of Morse Set and Exit Set (X, A) \n";
+    
+    CubicalComplex & full_domain = domain_pair . base ();
+    BitmapSubcomplex & domain = domain_pair . pair ();
+    int D = full_domain . dimension ();
+    
+    PRINT "ConleyIndexODE: Size of Relative Complex = " << full_domain . size () << "\n";
+    PRINT "ConleyIndexODE: Dimension of Relative Complex = " << D << "\n";
+    
+    int cutoff_dimension = full_domain . dimension ();
+#ifdef CONLEYINDEXCUTOFF
+    cutoff_dimension = CONLEYINDEXCUTOFF;
+#endif
+    // Compute the homology generators
+    PRINT "ConleyIndexODE: Computing Relative Homology Of Morse Set and Exit Set\n";
+    Generators_t domain_gen = MorseGenerators ( domain, cutoff_dimension );
+    for ( int d = 0; d <= domain . dimension (); ++ d ) {
+#ifdef CONLEYINDEXCUTOFF
+      if ( d == CONLEYINDEXCUTOFF ) break;
+#endif
+      int num_gen = domain_gen [ d ] . size ();
+      Matrix MapHom ( num_gen, num_gen );
+      for ( int i = 0; i < num_gen; ++ i ) MapHom . write ( i, i , 1 );
+      std::cout << "ConleyIndexODE: Betti Number at Dimension " << d << ": " << num_gen << "\n";
+      output -> data () . push_back ( MapHom );
+    }
+    
+    double total_time = ((double)(clock()-total_time_start)/(double)CLOCKS_PER_SEC);
+    PRINT "ConleyIndexODE: Time Elapsed (total) = " << total_time << "\n";
+
+  }
 
 /* Conley Index */
 inline ConleyIndex_t::ConleyIndex_t ( void ) {
