@@ -13,8 +13,9 @@
 #include "database/program/MorseProcess.h"
 #include "database/program/jobs/Clutching_Graph_Job.h"
 #include "database/structures/UnionFind.hpp"
+#include "database/structures/Database.h"
 
-#ifdef USE_SUCCINCT
+#ifdef HAVE_SUCCINCT
 #include "database/structures/SuccinctGrid.h"
 #endif
 #include "database/structures/PointerGrid.h"
@@ -25,9 +26,12 @@
 
 #include "ModelMap.h"
 
-#ifndef GRIDCHOICE
-#define GRIDCHOICE PointerGrid
+#include <boost/serialization/export.hpp>
+#ifdef HAVE_SUCCINCT
+BOOST_CLASS_EXPORT_IMPLEMENT(SuccinctGrid);
 #endif
+BOOST_CLASS_EXPORT_IMPLEMENT(PointerGrid);
+
 
 /* * * * * * * * * * * * */
 /* initialize definition */
@@ -88,17 +92,19 @@ void MorseProcess::initialize ( void ) {
 #endif
 
 #ifdef PATCHMETHOD
+  
   int patch_width = 10; // try to use patch_width^d boxes per patch (plus or minus 1)
   
   // Initialize parameter space bounds
-  param_toplex . initialize ( config.PARAM_BOUNDS );   /// Parameter space toplex
+  parameter_grid = boost::shared_ptr<Grid> ( new PARAMETER_GRID );
+  parameter_grid -> initialize ( config.PARAM_BOUNDS );   /// Parameter space grid
   
   // Subdivide parameter space toplex
   long num_across = 1;
   for (int i = 0; i < config.PARAM_SUBDIV_DEPTH; ++i) {
     num_across *= 2;
     for ( int d = 0; d < config.PARAM_DIM; ++ d ) {
-      param_toplex . subdivide (); // subdivide every top cell
+      parameter_grid -> subdivide (); // subdivide every top cell
     }
   }
   
@@ -141,14 +147,15 @@ void MorseProcess::initialize ( void ) {
   std::cout << "Created " << patches . size () << " patches.\n";
   BOOST_FOREACH ( const chomp::Rect & patch, patches ) {
     // Cover the geometric region with top cells
-    Toplex_Subset patch_subset;
-    std::insert_iterator < Toplex_Subset > ii ( patch_subset, patch_subset . begin () );
-    param_toplex . cover ( ii, patch );
+    GridSubset patch_subset;
+    std::insert_iterator < GridSubset > ii ( patch_subset, patch_subset . begin () );
+    parameter_grid -> cover ( ii, patch );
     // Add "patch_subset" to the growing vector of patches
     PS_patches . push_back (patch_subset);
     debug_size += patch_subset . size ();
   } /* for */
   num_jobs_ = PS_patches . size ();
+  database . insert ( parameter_grid );
 #endif
   std::cout << "MorseProcess Constructed, there are " << num_jobs_ << " jobs.\n";
   std::cout << "Number of parameter box calculations = " << debug_size << ".\n";
@@ -212,17 +219,16 @@ int MorseProcess::prepare ( Message & job ) {
   
   //size_t local_clutchings_ordered = 0;
   static size_t number_of_clutching_jobs_ordered = 0;
-  /// Toplex with the patch to be sent
-  Toplex_Subset patch_subset = PS_patches [job_number];
+  GridSubset patch_subset = PS_patches [job_number];
 
 
   /// Find adjacency information for cells in the patch
-  BOOST_FOREACH ( Toplex::Top_Cell cell_in_patch, patch_subset ) {
+  BOOST_FOREACH ( Grid::GridElement grid_element_in_patch, patch_subset ) {
     // Find geometry of patch cell
-    Rect GD = param_toplex . geometry (param_toplex . find (cell_in_patch));
+    Rect GD = parameter_grid -> geometry ( grid_element_in_patch );
     // DEBUG -- (check toplex::cover)
     double tol = 1e-8;
-    for ( int d = 0; d < param_toplex . dimension (); ++ d ) {
+    for ( int d = 0; d < parameter_grid -> dimension (); ++ d ) {
       GD . lower_bounds [ d ] -= tol;
       GD . upper_bounds [ d ] += tol;
     }
@@ -232,40 +238,23 @@ int MorseProcess::prepare ( Message & job ) {
     if ( not map . good () ) continue;
 #endif
     // Store the name of the patch cell
-    box_names . push_back ( cell_in_patch );
+    box_names . push_back ( grid_element_in_patch );
     // Store the geometric description of the patch cell
     box_geometries . push_back ( GD );
     // Find the cells in toplex which intersect patch cell
-    Toplex_Subset GD_Cover;
-    std::insert_iterator < Toplex_Subset > ii ( GD_Cover, GD_Cover . begin () );
-    param_toplex . cover ( ii, GD );
-    // DEBUG BEGIN
-    /*
-    while ( 1 ) {
-    if ( GD_Cover . size () != 9 ) {
-      if ( GD . lower_bounds [ 0 ] < config.PARAM_BOUNDS.lower_bounds[0] + tol ) break;
-      if ( GD . upper_bounds [ 0 ] > config.PARAM_BOUNDS.upper_bounds[0] - tol ) break;
-      if ( GD . lower_bounds [ 1 ] < config.PARAM_BOUNDS.lower_bounds[1] + tol) break;
-      if ( GD . upper_bounds [ 1 ] > config.PARAM_BOUNDS.upper_bounds[1] - tol ) break;
-      std::cout << GD << " has " << GD_Cover . size () << " neighbors.\n";
-      abort ();
-    }
-      break;
-    }
-     */
-    // DEBUG END
+    GridSubset GD_Cover;
+    std::insert_iterator < GridSubset > ii ( GD_Cover, GD_Cover . begin () );
+    parameter_grid -> cover ( ii, GD );
     // Store the cells in the patch which intersect the patch cell as adjacency pairs
-    BOOST_FOREACH ( Toplex::Top_Cell cell_in_cover, GD_Cover ) {
+    BOOST_FOREACH (  Grid::GridElement grid_element_in_cover, GD_Cover ) {
 #ifdef CHECKIFMAPISGOOD
-      Rect adjGD = param_toplex . geometry (param_toplex . find (cell_in_cover));
+      Rect adjGD = parameter_grid -> geometry ( grid_element_in_cover );
       ModelMap adjmap ( adjGD );
       if ( not adjmap . good () ) continue;
 #endif
-      if (( patch_subset . count (cell_in_cover) != 0 ) && cell_in_patch < cell_in_cover ) {
-        box_adjacencies . push_back ( std::make_pair ( cell_in_patch, cell_in_cover ) );
-        //std::cout << "(" << cell_in_patch << ", " << cell_in_cover << ")\n";
+      if (( patch_subset . count (grid_element_in_cover) != 0 ) && grid_element_in_patch < grid_element_in_cover ) {
+        box_adjacencies . push_back ( std::make_pair ( grid_element_in_patch, grid_element_in_cover ) );
         ++ number_of_clutching_jobs_ordered;
-        //++ local_clutchings_ordered;
       }
     }
   }
@@ -296,7 +285,7 @@ int MorseProcess::prepare ( Message & job ) {
 /* * * * * * * * * */
 void MorseProcess::work ( Message & result, const Message & job ) const {
   using namespace chomp;
-	Clutching_Graph_Job < GRIDCHOICE > ( &result , job );
+	Clutching_Graph_Job < PHASE_GRID > ( &result , job );
   //result << (size_t)0;
   //result << Database ();
 }
@@ -341,7 +330,15 @@ void MorseProcess::finalize ( void ) {
   progress_file << "Morse Process Progress: " << progress_bar << " / " << num_jobs_ << "\n";
   progress_file . close ();
 
+  {
+  std::string filestring ( argv[1] );
+  std::string appendstring ( "/database.raw" );
+  database . save ( (filestring + appendstring) . c_str () );
+  }
+  database . postprocess ();
+  {
   std::string filestring ( argv[1] );
   std::string appendstring ( "/database.mdb" );
   database . save ( (filestring + appendstring) . c_str () );
+  }
 }

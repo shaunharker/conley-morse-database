@@ -23,7 +23,7 @@
 
 #include "chomp/Rect.h"
 
-void Clutching(ClutchingRecord * result,
+void Clutching( BG_Data * result,
                const MorseGraph & graph1,
                const MorseGraph & graph2 ) {
 
@@ -186,7 +186,7 @@ void Clutching(ClutchingRecord * result,
   // Return result
   //std::cout << "Collate Results.\n";
   BOOST_FOREACH ( const MorseGraph::Edge & edge, bipartite_graph ) {
-    result -> clutch_ . push_back ( edge );
+    result -> edges . push_back ( edge );
   }
 }
 
@@ -223,8 +223,7 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   std::map < size_t, boost::shared_ptr<PhaseGrid> > phase_space_grids;
   std::map < size_t, MorseGraph> conley_morse_graphs;
   std::map < size_t, size_t > box_index;
-  std::vector < ClutchingRecord > clutching_graphs;
-  
+  std::vector < BG_Data > clutching_graphs;
 
   // Compute Morse Graphs
   //std::cout << "CLUTCHING JOB " << job_number << ": " << box_names . size () << " BEGINNING.\n";
@@ -253,13 +252,10 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   //std::cout << "--------- 2. Compute Clutching Graphs ---------\n";
   typedef std::pair < size_t, size_t > Adjacency;
   BOOST_FOREACH ( const Adjacency & A, box_adjacencies ) {
-    clutching_graphs . push_back ( ClutchingRecord () );
-    //std::cout << "Adjacency pair (" << A.first << ", " << A.second << ")\n";
+    clutching_graphs . push_back ( BG_Data () );
     Clutching ( & clutching_graphs . back (),
                 conley_morse_graphs [ A . first ],
                 conley_morse_graphs [ A . second ]);
-    clutching_graphs . back () . id1_ = A . first;
-    clutching_graphs . back () . id2_ = A . second;
   }
   
   // Create Database
@@ -270,13 +266,11 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   // Create Parameter Box Records
   typedef std::pair < size_t, MorseGraph > indexed_cmg_t;
   BOOST_FOREACH ( const indexed_cmg_t & cmg, conley_morse_graphs ) {
-    database . insert ( ParameterBoxRecord (cmg . first, 
-                                            box_geometries [ box_index [ cmg.first ] ],   
-                                            cmg . second ) );
+    database . insert ( cmg . first, DAG_Data ( cmg . second ) );
   }
   // Create Clutching Records
-  BOOST_FOREACH ( const ClutchingRecord & clutch, clutching_graphs ) {
-    database . insert ( clutch );
+  for ( uint64_t i = 0; i < box_adjacencies . size (); ++ i ) {
+    database . insert ( box_adjacencies [ i ] . first, box_adjacencies [ i ] . second, clutching_graphs [ i ] );
   }
   
   // Return Result

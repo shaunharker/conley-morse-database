@@ -81,7 +81,7 @@ private:
   BOOST_SERIALIZATION_SPLIT_MEMBER()
 };
 
-  Rect operator * ( double scalar, const Rect & rhs ) {
+inline Rect operator * ( double scalar, const Rect & rhs ) {
     Rect result = rhs;
     int d = rhs . dimension ();
     for ( int i = 0; i < d; ++ i ) {
@@ -91,7 +91,7 @@ private:
     return result;
   }
   
-  Rect operator + ( const Rect & lhs, const Rect & rhs ) {
+inline Rect operator + ( const Rect & lhs, const Rect & rhs ) {
     // SHOULD THROW
     Rect result = lhs;
     int d = rhs . dimension ();
@@ -101,7 +101,8 @@ private:
     }
     return result;
   }
-std::ostream & operator << ( std::ostream & output_stream, const Rect & print_me );
+  
+inline std::ostream & operator << ( std::ostream & output_stream, const Rect & print_me );
 
   // We downcast to float, assuming that == testing is for hashing
   inline bool operator==(Rect x, Rect y) {
@@ -112,7 +113,7 @@ std::ostream & operator << ( std::ostream & output_stream, const Rect & print_me
     return true;
   }
   
-  std::size_t hash_value(Rect const& x)
+inline std::size_t hash_value(Rect const& x)
   {
     std::size_t seed = 0;
     for ( size_t d = 0; d < x . dimension (); ++ d ) {

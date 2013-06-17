@@ -1,17 +1,22 @@
 # makefile for CMDP project 
 COMPUTE_MORSE_SETS := yes
-COMPUTE_CONLEY_INDEX := yes
-USE_CAPD := yes
-USE_SUCCINCT := no
+COMPUTE_CONLEY_INDEX := no
+USE_CAPD := no
+HAVE_SUCCINCT := yes
+PARAMETER_GRID := SuccinctGrid
+PHASE_GRID := PointerGrid
 CHECKIFMAPISGOOD := no
 # if modelmap has good() implemented
 PARAM_SPACE_METHOD := PATCHMETHOD
 MONOTONICSUBDIVISION := no
 
 include makefile.config
-CXXFLAGS += -D $(PARAM_SPACE_METHOD) 
-ifeq ($(USE_SUCCINCT),yes)
-	CXXFLAGS += -DGRIDCHOICE=SuccinctGrid -DUSE_SUCCINCT
+CXXFLAGS += -D $(PARAM_SPACE_METHOD)
+CXXFLAGS += -DPARAMETER_GRID=$(PARAMETER_GRID) 
+CXXFLAGS += -DPHASE_GRID=$(PHASE_GRID)
+
+ifeq ($(HAVE_SUCCINCT),yes)
+	CXXFLAGS += -DHAVE_SUCCINCT
 endif
 
 ifeq ($(MONOTONICSUBDIVISION),yes)
@@ -28,8 +33,7 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 # List of targets
 all: Conley_Morse_Database
 
-DATABASE := ./build/structures/Database.o
-DATABASE += ./build/program/Conley_Morse_Database.o 
+DATABASE := ./build/program/Conley_Morse_Database.o 
 
 ifeq ($(COMPUTE_MORSE_SETS),yes)
 	DATABASE += ./build/program/MorseProcess.o 

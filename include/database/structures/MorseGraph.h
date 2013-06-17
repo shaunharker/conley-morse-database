@@ -192,10 +192,12 @@ MorseGraph::Edges ( void ) const {
 // PROPERTY ACCESS
 
 /** accessor method for phase space grid */
+inline
 boost::shared_ptr<Grid> & MorseGraph::phaseSpace ( void ) {
   return phasespace_;
 }
 /** accessor method for phase space grid, const version */
+inline
 boost::shared_ptr<const Grid> MorseGraph::phaseSpace ( void ) const {
   return phasespace_;
 }

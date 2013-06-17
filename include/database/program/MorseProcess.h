@@ -6,7 +6,7 @@
 #include "delegator/delegator.h"
 #include "database/structures/Database.h"
 #include "database/program/Configuration.h"
-#include "chomp/Toplex.h"
+#include "database/structures/PointerGrid.h"
 #include "chomp/CubicalComplex.h"
 
 /* * * * * * * * * * * * * * */
@@ -33,9 +33,9 @@ private:
   std::vector< Cell > jobs_;
 #endif
 #ifdef PATCHMETHOD
-  chomp::Toplex param_toplex;
-  typedef boost::unordered_set<chomp::GridElement> Toplex_Subset;
-  std::vector < Toplex_Subset > PS_patches; // morse_work_items
+  boost::shared_ptr<Grid> parameter_grid;
+  typedef boost::unordered_set<Grid::GridElement> GridSubset;
+  std::vector < GridSubset > PS_patches; // morse_work_items
 #endif
 };
 
