@@ -9,6 +9,7 @@
 #include <vector>
 #include <cassert>
 
+#include <boost/functional/hash.hpp>
 #include "boost/serialization/serialization.hpp"
 #include "boost/serialization/vector.hpp"
 #include "boost/foreach.hpp"
