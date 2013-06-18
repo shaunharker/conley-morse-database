@@ -18,6 +18,9 @@
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/nvp.hpp>
 
+#include "database/structures/Grid.h"
+#include "database/structures/SuccinctGrid.h"
+#include "database/structures/PointerGrid.h"
 #include "database/structures/MorseGraph.h"
 
 #include "boost/archive/binary_iarchive.hpp"
@@ -247,6 +250,8 @@ class Database {
 private:
   friend class boost::serialization::access;
 
+  std::vector<boost::unordered_set<uint64_t> > mgcc_nb_;
+
   boost::shared_ptr<Grid> parameter_space_;
 
   // We use an unordered_map instead of unordered_set in case
@@ -278,14 +283,32 @@ public:
 
   void postprocess ( void );
 
-  void save ( const char * filename );
+  void save ( const char * filename );   
   void load ( const char * filename );
+  
+  const Grid & parameter_space ( void ) const { return *parameter_space_;}
+
+  const DAG_Data & dag_data ( uint64_t i ) const { return dag_data_ . find ( i ) -> second; }
+  const BG_Data & bg_data ( uint64_t i ) const { return bg_data_ . find ( i ) -> second; }
+  const CS_Data & cs_data ( uint64_t i ) const { return cs_data_ . find ( i ) -> second; }
+  const std::vector<boost::unordered_set<uint64_t> > mgcc_nb ( void ) const { return mgcc_nb_;}
+
   std::vector < MorseRecord > & morse_records ( void );
   std::vector < ClutchingRecord > & clutch_records ( void );
       //std::vector < ConleyRecord > & conley_records ( void );
+  std::vector < MGCCP_Record > & MGCCP_Records ( void );
+  std::vector < INCCP_Record > & INCCP_Records ( void );
+  std::vector < MGCC_Record > & MGCC_Records ( void );
+  std::vector < INCC_Record > & INCC_Records ( void );
+
   const std::vector < MorseRecord > & morse_records ( void ) const;
   const std::vector < ClutchingRecord > & clutch_records ( void ) const;
-      //const std::vector < ConleyRecord > & conley_records ( void ) const;
+  const std::vector < MGCCP_Record > & MGCCP_Records ( void ) const; 
+  const std::vector < INCCP_Record > & INCCP_Records ( void ) const; 
+  const std::vector < MGCC_Record > & MGCC_Records ( void ) const;  
+  const std::vector < INCC_Record > & INCC_Records ( void ) const;    
+
+  //const std::vector < ConleyRecord > & conley_records ( void ) const;
       template<class Archive>
   void serialize(Archive& ar, const unsigned int version) {
         //std::cout << "serialize: check for parameter space\n";
@@ -303,6 +326,7 @@ public:
     ar & boost::serialization::make_nvp("INCCP", INCCP_records_);
     ar & boost::serialization::make_nvp("MGCC", MGCC_records_);
     ar & boost::serialization::make_nvp("INCC", INCC_records_);
+    ar & boost::serialization::make_nvp("MGCCNB", mgcc_nb_);
 
   }
 };
@@ -466,7 +490,7 @@ inline void Database::postprocess ( void ) {
   // from grid elements to dag codes
 
   // TODO: USE EXTERNAL MEMORY SORT TO AVOID RANDOM ACCESS PATTERN
-  std::vector < uint64_t > grid_to_dag ( N );
+  std::vector < int64_t > grid_to_dag ( N, -1 );
   BOOST_FOREACH ( const MorseRecord & mr, morse_records () ) {
     grid_to_dag [ mr . grid_element ] = mr . dag_code;
   }
@@ -485,9 +509,10 @@ inline void Database::postprocess ( void ) {
   // Now we use the union-find structure mgccp_uf to make
   // "Morse Graph Continuation Class Pieces"
 
-  std::vector < uint64_t > grid_to_mgccp ( N );
+  std::vector < int64_t > grid_to_mgccp ( N, -1 );
   boost::unordered_map < Grid::GridElement, uint64_t > rep_to_mgccp;
   BOOST_FOREACH ( Grid::GridElement ge, * parameter_space_ ) {
+    if ( grid_to_dag [ ge ] == - 1) continue; // ignore uncomputed grid elements
     Grid::GridElement mgccp_rep = mgccp_uf . Find ( ge );
     if ( rep_to_mgccp . count ( mgccp_rep ) == 0 ) {
      rep_to_mgccp [ mgccp_rep ] = MGCCP_records_ . size ();
@@ -501,13 +526,35 @@ inline void Database::postprocess ( void ) {
 
   // clear: mgcc_uf, rep_to_mgccp
 
+  // Create singleton INCCP records regardless of continuation
+  boost::unordered_map< INCCP_Record, uint64_t > INCCP_to_index;
+  ContiguousIntegerUnionFind incc_uf;
+  for ( uint64_t mgccp_index = 0; mgccp_index < MGCCP_Records () . size (); ++ mgccp_index ) {
+    const MGCCP_Record & mgccp_record = MGCCP_Records ();
+    uint64_t dag_code = mgccp_record . dag_code;
+    DAG_Data & dag = dag_data ( dag_code );
+    uint64_t n = dag . num_vertices;
+    for ( uint64_t i = 0; i < n; ++ i ) {
+      CS_Data cs;
+      cs . vertices . push_back ( i );
+      uint64_t cs_code = boost::hash<CS_Data> () (cs);
+      if ( cs_data_ . count ( cs_code ) == 0 ) cs_data_ [ cs_code ] = cs;
+      // Produce INCCP Records if necessary
+      INCCP_Record inccp_record;
+      inccp_record . cs_code = cs_code;
+      inccp_record . mgccp_index = mgccp_index;
+      if ( INCCP_to_index . count ( inccp_record ) == 0 ) {
+          INCCP_to_index [ inccp_record ] = INCCP_records_ . size ();
+          INCCP_records_ . push_back ( inccp_record );
+          incc_uf . MakeSet ();
+      }
+    }
+  }
   // Process the clutching records sequentially, and create a union-find
   // structure on MGCC pieces. Also, analyze the bipartite graph
   // connected components to create INCCPs
 
-  boost::unordered_map< INCCP_Record, uint64_t > INCCP_to_index;
   ContiguousIntegerUnionFind mgcc_uf ( MGCCP_records_ . size () );
-  ContiguousIntegerUnionFind incc_uf;
   BOOST_FOREACH ( const ClutchingRecord & cr, clutch_records () ) {
     uint64_t mgccp1 = grid_to_mgccp [ cr . grid_element_1 ];
     uint64_t mgccp2 = grid_to_mgccp [ cr . grid_element_2 ];
@@ -610,6 +657,59 @@ inline void Database::postprocess ( void ) {
     BOOST_FOREACH ( uint64_t x, incc_components [ i ] ) incc . inccp_indices . push_back ( x );
   }
 
+
+
+  //pb_to_mgcc
+  pb_to_mgcc . resize ( parameter_space () . size (), -1 );
+  mgcc_sizes . resize ( MGCC_Records () . size (), 0 );
+  mgccp_to_mgcc . resize ( MGCCP_Records () . size () );
+  for ( uint64_t mgcc_index = 0; mgcc_index < MGCC_Records () . size (); ++ mgcc_index ) {
+    MGCC_Record & mgcc_record = MGCC_Records () [ mgcc_index ];
+    BOOST_FOREACH ( uint64_t mgccp_index, mgcc_record . mgccp_indices ) {
+      mgccp_to_mgcc [ mgccp_index ] = mgcc_index;
+      MGCCP_Record & mgccp_record = MGCCP_Records () [ mgccp_index ];
+      BOOST_FOREACH ( uint64_t pb, mgccp_record . grid_elements ) {
+        pb_to_mgcc [ pb ] = mgcc_index;
+        ++ mgcc_sizes [ mgcc_index ];
+      }
+    }
+  }
+
+/*
+  // incc_sizes: stores sizes of incc's
+  // incc_to_mgcc: lookup mgcc via incc
+  // mgccp_to_mgcc: lookup mgcc via mgccp
+  // inccp_code_to_incc_index: lookup incc_index via inccp_code
+  incc_sizes . resize ( INCC_Records () . size (), 0 );
+  incc_to_mgcc . resize ( INCC_Records() . size () );
+  mgccp_to_mgcc . resize ( MGCCP_Records() . size () );
+  for ( uint64_t incc_index = 0; incc_index < INCC_Records () . size (); ++ incc_index ) {
+    INCC_Record & incc_record = INCC_Records () [ incc_index ];
+    BOOST_FOREACH ( uint64_t inccp_index, incc_record . inccp_indices ) {
+      INCCP_Record & inccp_record = INCCP_Records () [ inccp_index ];
+      uint64_t mgccp_index = inccp_record . mgccp_index;
+      incc_to_mgcc [ incc_index ] . insert ( mgccp_to_mgcc [ mgccp_index ] );
+      incc_sizes [ incc_index ] += MGCCP_Records () [ mgccp_index ] . grid_elements . size ();
+      uint64_t inccp_code = boost::hash<INCCP_Record > () ( inccp_record );
+      inccp_code_to_incc_index [ inccp_code ] = incc_index;
+    }
+  }
+  */
+  // mgcc_nb: stored adjacency structure of mgcc's
+  mgcc_nb_ . resize ( database . MGCC_Records () . size () );
+  BOOST_FOREACH ( Grid::GridElement pb, parameter_space () ) {
+    if ( pb_to_mgcc[pb] == -1 ) continue;
+    std::vector<Grid::GridElement> nbs;
+    std::insert_iterator<std::vector<Grid::GridElement> > ii ( nbs, nbs . begin () );
+    chomp::Rect r = parameter_space () . geometry ( pb );
+    parameter_space () . cover ( ii, r );
+    BOOST_FOREACH ( Grid::GridElement nb, nbs ) {
+      if ( nb == pb ) continue;
+      if ( pb_to_mgcc[nb] == -1 ) continue;
+      mgcc_nb_ [ pb_to_mgcc[pb] ] . insert ( pb_to_mgcc[nb] );
+    }
+  }
+
   // Get rid of the bulky parts
   morse_records_ . clear ();
   clutch_records_ . clear ();
@@ -617,19 +717,20 @@ inline void Database::postprocess ( void ) {
 
 
     // record access
-inline std::vector < MorseRecord > & Database::morse_records ( void ) {
-  return morse_records_;
-}
-inline std::vector < ClutchingRecord > & Database::clutch_records ( void ) {
-  return clutch_records_;
-}
+inline std::vector < MorseRecord > & Database::morse_records ( void ) { return morse_records_; }
+inline std::vector < ClutchingRecord > & Database::clutch_records ( void ) { return clutch_records_; }
+inline std::vector < MGCCP_Record > & Database::MGCCP_Records ( void ) { return MGCCP_records_; }
+inline std::vector < INCCP_Record > & Database::INCCP_Records ( void ) { return INCCP_records_; }
+inline std::vector < MGCC_Record > & Database::MGCC_Records ( void ) { return MGCC_records_; }
+inline std::vector < INCC_Record > & Database::INCC_Records ( void ) { return INCC_records_; }
+inline const std::vector < MorseRecord > & Database::morse_records ( void ) const { return morse_records_; }
+inline const std::vector < ClutchingRecord > & Database::clutch_records ( void ) const { return clutch_records_; }
+inline const std::vector < MGCCP_Record > & Database::MGCCP_Records ( void ) const { return MGCCP_records_; }
+inline const std::vector < INCCP_Record > & Database::INCCP_Records ( void ) const { return INCCP_records_; }
+inline const std::vector < MGCC_Record > & Database::MGCC_Records ( void ) const { return MGCC_records_; }
+inline const std::vector < INCC_Record > & Database::INCC_Records ( void ) const { return INCC_records_; }
 
-inline const std::vector < MorseRecord > & Database::morse_records ( void ) const {
-  return morse_records_;
-}
-inline const std::vector < ClutchingRecord > & Database::clutch_records ( void ) const {
-  return clutch_records_;
-}
+
 
 
     // file operations
