@@ -530,9 +530,9 @@ inline void Database::postprocess ( void ) {
   boost::unordered_map< INCCP_Record, uint64_t > INCCP_to_index;
   ContiguousIntegerUnionFind incc_uf;
   for ( uint64_t mgccp_index = 0; mgccp_index < MGCCP_Records () . size (); ++ mgccp_index ) {
-    const MGCCP_Record & mgccp_record = MGCCP_Records ();
+    const MGCCP_Record & mgccp_record = MGCCP_Records () [ mgccp_index ];
     uint64_t dag_code = mgccp_record . dag_code;
-    DAG_Data & dag = dag_data ( dag_code );
+    const DAG_Data & dag = dag_data ( dag_code );
     uint64_t n = dag . num_vertices;
     for ( uint64_t i = 0; i < n; ++ i ) {
       CS_Data cs;
@@ -660,9 +660,14 @@ inline void Database::postprocess ( void ) {
 
 
   //pb_to_mgcc
+  std::vector < int64_t > pb_to_mgcc;
+  std::vector < uint64_t > mgcc_sizes;
+  std::vector < uint64_t > mgccp_to_mgcc;
+  
   pb_to_mgcc . resize ( parameter_space () . size (), -1 );
   mgcc_sizes . resize ( MGCC_Records () . size (), 0 );
   mgccp_to_mgcc . resize ( MGCCP_Records () . size () );
+
   for ( uint64_t mgcc_index = 0; mgcc_index < MGCC_Records () . size (); ++ mgcc_index ) {
     MGCC_Record & mgcc_record = MGCC_Records () [ mgcc_index ];
     BOOST_FOREACH ( uint64_t mgccp_index, mgcc_record . mgccp_indices ) {
@@ -696,7 +701,7 @@ inline void Database::postprocess ( void ) {
   }
   */
   // mgcc_nb: stored adjacency structure of mgcc's
-  mgcc_nb_ . resize ( database . MGCC_Records () . size () );
+  mgcc_nb_ . resize ( MGCC_Records () . size () );
   BOOST_FOREACH ( Grid::GridElement pb, parameter_space () ) {
     if ( pb_to_mgcc[pb] == -1 ) continue;
     std::vector<Grid::GridElement> nbs;
