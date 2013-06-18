@@ -335,10 +335,11 @@ void MorseProcess::finalize ( void ) {
   std::string appendstring ( "/database.raw" );
   database . save ( (filestring + appendstring) . c_str () );
   }
-  database . postprocess ();
+  Database processed ( database );
+  processed . postprocess ();
   {
   std::string filestring ( argv[1] );
   std::string appendstring ( "/database.mdb" );
-  database . save ( (filestring + appendstring) . c_str () );
+  processed . save ( (filestring + appendstring) . c_str () );
   }
 }
