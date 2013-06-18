@@ -308,8 +308,14 @@ void MorseProcess::accept(const Message &result) {
   
   clock_t time = clock ();
   if ( (float)(time - time_of_last_checkpoint ) / (float)CLOCKS_PER_SEC > 3600.0f ) {
-    finalize (); // doesn't end things, just saves a checkpoint.
-    time_of_last_checkpoint = time;
+    // saves a checkpoint.
+    std::ofstream progress_file ( "progress.txt" );
+    progress_file << "Morse Process Progress: " << progress_bar << " / " << num_jobs_ << "\n";
+    progress_file . close ();
+    std::string filestring ( argv[1] );
+    std::string appendstring ( "/database.raw" );
+    database . save ( (filestring + appendstring) . c_str () );
+    time_of_last_checkpoint = clock ();
   }
   if ( (float)(time - time_of_last_progress ) / (float)CLOCKS_PER_SEC > 1.0f ) {
     std::ofstream progress_file ( "progress.txt" );
@@ -335,11 +341,10 @@ void MorseProcess::finalize ( void ) {
   std::string appendstring ( "/database.raw" );
   database . save ( (filestring + appendstring) . c_str () );
   }
-  Database processed ( database );
-  processed . postprocess ();
+  database . postprocess ();
   {
   std::string filestring ( argv[1] );
   std::string appendstring ( "/database.mdb" );
-  processed . save ( (filestring + appendstring) . c_str () );
+  database . save ( (filestring + appendstring) . c_str () );
   }
 }
