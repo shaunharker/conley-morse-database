@@ -252,7 +252,12 @@ class Database {
 private:
   friend class boost::serialization::access;
 
-  std::vector<boost::unordered_set<uint64_t> > mgcc_nb_;
+
+  // RAW RECORDS
+  std::vector < MorseRecord > morse_records_;
+  std::vector < ClutchingRecord > clutch_records_;
+
+
 
   boost::shared_ptr<Grid> parameter_space_;
 
@@ -267,9 +272,18 @@ private:
   boost::unordered_map < BG_Data, uint64_t > bg_index_;
   boost::unordered_map < CS_Data, uint64_t > cs_index_;
 
-  // RAW RECORDS
-  std::vector < MorseRecord > morse_records_;
-  std::vector < ClutchingRecord > clutch_records_;
+  boost::unordered_map<INCCP_Record, uint64_t> inccp_index_;
+
+  std::vector < uint64_t > pb_to_mgccp_;
+  std::vector < uint64_t > mgccp_to_mgcc_;
+  std::vector < uint64_t > inccp_to_incc_;
+  std::vector < boost::unordered_set < uint64_t > > incc_to_mgcc_;
+  std::vector < uint64_t > mgcc_sizes_;
+  std::vector < uint64_t > incc_sizes_;
+  std::vector < boost::unordered_set < uint64_t > > mgcc_nb_;
+  std::vector < chomp::ConleyIndex_t > incc_conley_;
+
+
 
   // DERIVED RECORDS
   std::vector < MGCCP_Record > MGCCP_records_;
@@ -294,29 +308,38 @@ public:
   
   const Grid & parameter_space ( void ) const { return *parameter_space_;}
 
-  const DAG_Data & dag_data ( uint64_t i ) const { return dag_data_ [ i ]; }
-  const BG_Data & bg_data ( uint64_t i ) const { return bg_data_ [ i ]; }
-  const CS_Data & cs_data ( uint64_t i ) const { return cs_data_ [ i ]; }
-
-  uint64_t dag_index ( DAG_Data const& item ) const 
-  { if ( dag_index_ . count ( item ) == 0 ) return -1; return dag_index_ . find (item) -> second; }
-  uint64_t bg_index ( BG_Data const& item ) const 
-  { if ( bg_index_ . count ( item ) == 0 ) return -1; return bg_index_ . find (item) -> second; }
-  uint64_t cs_index ( CS_Data const& item ) const 
-  { if ( cs_index_ . count ( item ) == 0 ) return -1; return cs_index_ . find (item) -> second; }
-  
-  const std::vector<boost::unordered_set<uint64_t> > mgcc_nb ( void ) const { return mgcc_nb_;}
-
-  std::vector < MorseRecord > & morse_records ( void );
-  std::vector < ClutchingRecord > & clutch_records ( void );
-      //std::vector < ConleyRecord > & conley_records ( void );
-  std::vector < MGCCP_Record > & MGCCP_Records ( void );
-  std::vector < INCCP_Record > & INCCP_Records ( void );
-  std::vector < MGCC_Record > & MGCC_Records ( void );
-  std::vector < INCC_Record > & INCC_Records ( void );
-
   const std::vector < MorseRecord > & morse_records ( void ) const;
   const std::vector < ClutchingRecord > & clutch_records ( void ) const;
+
+  const std::vector < DAG_Data > & dagData ( void ) const 
+    { return dag_data_; }
+  const std::vector < BG_Data > & bgData ( void ) const 
+    { return bg_data_; }
+  const std::vector < CS_Data > & csData ( void ) const 
+    { return cs_data_; }
+  uint64_t dagIndex ( DAG_Data const& item ) const 
+    { if ( dag_index_ . count ( item ) == 0 ) return dagData().size(); return dag_index_ . find (item) -> second; }
+  uint64_t bgIndex ( BG_Data const& item ) const 
+    { if ( bg_index_ . count ( item ) == 0 ) return bgData().size(); return bg_index_ . find (item) -> second; }
+  uint64_t csIndex ( CS_Data const& item ) const 
+    { if ( cs_index_ . count ( item ) == 0 ) return csData().size(); return cs_index_ . find (item) -> second; }
+  const std::vector<boost::unordered_set<uint64_t> > & mgcc_nb ( void ) const 
+    { return mgcc_nb_;}
+
+  uint64_t inccpIndex ( INCCP_Record const& item ) const 
+    { if ( inccp_index_ . count ( item ) == 0 ) return INCCP_Records().size(); return inccp_index_ . find (item) -> second; }
+
+
+  const std::vector < uint64_t > & pb_to_mgccp ( void ) const { return pb_to_mgccp_; }
+  const std::vector < uint64_t > & mgccp_to_mgcc ( void ) const { return mgccp_to_mgcc_; }
+  const std::vector < uint64_t > & inccp_to_incc ( void ) const { return inccp_to_incc_; }
+  const std::vector < boost::unordered_set < uint64_t > > & incc_to_mgcc ( void ) const { return incc_to_mgcc_; }
+  const std::vector < uint64_t > & mgcc_sizes ( void ) const { return mgcc_sizes_; }
+  const std::vector < uint64_t > & incc_sizes ( void ) const { return incc_sizes_; }
+  const std::vector < boost::unordered_set < uint64_t > > & mgcc_nb ( void ) const { return mgcc_nb_; }
+  const std::vector < chomp::ConleyIndex_t> & incc_conley ( void ) const { return incc_conley_; }
+
+
   const std::vector < MGCCP_Record > & MGCCP_Records ( void ) const; 
   const std::vector < INCCP_Record > & INCCP_Records ( void ) const; 
   const std::vector < MGCC_Record > & MGCC_Records ( void ) const;  
@@ -334,13 +357,24 @@ public:
     ar & boost::serialization::make_nvp("DAGDATA", dag_data_);
     ar & boost::serialization::make_nvp("BGDATA", bg_data_);
     ar & boost::serialization::make_nvp("CSDATA", cs_data_);
+    ar & boost::serialization::make_nvp("DAGINDEX", dag_index_);
+    ar & boost::serialization::make_nvp("BGINDEX", bg_index_);
+    ar & boost::serialization::make_nvp("CSINDEX", cs_index_);
     ar & boost::serialization::make_nvp("MORSERECORDS", morse_records_);
     ar & boost::serialization::make_nvp("CLUTCHRECORDS", clutch_records_);
     ar & boost::serialization::make_nvp("MGCCP", MGCCP_records_);
     ar & boost::serialization::make_nvp("INCCP", INCCP_records_);
     ar & boost::serialization::make_nvp("MGCC", MGCC_records_);
     ar & boost::serialization::make_nvp("INCC", INCC_records_);
-    ar & boost::serialization::make_nvp("MGCCNB", mgcc_nb_);
+    ar & boost::serialization::make_nvp("INCCPINDEX", inccp_index_;
+    ar & boost::serialization::make_nvp("PBTOMGCCP",pb_to_mgccp_;
+    ar & boost::serialization::make_nvp("MGCCPTOMGCC", mgccp_to_mgcc_;
+    ar & boost::serialization::make_nvp("INCCPTOINCC",inccp_to_incc_;
+    ar & boost::serialization::make_nvp("INCCTOMGCC", incc_to_mgcc_;
+    ar & boost::serialization::make_nvp("MGCCSIZES",mgcc_sizes_;
+    ar & boost::serialization::make_nvp("INCCSIZES", incc_sizes_;
+    ar & boost::serialization::make_nvp("MGCCNB", mgcc_nb_;
+    ar & boost::serialization::make_nvp("INCCCONLEY",incc_conley_;
 
   }
 };
@@ -392,11 +426,11 @@ inline void Database::merge ( const Database & other ) {
 
   BOOST_FOREACH ( MorseRecord record, other . morse_records_ ) {
     record . dag_index = dag_reindex [ record . dag_index ];
-    morse_records () . push_back ( record );
+    morse_records_ . push_back ( record );
   }
   BOOST_FOREACH ( ClutchingRecord record, other . clutch_records_ ) {
     record . bg_index = bg_reindex [ record . bg_index ];
-    clutch_records () . push_back ( record );
+    clutch_records_ . push_back ( record );
   }
 }
 
@@ -410,7 +444,7 @@ inline void Database::insert ( const Grid::GridElement & p, const DAG_Data & dag
     dag_index_ [ dag ] = dag_data_ . size ();
     dag_data_ . push_back ( dag );
   }
-  morse_records () . push_back ( MorseRecord ( p, dag_index_ [ dag ] ) );
+  morse_records_ . push_back ( MorseRecord ( p, dag_index_ [ dag ] ) );
 }
 
 inline void Database::insert ( const Grid::GridElement & p1, const Grid::GridElement & p2, const BG_Data & bg ) {
@@ -418,7 +452,7 @@ inline void Database::insert ( const Grid::GridElement & p1, const Grid::GridEle
     bg_index_ [ bg ] = bg_data_ . size ();
     bg_data_ . push_back ( bg );
   }
-  clutch_records () . push_back ( ClutchingRecord ( p1, p2, bg_index_ [ bg ] ) );
+  clutch_records_ . push_back ( ClutchingRecord ( p1, p2, bg_index_ [ bg ] ) );
 }
 
 // POSTPROCESSING ALGORITHM
@@ -542,7 +576,6 @@ inline void Database::postprocess ( void ) {
   // Now we use the union-find structure mgccp_uf to make
   // "Morse Graph Continuation Class Pieces"
 
-  std::vector < int64_t > grid_to_mgccp ( N, -1 );
   boost::unordered_map < Grid::GridElement, uint64_t > rep_to_mgccp;
   BOOST_FOREACH ( Grid::GridElement ge, * parameter_space_ ) {
     if ( grid_to_dag [ ge ] == - 1) continue; // ignore uncomputed grid elements
@@ -554,7 +587,6 @@ inline void Database::postprocess ( void ) {
     uint64_t mgccp_index = rep_to_mgccp [ mgccp_rep ];
     MGCCP_records_ [ mgccp_index ] . grid_elements . push_back ( ge );
     MGCCP_records_ [ mgccp_index ] . dag_index = grid_to_dag [ ge ];
-    grid_to_mgccp [ ge ] = mgccp_index;
   }
 
   // clear: mgcc_uf, rep_to_mgccp
@@ -565,7 +597,7 @@ inline void Database::postprocess ( void ) {
   for ( uint64_t mgccp_index = 0; mgccp_index < MGCCP_Records () . size (); ++ mgccp_index ) {
     const MGCCP_Record & mgccp_record = MGCCP_Records () [ mgccp_index ];
     uint64_t dag_index = mgccp_record . dag_index;
-    const DAG_Data & dag = dag_data ( dag_index );
+    const DAG_Data & dag = dag_data_ [ dag_index ];
     uint64_t n = dag . num_vertices;
     for ( uint64_t i = 0; i < n; ++ i ) {
       CS_Data cs;
@@ -580,7 +612,7 @@ inline void Database::postprocess ( void ) {
       inccp_record . cs_index = cs_index;
       inccp_record . mgccp_index = mgccp_index;
       if ( INCCP_to_index . count ( inccp_record ) == 0 ) {
-          INCCP_to_index [ inccp_record ] = INCCP_records_ . size ();
+          inccp_index_ [ inccp_record ] = INCCP_records_ . size ();
           INCCP_records_ . push_back ( inccp_record );
           incc_uf . MakeSet ();
       }
@@ -648,12 +680,12 @@ inline void Database::postprocess ( void ) {
         inccp2 . mgccp_index = mgccp2;
 
         if ( INCCP_to_index . count ( inccp1 ) == 0 ) {
-          INCCP_to_index [ inccp1 ] = INCCP_records_ . size ();
+          inccp_index_ [ inccp1 ] = INCCP_records_ . size ();
           INCCP_records_ . push_back ( inccp1 );
           incc_uf . MakeSet ();
         }
         if ( INCCP_to_index . count ( inccp2 ) == 0 ) {
-          INCCP_to_index [ inccp2 ] = INCCP_records_ . size ();
+          inccp_index_ [ inccp2 ] = INCCP_records_ . size ();
           INCCP_records_ . push_back ( inccp2 );
           incc_uf . MakeSet ();
         }
@@ -676,16 +708,6 @@ inline void Database::postprocess ( void ) {
     */
   }  
 
-  // Taking stock: We have in scope:
-  // grid_to_dag     - done
-  // mgccp_uf        - done
-  // grid_to_mgccp
-  // rep_to_mgccp    - done
-  // INCCP_to_index  - done
-  // mgcc_uf
-  // incc_uf
-  //
-  //
   // Now we use the union-find structure on MGCC Pieces to create the MGCC records
 
   std::vector < std::vector < uint64_t > > mgcc_components = mgcc_uf . Components ();
@@ -705,58 +727,55 @@ inline void Database::postprocess ( void ) {
 
 
   //pb_to_mgcc
-  std::vector < int64_t > pb_to_mgcc;
-  std::vector < uint64_t > mgcc_sizes;
-  std::vector < uint64_t > mgccp_to_mgcc;
 
-  pb_to_mgcc . resize ( parameter_space () . size (), -1 );
-  mgcc_sizes . resize ( MGCC_Records () . size (), 0 );
-  mgccp_to_mgcc . resize ( MGCCP_Records () . size () );
+  pb_to_mgccp_ . resize ( parameter_space () . size (), MGCCP_Records () . size () );
+  mgcc_sizes_ . resize ( MGCC_Records () . size (), 0 );
+  mgccp_to_mgcc_ . resize ( MGCCP_Records () . size () );
 
   for ( uint64_t mgcc_index = 0; mgcc_index < MGCC_Records () . size (); ++ mgcc_index ) {
-    MGCC_Record & mgcc_record = MGCC_Records () [ mgcc_index ];
+    MGCC_Record const& mgcc_record = MGCC_Records () [ mgcc_index ];
     BOOST_FOREACH ( uint64_t mgccp_index, mgcc_record . mgccp_indices ) {
-      mgccp_to_mgcc [ mgccp_index ] = mgcc_index;
+      mgccp_to_mgcc_ [ mgccp_index ] = mgcc_index;
       MGCCP_Record & mgccp_record = MGCCP_Records () [ mgccp_index ];
       BOOST_FOREACH ( uint64_t pb, mgccp_record . grid_elements ) {
-        pb_to_mgcc [ pb ] = mgcc_index;
-        ++ mgcc_sizes [ mgcc_index ];
+        pb_to_mgccp_ [ pb ] = mgccp_index;
+        ++ mgcc_sizes_ [ mgcc_index ];
       }
     }
   }
 
-/*
-  // incc_sizes: stores sizes of incc's
-  // incc_to_mgcc: lookup mgcc via incc
-  // mgccp_to_mgcc: lookup mgcc via mgccp
-  // inccp_code_to_incc_index: lookup incc_index via inccp_code
-  incc_sizes . resize ( INCC_Records () . size (), 0 );
-  incc_to_mgcc . resize ( INCC_Records() . size () );
-  mgccp_to_mgcc . resize ( MGCCP_Records() . size () );
-  for ( uint64_t incc_index = 0; incc_index < INCC_Records () . size (); ++ incc_index ) {
-    INCC_Record & incc_record = INCC_Records () [ incc_index ];
+
+  // incc_sizes_: stores sizes of incc's  (Note: doubling counting is possible with interesting continuations)
+  // incc_to_mgcc_: lookup set of mgccs via incc
+  // inccp_to_incc_: lookup incc via inccp
+  incc_sizes_ . resize ( database . INCC_Records () . size (), 0 );
+  incc_to_mgcc_ . resize ( database . INCC_Records() . size () );
+  inccp_to_incc_ . resize ( database . INCCP_Records() . size () );
+  for ( uint64_t incc_index = 0; incc_index < database . INCC_Records () . size (); ++ incc_index ) {
+    INCC_Record const& incc_record = database . INCC_Records () [ incc_index ];
     BOOST_FOREACH ( uint64_t inccp_index, incc_record . inccp_indices ) {
-      INCCP_Record & inccp_record = INCCP_Records () [ inccp_index ];
+      INCCP_Record const& inccp_record = database . INCCP_Records () [ inccp_index ];
+      inccp_index_ [ inccp_record ] = inccp_index;
       uint64_t mgccp_index = inccp_record . mgccp_index;
-      incc_to_mgcc [ incc_index ] . insert ( mgccp_to_mgcc [ mgccp_index ] );
-      incc_sizes [ incc_index ] += MGCCP_Records () [ mgccp_index ] . grid_elements . size ();
-      uint64_t inccp_code = boost::hash<INCCP_Record > () ( inccp_record );
-      inccp_code_to_incc_index [ inccp_code ] = incc_index;
+      incc_to_mgcc_ [ incc_index ] . insert ( mgccp_to_mgcc_ [ mgccp_index ] );
+      incc_sizes_ [ incc_index ] += database . MGCCP_Records () [ mgccp_index ] . grid_elements . size ();
+      inccp_to_incc_ [ inccp_index ] = incc_index;
     }
   }
-  */
+
+  
   // mgcc_nb: stored adjacency structure of mgcc's
   mgcc_nb_ . resize ( MGCC_Records () . size () );
   BOOST_FOREACH ( Grid::GridElement pb, parameter_space () ) {
-    if ( pb_to_mgcc[pb] == -1 ) continue;
+    if ( pb_to_mgccp_[pb] == MGCCP_Records () . size () ) continue;
     std::vector<Grid::GridElement> nbs;
     std::insert_iterator<std::vector<Grid::GridElement> > ii ( nbs, nbs . begin () );
     chomp::Rect r = parameter_space () . geometry ( pb );
     parameter_space () . cover ( ii, r );
     BOOST_FOREACH ( Grid::GridElement nb, nbs ) {
       if ( nb == pb ) continue;
-      if ( pb_to_mgcc[nb] == -1 ) continue;
-      mgcc_nb_ [ pb_to_mgcc[pb] ] . insert ( pb_to_mgcc[nb] );
+      if ( pb_to_mgccp_[nb] == MGCCP_Records () . size () ) continue;
+      mgcc_nb_ [ mgccp_to_mgcc_[pb_to_mgccp_[pb]] ] . insert ( mgccp_to_mgcc_[pb_to_mgccp_[nb]] );
     }
   }
 
@@ -767,12 +786,6 @@ inline void Database::postprocess ( void ) {
 
 
     // record access
-inline std::vector < MorseRecord > & Database::morse_records ( void ) { return morse_records_; }
-inline std::vector < ClutchingRecord > & Database::clutch_records ( void ) { return clutch_records_; }
-inline std::vector < MGCCP_Record > & Database::MGCCP_Records ( void ) { return MGCCP_records_; }
-inline std::vector < INCCP_Record > & Database::INCCP_Records ( void ) { return INCCP_records_; }
-inline std::vector < MGCC_Record > & Database::MGCC_Records ( void ) { return MGCC_records_; }
-inline std::vector < INCC_Record > & Database::INCC_Records ( void ) { return INCC_records_; }
 inline const std::vector < MorseRecord > & Database::morse_records ( void ) const { return morse_records_; }
 inline const std::vector < ClutchingRecord > & Database::clutch_records ( void ) const { return clutch_records_; }
 inline const std::vector < MGCCP_Record > & Database::MGCCP_Records ( void ) const { return MGCCP_records_; }
