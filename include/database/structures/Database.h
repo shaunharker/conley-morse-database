@@ -630,8 +630,8 @@ inline void Database::postprocess ( void ) {
 
   ContiguousIntegerUnionFind mgcc_uf ( MGCCP_records_ . size () );
   BOOST_FOREACH ( const ClutchingRecord & cr, clutch_records () ) {
-    uint64_t mgccp1 = pb_to_mgccp [ cr . grid_element_1 ];
-    uint64_t mgccp2 = pb_to_mgccp [ cr . grid_element_2 ];
+    uint64_t mgccp1 = pb_to_mgccp_ [ cr . grid_element_1 ];
+    uint64_t mgccp2 = pb_to_mgccp_ [ cr . grid_element_2 ];
     DAG_Data & dag1 = dag_data_ [ grid_to_dag [ cr . grid_element_1 ] ];
     DAG_Data & dag2 = dag_data_ [ grid_to_dag [ cr . grid_element_2 ] ];
     BG_Data & bg = bg_data_ [ cr . bg_index ];
@@ -732,8 +732,6 @@ inline void Database::postprocess ( void ) {
 
 
 
-  //pb_to_mgcc
-
   mgcc_sizes_ . resize ( MGCC_Records () . size (), 0 );
   mgccp_to_mgcc_ . resize ( MGCCP_Records () . size () );
 
@@ -742,9 +740,7 @@ inline void Database::postprocess ( void ) {
     BOOST_FOREACH ( uint64_t mgccp_index, mgcc_record . mgccp_indices ) {
       mgccp_to_mgcc_ [ mgccp_index ] = mgcc_index;
       MGCCP_Record const& mgccp_record = MGCCP_Records () [ mgccp_index ];
-      BOOST_FOREACH ( uint64_t pb, mgccp_record . grid_elements ) {
-        ++ mgcc_sizes_ [ mgcc_index ];
-      }
+      mgcc_sizes_ [ mgcc_index ] += mgccp_record . grid_elements . size ();
     }
   }
 
