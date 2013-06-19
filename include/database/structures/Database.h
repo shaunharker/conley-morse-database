@@ -598,7 +598,6 @@ inline void Database::postprocess ( void ) {
   }
 
   // Create singleton INCCP records regardless of continuation
-  boost::unordered_map< INCCP_Record, uint64_t > INCCP_to_index;
   ContiguousIntegerUnionFind incc_uf;
   for ( uint64_t mgccp_index = 0; mgccp_index < MGCCP_Records () . size (); ++ mgccp_index ) {
     const MGCCP_Record & mgccp_record = MGCCP_Records () [ mgccp_index ];
@@ -617,7 +616,7 @@ inline void Database::postprocess ( void ) {
       INCCP_Record inccp_record;
       inccp_record . cs_index = cs_index;
       inccp_record . mgccp_index = mgccp_index;
-      if ( INCCP_to_index . count ( inccp_record ) == 0 ) {
+      if ( inccp_index_ . count ( inccp_record ) == 0 ) {
           inccp_index_ [ inccp_record ] = INCCP_records_ . size ();
           INCCP_records_ . push_back ( inccp_record );
           incc_uf . MakeSet ();
@@ -685,19 +684,19 @@ inline void Database::postprocess ( void ) {
         inccp2 . cs_index = cs2_index;
         inccp2 . mgccp_index = mgccp2;
 
-        if ( INCCP_to_index . count ( inccp1 ) == 0 ) {
+        if ( inccp_index_ . count ( inccp1 ) == 0 ) {
           inccp_index_ [ inccp1 ] = INCCP_records_ . size ();
           INCCP_records_ . push_back ( inccp1 );
           incc_uf . MakeSet ();
         }
-        if ( INCCP_to_index . count ( inccp2 ) == 0 ) {
+        if ( inccp_index_ . count ( inccp2 ) == 0 ) {
           inccp_index_ [ inccp2 ] = INCCP_records_ . size ();
           INCCP_records_ . push_back ( inccp2 );
           incc_uf . MakeSet ();
         }
         // Call Union operation
-        uint64_t inccp1_index = INCCP_to_index [ inccp1 ];
-        uint64_t inccp2_index = INCCP_to_index [ inccp2 ];
+        uint64_t inccp1_index = inccp_index_ [ inccp1 ];
+        uint64_t inccp2_index = inccp_index_ [ inccp2 ];
         incc_uf . Union ( inccp1_index, inccp2_index );
       }
     }
