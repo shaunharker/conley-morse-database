@@ -323,8 +323,6 @@ public:
     { if ( bg_index_ . count ( item ) == 0 ) return bgData().size(); return bg_index_ . find (item) -> second; }
   uint64_t csIndex ( CS_Data const& item ) const 
     { if ( cs_index_ . count ( item ) == 0 ) return csData().size(); return cs_index_ . find (item) -> second; }
-  const std::vector<boost::unordered_set<uint64_t> > & mgcc_nb ( void ) const 
-    { return mgcc_nb_;}
 
   uint64_t inccpIndex ( INCCP_Record const& item ) const 
     { if ( inccp_index_ . count ( item ) == 0 ) return INCCP_Records().size(); return inccp_index_ . find (item) -> second; }
@@ -591,6 +589,14 @@ inline void Database::postprocess ( void ) {
 
   // clear: mgcc_uf, rep_to_mgccp
 
+  pb_to_mgccp_ . resize ( parameter_space () . size (), MGCCP_Records () . size () );
+  for ( uint64_t mgccp_index = 0; mgccp_index < MGCCP_Records () . size (); ++ mgccp_index ) {
+    const MGCCP_Record & mgccp_record = MGCCP_Records () [ mgccp_index ];
+    BOOST_FOREACH ( Grid::GridElement ge, mgccp_record . grid_elements ) {
+      pb_to_mgccp_ [ ge ] = mgccp_index;
+    }
+  }
+
   // Create singleton INCCP records regardless of continuation
   boost::unordered_map< INCCP_Record, uint64_t > INCCP_to_index;
   ContiguousIntegerUnionFind incc_uf;
@@ -624,8 +630,8 @@ inline void Database::postprocess ( void ) {
 
   ContiguousIntegerUnionFind mgcc_uf ( MGCCP_records_ . size () );
   BOOST_FOREACH ( const ClutchingRecord & cr, clutch_records () ) {
-    uint64_t mgccp1 = grid_to_mgccp [ cr . grid_element_1 ];
-    uint64_t mgccp2 = grid_to_mgccp [ cr . grid_element_2 ];
+    uint64_t mgccp1 = pb_to_mgccp [ cr . grid_element_1 ];
+    uint64_t mgccp2 = pb_to_mgccp [ cr . grid_element_2 ];
     DAG_Data & dag1 = dag_data_ [ grid_to_dag [ cr . grid_element_1 ] ];
     DAG_Data & dag2 = dag_data_ [ grid_to_dag [ cr . grid_element_2 ] ];
     BG_Data & bg = bg_data_ [ cr . bg_index ];
@@ -728,7 +734,6 @@ inline void Database::postprocess ( void ) {
 
   //pb_to_mgcc
 
-  pb_to_mgccp_ . resize ( parameter_space () . size (), MGCCP_Records () . size () );
   mgcc_sizes_ . resize ( MGCC_Records () . size (), 0 );
   mgccp_to_mgcc_ . resize ( MGCCP_Records () . size () );
 
@@ -736,9 +741,8 @@ inline void Database::postprocess ( void ) {
     MGCC_Record const& mgcc_record = MGCC_Records () [ mgcc_index ];
     BOOST_FOREACH ( uint64_t mgccp_index, mgcc_record . mgccp_indices ) {
       mgccp_to_mgcc_ [ mgccp_index ] = mgcc_index;
-      MGCCP_Record & mgccp_record = MGCCP_Records () [ mgccp_index ];
+      MGCCP_Record const& mgccp_record = MGCCP_Records () [ mgccp_index ];
       BOOST_FOREACH ( uint64_t pb, mgccp_record . grid_elements ) {
-        pb_to_mgccp_ [ pb ] = mgccp_index;
         ++ mgcc_sizes_ [ mgcc_index ];
       }
     }
@@ -748,17 +752,17 @@ inline void Database::postprocess ( void ) {
   // incc_sizes_: stores sizes of incc's  (Note: doubling counting is possible with interesting continuations)
   // incc_to_mgcc_: lookup set of mgccs via incc
   // inccp_to_incc_: lookup incc via inccp
-  incc_sizes_ . resize ( database . INCC_Records () . size (), 0 );
-  incc_to_mgcc_ . resize ( database . INCC_Records() . size () );
-  inccp_to_incc_ . resize ( database . INCCP_Records() . size () );
-  for ( uint64_t incc_index = 0; incc_index < database . INCC_Records () . size (); ++ incc_index ) {
-    INCC_Record const& incc_record = database . INCC_Records () [ incc_index ];
+  incc_sizes_ . resize ( INCC_Records () . size (), 0 );
+  incc_to_mgcc_ . resize ( INCC_Records() . size () );
+  inccp_to_incc_ . resize ( INCCP_Records() . size () );
+  for ( uint64_t incc_index = 0; incc_index < INCC_Records () . size (); ++ incc_index ) {
+    INCC_Record const& incc_record = INCC_Records () [ incc_index ];
     BOOST_FOREACH ( uint64_t inccp_index, incc_record . inccp_indices ) {
-      INCCP_Record const& inccp_record = database . INCCP_Records () [ inccp_index ];
+      INCCP_Record const& inccp_record = INCCP_Records () [ inccp_index ];
       inccp_index_ [ inccp_record ] = inccp_index;
       uint64_t mgccp_index = inccp_record . mgccp_index;
       incc_to_mgcc_ [ incc_index ] . insert ( mgccp_to_mgcc_ [ mgccp_index ] );
-      incc_sizes_ [ incc_index ] += database . MGCCP_Records () [ mgccp_index ] . grid_elements . size ();
+      incc_sizes_ [ incc_index ] += MGCCP_Records () [ mgccp_index ] . grid_elements . size ();
       inccp_to_incc_ [ inccp_index ] = incc_index;
     }
   }
