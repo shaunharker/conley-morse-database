@@ -93,7 +93,7 @@ void MorseProcess::initialize ( void ) {
 
 #ifdef PATCHMETHOD
   
-  int patch_width = 10; // try to use patch_width^d boxes per patch (plus or minus 1)
+  int patch_width = 4; // try to use patch_width^d boxes per patch (plus or minus 1)
   
   // Initialize parameter space bounds
   parameter_grid = boost::shared_ptr<Grid> ( new PARAMETER_GRID );
