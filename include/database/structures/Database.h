@@ -366,15 +366,15 @@ public:
     ar & boost::serialization::make_nvp("INCCP", INCCP_records_);
     ar & boost::serialization::make_nvp("MGCC", MGCC_records_);
     ar & boost::serialization::make_nvp("INCC", INCC_records_);
-    ar & boost::serialization::make_nvp("INCCPINDEX", inccp_index_;
-    ar & boost::serialization::make_nvp("PBTOMGCCP",pb_to_mgccp_;
-    ar & boost::serialization::make_nvp("MGCCPTOMGCC", mgccp_to_mgcc_;
-    ar & boost::serialization::make_nvp("INCCPTOINCC",inccp_to_incc_;
-    ar & boost::serialization::make_nvp("INCCTOMGCC", incc_to_mgcc_;
-    ar & boost::serialization::make_nvp("MGCCSIZES",mgcc_sizes_;
-    ar & boost::serialization::make_nvp("INCCSIZES", incc_sizes_;
-    ar & boost::serialization::make_nvp("MGCCNB", mgcc_nb_;
-    ar & boost::serialization::make_nvp("INCCCONLEY",incc_conley_;
+    ar & boost::serialization::make_nvp("INCCPINDEX", inccp_index_);
+    ar & boost::serialization::make_nvp("PBTOMGCCP",pb_to_mgccp_);
+    ar & boost::serialization::make_nvp("MGCCPTOMGCC", mgccp_to_mgcc_);
+    ar & boost::serialization::make_nvp("INCCPTOINCC",inccp_to_incc_);
+    ar & boost::serialization::make_nvp("INCCTOMGCC", incc_to_mgcc_);
+    ar & boost::serialization::make_nvp("MGCCSIZES",mgcc_sizes_);
+    ar & boost::serialization::make_nvp("INCCSIZES", incc_sizes_);
+    ar & boost::serialization::make_nvp("MGCCNB", mgcc_nb_);
+    ar & boost::serialization::make_nvp("INCCCONLEY",incc_conley_);
 
   }
 };
