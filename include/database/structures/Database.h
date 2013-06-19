@@ -13,6 +13,7 @@
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/list.hpp>
 #include <boost/serialization/set.hpp>
+#include <boost/serialization/unordered_set.hpp>
 #include <boost/serialization/unordered_map.hpp>
 #include "boost/serialization/shared_ptr.hpp"
 #include <boost/serialization/utility.hpp>
@@ -663,7 +664,7 @@ inline void Database::postprocess ( void ) {
   std::vector < int64_t > pb_to_mgcc;
   std::vector < uint64_t > mgcc_sizes;
   std::vector < uint64_t > mgccp_to_mgcc;
-  
+
   pb_to_mgcc . resize ( parameter_space () . size (), -1 );
   mgcc_sizes . resize ( MGCC_Records () . size (), 0 );
   mgccp_to_mgcc . resize ( MGCCP_Records () . size () );

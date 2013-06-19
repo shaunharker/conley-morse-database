@@ -1,5 +1,6 @@
 # makefile for CMDP project 
-COMPUTE_MORSE_SETS := yes
+COMPUTE_MORSE_SETS := no
+COMPUTE_CONTINUATION := yes
 COMPUTE_CONLEY_INDEX := no
 USE_CAPD := no
 HAVE_SUCCINCT := yes
@@ -38,6 +39,10 @@ DATABASE := ./build/program/Conley_Morse_Database.o
 ifeq ($(COMPUTE_MORSE_SETS),yes)
 	DATABASE += ./build/program/MorseProcess.o 
 	CXXFLAGS += -D COMPUTE_MORSE_SETS
+endif
+
+ifeq ($(COMPUTE_CONTINUATION),yes)
+	CXXFLAGS += -D COMPUTE_CONTINUATION
 endif
 
 ifeq ($(COMPUTE_CONLEY_INDEX),yes)
