@@ -64,8 +64,8 @@ int main ( int argc, char * argv [] ) {
   {
   std::string filestring ( argv[1] );
   std::string appendstring ( "/ConleyProcessTime.txt" );
-  std::ofstream morsetimeoutfile ( (filestring + appendstring) . c_str () );
-  conleytimeoutfile << conleyime << " seconds.\n";
+  std::ofstream conleytimeoutfile ( (filestring + appendstring) . c_str () );
+  conleytimeoutfile << conleytime << " seconds.\n";
   conleytimeoutfile . close ();
   }
 #endif
