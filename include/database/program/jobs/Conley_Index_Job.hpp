@@ -21,9 +21,14 @@
 
 std::vector<std::string> conley_index_string ( const chomp::ConleyIndex_t & ci ) {
   using namespace chomp;
+  std::cout << "conley index string\n";
   std::vector<std::string> result;
-  if ( ci . undefined () ) return result;
+  if ( ci . undefined () ) { 
+    std::cout << "undefined.\n";
+    return result;
+  }
   for ( unsigned int i = 0; i < ci . data () . size (); ++ i ) {
+    std::cout << "dimension is " << i << "\n";
     std::stringstream ss;
     typedef SparseMatrix < PolyRing < Ring > > PolyMatrix;
     PolyMatrix poly = ci . data () [ i ];
@@ -53,6 +58,7 @@ std::vector<std::string> conley_index_string ( const chomp::ConleyIndex_t & ci )
     }
     if ( is_trivial ) ss << "Trivial.\n";
     result . push_back ( ss . str () );
+    std::cout << "Wrote the poly " << ss . str () << "\n";
   }
   return result;
 }

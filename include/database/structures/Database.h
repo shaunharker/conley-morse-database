@@ -278,7 +278,7 @@ private:
   friend class boost::serialization::access;
   std::vector < MorseRecord > morse_records_;
   std::vector < ClutchingRecord > clutch_records_;
-  boost::shared_ptr<Grid> parameter_space_;
+  boost::shared_ptr < Grid > parameter_space_;
   std::vector < DAG_Data > dag_data_;
   std::vector < BG_Data > bg_data_;
   std::vector < CS_Data > cs_data_;
@@ -287,7 +287,7 @@ private:
   boost::unordered_map < BG_Data, uint64_t > bg_index_;
   boost::unordered_map < CS_Data, uint64_t > cs_index_;
   boost::unordered_map < CI_Data, uint64_t > ci_index_;
-  boost::unordered_map<INCCP_Record, uint64_t> inccp_index_;
+  boost::unordered_map < INCCP_Record, uint64_t > inccp_index_;
   std::vector < uint64_t > pb_to_mgccp_;
   std::vector < uint64_t > mgccp_to_mgcc_;
   std::vector < uint64_t > inccp_to_incc_;

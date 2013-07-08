@@ -268,7 +268,7 @@ ConleyIndex ( ConleyIndex_t * output,
 
 /* Conley Index */
 inline ConleyIndex_t::ConleyIndex_t ( void ) {
-  undefined_ = true;
+  undefined_ = false;
 } /* ConleyIndex_t::ConleyIndex_t */
 
 inline std::vector < SparseMatrix < Ring > > & ConleyIndex_t::data ( void ) {
