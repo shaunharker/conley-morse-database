@@ -128,6 +128,30 @@ inline std::size_t hash_value(CS_Data const& cs) {
   return seed;
 }
 
+// Conley Index Data
+struct CI_Data {
+  std::vector < std::string > conley_index;
+  bool operator == ( const CI_Data & rhs ) const {
+    if ( conley_index . size () != rhs . conley_index . size () ) return false;
+    for ( uint64_t i = 0; i < conley_index . size (); ++ i ) {
+      if ( conley_index [ i ] != rhs . conley_index [ i ] ) return false;
+    }
+    return true;
+  }
+  friend class boost::serialization::access;
+  template<class Archive>
+  void serialize(Archive& ar, const unsigned int version) {
+    ar & boost::serialization::make_nvp("CI", conley_index);
+  }
+};
+inline std::size_t hash_value(CI_Data const& ci) {
+  std::size_t seed = 0;
+  BOOST_FOREACH ( std::string s, ci . conley_index ) {
+    boost::hash_combine(seed, s );
+  }
+  return seed;
+}
+
 /*****************/
 /*   RECORDS     */
 /*****************/
@@ -244,36 +268,26 @@ struct INCC_Record {
   }
 };
 
-/********************/
-/*   RAW DATABASE   */
-/********************/
+
+/****************/
+/*   DATABASE   */
+/****************/
 
 class Database {
 private:
   friend class boost::serialization::access;
-
-
-  // RAW RECORDS
   std::vector < MorseRecord > morse_records_;
   std::vector < ClutchingRecord > clutch_records_;
-
-
-
   boost::shared_ptr<Grid> parameter_space_;
-
-  // We use an unordered_map instead of unordered_set in case
-  // the hash function isn't the same on two machines, one saving the database
-  // and the other loading.
   std::vector < DAG_Data > dag_data_;
   std::vector < BG_Data > bg_data_;
   std::vector < CS_Data > cs_data_;
-
+  std::vector < CI_Data > ci_data_;
   boost::unordered_map < DAG_Data, uint64_t > dag_index_;
   boost::unordered_map < BG_Data, uint64_t > bg_index_;
   boost::unordered_map < CS_Data, uint64_t > cs_index_;
-
+  boost::unordered_map < CI_Data, uint64_t > ci_index_;
   boost::unordered_map<INCCP_Record, uint64_t> inccp_index_;
-
   std::vector < uint64_t > pb_to_mgccp_;
   std::vector < uint64_t > mgccp_to_mgcc_;
   std::vector < uint64_t > inccp_to_incc_;
@@ -281,11 +295,7 @@ private:
   std::vector < uint64_t > mgcc_sizes_;
   std::vector < uint64_t > incc_sizes_;
   std::vector < boost::unordered_set < uint64_t > > mgcc_nb_;
-  std::vector < chomp::ConleyIndex_t > incc_conley_;
-
-
-
-  // DERIVED RECORDS
+  std::vector < uint64_t > incc_conley_;
   std::vector < MGCCP_Record > MGCCP_records_;
   std::vector < INCCP_Record > INCCP_records_;
   std::vector < MGCC_Record > MGCC_records_;
@@ -298,9 +308,8 @@ public:
   void insert ( boost::shared_ptr<Grid> grid );
   void insert ( const Grid::GridElement & p, const DAG_Data & dag );
   void insert ( const Grid::GridElement & p1, const Grid::GridElement & p2, const BG_Data & bg );
-
-      //void insert ( const ConleyRecord & record );
-
+  void insert ( const uint64_t incc, const CI_Data & ci );
+  
   void postprocess ( void );
 
   void save ( const char * filename );   
@@ -317,13 +326,16 @@ public:
     { return bg_data_; }
   const std::vector < CS_Data > & csData ( void ) const 
     { return cs_data_; }
+  const std::vector < CI_Data > & ciData ( void ) const 
+    { return ci_data_; }
   uint64_t dagIndex ( DAG_Data const& item ) const 
     { if ( dag_index_ . count ( item ) == 0 ) return dagData().size(); return dag_index_ . find (item) -> second; }
   uint64_t bgIndex ( BG_Data const& item ) const 
     { if ( bg_index_ . count ( item ) == 0 ) return bgData().size(); return bg_index_ . find (item) -> second; }
   uint64_t csIndex ( CS_Data const& item ) const 
     { if ( cs_index_ . count ( item ) == 0 ) return csData().size(); return cs_index_ . find (item) -> second; }
-
+ uint64_t ciIndex ( CI_Data const& item ) const 
+    { if ( ci_index_ . count ( item ) == 0 ) return ciData().size(); return ci_index_ . find (item) -> second; }
   uint64_t inccpIndex ( INCCP_Record const& item ) const 
     { if ( inccp_index_ . count ( item ) == 0 ) return INCCP_Records().size(); return inccp_index_ . find (item) -> second; }
 
@@ -335,7 +347,7 @@ public:
   const std::vector < uint64_t > & mgcc_sizes ( void ) const { return mgcc_sizes_; }
   const std::vector < uint64_t > & incc_sizes ( void ) const { return incc_sizes_; }
   const std::vector < boost::unordered_set < uint64_t > > & mgcc_nb ( void ) const { return mgcc_nb_; }
-  const std::vector < chomp::ConleyIndex_t> & incc_conley ( void ) const { return incc_conley_; }
+  const std::vector < uint64_t > & incc_conley ( void ) const { return incc_conley_; }
 
 
   const std::vector < MGCCP_Record > & MGCCP_Records ( void ) const; 
@@ -343,7 +355,6 @@ public:
   const std::vector < MGCC_Record > & MGCC_Records ( void ) const;  
   const std::vector < INCC_Record > & INCC_Records ( void ) const;    
 
-  //const std::vector < ConleyRecord > & conley_records ( void ) const;
       template<class Archive>
   void serialize(Archive& ar, const unsigned int version) {
         //std::cout << "serialize: check for parameter space\n";
@@ -355,9 +366,11 @@ public:
     ar & boost::serialization::make_nvp("DAGDATA", dag_data_);
     ar & boost::serialization::make_nvp("BGDATA", bg_data_);
     ar & boost::serialization::make_nvp("CSDATA", cs_data_);
+    ar & boost::serialization::make_nvp("CIDATA", ci_data_);
     ar & boost::serialization::make_nvp("DAGINDEX", dag_index_);
     ar & boost::serialization::make_nvp("BGINDEX", bg_index_);
     ar & boost::serialization::make_nvp("CSINDEX", cs_index_);
+    ar & boost::serialization::make_nvp("CIINDEX", ci_index_);
     ar & boost::serialization::make_nvp("MORSERECORDS", morse_records_);
     ar & boost::serialization::make_nvp("CLUTCHRECORDS", clutch_records_);
     ar & boost::serialization::make_nvp("MGCCP", MGCCP_records_);
@@ -451,6 +464,15 @@ inline void Database::insert ( const Grid::GridElement & p1, const Grid::GridEle
     bg_data_ . push_back ( bg );
   }
   clutch_records_ . push_back ( ClutchingRecord ( p1, p2, bg_index_ [ bg ] ) );
+}
+
+inline void Database::insert ( const uint64_t incc, const CI_Data & ci ) {
+  if ( ci_index_ . count ( ci ) == 0 ) {
+    ci_index_ [ ci ] = ci_data_ . size ();
+    ci_data_ . push_back ( ci );
+  }
+  incc_conley_ . resize ( INCC_records_ . size () );
+  incc_conley_ [ incc ] = ci_index_ [ ci ];
 }
 
 // POSTPROCESSING ALGORITHM
@@ -822,51 +844,5 @@ inline void Database::load ( const char * filename ) {
   ia >> boost::serialization::make_nvp("database",*this);
       //ifs . close ();
 }
-
-
-
-    /*  CODE FOR CONLEY INDEX THAT HAS BEEN REMOVED
-     #include "chomp/ConleyIndex.h"
-     
-     ///
-     BOOST_FOREACH ( const ConleyRecord & record, other . conley_records_ ) {
-     insert ( record );
-     }
-     ///
-     
-     #if 0
-     struct ConleyRecord {
-     std::pair < int, int > id_;
-     chomp::ConleyIndex_t ci_;
-     bool operator < ( const ConleyRecord & rhs ) const;
-     friend class boost::serialization::access;
-     template<class Archive>
-     void serialize(Archive& ar, const unsigned int version) {
-     //std::cout << "Serialize conley record.\n";
-     //std::cout << "Serialize ID\n";
-     ar & boost::serialization::make_nvp("ID",id_);
-     //std::cout << "Serialize Conley Index\n";
-     
-     ar & boost::serialization::make_nvp("CI",ci_);
-     }
-     };
-     
-     #endif
-     bool ConleyRecord::operator < ( const ConleyRecord & rhs ) const {
-     if ( id_ . first == rhs . id_ . first ) return id_ . second < rhs . id_ . second;
-     return id_ . first < rhs . id_ . first;
-     }
-     
-     void Database::insert ( const ConleyRecord & record ) {
-     conley_records_ . insert ( record );
-     }
-     
-     std::set < ConleyRecord > & Database::conley_records ( void ) {
-     return conley_records_;
-     }
-     const std::set < ConleyRecord > & Database::conley_records ( void ) const {
-     return conley_records_;
-     }
-     */
 
 #endif

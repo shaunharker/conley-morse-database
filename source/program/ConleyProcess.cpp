@@ -31,6 +31,7 @@
 void ConleyProcess::initialize ( void ) {
   using namespace chomp;
 
+  // LOAD DATABASE
   num_jobs_sent_ = 0;
   std::cout << "ConleyProcess::initialize ()\n";
   
@@ -42,78 +43,41 @@ void ConleyProcess::initialize ( void ) {
   std::string appendstring ( "/database.mdb" );
   database . load ( (filestring + appendstring) . c_str () );
     
-  database . conley_records () . clear ();
-  std::cout << "Loaded database.\n";
-
-  // Goal is to create disjoint set data structure of equivalent morse sets
-  typedef std::pair<int, int> intpair;
-  typedef std::pair<int, int> ms_id; // morse_set id
-  UnionFind < ms_id > classes;
-  
-  /* Process Parameter Box Records */
-  BOOST_FOREACH ( const ParameterBoxRecord & record, database . box_records () ) {
-    for ( int i = 0; i < record . num_morse_sets_ ; ++ i ) {
-      classes . Add ( ms_id ( record . id_, i ) );
-    }
-    param_boxes [ record . id_ ] . lower_bounds = record . ge_ . lower_bounds_;
-    param_boxes [ record . id_ ] . upper_bounds = record . ge_ . upper_bounds_;    
-  }
-  
-  /* Process all Clutching Records */
-  BOOST_FOREACH ( const ClutchingRecord & record, database . clutch_records () ) {
-    std::map < int, int > first;
-    std::map < int, int > second;
-    BOOST_FOREACH ( const intpair & line, record . clutch_ ) {
-      if ( first . find ( line . first ) == first . end () ) 
-        first [ line . first ] = 0;
-      if ( second . find ( line . second ) == second . end () ) 
-        second [ line . second ] = 0;
-      ++ first [ line . first ];
-      ++ second [ line . second ];
-    }
-    BOOST_FOREACH ( const intpair & line, record . clutch_ ) {
-      if ( first [ line . first ] == 1 && second [ line . second ] == 1 ) {
-        classes . Union ( ms_id ( record . id1_, line . first ), 
-                          ms_id ( record . id2_, line . second ) );
+  // DETERMINE CONLEY JOBS
+  // we only compute conley index for INCC records that have a representative
+  // with a single morse set. This requires searching the representatives.
+  uint64_t num_incc = database . INCC_Records () . size ();
+  for ( uint64_t incc = 0; incc < num_incc; ++ incc ) {
+    const INCC_Record & incc_record = database . INCC_Records () [ incc ];
+    BOOST_FOREACH ( uint64_t inccp, incc_record . inccp_indices ) {
+      const INCCP_Record & inccp_record = database . INCCP_Records () [ inccp ];
+      uint64_t cs = inccp_record . cs_index;
+      if ( database . csData () [ cs ] . vertices . size () == 1 ) {
+        const MGCCP_Record & mgccp_record = database . MGCCP_Records () [ inccp_record . mgccp_index ];
+        Grid::GridElement ge = mgccp_record . grid_elements [ 0 ];
+        uint64_t vertex =  database . csData () [ cs ] . vertices [ 0 ];
+        conley_work_items . push_back ( std::make_pair ( incc, std::make_pair ( ge, vertex ) ) );
+        break;
       }
     }
   }
-  
-  
-  // Now the union-find structure is prepared.
-  /* TODO: use a small representative.
-  std::map < ms_id, ms_id > smallest_reps;
-  BOOST_FOREACH ( const ms_id & element, classes . Elements () ) {
-    ms_id rep = classes . Representative ( element );
-    if ( smallest_reps . find ( rep ) == smallest_reps . end () ) 
-      smallest_reps [ rep ] = element;
-    ms_id small = smallest_reps [ rep ];
-    
-  }
-  */
-  std::set < ms_id > work_items;
-  BOOST_FOREACH ( const ms_id & element, classes . Elements () ) {
-    ms_id rep = classes . Representative ( element );
-    if ( work_items . insert ( rep ) . second == true )
-      conley_work_items . push_back ( rep );
-  }
+
   
   num_jobs_ = conley_work_items . size ();
   
   std::cout << "Writing job list to conleystage.txt\n";
   std::ofstream outfile ( "conleystage.txt" );
-  //std::cout << "Number of conley jobs = " << num_jobs_ << "\n";
-  //std::cout << "conley_work_items_ . size () = " << conley_work_items . size () << "\n";
   outfile << "Number of conley jobs = " << num_jobs_ << "\n";
   
   for ( unsigned int job_number = 0; job_number < num_jobs_; ++ job_number ) {
-    //std::cout << "fetch cell from work item\n";
-    int pb_id = conley_work_items [ job_number ] . first;
-    std::cout << "Found " << pb_id << ", now we determine corresponding prism\n";
-  	Rect GD = param_boxes [ pb_id ]; 
-    outfile << "job number " << job_number << ", pb_id = " << pb_id << ", geo = " << GD << "\n";
-    std::cout << "job number " << job_number << ", pb_id = " << pb_id << ", geo = " << GD << "\n";
-
+    uint64_t incc = conley_work_items [ job_number ] . first;
+    uint64_t pb_id = conley_work_items [ job_number ] . second . first;
+    uint64_t ms = conley_work_items [ job_number ] . second . second;
+  	Rect GD = database . phaseSpace () . geometry ( pb_id );
+    outfile << "Job " << job_number << ": INCC = " << incc << " PB = " 
+            << pb_id << ", MS = " << ms << ", geo = " << GD << "\n";
+    std::cout << "Job " << job_number << ": INCC = " << incc << " PB = " 
+            << pb_id << ", MS = " << ms << ", geo = " << GD << "\n";
   }
   std::cout << "Finished writing job list.\n";
   outfile . close ();
@@ -132,12 +96,17 @@ int ConleyProcess::prepare ( Message & job ) {
   if (num_jobs_sent_ == num_jobs_) return 1; // Code 1: No more jobs.
   
   size_t job_number = num_jobs_sent_;
-  int pb_id = conley_work_items [ job_number ] . first;
-  Rect GD = param_boxes [ pb_id ];
+
+  uint64_t incc = conley_work_items [ job_number ] . first;
+  uint64_t pb_id = conley_work_items [ job_number ] . second . first;
+  uint64_t ms = conley_work_items [ job_number ] . second . second;
+  Rect GD = database . phaseSpace () . geometry ( pb_id );
+
 
   job << job_number;
+  job << incc;
   job << GD;
-  job << conley_work_items [ job_number ];
+  job << ms;
   job << config.PHASE_SUBDIV_MIN;
   job << config.PHASE_SUBDIV_MAX;
   job << config.PHASE_SUBDIV_LIMIT;
@@ -145,7 +114,7 @@ int ConleyProcess::prepare ( Message & job ) {
   job << config.PERIODIC;
 
   std::cout << "Preparing conley job " << job_number 
-            << " with GD = " << GD << "  and  ms_id = (" << conley_work_items [ job_number ] . first << ", " << conley_work_items [ job_number ] . second << ")\n";
+            << " with GD = " << GD << "  and  ms = (" <<  ms << ")\n";
   /// Increment the jobs_sent counter
   ++num_jobs_sent_;
   
@@ -158,14 +127,6 @@ int ConleyProcess::prepare ( Message & job ) {
 /* * * * * * * * * */
 void ConleyProcess::work ( Message & result, const Message & job ) const {
   Conley_Index_Job < GRIDCHOICE > ( &result , job );
-  // debug
-  /*
-  Database job_database;
-  size_t job_number;
-  job >> job_number;
-  result << job_number;
-  result << job_database;
-   */
 }
 
 /* * * * * * * * * */
@@ -174,11 +135,12 @@ void ConleyProcess::work ( Message & result, const Message & job ) const {
 void ConleyProcess::accept (const Message &result) {
   /// Read the results from the result message
   size_t job_number;
-  Database job_database;
+  uint64_t incc;
+  CI_Data job_result;
   result >> job_number;
-  result >> job_database;
-  // Merge the results
-  database . merge ( job_database );
+  result >> incc;
+  result >> job_result;
+  database . insert ( incc, job_result );
   std::cout << "ConleyProcess::accept: Received result " 
             << job_number << "\n";
 }
@@ -191,10 +153,4 @@ void ConleyProcess::finalize ( void ) {
   std::string filestring ( argv[1] );
   std::string appendstring ( "/database.cmdb" );
   database . save ( (filestring + appendstring) . c_str () );
-    
-    std::cout << "DEBUG...\n";
-    Database debugtest;
-    debugtest . load ( (filestring + appendstring) . c_str () );
-    std::cout << typeid ( chomp::Ring ).name() << "\n";
-  
 }
