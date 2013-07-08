@@ -18,6 +18,7 @@ public:
 private:
   size_t num_jobs_;
   size_t num_jobs_sent_;
+  std::vector < std::pair < uint64_t, std::pair < Grid::GridElement, uint64_t > > conley_work_items;
   Configuration config;
   Database database;
 };

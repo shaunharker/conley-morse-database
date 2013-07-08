@@ -73,7 +73,7 @@ void ConleyProcess::initialize ( void ) {
     uint64_t incc = conley_work_items [ job_number ] . first;
     uint64_t pb_id = conley_work_items [ job_number ] . second . first;
     uint64_t ms = conley_work_items [ job_number ] . second . second;
-  	Rect GD = database . phaseSpace () . geometry ( pb_id );
+  	Rect GD = database . parameter_space () . geometry ( pb_id );
     outfile << "Job " << job_number << ": INCC = " << incc << " PB = " 
             << pb_id << ", MS = " << ms << ", geo = " << GD << "\n";
     std::cout << "Job " << job_number << ": INCC = " << incc << " PB = " 
@@ -100,7 +100,7 @@ int ConleyProcess::prepare ( Message & job ) {
   uint64_t incc = conley_work_items [ job_number ] . first;
   uint64_t pb_id = conley_work_items [ job_number ] . second . first;
   uint64_t ms = conley_work_items [ job_number ] . second . second;
-  Rect GD = database . phaseSpace () . geometry ( pb_id );
+  Rect GD = database . parameter_space () . geometry ( pb_id );
 
 
   job << job_number;
