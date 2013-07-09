@@ -311,7 +311,8 @@ public:
   void insert ( const uint64_t incc, const CI_Data & ci );
   
   void postprocess ( void );
-
+  void makeAttractorsMinimal ( void );
+  void performTransitiveReductions ( void );
   void save ( const char * filename );   
   void load ( const char * filename );
   
@@ -805,7 +806,101 @@ inline void Database::postprocess ( void ) {
   clutch_records_ . clear ();
 }
 
+inline void Database::makeAttractorsMinimal ( void ) {
+  // Loop through all INCCs
+  //   Check Conley Index and see if it is an attractor
+  //   If it is an attractor,
+  //     Loop through all INCCPs
+  //       Obtain the corresponding MGCCP
+  //       Identify the convex set corresponding to the IN.
+  //       Construct the Morse Graph corresponding to removing the out-edges of the convex set
+  //           (apart from internal out-edges within convex set)
+  //       Alter the MGCCP record to point to the new Morse Graph
+  //     End Loop
+  //   End If
+  // End Loop
+  uint64_t number_of_inccs = incc_conley_ . size ();
+  for ( uint64_t incc = 0; incc < number_of_inccs; ++ incc ) {
+    // Check if it is an attractor
+    const std::vector<std::string> & conley_string = 
+      ciData () [ incc_conley () [ incc ] ] . conley_index;
+    if ( conley_string . size () == 0 ) continue;
+    if ( conley_string [ 0 ] != "Trivial.\n" ) {
+      const INCC_Record & incc_record = INCC_Records () [ incc ];
+      BOOST_FOREACH ( uint64_t inccp, incc_record . inccp_indices ) {
+        //std::cout << "INCCP = " << inccp << "\n";
+        //std::cout << conley_string [ 0 ] << "\n";
+        const INCCP_Record & inccp_record = INCCP_Records () [ inccp ];
+        uint64_t mgccp = inccp_record . mgccp_index;
+        uint64_t cs = inccp_record . cs_index;
+        MGCCP_Record & mgccp_record = MGCCP_records_ [ mgccp ];
+        DAG_Data dag_data = dagData () [ mgccp_record . dag_index ];
+        const CS_Data & cs_data = csData () [ cs ];
+        DAG_Data new_dag;
+        new_dag . num_vertices = dag_data . num_vertices;
+        boost::unordered_set < int > convex_set_vertices;
+        BOOST_FOREACH( int v, cs_data . vertices ) convex_set_vertices . insert ( v );
+        //std::cout << "CSV size = " << convex_set_vertices . size () << "\n";
+        if ( convex_set_vertices . size () == 0 ) continue;
+        //std::cout << "CS:";
+        //BOOST_FOREACH( int v, cs_data . vertices ) std::cout << v << " ";
+        //std::cout << "\n";
+        for ( int i = 0; i < dag_data . partial_order . size (); ++ i ) {
+          std::pair<int,int> edge = dag_data . partial_order [ i ];
+          // retain the edge only if it originates outside the convex set
+          // or else targets the convex set
+          // (eqivalently, throw out the edge only if it originates inside the convex set
+          //   and targets outside the convex set)
+          //std::cout << "Inspecting edge " << edge.first << ", " << edge.second << "\n";
+          if ( (convex_set_vertices . count ( edge . first ) == 0)  ||
+               (convex_set_vertices . count ( edge . second ) != 0)  ) {
+            //std::cout << "Pushing edge " << edge.first << ", " << edge.second << "\n";
+            new_dag . partial_order . push_back ( edge );
+          }
+        }
+        // register the new dag
+        if ( dag_index_ . count ( new_dag ) == 0 ) {
+          dag_index_ [ new_dag ] = dag_data_ . size ();
+          dag_data_ . push_back ( new_dag );
+        }
+        uint64_t old_dag_index = mgccp_record . dag_index;
+        uint64_t new_dag_index = dag_index_ [ new_dag ];
+        //std::cout << "Old dag index = " << old_dag_index << "\n";
+        //std::cout << "New dag index = " << new_dag_index << "\n";
+        mgccp_record . dag_index = new_dag_index;
+      }
+    }
+  }
+}
 
+inline void Database::performTransitiveReductions ( void ) {
+  // tricky part: to update the dags, we need to update the lookup table too
+  for ( uint64_t dag_index = 0; dag_index < dag_data_ . size (); ++ dag_index ) {
+    DAG_Data & dag = dag_data_ [ dag_index ];
+    dag_index_ . erase ( dag );
+    boost::unordered_map < int, boost::unordered_set < int > > G, squared;
+    for ( int i = 0; i < dag . partial_order . size (); ++ i ) {
+      std::pair<int,int> edge = dag.partial_order[i];
+      if ( edge . second == edge . first ) continue;
+      G[edge.first].insert(edge.second);
+    }
+    for ( int u = 0; u < dag . num_vertices; ++ u ) {
+      BOOST_FOREACH( int v, G [ u ] ) {
+        BOOST_FOREACH ( int w, G [ v ] ) {
+          squared [ u ] . insert ( w );
+        }
+      }
+    }
+    std::vector<std::pair<int,int> > reduced;
+    for ( int i = 0; i < dag . partial_order . size (); ++ i ) {
+      std::pair<int,int> edge = dag.partial_order[i];
+      if ( squared [ edge.first ] . count ( edge . second ) == 0 )
+        reduced . push_back ( edge );
+    }
+    dag . partial_order = reduced;
+    dag_index_ [ dag ] = dag_index;
+  }
+}
     // record access
 inline const std::vector < MorseRecord > & Database::morse_records ( void ) const { return morse_records_; }
 inline const std::vector < ClutchingRecord > & Database::clutch_records ( void ) const { return clutch_records_; }
