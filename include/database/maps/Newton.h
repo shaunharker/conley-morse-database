@@ -64,7 +64,7 @@ struct ModelMap {
     double tol = 0;
     interval theta = interval (rectangle . lower_bounds [ 0 ] - tol, rectangle . upper_bounds [ 0 ] + tol);
     
-    interval x = interval ( 1.0 ) + ( c - interval ( 1.0 ) ) * sin ( theta ) * sin ( theta );// 1 - 2 sin^2 = cos(2t)
+    interval x = interval ( 1.0 ) + ( c - interval ( 1.0 ) ) * cos ( theta ) * cos ( theta );// 1 - 2 sin^2 = cos(2t)
     interval y = (a + b ) * 0.5 + ( a - b ) * 0.5 * cos ( 2.0 * ( phi + theta ) ); // -cos(2t - pi/2)= -sin(2t)
 
     //std::cout << "a = " << a . lower () << "\n";

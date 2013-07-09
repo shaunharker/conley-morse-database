@@ -2,6 +2,7 @@
  *  ConleyProcess.cpp
  */
 
+//#define SNF_DEBUG
 #include <iostream>
 #include <fstream>
 
@@ -24,6 +25,12 @@
 #ifndef GRIDCHOICE
 #define GRIDCHOICE PointerGrid
 #endif
+
+#include <boost/serialization/export.hpp>
+#ifdef HAVE_SUCCINCT
+BOOST_CLASS_EXPORT_IMPLEMENT(SuccinctGrid);
+#endif
+BOOST_CLASS_EXPORT_IMPLEMENT(PointerGrid);
 
 /* * * * * * * * * * * * */
 /* initialize definition */

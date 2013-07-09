@@ -41,7 +41,12 @@ std::vector<std::string> conley_index_string ( const chomp::ConleyIndex_t & ci )
       poly . add ( i, i, X );
     }
     PolyMatrix U, Uinv, V, Vinv, D;
-    SmithNormalForm ( &U, &Uinv, &V, &Vinv, &D, poly );
+    try {
+      SmithNormalForm ( &U, &Uinv, &V, &Vinv, &D, poly );
+    } catch ( ...) {
+      result . push_back ( std::string ( "Problem computing SNF.\n") );
+      continue;
+    }
     bool is_trivial = true;
     PolyRing < Ring > x;
     x . resize ( 2 );

@@ -338,6 +338,16 @@ void SmithPivot (SparseMatrix<R> * U,
   typedef typename Matrix::Index Index;
   // Obtain the (i, j)th element of D
   Index pivot_index = D -> find ( i, j );
+
+  //DEBUG
+  if ( pivot_index == D -> end () ) {
+    std::cout << "Unable to find pivot " << i << ", " << j << "\n";
+    std::cout << "Hence pivot_value = " << D -> read ( pivot_index );
+    std::cout << "THROWING BAD SNF CALCULATION\n";
+    throw 42; // bad snf calculation
+  }
+  //END DEBUG
+
   R pivot_value = D -> read ( pivot_index ); 
   
   //DEBUG
@@ -345,11 +355,11 @@ void SmithPivot (SparseMatrix<R> * U,
     std::cout << "Pivot cannot be zero!\n";
     exit ( 1 );
   }
-  
+  //END DEBUG
   
   R old_pivot_value ( 0 );
   //std::cout << " **** SMITH PIVOT (" << i << ", " <<
-  // j << ") value = " << pivot_value << " **** \n";
+   //j << ") value = " << pivot_value << " **** \n";
   //print_matrix ( * D );
   // We assume pivot_value != 0, so this while loop will run at least once:
   while ( pivot_value != old_pivot_value ) {

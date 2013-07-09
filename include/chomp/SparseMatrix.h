@@ -668,12 +668,12 @@ SparseMatrix<R>::find ( const int i, const int j ) const {
 template < class R >
 R SparseMatrix<R>::read ( const int i, const int j ) const {
   Index index = find ( i, j );
-  if ( index == end () ) return R ( 0 );
   return read ( index );
 }
 
 template < class R >
 R SparseMatrix<R>::read ( const Index index ) const {
+  if ( index == end () ) return R ( 0 );
   return data_ [ index ] . value;
 }
 
