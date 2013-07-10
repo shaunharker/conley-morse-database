@@ -26,11 +26,13 @@
 #define GRIDCHOICE PointerGrid
 #endif
 
+/*  in Conley_Morse_Database.cpp
 #include <boost/serialization/export.hpp>
 #ifdef HAVE_SUCCINCT
 BOOST_CLASS_EXPORT_IMPLEMENT(SuccinctGrid);
 #endif
 BOOST_CLASS_EXPORT_IMPLEMENT(PointerGrid);
+*/
 
 /* * * * * * * * * * * * */
 /* initialize definition */

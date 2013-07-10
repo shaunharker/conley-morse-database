@@ -11,19 +11,17 @@
 #endif
 #ifdef COMPUTE_CONTINUATION
 #include "database/structures/Database.h"
-#ifndef COMPUTE_MORSE_SETS
-#ifndef COMPUTE_CONLEY_INDEX
+#endif
+#ifdef COMPUTE_CONLEY_INDEX
+#include "database/program/ConleyProcess.h"
+#endif
+
 #include <boost/serialization/export.hpp>
 #ifdef HAVE_SUCCINCT
 BOOST_CLASS_EXPORT_IMPLEMENT(SuccinctGrid);
 #endif
 BOOST_CLASS_EXPORT_IMPLEMENT(PointerGrid);
-#endif
-#endif
-#endif
-#ifdef COMPUTE_CONLEY_INDEX
-#include "database/program/ConleyProcess.h"
-#endif
+
 
 int main ( int argc, char * argv [] ) {
   delegator::Start ();
