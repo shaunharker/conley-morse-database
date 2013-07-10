@@ -264,6 +264,8 @@ void ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
         }
         Vertex v = MG -> AddVertex ();
         MG -> grid ( v ) = MD -> grid ();
+        std::cout << " .CMG. vertex " << v << " has a grid of type " << typeid( * MG -> grid ( v ) ).name() << "\n";
+
         if ( MG -> grid ( v ) . get () == NULL ) {
           std::cout << "Error at ComputeMorseGraph.hpp line 274\n";
           abort ();

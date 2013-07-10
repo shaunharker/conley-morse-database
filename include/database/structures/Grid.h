@@ -135,7 +135,10 @@ inline std::vector<Grid::GridElement> Grid::subset ( const Grid & other ) const 
   // If "this" goes deeper than "other", we collect all decendant leaves.
   std::vector<GridElement> result;
   std::stack < std::pair < Tree::iterator, Tree::iterator > > work_stack;
+  std::cout << "Grid::subset 1\n";
   work_stack . push ( std::make_pair ( tree () . begin (), other . tree () . begin () ) );
+    std::cout << "Grid::subset 2\n";
+
   while ( not work_stack . empty () ) {
     Tree::iterator this_it = work_stack . top () . first;
     Tree::iterator other_it = work_stack . top () . second;
@@ -173,6 +176,7 @@ inline std::vector<Grid::GridElement> Grid::subset ( const Grid & other ) const 
       
     }
   }
+      std::cout << "Grid::subset 3\n";
   return result;
 }
 

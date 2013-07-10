@@ -112,7 +112,16 @@ void Conley_Index_Job ( Message * result , const Message & job ) {
                         PHASE_SUBDIV_MAX,
                         PHASE_SUBDIV_LIMIT );
   
+    std::cout << "CIJ: returned from Compute_Morse_Graph\n";
+
   // Select Subset
+    std::cout << "incc = " << incc << "\n";
+    std::cout << "ms = " << ms << "\n";
+    std::cout << "num vertices = " << mg . NumVertices () << "\n";
+    std::cout << "CIJ: size of phase space = " << phase_space -> size () << "\n";
+    std::cout << "CIJ: size of morse set = " << mg . grid ( ms ) -> size () << "\n";
+    std::cout << "phase space grid type: " << typeid( * phase_space ).name() << "\n";
+    std::cout << "ms grid type: " << typeid( * mg . grid ( ms ) ).name() << "\n";
   typedef std::vector < Grid::GridElement > Subset;
   Subset subset = phase_space -> subset ( * mg . grid ( ms ) );
 
