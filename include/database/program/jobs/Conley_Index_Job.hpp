@@ -115,6 +115,8 @@ void Conley_Index_Job ( Message * result , const Message & job ) {
     std::cout << "CIJ: returned from Compute_Morse_Graph\n";
 
   // Select Subset
+    std::cout << "periodic = " << (PERIODIC[0] ? "yes" : "no" ) << "\n";
+    std::cout << "phase bounds = " << PHASE_BOUNDS << "\n";
     std::cout << "incc = " << incc << "\n";
     std::cout << "ms = " << ms << "\n";
     std::cout << "num vertices = " << mg . NumVertices () << "\n";

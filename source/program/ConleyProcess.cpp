@@ -65,6 +65,18 @@ void ConleyProcess::initialize ( void ) {
         const MGCCP_Record & mgccp_record = database . MGCCP_Records () [ inccp_record . mgccp_index ];
         Grid::GridElement ge = mgccp_record . grid_elements [ 0 ];
         uint64_t vertex =  database . csData () [ cs ] . vertices [ 0 ];
+
+        // debug
+        if ( vertex >= database . dagData () [ mgccp_record . dag_index ] . num_vertices ) {
+          std::cout << "Invalid database.\n";
+          abort ();
+        }
+        if ( database . pb_to_mgccp () [ ge ] != inccp_record . mgccp_index ) {
+          std::cout << " mgccp = " << inccp_record . mgccp_index << " ge = " << ge << "\n";
+          std::cout << " mgccp from ge = "  << database . pb_to_mgccp () [ ge ] << "\n";
+          abort ();
+        }
+        // end debug
         conley_work_items . push_back ( std::make_pair ( incc, std::make_pair ( ge, vertex ) ) );
         break;
       }
