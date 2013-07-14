@@ -103,7 +103,7 @@ public:
  
     boost::optional<int> opt_phase_subdiv_init = pt.get_optional<int>("config.phase.subdiv.init");
     PHASE_SUBDIV_INIT = 0;
-    if ( opt_phase_subdiv_init ) PHASE_SUBDIV_INIT = * opt_phase_subdiv_init;
+    if ( opt_phase_subdiv_init ) PHASE_SUBDIV_INIT = opt_phase_subdiv_init . get ();
     
     PHASE_BOUNDS . lower_bounds . resize ( PHASE_DIM );
     PHASE_BOUNDS . upper_bounds . resize ( PHASE_DIM );
