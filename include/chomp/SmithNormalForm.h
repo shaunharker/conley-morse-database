@@ -608,6 +608,7 @@ void SmithNormalForm (SparseMatrix<R> * U,
         //NSLog(@"problem at (%d, %d)\n", i, j );
         std::cout << "Smith Normal Form failure.\n";
         print_matrix ( A );
+        throw 42;
         //print_matrix ( UDV );
         return;
         //exit ( 1 );

@@ -264,7 +264,7 @@ void ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
         }
         Vertex v = MG -> AddVertex ();
         MG -> grid ( v ) = MD -> grid ();
-        std::cout << " .CMG. vertex " << v << " has a grid of type " << typeid( * MG -> grid ( v ) ).name() << "\n";
+        //std::cout << " .CMG. vertex " << v << " has a grid of type " << typeid( * MG -> grid ( v ) ).name() << "\n";
 
         if ( MG -> grid ( v ) . get () == NULL ) {
           std::cout << "Error at ComputeMorseGraph.hpp line 274\n";
@@ -287,6 +287,18 @@ void ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
 //#endif
 }
 
+
+template < class Map >
+void Compute_Morse_Graph (MorseGraph * MG,
+                          boost::shared_ptr<Grid> phase_space,
+                          const Map & f,
+                          const unsigned int Init,
+                          const unsigned int Min, 
+                          const unsigned int Max, 
+                          const unsigned int Limit) {
+  for ( int i = 0; i < (int)Init; ++ i ) phase_space -> subdivide ();
+  Compute_Morse_Graph ( MG, phase_space, f, Min - Init, Max - Init, Limit );
+}
 
 template < class Map >
 void Compute_Morse_Graph (MorseGraph * MG,

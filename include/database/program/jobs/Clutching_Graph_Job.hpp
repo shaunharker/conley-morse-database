@@ -204,6 +204,7 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   std::vector <size_t> box_names;
   std::vector < chomp::Rect > box_geometries;
   std::vector <std::pair<size_t, size_t> > box_adjacencies;
+  int PHASE_SUBDIV_INIT;
   int PHASE_SUBDIV_MIN;
   int PHASE_SUBDIV_MAX;
   int PHASE_SUBDIV_LIMIT;
@@ -213,6 +214,7 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   job >> box_names;
   job >> box_geometries;
   job >> box_adjacencies;
+  job >> PHASE_SUBDIV_INIT;
   job >> PHASE_SUBDIV_MIN;
   job >> PHASE_SUBDIV_MAX;
   job >> PHASE_SUBDIV_LIMIT;
@@ -241,6 +243,7 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
     ( & conley_morse_graphs  [ box ],
       phase_space_grids [ box ], 
       map, 
+      PHASE_SUBDIV_INIT,
       PHASE_SUBDIV_MIN, 
       PHASE_SUBDIV_MAX, 
       PHASE_SUBDIV_LIMIT);

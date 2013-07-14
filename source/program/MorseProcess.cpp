@@ -269,6 +269,7 @@ int MorseProcess::prepare ( Message & job ) {
   job << box_names;
   job << box_geometries;
   job << box_adjacencies;
+  job << config.PHASE_SUBDIV_INIT;
   job << config.PHASE_SUBDIV_MIN;
   job << config.PHASE_SUBDIV_MAX;
   job << config.PHASE_SUBDIV_LIMIT;

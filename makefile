@@ -1,4 +1,5 @@
 # makefile for CMDP project 
+CHECKIFMAPGOOD := yes
 COMPUTE_MORSE_SETS := yes
 COMPUTE_CONTINUATION := yes
 COMPUTE_CONLEY_INDEX := yes
@@ -6,7 +7,7 @@ USE_CAPD := no
 HAVE_SUCCINCT := yes
 PARAMETER_GRID := SuccinctGrid
 PHASE_GRID := PointerGrid
-CHECKIFMAPISGOOD := no
+
 # if modelmap has good() implemented
 PARAM_SPACE_METHOD := PATCHMETHOD
 MONOTONICSUBDIVISION := no

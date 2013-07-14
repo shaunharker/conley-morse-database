@@ -67,7 +67,7 @@ void ConleyProcess::initialize ( void ) {
         uint64_t vertex =  database . csData () [ cs ] . vertices [ 0 ];
 
         // debug
-        if ( vertex >= database . dagData () [ mgccp_record . dag_index ] . num_vertices ) {
+        if ( (int)vertex >= database . dagData () [ mgccp_record . dag_index ] . num_vertices ) {
           std::cout << "Invalid database.\n";
           abort ();
         }
@@ -128,6 +128,7 @@ int ConleyProcess::prepare ( Message & job ) {
   job << incc;
   job << GD;
   job << ms;
+    job << config.PHASE_SUBDIV_INIT;
   job << config.PHASE_SUBDIV_MIN;
   job << config.PHASE_SUBDIV_MAX;
   job << config.PHASE_SUBDIV_LIMIT;

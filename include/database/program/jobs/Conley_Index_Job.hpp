@@ -76,6 +76,7 @@ void Conley_Index_Job ( Message * result , const Message & job ) {
   uint64_t incc;
   chomp::Rect geo;
   uint64_t ms;
+  int PHASE_SUBDIV_INIT;
   int PHASE_SUBDIV_MIN;
   int PHASE_SUBDIV_MAX;
   int PHASE_SUBDIV_LIMIT;
@@ -85,6 +86,7 @@ void Conley_Index_Job ( Message * result , const Message & job ) {
   job >> incc;
   job >> geo;
   job >> ms;
+  job >> PHASE_SUBDIV_INIT;
   job >> PHASE_SUBDIV_MIN;
   job >> PHASE_SUBDIV_MAX;
   job >> PHASE_SUBDIV_LIMIT;
@@ -108,6 +110,7 @@ void Conley_Index_Job ( Message * result , const Message & job ) {
   Compute_Morse_Graph ( &mg,
                         phase_space,
                         map,
+                        PHASE_SUBDIV_INIT,
                         PHASE_SUBDIV_MIN,
                         PHASE_SUBDIV_MAX,
                         PHASE_SUBDIV_LIMIT );

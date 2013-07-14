@@ -845,7 +845,7 @@ inline void Database::makeAttractorsMinimal ( void ) {
         //std::cout << "CS:";
         //BOOST_FOREACH( int v, cs_data . vertices ) std::cout << v << " ";
         //std::cout << "\n";
-        for ( int i = 0; i < dag_data . partial_order . size (); ++ i ) {
+        for ( int i = 0; i < (int) dag_data . partial_order . size (); ++ i ) {
           std::pair<int,int> edge = dag_data . partial_order [ i ];
           // retain the edge only if it originates outside the convex set
           // or else targets the convex set
@@ -863,7 +863,7 @@ inline void Database::makeAttractorsMinimal ( void ) {
           dag_index_ [ new_dag ] = dag_data_ . size ();
           dag_data_ . push_back ( new_dag );
         }
-        uint64_t old_dag_index = mgccp_record . dag_index;
+        //uint64_t old_dag_index = mgccp_record . dag_index;
         uint64_t new_dag_index = dag_index_ [ new_dag ];
         //std::cout << "Old dag index = " << old_dag_index << "\n";
         //std::cout << "New dag index = " << new_dag_index << "\n";
@@ -879,7 +879,7 @@ inline void Database::performTransitiveReductions ( void ) {
     DAG_Data & dag = dag_data_ [ dag_index ];
     dag_index_ . erase ( dag );
     boost::unordered_map < int, boost::unordered_set < int > > G, squared;
-    for ( int i = 0; i < dag . partial_order . size (); ++ i ) {
+    for ( int i = 0; i < (int) dag . partial_order . size (); ++ i ) {
       std::pair<int,int> edge = dag.partial_order[i];
       if ( edge . second == edge . first ) continue;
       G[edge.first].insert(edge.second);
@@ -892,7 +892,7 @@ inline void Database::performTransitiveReductions ( void ) {
       }
     }
     std::vector<std::pair<int,int> > reduced;
-    for ( int i = 0; i < dag . partial_order . size (); ++ i ) {
+    for ( int i = 0; i < (int)dag . partial_order . size (); ++ i ) {
       std::pair<int,int> edge = dag.partial_order[i];
       if ( squared [ edge.first ] . count ( edge . second ) == 0 )
         reduced . push_back ( edge );

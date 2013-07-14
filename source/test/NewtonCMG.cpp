@@ -48,16 +48,16 @@
 #endif
 
 using namespace chomp;
-int INITIALSUBDIVISIONS = 0;
-int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 13 - INITIALSUBDIVISIONS;
-int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 18 - INITIALSUBDIVISIONS;
+int INITIALSUBDIVISIONS = 11;
+int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 12 - INITIALSUBDIVISIONS;
+int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 17 - INITIALSUBDIVISIONS;
 int SINGLECMG_COMPLEXITY_LIMIT = 100;
 
 
 /**************/
 /*    MAP     */
 /**************/
-#include "database/maps/Newton.h"
+#include "database/maps/Newton4D.h"
 
 Rect initialize_phase_space_box ( void ) {
   const Real pi = 3.14159265358979323846264338327950288;
@@ -90,20 +90,24 @@ Rect initialize_parameter_space_box ( double a,
 
 Rect initialize_parameter_space_box ( void ) {
   //[-0.84375, -0.828125]x[0.245437, 0.269981]
-  abort ();
+  //abort ();
   int bx, by, bz;
   bx = 2;
   by = 26;
   bz = 17;
-  int parameter_space_dimension = 3;
+  int parameter_space_dimension = 4;
   Rect parameter_space_limits ( parameter_space_dimension ); 
-  parameter_space_limits . lower_bounds [ 0 ] = -1.0;
-  parameter_space_limits . upper_bounds [ 0 ] = 1.0;
-  parameter_space_limits . lower_bounds [ 1 ] = 0.0;
-  parameter_space_limits . upper_bounds [ 1 ] = 3.14159265358979;
+  parameter_space_limits . lower_bounds [ 0 ] = .41015625;
+  parameter_space_limits . upper_bounds [ 0 ] =.412109375;
+  parameter_space_limits . lower_bounds [ 1 ] = 0.4939418136991764;
+  parameter_space_limits . upper_bounds [ 1 ] = 0.4970097752749477;
   parameter_space_limits . lower_bounds [ 2 ] = -1.0;
-  parameter_space_limits . upper_bounds [ 2 ] = 1.0;
-  int PARAMETER_BOXES = 32;
+  parameter_space_limits . upper_bounds [ 2 ] = -1.0;
+
+  parameter_space_limits . lower_bounds [ 3 ] = 1.0;
+  parameter_space_limits . upper_bounds [ 3 ] = 1.0;  
+  /*
+int PARAMETER_BOXES = 32;
   Rect parameter_box ( parameter_space_dimension );
   
   parameter_box . lower_bounds [ 0 ] = parameter_space_limits . lower_bounds [ 0 ] + ( parameter_space_limits . upper_bounds [ 0 ] - parameter_space_limits . lower_bounds [ 0 ] ) * bx / (float) PARAMETER_BOXES;
@@ -126,7 +130,8 @@ Rect initialize_parameter_space_box ( void ) {
   //parameter_space_limits . lower_bounds [ 1 ] = 0.245437;
   //parameter_space_limits . upper_bounds [ 1 ] = 0.269981;
   //std::cout << "Parameter Space Bounds = " << parameter_space_limits << "\n";
-  return parameter_box;
+  */
+  return parameter_space_limits;
 }
 
 void test_map ( const ModelMap & map ) {
@@ -219,10 +224,10 @@ int main ( int argc, char * argv [] ) {
   
   clock_t start, stop;
   start = clock ();
-  
+  std::cout << "A\n";  
   /* SET PHASE SPACE REGION */
   Rect phase_space_bounds = initialize_phase_space_box ();
-  
+  std::cout << "A2\n";  
   /* SET PARAMETER SPACE REGION */
   Rect parameter_box;
   if ( argc == 5 ) {
@@ -232,6 +237,7 @@ int main ( int argc, char * argv [] ) {
 						     atof(argv[4]));
   } else {
     parameter_box = initialize_parameter_space_box ();
+    std::cout << "B\n";
   }
 
   
@@ -242,14 +248,14 @@ int main ( int argc, char * argv [] ) {
   
   for ( int i = 0; i < INITIALSUBDIVISIONS; ++ i )
     phase_space -> subdivide ();
-  
+  std::cout << "C\n";
   /* INITIALIZE MAP */
   ModelMap map ( parameter_box );
   test_map ( map );
 
   /* INITIALIZE CONLEY MORSE GRAPH (create an empty one) */
   MorseGraph mg;
-  
+  std::cout << "D\n";
   /* COMPUTE CONLEY MORSE GRAPH */
   Compute_Morse_Graph ( & mg,
                        phase_space,
@@ -257,7 +263,8 @@ int main ( int argc, char * argv [] ) {
                        SINGLECMG_MIN_PHASE_SUBDIVISIONS,
                        SINGLECMG_MAX_PHASE_SUBDIVISIONS,
                        SINGLECMG_COMPLEXITY_LIMIT );
-  
+  std::cout << "E\n";
+
   std::cout << "Number of Morse Sets = " << mg . NumVertices () << "\n";
   #if 1
   typedef std::vector < Grid::GridElement > Subset;
@@ -283,7 +290,7 @@ int main ( int argc, char * argv [] ) {
   //std::cout << "Creating image files...\n";
   //DrawMorseSets ( *phase_space, mg );
   //std::cout << "Creating DOT file...\n";
-  //CreateDotFile ( mg );
+  CreateDotFile ( mg );
   
   return 0;
 } /* main */
