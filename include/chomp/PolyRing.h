@@ -7,8 +7,13 @@
 
 #include <iostream>
 #include <vector>
+#include <algorithm>
 
 #include "chomp/Field.h"
+
+#include <boost/serialization/serialization.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/nvp.hpp>
 
 namespace chomp {
   
@@ -26,6 +31,12 @@ public:
 	Field & operator [] ( const int index ) { return coefficients_ [ index ]; }
 	const Field & operator [] ( const int index ) const { return coefficients_ [ index ]; }
 	PolyRing & operator += ( const PolyRing & rhs);
+
+	friend class boost::serialization::access;
+  template<class Archive>
+void serialize(Archive& ar, const unsigned int version) {
+  ar & boost::serialization::make_nvp("COEF", coefficients_);
+}
 };
 
 template < class Field >
@@ -108,7 +119,7 @@ PolyRing<Field> operator - (const PolyRing<Field> & x) {
 
 template < class Field >
 inline PolyRing<Field> operator + (const PolyRing<Field> & lhs, const PolyRing<Field> & rhs) {
-	int degree = std::max ( lhs . degree, rhs . degree );
+	int degree = std::max ( lhs . degree (), rhs . degree ());
 	PolyRing<Field> result;
   result . resize ( degree + 1 );
 	for ( int i = 0; i <= degree; ++ i ) {

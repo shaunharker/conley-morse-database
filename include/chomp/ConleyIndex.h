@@ -69,10 +69,6 @@ ConleyIndex ( ConleyIndex_t * output,
   
   int depth = grid . getDepth ( S );
 
-#ifdef TEMPORARY_FIX_ON_MAY_FIFTEENTH
-  depth = depth - 1;
-#endif
-  
   clock_t start, start0, stop;
   //std::cout << "Conley Index. Preparing computation...\n";
   start0 = start = clock ();
