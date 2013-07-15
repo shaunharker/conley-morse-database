@@ -5,7 +5,8 @@
 //#define SNF_DEBUG
 #include <iostream>
 #include <fstream>
-
+#include <limits>
+ 
 #include "boost/foreach.hpp"
 
 #include "database/program/Configuration.h"
@@ -90,10 +91,15 @@ void ConleyProcess::initialize ( void ) {
   std::ofstream outfile ( "conleystage.txt" );
   outfile << "Number of conley jobs = " << num_jobs_ << "\n";
   
+  typedef std::numeric_limits< double > dbl;
+  outfile.precision(dbl::digits10);
+  outfile << std::scientific;
+
   for ( unsigned int job_number = 0; job_number < num_jobs_; ++ job_number ) {
     uint64_t incc = conley_work_items [ job_number ] . first;
     uint64_t pb_id = conley_work_items [ job_number ] . second . first;
     uint64_t ms = conley_work_items [ job_number ] . second . second;
+
   	Rect GD = database . parameter_space () . geometry ( pb_id );
     outfile << "Job " << job_number << ": INCC = " << incc << " PB = " 
             << pb_id << ", MS = " << ms << ", geo = " << GD << "\n";

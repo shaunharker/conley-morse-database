@@ -11,10 +11,13 @@
 #include <map>
 #include <iterator>     // std::insert_iterator
 #include <cassert>
+#include <limits>
 
 /***************************/
 /* Preprocessor directives */
 /***************************/
+
+#define SNF_DEBUG
 
 #define CMG_VERBOSE
 #define MEMORYBOOKKEEPING
@@ -48,9 +51,9 @@
 #endif
 
 using namespace chomp;
-int INITIALSUBDIVISIONS = 11;
-int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 12 - INITIALSUBDIVISIONS;
-int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 17 - INITIALSUBDIVISIONS;
+int INITIALSUBDIVISIONS = 0;
+int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 14 - INITIALSUBDIVISIONS;
+int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 19 - INITIALSUBDIVISIONS;
 int SINGLECMG_COMPLEXITY_LIMIT = 100;
 
 
@@ -97,10 +100,16 @@ Rect initialize_parameter_space_box ( void ) {
   bz = 17;
   int parameter_space_dimension = 4;
   Rect parameter_space_limits ( parameter_space_dimension ); 
-  parameter_space_limits . lower_bounds [ 0 ] = .41015625;
-  parameter_space_limits . upper_bounds [ 0 ] =.412109375;
-  parameter_space_limits . lower_bounds [ 1 ] = 0.4939418136991764;
-  parameter_space_limits . upper_bounds [ 1 ] = 0.4970097752749477;
+  // [-0.129492, -0.129004]x[1.37716, 1.37793]
+    parameter_space_limits . lower_bounds [ 0 ] = -0.1294921875;
+  parameter_space_limits . upper_bounds [ 0 ] = -0.12900390625;
+  parameter_space_limits . lower_bounds [ 1 ] = 1.3771630859375;
+  parameter_space_limits . upper_bounds [ 1 ] = 1.37793212890625;
+
+  //parameter_space_limits . lower_bounds [ 0 ] = .41015625;
+  //parameter_space_limits . upper_bounds [ 0 ] =.412109375;
+  //parameter_space_limits . lower_bounds [ 1 ] = 0.4939418136991764;
+  //parameter_space_limits . upper_bounds [ 1 ] = 0.4970097752749477;
   parameter_space_limits . lower_bounds [ 2 ] = -1.0;
   parameter_space_limits . upper_bounds [ 2 ] = -1.0;
 
@@ -217,11 +226,62 @@ void test_grid ( const ModelMap & map, const Grid & grid ) {
 
 }
 
+
+std::vector<std::string> conley_index_string ( const chomp::ConleyIndex_t & ci ) {
+  using namespace chomp;
+  std::cout << "conley index string\n";
+  std::vector<std::string> result;
+  if ( ci . undefined () ) { 
+    std::cout << "undefined.\n";
+    return result;
+  }
+  for ( unsigned int i = 0; i < ci . data () . size (); ++ i ) {
+    std::cout << "dimension is " << i << "\n";
+    std::stringstream ss;
+    typedef SparseMatrix < PolyRing < Ring > > PolyMatrix;
+    PolyMatrix poly = ci . data () [ i ];
+    
+    int N = poly . number_of_rows ();
+    PolyRing<Ring> X;
+    X . resize ( 2 );
+    X [ 1 ] = Ring ( -1 );
+    for ( int i = 0; i < N; ++ i ) {
+      poly . add ( i, i, X );
+    }
+    PolyMatrix U, Uinv, V, Vinv, D;
+    try {
+      SmithNormalForm ( &U, &Uinv, &V, &Vinv, &D, poly );
+    } catch ( ...) {
+      result . push_back ( std::string ( "Problem computing SNF.\n") );
+      continue;
+    }
+    bool is_trivial = true;
+    PolyRing < Ring > x;
+    x . resize ( 2 );
+    x [ 1 ] = Ring ( 1 );
+    for ( int j = 0; j < D . number_of_rows (); ++ j ) {
+      PolyRing < Ring > entry = D . read ( j, j );
+      while ( ( entry . degree () >= 0 )
+             && ( entry [ 0 ] == Ring ( 0 ) )) {
+        entry = entry / x;
+      }
+      if ( entry . degree () <= 0 ) continue;
+      is_trivial = false;
+      ss << "   " << entry << "\n";
+    }
+    if ( is_trivial ) ss << "Trivial.\n";
+    result . push_back ( ss . str () );
+    std::cout << "Wrote the poly " << ss . str () << "\n";
+  }
+  return result;
+}
+
 /*****************/
 /* Main Program  */
 /*****************/
 int main ( int argc, char * argv [] ) {
   
+
   clock_t start, stop;
   start = clock ();
   std::cout << "A\n";  
@@ -268,7 +328,8 @@ int main ( int argc, char * argv [] ) {
   std::cout << "Number of Morse Sets = " << mg . NumVertices () << "\n";
   #if 1
   typedef std::vector < Grid::GridElement > Subset;
-  for ( size_t v = 0; v < mg . NumVertices (); ++ v) {
+  //for ( size_t v = 0; v < mg . NumVertices (); ++ v) {
+  size_t v = 1;
     Subset subset = phase_space -> subset ( * mg . grid ( v ) );
     std::cout << "Calling Conley_Index on Morse Set " << v << "\n";
     boost::shared_ptr<ConleyIndex_t> conley ( new ConleyIndex_t );
@@ -277,9 +338,10 @@ int main ( int argc, char * argv [] ) {
                  *phase_space,
                  subset,
                  map );
-    check_index ( std::cout, *conley );
+    conley_index_string ( *conley );
+    //check_index ( std::cout, *conley );
     
-  }
+  //}
 #endif
   
   stop = clock ();

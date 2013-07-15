@@ -293,14 +293,24 @@ void ColumnPivot (SparseMatrix<R> * V,
     // Prevent self-elimination.
     D -> row_advance ( index );
     if ( j == k ) continue;
-    //std::cout << " Eliminating (" << i << ", " << k << "; " << b << ") with (" << i << ", " << j << "; " << a << ")\n";
+    #ifdef SNF_DEBUG
+    std::cout << " Eliminating (" << i << ", " << k << "; " << b << ") with (" << i << ", " << j << "; " << a << ")\n";
+    #endif
     // Determine necessary row operations with Euclidean Algorithm
     Bezout ( &s, &t, &g, a, b );
     x = div ( a, g );
     y = div ( b, g );
     
-    //std::cout << " Bezout Formula: " << s << " * " << a << " + " << t << " * " << b << " = " << g << "\n";
-    
+    #ifdef SNF_DEBUG
+    std::cout << "Bezout: (s, t, x, y, a, b ) = (" << s 
+      << ", " << t << ", " << x << ", " << y << ", " << a << ", " << b << ")\n";
+
+     std::cout << " Value at pivot = " << a << "\n";
+     std::cout << " Elimination value = " << b << "\n";
+     std::cout << " Elimination index = " << k << "\n";
+     std::cout << " Bezout Formula: " << s << " * " << a << " + " << t << " * " << b << " = " << g << "\n";
+     std::cout << s*a + t*b << "\n";
+    #endif    
     /* Explanation of the row operations:
      Apply the 2x2 matrix from the right:
      M=  [  s  -y  ]     Minv = [  x  y ]
@@ -317,20 +327,33 @@ void ColumnPivot (SparseMatrix<R> * V,
      K' <-  -t * J + s * K
      Uinv is to be updated by multiplying on the left by M. This is the same as what we did to D.
      */
-    
-    D -> column_operation (s, t,
-                           -y, x,
-                           j, k);
-    
-    Vinv -> column_operation (s, t,
-                              -y, x,
-                              j, k);
-    
-    V -> row_operation (x, y,
-                        -t, s,
-                        j, k);
-    
-    
+
+    #ifdef SNF_DEBUG
+     std::cout << ".\n";
+    #endif
+
+     D -> column_operation (s, t,
+       -y, x,
+       j, k);
+    #ifdef SNF_DEBUG
+
+     std::cout << ".\n";
+    #endif
+
+     Vinv -> column_operation (s, t,
+      -y, x,
+      j, k);
+    #ifdef SNF_DEBUG
+
+     std::cout << "col_op.\n";
+    #endif
+
+     V -> row_operation (x, y,
+      -t, s,
+      j, k);
+    #ifdef SNF_DEBUG
+     std::cout << "column row_op.\n";
+    #endif
     //std::cout << "Result of elimination step:\n";
     //print_matrix ( *D );
   } /* while */
