@@ -149,10 +149,12 @@ public:
     
     /* Phase Space */
     ar & PHASE_DIM;
+    ar & PHASE_SUBDIV_INIT;
     ar & PHASE_SUBDIV_MIN;
     ar & PHASE_SUBDIV_MAX;
     ar & PHASE_SUBDIV_LIMIT;
     ar & PHASE_BOUNDS; 
+    ar & PERIODIC;
   }
   
 };

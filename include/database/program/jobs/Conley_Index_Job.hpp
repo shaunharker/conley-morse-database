@@ -19,7 +19,43 @@
 #include "chomp/Matrix.h"
 #include "chomp/PolyRing.h"
 
-std::vector<std::string> conley_index_string ( const chomp::ConleyIndex_t & ci ) {
+#include <boost/thread.hpp>
+#include <boost/chrono/chrono_io.hpp>
+
+typedef chomp::SparseMatrix < chomp::PolyRing < chomp::Ring > > PolyMatrix;
+
+class SNFThread {
+
+private:
+
+  PolyMatrix * U;
+  PolyMatrix * Uinv;
+  PolyMatrix * V;
+  PolyMatrix * Vinv;
+  PolyMatrix * D;
+  const PolyMatrix & A;
+public:
+  bool * result;
+  SNFThread( PolyMatrix * U,
+       PolyMatrix * Uinv,
+       PolyMatrix * V,
+       PolyMatrix * Vinv,
+       PolyMatrix * D,
+       const PolyMatrix & A, 
+       bool * result ) 
+  : U(U), Uinv(Uinv), V(V), Vinv(Vinv), D(D), A(A), result(result) {}
+
+  void operator () ( void ) {
+    try {
+      SmithNormalForm ( U, Uinv, V, Vinv, D, A );
+      *result = true;
+    } catch ( ... /* boost::thread_interrupted& */) {
+      *result = false;
+    }
+  }
+};
+
+std::vector<std::string> conley_index_string ( const chomp::ConleyIndex_t & ci, int time_out = 180 ) {
   using namespace chomp;
   std::cout << "conley index string\n";
   std::vector<std::string> result;
@@ -30,7 +66,6 @@ std::vector<std::string> conley_index_string ( const chomp::ConleyIndex_t & ci )
   for ( unsigned int i = 0; i < ci . data () . size (); ++ i ) {
     std::cout << "dimension is " << i << "\n";
     std::stringstream ss;
-    typedef SparseMatrix < PolyRing < Ring > > PolyMatrix;
     PolyMatrix poly = ci . data () [ i ];
     
     int N = poly . number_of_rows ();
@@ -41,12 +76,22 @@ std::vector<std::string> conley_index_string ( const chomp::ConleyIndex_t & ci )
       poly . add ( i, i, X );
     }
     PolyMatrix U, Uinv, V, Vinv, D;
-    try {
-      SmithNormalForm ( &U, &Uinv, &V, &Vinv, &D, poly );
-    } catch ( ...) {
+
+    // use a thread to perform the following line:    
+    //      SmithNormalForm ( &U, &Uinv, &V, &Vinv, &D, poly );
+    bool computed;
+    SNFThread snf ( &U, &Uinv, &V, &Vinv, &D, poly, &computed );
+    boost::thread t(snf);
+    if ( not t . try_join_for ( boost::chrono::seconds( time_out ) ) ) {
+      t.interrupt();
+      t.join();
+    }
+    if ( not computed ) {
       result . push_back ( std::string ( "Problem computing SNF.\n") );
       continue;
     }
+    // end threading
+
     bool is_trivial = true;
     PolyRing < Ring > x;
     x . resize ( 2 );

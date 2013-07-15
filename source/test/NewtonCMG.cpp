@@ -17,7 +17,7 @@
 /* Preprocessor directives */
 /***************************/
 
-//#define SNF_DEBUG
+#define SNF_DEBUG
 
 #define CMG_VERBOSE
 #define MEMORYBOOKKEEPING
@@ -101,10 +101,10 @@ Rect initialize_parameter_space_box ( void ) {
   int parameter_space_dimension = 4;
   Rect parameter_space_limits ( parameter_space_dimension ); 
   // [-0.129492, -0.129004]x[1.37716, 1.37793]
-    parameter_space_limits . lower_bounds [ 0 ] = -0.59091796875;
-  parameter_space_limits . upper_bounds [ 0 ] = -0.5904296875;
-  parameter_space_limits . lower_bounds [ 1 ] = 1.65017333984375;
-  parameter_space_limits . upper_bounds [ 1 ] = 1.6509423828125;
+    parameter_space_limits . lower_bounds [ 0 ] = -0.233984375;
+  parameter_space_limits . upper_bounds [ 0 ] = -0.23349609375;
+  parameter_space_limits . lower_bounds [ 1 ] = 1.41869140625;
+  parameter_space_limits . upper_bounds [ 1 ] = 1.41946044921875;
 
   //parameter_space_limits . lower_bounds [ 0 ] = .41015625;
   //parameter_space_limits . upper_bounds [ 0 ] =.412109375;

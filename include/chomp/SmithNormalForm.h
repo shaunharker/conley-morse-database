@@ -12,6 +12,9 @@
 
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
+
+#include <boost/thread.hpp>
+
 namespace chomp {
 
 /// SmithNormalForm
@@ -26,7 +29,7 @@ SmithNormalForm (SparseMatrix<R> * U,
                  SparseMatrix<R> * V,
                  SparseMatrix<R> * Vinv,
                  SparseMatrix<R> * D,
-                 const SparseMatrix<R> & A);
+                 const SparseMatrix<R> & A );
 
 
 
@@ -200,6 +203,9 @@ void RowPivot (SparseMatrix<R> * U,
   Index pivot_index = D -> find ( i, j );
   Index index = D -> column_begin ( j );
   while ( index != D -> end () ) { 
+
+    boost::this_thread::interruption_point ();
+
     // Perform the pivot operation. Use (i, j) to eliminate element.
     R s, t, g, x, y;
     R a = D -> read ( pivot_index );
@@ -283,6 +289,9 @@ void ColumnPivot (SparseMatrix<R> * V,
   //std::cout << "DEBUG: D -> end () = " << D -> end () << "\n";
   
   while ( index != D -> end () ) { 
+
+    boost::this_thread::interruption_point ();
+
     //std::cout << "Inside while loop...\n";
     // Perform the pivot operation. Use (i, j) to eliminate element.
     R s, t, g, x, y;
@@ -459,7 +468,7 @@ void SmithNormalForm (SparseMatrix<R> * U,
                       SparseMatrix<R> * V,
                       SparseMatrix<R> * Vinv,
                       SparseMatrix<R> * D,
-                      const SparseMatrix<R> & A) {
+                      const SparseMatrix<R> & A ) {
   typedef SparseMatrix<R> Matrix;
   typedef typename Matrix::Index Index;
   typedef typename Matrix::size_type size_type;
@@ -688,7 +697,7 @@ void SmithNormalForm (SparseMatrix<R> * U,
   //NSLog ( @"Size of UDV = (%d, %d)", UDV . number_of_rows (), UDV . number_of_columns () );
   //NSLog ( @"Size of A = (%d, %d)", A . number_of_rows (), A . number_of_columns () );
   
-  #ifdef SNF_DEBUG
+  //#ifdef SNF_DEBUG
   { SparseMatrix<R> UDV = (*U) * (*D) * (*V);
   for ( int i = 0; i < UDV . number_of_rows (); ++ i ) {
     for ( int j = 0; j < UDV . number_of_columns (); ++ j ) {
@@ -705,12 +714,13 @@ void SmithNormalForm (SparseMatrix<R> * U,
           boost::archive::text_oarchive oa(ofs);
           oa << A;
         }
+        abort ();
         throw 42;
         return;
       }
     }
   } }
-  #endif
+  //#endif
 
 #ifdef SNF_DEBUG
   std::cout << "Done!\n";
