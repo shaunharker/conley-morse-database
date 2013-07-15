@@ -17,7 +17,7 @@
 /* Preprocessor directives */
 /***************************/
 
-#define SNF_DEBUG
+//#define SNF_DEBUG
 
 #define CMG_VERBOSE
 #define MEMORYBOOKKEEPING
@@ -51,7 +51,7 @@
 #endif
 
 using namespace chomp;
-int INITIALSUBDIVISIONS = 0;
+int INITIALSUBDIVISIONS = 13;
 int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 14 - INITIALSUBDIVISIONS;
 int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 19 - INITIALSUBDIVISIONS;
 int SINGLECMG_COMPLEXITY_LIMIT = 100;
@@ -101,10 +101,10 @@ Rect initialize_parameter_space_box ( void ) {
   int parameter_space_dimension = 4;
   Rect parameter_space_limits ( parameter_space_dimension ); 
   // [-0.129492, -0.129004]x[1.37716, 1.37793]
-    parameter_space_limits . lower_bounds [ 0 ] = -0.1294921875;
-  parameter_space_limits . upper_bounds [ 0 ] = -0.12900390625;
-  parameter_space_limits . lower_bounds [ 1 ] = 1.3771630859375;
-  parameter_space_limits . upper_bounds [ 1 ] = 1.37793212890625;
+    parameter_space_limits . lower_bounds [ 0 ] = -0.59091796875;
+  parameter_space_limits . upper_bounds [ 0 ] = -0.5904296875;
+  parameter_space_limits . lower_bounds [ 1 ] = 1.65017333984375;
+  parameter_space_limits . upper_bounds [ 1 ] = 1.6509423828125;
 
   //parameter_space_limits . lower_bounds [ 0 ] = .41015625;
   //parameter_space_limits . upper_bounds [ 0 ] =.412109375;

@@ -508,6 +508,9 @@ void SmithNormalForm (SparseMatrix<R> * U,
     // We want to find a good pivot row from the jth column
     // The simplest criterion is to pick the one with the smallest size
     size_type pivot_row = 0; // we find this
+    if ( D -> read ( t, t ) != R ( 0 ) ) {
+      pivot_row = t;
+    } else {
     size_type best_size = D -> number_of_columns (); // maximum size row could be
     Index index = D -> column_begin ( j );
     while ( index != D -> end () ) {
@@ -521,6 +524,7 @@ void SmithNormalForm (SparseMatrix<R> * U,
       } /* if */
       D -> column_advance ( index );
     } /* while */
+    }
     // At this point we have found a pivot. We'll need to swap rows.
     
     #ifdef SNF_DEBUG
