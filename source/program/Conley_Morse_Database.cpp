@@ -10,6 +10,7 @@
 #include "database/program/MorseProcess.h"
 #endif
 #ifdef COMPUTE_CONTINUATION
+#include "ModelMap.h"
 #include "database/structures/Database.h"
 #endif
 #ifdef COMPUTE_CONLEY_INDEX
@@ -48,6 +49,7 @@ int main ( int argc, char * argv [] ) {
     std::string appendstring ( "/database.raw" );
     database . load ( (filestring + appendstring) . c_str () );
     }
+    database . removeBadBoxes<ModelMap> ();
     database . postprocess ();
     {
     std::string filestring ( argv[1] );

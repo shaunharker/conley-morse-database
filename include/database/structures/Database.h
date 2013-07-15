@@ -310,6 +310,9 @@ public:
   void insert ( const Grid::GridElement & p1, const Grid::GridElement & p2, const BG_Data & bg );
   void insert ( const uint64_t incc, const CI_Data & ci );
   
+  template < class Map >
+  void removeBadBoxes ( const Map & f );
+
   void postprocess ( void );
   void makeAttractorsMinimal ( void );
   void performTransitiveReductions ( void );
@@ -569,6 +572,25 @@ inline bool is_isomorphism ( const DAG_Data & dag1, const DAG_Data & dag2, const
     if ( po1 . count ( checkme ) == 0 ) return false;
   }
   return true;
+}
+
+template < class Map >
+void Database::removeBadBoxes ( void ) {
+  std::vector < MorseRecord > retained_morse_records;
+  std::vector < ClutchingRecord > retained_clutching_records;
+
+  BOOST_FOREACH ( const MorseRecord & mr, morse_records () ) {
+    Map f ( mr . grid_element );
+    if ( f . good () ) retained_morse_records . push_back ( mr );
+  }
+
+  BOOST_FOREACH ( const ClutchingRecord & cr, clutch_records () ) {
+    Map f ( cr . grid_element_1 );
+    Map g ( cr . grid_element_2 );
+    if ( f . good () && g . good () ) retained_clutching_records . push_back ( cr );
+  }
+  std::swap ( morse_records_ , retained_morse_records );
+  std::swap ( clutch_records_, retained_clutching_records ); 
 }
 
 inline void Database::postprocess ( void ) {
