@@ -580,13 +580,13 @@ void Database::removeBadBoxes ( void ) {
   std::vector < ClutchingRecord > retained_clutching_records;
 
   BOOST_FOREACH ( const MorseRecord & mr, morse_records () ) {
-    Map f ( database . parameter_space () . geometry ( mr . grid_element ) );
+    Map f ( parameter_space () . geometry ( mr . grid_element ) );
     if ( f . good () ) retained_morse_records . push_back ( mr );
   }
 
   BOOST_FOREACH ( const ClutchingRecord & cr, clutch_records () ) {
-    Map f ( database . parameter_space () . geometry ( cr . grid_element_1 ) );
-    Map g ( database . parameter_space () . geometry ( cr . grid_element_2 ) );
+    Map f ( parameter_space () . geometry ( cr . grid_element_1 ) );
+    Map g ( parameter_space () . geometry ( cr . grid_element_2 ) );
     if ( f . good () && g . good () ) retained_clutching_records . push_back ( cr );
   }
   std::swap ( morse_records_ , retained_morse_records );
