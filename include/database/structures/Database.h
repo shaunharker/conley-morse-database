@@ -311,7 +311,7 @@ public:
   void insert ( const uint64_t incc, const CI_Data & ci );
   
   template < class Map >
-  void removeBadBoxes ( const Map & f );
+  void removeBadBoxes ( void );
 
   void postprocess ( void );
   void makeAttractorsMinimal ( void );
