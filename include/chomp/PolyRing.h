@@ -15,6 +15,8 @@
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/nvp.hpp>
 
+#include <boost/thread.hpp>
+
 namespace chomp {
   
 template < class Field >
@@ -153,6 +155,7 @@ PolyRing<Field> operator - (const PolyRing<Field> & lhs, const PolyRing<Field> &
 
 template < class Field >
 PolyRing<Field> operator * (const PolyRing<Field> & lhs, const PolyRing<Field> & rhs) {
+	boost::this_thread::interruption_point ();
 	int degree = lhs . degree () + rhs . degree ();
 	PolyRing<Field> result;
   result . resize ( degree + 1 );
