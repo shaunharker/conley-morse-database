@@ -6,7 +6,8 @@
 #include <iostream>
 #include <fstream>
 #include <limits>
- 
+#include <ctime>
+
 #include "boost/foreach.hpp"
 
 #include "database/program/Configuration.h"
@@ -40,6 +41,9 @@ BOOST_CLASS_EXPORT_IMPLEMENT(PointerGrid);
 /* * * * * * * * * * * * */
 void ConleyProcess::initialize ( void ) {
   using namespace chomp;
+  time_of_last_checkpoint = clock ();
+  time_of_last_progress = clock ();
+  progress_bar = 0;
 
   // LOAD DATABASE
   num_jobs_sent_ = 0;
@@ -171,6 +175,14 @@ void ConleyProcess::accept (const Message &result) {
   database . insert ( incc, job_result );
   std::cout << "ConleyProcess::accept: Received result " 
             << job_number << "\n";
+
+  clock_t time = clock ();
+  if ( (float)(time - time_of_last_progress ) / (float)CLOCKS_PER_SEC > 1.0f ) {
+    std::ofstream progress_file ( "conleyprogress.txt" );
+    progress_file << "Conley Process Progress: " << progress_bar << " / " << num_jobs_ << "\n";
+    progress_file . close ();
+    time_of_last_progress = time;
+  }
 }
 
 /* * * * * * * * * * * */
