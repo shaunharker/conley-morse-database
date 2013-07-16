@@ -49,7 +49,7 @@ int main ( int argc, char * argv [] ) {
     std::string appendstring ( "/database.raw" );
     database . load ( (filestring + appendstring) . c_str () );
     }
-    database . removeBadBoxes<ModelMap> ();
+    //database . removeBadBoxes<ModelMap> ();
     database . postprocess ();
     {
     std::string filestring ( argv[1] );

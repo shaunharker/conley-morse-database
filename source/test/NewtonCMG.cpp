@@ -51,9 +51,9 @@
 #endif
 
 using namespace chomp;
-int INITIALSUBDIVISIONS = 13;
-int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 14 - INITIALSUBDIVISIONS;
-int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 19 - INITIALSUBDIVISIONS;
+int INITIALSUBDIVISIONS = 11;
+int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 12 - INITIALSUBDIVISIONS;
+int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 17 - INITIALSUBDIVISIONS;
 int SINGLECMG_COMPLEXITY_LIMIT = 100;
 
 
@@ -100,21 +100,53 @@ Rect initialize_parameter_space_box ( void ) {
   bz = 17;
   int parameter_space_dimension = 4;
   Rect parameter_space_limits ( parameter_space_dimension ); 
+
+  /*
+  // an example that was giving me trouble
   // [-0.129492, -0.129004]x[1.37716, 1.37793]
     parameter_space_limits . lower_bounds [ 0 ] = .0003906250000000056;
   parameter_space_limits . upper_bounds [ 0 ] = .0008789062499999917;
   parameter_space_limits . lower_bounds [ 1 ] = .785;
   parameter_space_limits . upper_bounds [ 1 ] = .7857690429687499;
+*/
+
+  /*
+// period 15 orbit
+ parameter_space_limits . lower_bounds [ 0 ]  = -0.09482421875000001;
+ parameter_space_limits . upper_bounds [ 0 ] =  -0.09433593749999999;
+ parameter_space_limits . lower_bounds [ 1 ]  = 2.04699951171875;
+ parameter_space_limits . upper_bounds [ 1 ] = 2.0477685546875;
+*/
+  // Region with an unstable minimal morse set (bug)
+  //[-0.1413978576660156, -0.1413034439086914] X [1.668061140625, 1.66821059375]  
+ parameter_space_limits . lower_bounds [ 0 ]  = -0.1413978576660156;
+ parameter_space_limits . upper_bounds [ 0 ] =  -0.1413034439086914;
+ parameter_space_limits . lower_bounds [ 1 ]  = 1.668061140625;
+ parameter_space_limits . upper_bounds [ 1 ] = 1.66821059375;
 
   //parameter_space_limits . lower_bounds [ 0 ] = .41015625;
   //parameter_space_limits . upper_bounds [ 0 ] =.412109375;
   //parameter_space_limits . lower_bounds [ 1 ] = 0.4939418136991764;
   //parameter_space_limits . upper_bounds [ 1 ] = 0.4970097752749477;
+
+ // 2D a=-1 b=1 slice
   parameter_space_limits . lower_bounds [ 2 ] = -1.0;
   parameter_space_limits . upper_bounds [ 2 ] = -1.0;
-
   parameter_space_limits . lower_bounds [ 3 ] = 1.0;
   parameter_space_limits . upper_bounds [ 3 ] = 1.0;  
+
+
+  // Crash at 4-6-12
+  //[-5.000000000000000e-01, -4.687500000000000e-01]x[1.374446785945534e+00, 1.423534171157875e+00]x[-5.937500000000000e-01, -5.625000000000000e-01]x[-1.562500000000000e-01, -1.250000000000000e-01]
+
+  parameter_space_limits . lower_bounds [ 0 ]  = -0.5;
+ parameter_space_limits . upper_bounds [ 0 ] =  -0.46875;
+ parameter_space_limits . lower_bounds [ 1 ]  = 1.374446785945534;
+ parameter_space_limits . upper_bounds [ 1 ] = 1.423534171157875;
+  parameter_space_limits . lower_bounds [ 2 ] = -0.59375;
+  parameter_space_limits . upper_bounds [ 2 ] = -0.5625;
+  parameter_space_limits . lower_bounds [ 3 ] = -0.15625;
+  parameter_space_limits . upper_bounds [ 3 ] = -0.125;  
   /*
 int PARAMETER_BOXES = 32;
   Rect parameter_box ( parameter_space_dimension );
@@ -167,6 +199,7 @@ void test_grid ( const ModelMap & map, const Grid & grid ) {
   double pi = 3.1415926535;
   int PICSIZE = 512;
   CImg<unsigned char> img ( PICSIZE, PICSIZE, 1, 3, 0 );
+  /*
   BOOST_FOREACH ( Grid::GridElement ge, grid ) {
     chomp::Rect x = grid . geometry ( ge );
     {
@@ -186,6 +219,7 @@ void test_grid ( const ModelMap & map, const Grid & grid ) {
     }
     }
   }
+  */
   BOOST_FOREACH ( Grid::GridElement ge, grid ) {
     chomp::Rect x = grid . geometry ( ge );
     chomp::Rect y = map ( x );
@@ -202,8 +236,13 @@ void test_grid ( const ModelMap & map, const Grid & grid ) {
       int right = PICSIZE*(x . upper_bounds [ 0 ] + pi)/ (2.0*pi);
       int bottom = PICSIZE*(z . lower_bounds [ 0 ] + pi)/ (2.0*pi);
       int top = PICSIZE*(z . upper_bounds [ 0 ] + pi)/ (2.0*pi);
-      left = std::max ( 0, left ); right = std::min ( 1023, right );
-      bottom = std::max ( 0, bottom ); top = std::min ( 1023, top );
+      left = std::max ( 0, left ); 
+      if ( left == right ) right ++;
+      right = std::min ( 1023, right );
+      bottom = std::max ( 0, bottom ); 
+      if (bottom == top ) ++ top;
+      top = std::min ( 1023, top );
+
       //std::cout << "LR = " << left << ", " << right << "\n";
       //std::cout << "BT = " << bottom << ", " << top << "\n";
 
@@ -213,8 +252,8 @@ void test_grid ( const ModelMap & map, const Grid & grid ) {
         for ( int j = bottom; j < top; ++ j ) {
           bool jflag = false;
           if ( j == bottom  ) jflag = true;
-          if ( iflag || jflag ) img ( i, j, 0, 0 ) = 255;
-          img ( i, j, 0, 1 ) = 255;
+          if ( iflag || jflag ) img ( i, PICSIZE - j, 0, 0 ) = 255;
+          img ( i, PICSIZE - j, 0, 1 ) = 255;
         }
       }
     }
@@ -326,7 +365,7 @@ std::vector<std::string> conley_index_string ( const chomp::ConleyIndex_t & ci, 
 /*****************/
 int main ( int argc, char * argv [] ) {
   
-
+   
   clock_t start, stop;
   start = clock ();
   std::cout << "A\n";  
@@ -335,11 +374,10 @@ int main ( int argc, char * argv [] ) {
   std::cout << "A2\n";  
   /* SET PARAMETER SPACE REGION */
   Rect parameter_box;
-  if ( argc == 5 ) {
-    parameter_box = initialize_parameter_space_box ( atof(argv[1]),
-						     atof(argv[2]),
-						     atof(argv[3]),
-						     atof(argv[4]));
+  if ( argc == 2 ) {
+    std::string s;
+
+
   } else {
     parameter_box = initialize_parameter_space_box ();
     std::cout << "B\n";
@@ -373,15 +411,15 @@ int main ( int argc, char * argv [] ) {
   std::cout << "Number of Morse Sets = " << mg . NumVertices () << "\n";
   #if 1
   typedef std::vector < Grid::GridElement > Subset;
-  //for ( size_t v = 0; v < mg . NumVertices (); ++ v) {
-  size_t v = 2;
+  for ( size_t v = 0; v < mg . NumVertices (); ++ v) {
+  //size_t v = 2;
     Subset subset = phase_space -> subset ( * mg . grid ( v ) );
 
     // check if subset is uniform depth.
-    BOOST_FOREACH ( Grid::GridElement ge, * mg . grid ( v ) ) {
-      std::cout << "Depth of ge = " << mg . grid ( v ) -> geometry ( ge ) << " is " <<
-      mg . grid ( v ) -> depth ( ge ) << "\n";
-    }
+    //BOOST_FOREACH ( Grid::GridElement ge, * mg . grid ( v ) ) {
+    //  std::cout << "Depth of ge = " << mg . grid ( v ) -> geometry ( ge ) << " is " <<
+    //  mg . grid ( v ) -> depth ( ge ) << "\n";
+    //}
     std::cout << "Calling Conley_Index on Morse Set " << v << "\n";
     boost::shared_ptr<ConleyIndex_t> conley ( new ConleyIndex_t );
     mg . conleyIndex ( v ) = conley;
@@ -392,7 +430,7 @@ int main ( int argc, char * argv [] ) {
     conley_index_string ( *conley );
     //check_index ( std::cout, *conley );
     
-  //}
+  }
 #endif
   
   stop = clock ();
