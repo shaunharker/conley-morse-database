@@ -175,6 +175,7 @@ void ConleyProcess::accept (const Message &result) {
   database . insert ( incc, job_result );
   std::cout << "ConleyProcess::accept: Received result " 
             << job_number << "\n";
+  ++ progress_bar;
 
   clock_t time = clock ();
   if ( (float)(time - time_of_last_progress ) / (float)CLOCKS_PER_SEC > 1.0f ) {
