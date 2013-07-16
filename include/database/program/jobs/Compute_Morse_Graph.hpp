@@ -232,8 +232,9 @@ void ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
         }
       }
       if ( MD -> spurious () ) continue;
-      grids . push_back ( MD -> grid () );
       if ( MD -> depth () > Min ) continue;
+      grids . push_back ( MD -> grid () );
+
       // Amalgamate reachability information
 #ifndef NO_REACHABILITY
       for ( unsigned int i = 0; i < N; ++ i ) {

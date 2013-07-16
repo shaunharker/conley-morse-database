@@ -746,6 +746,7 @@ Grid::size_type Grid::getDepth ( const Container & cont ) const {
   size_type result = 0;
   BOOST_FOREACH ( GridElement ge, cont ) {
     size_type d = depth ( ge );
+    //std::cout << "Depth of " << geometry ( ge ) << " is " << d << "\n";
     if ( d > result ) result = d;
   }
   return result;

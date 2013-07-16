@@ -68,7 +68,8 @@ ConleyIndex ( ConleyIndex_t * output,
   typedef std::map < Cell, Subset > Combinatorial_Map;
   
   int depth = grid . getDepth ( S );
-
+  //std::cout << "Conley Index. S . size () " << S . size () << "\n";
+  //std::cout << "Conley Index. getDepth(S) returned " << depth << "\n";
   clock_t start, start0, stop;
   //std::cout << "Conley Index. Preparing computation...\n";
   start0 = start = clock ();
