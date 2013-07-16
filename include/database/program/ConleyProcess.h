@@ -25,6 +25,7 @@ private:
   Configuration config;
   Database database;
 
+  std::set<uint64_t> progress_detail;
   int progress_bar;                         // progress bar
   clock_t time_of_last_checkpoint;
   clock_t time_of_last_progress;

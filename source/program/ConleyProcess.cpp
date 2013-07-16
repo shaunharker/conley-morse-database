@@ -101,6 +101,7 @@ void ConleyProcess::initialize ( void ) {
 
   for ( unsigned int job_number = 0; job_number < num_jobs_; ++ job_number ) {
     uint64_t incc = conley_work_items [ job_number ] . first;
+    progress_detail . insert ( incc );
     uint64_t pb_id = conley_work_items [ job_number ] . second . first;
     uint64_t ms = conley_work_items [ job_number ] . second . second;
 
@@ -176,11 +177,15 @@ void ConleyProcess::accept (const Message &result) {
   std::cout << "ConleyProcess::accept: Received result " 
             << job_number << "\n";
   ++ progress_bar;
-
+  progress_detail . erase ( incc );
   clock_t time = clock ();
   if ( (float)(time - time_of_last_progress ) / (float)CLOCKS_PER_SEC > 1.0f ) {
     std::ofstream progress_file ( "conleyprogress.txt" );
     progress_file << "Conley Process Progress: " << progress_bar << " / " << num_jobs_ << "\n";
+    BOOST_FOREACH ( uint64_t incc, progress_detail ) {
+      progress_file << incc << " " ;
+    }
+    progress_file << "\n";
     progress_file . close ();
     time_of_last_progress = time;
   }
