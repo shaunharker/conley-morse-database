@@ -68,6 +68,7 @@ Width(Width), Height(Height), x_min(x_min), x_max(x_max), y_min(y_min), y_max(y_
 }
 
 inline void Picture::saveAsPNG ( const char * filename ) const {
+  // Rotate the picture to get the axes right
   bitmap . save_png ( filename );
 }
 
@@ -80,8 +81,13 @@ inline void Picture::draw_square ( unsigned char Red, unsigned char Green, unsig
                            Real draw_x_min, Real draw_x_max, Real draw_y_min, Real draw_y_max, bool transparent ) {
   int left = (int) (( (draw_x_min - x_min) / (x_max - x_min) ) * (Real) Width );
   int right = (int) (( (draw_x_max - x_min) / (x_max - x_min ) ) * (Real) Width );
-  int bottom = (int) (( (draw_y_min - y_min) / (y_max - y_min) ) * (Real) Height );
-  int top = (int) (( (draw_y_max - y_min) / (y_max - y_min ) )* (Real) Height );
+  // Images are no longer upside-down
+  // old code : 
+  //int bottom = (int) ( ( (draw_y_min - y_min) / (y_max - y_min) ) * (Real) Height );
+  //int top = (int) ( ( (draw_y_max - y_min) / (y_max - y_min ) )* (Real) Height );
+  int bottom = Height - (int) ( ( (draw_y_max - y_min) / (y_max - y_min) ) * (Real) Height );
+  int top = Height - (int) ( ( (draw_y_min - y_min) / (y_max - y_min ) )* (Real) Height );
+
   if ( (left == right) && (right + 1 < Width) ) ++ right;
   if ( (bottom == top) && (top  + 1 < Height) ) ++ top;
   for ( int i = left; i < right; ++ i ) {
@@ -106,8 +112,13 @@ inline void Picture::draw_square_outline ( unsigned char Red, unsigned char Gree
                                    Real draw_x_min, Real draw_x_max, Real draw_y_min, Real draw_y_max ) {
   int left = (int) ( ( (draw_x_min - x_min) / (x_max - x_min) ) * (Real) Width );
   int right = (int) ( ( (draw_x_max - x_min) / (x_max - x_min ) ) * (Real) Width );
-  int bottom = (int) ( ( (draw_y_min - y_min) / (y_max - y_min) ) * (Real) Height );
-  int top = (int) ( ( (draw_y_max - y_min) / (y_max - y_min ) )* (Real) Height );
+  // Images are no longer upside-down
+  // old code : 
+  //int bottom = (int) ( ( (draw_y_min - y_min) / (y_max - y_min) ) * (Real) Height );
+  //int top = (int) ( ( (draw_y_max - y_min) / (y_max - y_min ) )* (Real) Height );
+  int bottom = Height - (int) ( ( (draw_y_max - y_min) / (y_max - y_min) ) * (Real) Height );
+  int top = Height - (int) ( ( (draw_y_min - y_min) / (y_max - y_min ) )* (Real) Height );
+
   if ( right + 1 < Width ) ++ right;
   if ( top  + 1 < Height ) ++ top;
   for ( int i = left; i < right; ++ i ) {
