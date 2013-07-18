@@ -1,17 +1,38 @@
-# makefile for CMDP project 
+############################################
+# makefile for Conley-Morse Database project
+###########################################
+#
+#
 CHECKIFMAPISGOOD := yes
-COMPUTE_MORSE_SETS := no
+#
+COMPUTE_MORSE_SETS := yes
 COMPUTE_CONTINUATION := no
 COMPUTE_CONLEY_INDEX := yes
+DRAW_IMAGES := yes
+#
+# CAPD Library 
+#
 USE_CAPD := no
-HAVE_SUCCINCT := yes
-PARAMETER_GRID := SuccinctGrid
+#
+# Memory saving option : PointerGrid, SuccinctGrid 
+#
+HAVE_SUCCINCT := no
+PARAMETER_GRID := PointerGrid
 PHASE_GRID := PointerGrid
-
+#
 # if modelmap has good() implemented
 PARAM_SPACE_METHOD := PATCHMETHOD
 MONOTONICSUBDIVISION := no
-
+#
+#
+#
+# END OF ADVANCED OPTIONS
+###########################################
+#
+ifeq ($(USE_CAPD),no)
+USE_BOOST_INTERVAL := yes
+endif 
+#
 include makefile.config
 CXXFLAGS += -D $(PARAM_SPACE_METHOD)
 CXXFLAGS += -DPARAMETER_GRID=$(PARAMETER_GRID) 
@@ -24,6 +45,14 @@ endif
 ifeq ($(MONOTONICSUBDIVISION),yes)
 	CXXFLAGS += -D MONOTONICSUBDIVISIONPROPERTY
 endif
+
+ifeq ($(USE_BOOST_INTERVAL),yes)
+	CXXFLAGS += -D USE_BOOST_INTERVAL
+endif
+
+ifeq ($(DRAW_IMAGES),yes)
+CXXFLAGS += -D DRAW_IMAGES
+endif 
 
 .PHONY: all
 all: Conley_Morse_Database
@@ -73,6 +102,19 @@ EXPORTXML += ./build/structures/XMLExporter.o
 ExportXML: $(EXPORTXML)
 	$(CC) $(LDFLAGS) $(EXPORTXML) -o $@ $(LDLIBS)
 
+
+SINGLECMG := ./build/test/SingleCMG.o 
+SingleCMG: $(SINGLECMG)
+	$(CC) $(LDFLAGS) -I$(MODELDIR) $(SINGLECMG) -o $@ $(LDLIBS)
+	mv SingleCMG $(MODELDIR);
+	@echo "#"; 
+	@echo "# Conley-Morse Database Code";
+	@echo "# Single computer mode with fixed parameter values";
+	@echo "# The executable file SingleCMG is the model directory:" $(MODELDIR);
+	@echo "#";
+
+
+
 WAVEPOOLCMG := ./build/test/WavePoolCMG.o
 WavePoolCMG: $(WAVEPOOLCMG)
 	$(CC) $(LDFLAGS) $(WAVEPOOLCMG) -o $@ $(LDLIBS)
@@ -82,9 +124,9 @@ NewWavePoolCMG: $(NEWWAVEPOOLCMG)
 	$(CC) $(LDFLAGS) $(NEWWAVEPOOLCMG) -o $@ $(LDLIBS)
 
 
-SINGLECMG := ./build/test/SingleCMG.o 
-SingleCMG: $(SINGLECMG)
-	$(CC) $(LDFLAGS) $(SINGLECMG) -o $@ $(LDLIBS)
+#SINGLECMG := ./build/test/SingleCMG.o 
+#SingleCMG: $(SINGLECMG)
+#	$(CC) $(LDFLAGS) $(SINGLECMG) -o $@ $(LDLIBS)
 
 RMHTEST := ./build/test/RMHTest.o
 RMHTest: $(RMHTEST)
