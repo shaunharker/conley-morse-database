@@ -2,8 +2,6 @@
 #ifndef CMDB_SINGLEOUTPUT_H
 #define CMDB_SINGLEOUTPUT_H
 
-#include <sstream>
-
 #include "database/tools/picture.h"
 
 #include "database/structures/MorseGraph.h"
@@ -21,7 +19,7 @@
 
 inline std::string returnConleyIndex ( const chomp::ConleyIndex_t & ci );
 
-inline void DrawMorseSets ( const Grid & phase_space, const MorseGraph & conley_morse_graph, const char *modelpath ) {
+inline void DrawMorseSets ( const Grid & phase_space, const MorseGraph & conley_morse_graph ) {
   // Create a Picture
   int Width =  4096;
   int Height = 4096;
@@ -36,26 +34,9 @@ inline void DrawMorseSets ( const Grid & phase_space, const MorseGraph & conley_
   //picture2 -> saveAsPNG ( "grid.png" );
   //picture3 -> saveAsPNG ( "grid_and_morse.png" );
   
-  std::string path=modelpath;
-  std::string ext=".bmp";
-  std::string filename;
-  std::string fullname;
-  const char * bmpfile;
-
-  filename="/morse_sets";
-  fullname=path+filename+ext;
-  bmpfile = (char * ) fullname . c_str ( );
-  picture -> saveAsBMP ( bmpfile );
-
-  filename="/grid";
-  fullname=path+filename+ext;
-  bmpfile = (char * ) fullname . c_str ( );
-  picture2 -> saveAsBMP ( bmpfile );
-
-  filename="/grid_and_morse";
-  fullname=path+filename+ext;
-  bmpfile = (char * ) fullname . c_str ( );
-  picture3 -> saveAsBMP ( bmpfile );
+  picture -> saveAsBMP ( "morse_sets.bmp" );
+  picture2 -> saveAsBMP ( "grid.bmp" );
+  picture3 -> saveAsBMP ( "grid_and_morse.bmp" );
   std::cout << "Output saved.\n";
   
   //picture -> saveAsTIFF ( "morse_sets.tiff" );
@@ -69,22 +50,13 @@ inline void DrawMorseSets ( const Grid & phase_space, const MorseGraph & conley_
 
 
 
-inline void CreateDotFile ( const MorseGraph & cmg, const char * modelpath ) {
+inline void CreateDotFile ( const MorseGraph & cmg ) {
   typedef MorseGraph::Vertex V;
   typedef MorseGraph::Edge E;
   typedef MorseGraph::VertexIterator VI;
   typedef MorseGraph::EdgeIterator EI;
   
-  std::string path=modelpath;
-  std::string ext=".gv";
-  std::string filename;
-  std::string fullname;
-  const char * gvfile;
-  filename="/morsegraph";
-  fullname=path+filename+ext;
-  gvfile = (char * ) fullname . c_str ( );
-
-  std::ofstream outfile (gvfile);
+  std::ofstream outfile ("morsegraph.gv");
   
   outfile << "digraph G { \n";
   //outfile << "node [ shape = point, color=black  ];\n";
@@ -97,10 +69,9 @@ inline void CreateDotFile ( const MorseGraph & cmg, const char * modelpath ) {
   for (boost::tie ( start, stop ) = cmg . Vertices (); start != stop; ++ start ) {
     vertex_to_index [ *start ] = i;
     //outfile << i << " [label=\""<< cmg . grid (*start) -> size () << "\"]\n";
+    // Label the Morse Graph set with their Conley index
     outfile << i << " [label=\""<< returnConleyIndex ( * cmg . conleyIndex ( *start ) ) << "\"]\n";
     ++ i;
-
-    //std::cout << returnConleyIndex ( * cmg . conleyIndex ( *start ) );
   }
   int N = cmg . NumVertices ();
   
@@ -148,7 +119,6 @@ inline void CreateDotFile ( const MorseGraph & cmg, const char * modelpath ) {
   outfile . close ();
   
 }
-
 
 inline std::string returnConleyIndex ( const chomp::ConleyIndex_t & ci ) {
   using namespace chomp;
@@ -200,7 +170,7 @@ inline std::string returnConleyIndex ( const chomp::ConleyIndex_t & ci ) {
       resultstr = sstr.str();
       if ( entry . degree () > biggest ) biggest = entry . degree ();
     }
-    if ( is_trivial ) resultstr="0";
+    if ( is_trivial ) resultstr="trivial";
   }
 
   //return biggest;
@@ -211,7 +181,10 @@ inline std::string returnConleyIndex ( const chomp::ConleyIndex_t & ci ) {
 
 }
 
-/*
+
+
+
+
 int check_index ( std::ostream & outstream, const chomp::ConleyIndex_t & ci ) {
   using namespace chomp;
   if ( ci . undefined () ) outstream << "Conley Index not computed for this Morse Set.\n";
@@ -266,7 +239,33 @@ int check_index ( std::ostream & outstream, const chomp::ConleyIndex_t & ci ) {
   }
   return biggest;
 }
-*/
+
+#if 0
+inline void output_cubes ( const Grid & my_grid,
+                   const MorseGraph & conley_morse_graph ) {
+  using namespace chomp;
+  
+  // Loop Through Morse Sets to determine bounds
+  typedef typename MorseGraph::VertexIterator VI;
+  VI it, stop;
+  std::vector < std::vector < uint32_t > > cubes;
+  for (boost::tie ( it, stop ) = conley_morse_graph . Vertices (); it != stop; ++ it ) {
+    CellContainer const & my_subset = conley_morse_graph . CellSet ( *it );
+    int depth = my_grid . getDepth ( my_subset );
+    BOOST_FOREACH ( const Grid::GridElement & ge, my_subset ) {
+      my_grid . GridElementToCubes ( & cubes, ge, depth  );
+    }
+  }
+  std::ofstream outfile ( "morsecubes.txt" );
+  for ( uint32_t i = 0; i < cubes . size (); ++ i ) {
+    for ( uint32_t j = 0; j < cubes [ i ] . size (); ++ j ) {
+      outfile << cubes [ i ] [ j ] << " ";
+    }
+    outfile << "\n";
+  }
+  outfile . close ();
+} /* output_cubes */
+#endif
 
 #endif
 
