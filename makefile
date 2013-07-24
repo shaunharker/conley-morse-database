@@ -6,7 +6,7 @@
 CHECKIFMAPISGOOD := yes
 #
 COMPUTE_MORSE_SETS := yes
-COMPUTE_CONTINUATION := no
+COMPUTE_CONTINUATION := yes
 COMPUTE_CONLEY_INDEX := yes
 DRAW_IMAGES := yes
 #
@@ -16,8 +16,8 @@ USE_CAPD := no
 #
 # Memory saving option : PointerGrid, SuccinctGrid 
 #
-HAVE_SUCCINCT := no
-PARAMETER_GRID := PointerGrid
+HAVE_SUCCINCT := yes
+PARAMETER_GRID := SuccinctGrid
 PHASE_GRID := PointerGrid
 #
 # if modelmap has good() implemented

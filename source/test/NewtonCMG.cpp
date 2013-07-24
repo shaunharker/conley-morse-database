@@ -117,24 +117,38 @@ Rect initialize_parameter_space_box ( void ) {
  parameter_space_limits . lower_bounds [ 1 ]  = 2.04699951171875;
  parameter_space_limits . upper_bounds [ 1 ] = 2.0477685546875;
 */
+ /*
   // Region with an unstable minimal morse set (bug)
   //[-0.1413978576660156, -0.1413034439086914] X [1.668061140625, 1.66821059375]  
  parameter_space_limits . lower_bounds [ 0 ]  = -0.1413978576660156;
  parameter_space_limits . upper_bounds [ 0 ] =  -0.1413034439086914;
  parameter_space_limits . lower_bounds [ 1 ]  = 1.668061140625;
  parameter_space_limits . upper_bounds [ 1 ] = 1.66821059375;
+*/
 
   //parameter_space_limits . lower_bounds [ 0 ] = .41015625;
   //parameter_space_limits . upper_bounds [ 0 ] =.412109375;
   //parameter_space_limits . lower_bounds [ 1 ] = 0.4939418136991764;
   //parameter_space_limits . upper_bounds [ 1 ] = 0.4970097752749477;
 
+  // Bug inside double winding region (phase space -- init6, min7, max8)
+ // a x b x c =
+  //[-0.34375, -0.328125] X [0.265625, 0.28125] X [-0.078125, -0.0625]
+
+  parameter_space_limits . lower_bounds [ 0 ] = -0.078125;
+  parameter_space_limits . upper_bounds [ 0 ] = -0.0625;
+  parameter_space_limits . lower_bounds [ 1 ] = 1.0472;
+  parameter_space_limits . upper_bounds [ 1 ] = 1.0472;  
+ parameter_space_limits . lower_bounds [ 2 ]  = -0.34375;
+ parameter_space_limits . upper_bounds [ 2 ] =  -0.328125;
+ parameter_space_limits . lower_bounds [ 3 ]  = 0.265625;
+ parameter_space_limits . upper_bounds [ 3 ] = 0.28125;
+/*
  // 2D a=-1 b=1 slice
   parameter_space_limits . lower_bounds [ 2 ] = -1.0;
   parameter_space_limits . upper_bounds [ 2 ] = -1.0;
   parameter_space_limits . lower_bounds [ 3 ] = 1.0;
-  parameter_space_limits . upper_bounds [ 3 ] = 1.0;  
-
+  parameter_space_limits . upper_bounds [ 3 ] = 1.0; 
 
   // Crash at 4-6-12
   //[-5.000000000000000e-01, -4.687500000000000e-01]x[1.374446785945534e+00, 1.423534171157875e+00]x[-5.937500000000000e-01, -5.625000000000000e-01]x[-1.562500000000000e-01, -1.250000000000000e-01]
@@ -147,6 +161,7 @@ Rect initialize_parameter_space_box ( void ) {
   parameter_space_limits . upper_bounds [ 2 ] = -0.5625;
   parameter_space_limits . lower_bounds [ 3 ] = -0.15625;
   parameter_space_limits . upper_bounds [ 3 ] = -0.125;  
+  */
   /*
 int PARAMETER_BOXES = 32;
   Rect parameter_box ( parameter_space_dimension );
