@@ -2,6 +2,7 @@
 #ifndef CMDB_SINGLEOUTPUT_H
 #define CMDB_SINGLEOUTPUT_H
 
+#include <string>
 #include "database/tools/picture.h"
 
 #include "database/structures/MorseGraph.h"
@@ -9,6 +10,7 @@
 #include "chomp/ConleyIndex.h"
 #include "chomp/Matrix.h"
 #include "chomp/PolyRing.h"
+#include "database/algorithms/conleyIndexString.h"
 
 /***********/
 /* Output  */
@@ -49,6 +51,28 @@ inline void DrawMorseSets ( const Grid & phase_space, const MorseGraph & conley_
 }
 
 
+std::string conleyStringForZoo ( const std::vector<std::string> & ci_strings ) {
+    // data
+    std::string ci_string;
+    // algo
+    std::stringstream ss;
+    ss << "(";
+    for ( int d = 0; d < (int) ci_strings . size (); ++ d ) {
+      std::string s = ci_strings [ d ];
+      std::string t;
+      for ( int i = 0; i < (int)s . size () - 1; ++ i ) {
+        if ( s [ i ] == '.' ) continue;
+        if ( s [ i ] == ' ' ) continue;
+        if ( s [ i ] == '\n' ) { t += std::string ( ", "); continue; }
+        t . push_back ( s [ i ] );
+      }
+      ss << t;
+      if ( d != (int)ci_strings . size () - 1 ) ss << ", ";
+    }
+    ss << ")";
+    ci_string = ss . str ();
+    return ci_string;
+}
 
 inline void CreateDotFile ( const MorseGraph & cmg ) {
   typedef MorseGraph::Vertex V;
@@ -70,7 +94,7 @@ inline void CreateDotFile ( const MorseGraph & cmg ) {
     vertex_to_index [ *start ] = i;
     //outfile << i << " [label=\""<< cmg . grid (*start) -> size () << "\"]\n";
     // Label the Morse Graph set with their Conley index
-    outfile << i << " [label=\""<< returnConleyIndex ( * cmg . conleyIndex ( *start ) ) << "\"]\n";
+    outfile << i << " [label=\""<< conleyStringForZoo(conleyIndexString ( * cmg . conleyIndex ( *start ) )) << "\"]\n";
     ++ i;
   }
   int N = cmg . NumVertices ();

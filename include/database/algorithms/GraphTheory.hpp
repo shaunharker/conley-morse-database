@@ -40,9 +40,9 @@ void computeMorseSetsAndReachability (std::vector< boost::shared_ptr<Grid> > * o
   //std::cout << "Compute Strong Components\n";
   computeStrongComponents ( &components, mapgraph, &topological_sort );
 #ifdef CMG_VERBOSE
-  if ( G . size () > 1024 ) {
+  //if ( G . size () > 1024 ) {
   std::cout << "Found " << components . size () << " morse sets.\n";
-  }
+  //}
 #endif
 #ifndef NO_REACHABILITY
   //std::cout << "Compute Reachability\n";
@@ -226,10 +226,10 @@ void computeStrongComponents (std::vector<std::deque<typename OutEdgeGraph::size
   long num_edges = 0;
   size_type progress = 0;
   size_type progresspercent = 0;
-  if ( N > 1024 ) {
+  //if ( N > 1024 ) {
   std::cout << "Computing Strongly Connected Components for a graph with " << N << " vertices.\n";
   std::cout . flush ();
-  }
+  //}
 #endif
   //std::cout << "sentinel = " << sentinel << "\n";
   for ( size_type root = 0; root < N; ++ root ) {
@@ -284,7 +284,7 @@ void computeStrongComponents (std::vector<std::deque<typename OutEdgeGraph::size
       if ( index [ v ] == sentinel ) {
         // FIRST VISIT
 #ifdef CMG_VERBOSE
-        if ( N > 1024 ) {
+        //if ( N > 1024 ) {
 
         ++ progress;
         if ( (100*progress)/N > progresspercent) {
@@ -292,7 +292,7 @@ void computeStrongComponents (std::vector<std::deque<typename OutEdgeGraph::size
           std::cout << "\r" << progresspercent << "%    ";
           std::cout . flush ();
         }
-        }
+        //}
 #endif
         
         //std::cout << "First visit to vertex " << v << ".\n";
@@ -398,11 +398,11 @@ void computeStrongComponents (std::vector<std::deque<typename OutEdgeGraph::size
     } // while dfs stack non-empty
   } // while not all nodes explored
 #ifdef CMG_VERBOSE
-  if ( N > 1024 ) {
+  //if ( N > 1024 ) {
 
   std::cout << "\r100%    ";
   std::cout << "       V = " << N << " E = " << num_edges << "  E/V = " << (double) num_edges / (double) N << "\n";
-  }
+  //}
 #endif
   DEBUGPRINT std::cout << "SCC effort = " << effort << "\n";
 #ifdef MEMORYBOOKKEEPING

@@ -51,9 +51,9 @@
 #endif
 
 using namespace chomp;
-int INITIALSUBDIVISIONS = 11;
-int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 12 - INITIALSUBDIVISIONS;
-int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 17 - INITIALSUBDIVISIONS;
+int INITIALSUBDIVISIONS = 6;
+int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 7 - INITIALSUBDIVISIONS;
+int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 7 - INITIALSUBDIVISIONS;
 int SINGLECMG_COMPLEXITY_LIMIT = 100;
 
 
@@ -134,7 +134,7 @@ Rect initialize_parameter_space_box ( void ) {
   // Bug inside double winding region (phase space -- init6, min7, max8)
  // a x b x c =
   //[-0.34375, -0.328125] X [0.265625, 0.28125] X [-0.078125, -0.0625]
-
+/*
   parameter_space_limits . lower_bounds [ 0 ] = -0.078125;
   parameter_space_limits . upper_bounds [ 0 ] = -0.0625;
   parameter_space_limits . lower_bounds [ 1 ] = 1.0472;
@@ -143,6 +143,16 @@ Rect initialize_parameter_space_box ( void ) {
  parameter_space_limits . upper_bounds [ 2 ] =  -0.328125;
  parameter_space_limits . lower_bounds [ 3 ]  = 0.265625;
  parameter_space_limits . upper_bounds [ 3 ] = 0.28125;
+*/
+ // bug in Newton3D-1
+   parameter_space_limits . lower_bounds [ 0 ] = -0.140625;
+  parameter_space_limits . upper_bounds [ 0 ] = -0.125;
+  parameter_space_limits . lower_bounds [ 1 ] = 0.0;
+  parameter_space_limits . upper_bounds [ 1 ] = 0.0;  
+ parameter_space_limits . lower_bounds [ 2 ]  = 0.375;
+ parameter_space_limits . upper_bounds [ 2 ] =  0.390625;
+ parameter_space_limits . lower_bounds [ 3 ]  = 0.453125;
+ parameter_space_limits . upper_bounds [ 3 ] = 0.46875;
 /*
  // 2D a=-1 b=1 slice
   parameter_space_limits . lower_bounds [ 2 ] = -1.0;
@@ -280,101 +290,6 @@ void test_grid ( const ModelMap & map, const Grid & grid ) {
 
 }
 
-
-#include <boost/thread.hpp>
-#include <boost/chrono/chrono_io.hpp>
-
-typedef chomp::SparseMatrix < chomp::PolyRing < chomp::Ring > > PolyMatrix;
-
-class SNFThread {
-
-private:
-
-  PolyMatrix * U;
-  PolyMatrix * Uinv;
-  PolyMatrix * V;
-  PolyMatrix * Vinv;
-  PolyMatrix * D;
-  const PolyMatrix & A;
-public:
-  bool * result;
-  SNFThread( PolyMatrix * U,
-       PolyMatrix * Uinv,
-       PolyMatrix * V,
-       PolyMatrix * Vinv,
-       PolyMatrix * D,
-       const PolyMatrix & A, 
-       bool * result ) 
-  : U(U), Uinv(Uinv), V(V), Vinv(Vinv), D(D), A(A), result(result) {}
-
-  void operator () ( void ) {
-    try {
-      SmithNormalForm ( U, Uinv, V, Vinv, D, A );
-      *result = true;
-    } catch ( ... /* boost::thread_interrupted& */) {
-      *result = false;
-    }
-  }
-};
-
-std::vector<std::string> conley_index_string ( const chomp::ConleyIndex_t & ci, int time_out = 180 ) {
-  using namespace chomp;
-  std::cout << "conley index string\n";
-  std::vector<std::string> result;
-  if ( ci . undefined () ) { 
-    std::cout << "undefined.\n";
-    return result;
-  }
-  for ( unsigned int i = 0; i < ci . data () . size (); ++ i ) {
-    std::cout << "dimension is " << i << "\n";
-    std::stringstream ss;
-    PolyMatrix poly = ci . data () [ i ];
-    
-    int N = poly . number_of_rows ();
-    PolyRing<Ring> X;
-    X . resize ( 2 );
-    X [ 1 ] = Ring ( -1 );
-    for ( int i = 0; i < N; ++ i ) {
-      poly . add ( i, i, X );
-    }
-    PolyMatrix U, Uinv, V, Vinv, D;
-
-    // use a thread to perform the following line:    
-    //      SmithNormalForm ( &U, &Uinv, &V, &Vinv, &D, poly );
-    bool computed;
-    SNFThread snf ( &U, &Uinv, &V, &Vinv, &D, poly, &computed );
-    boost::thread t(snf);
-    if ( not t . try_join_for ( boost::chrono::seconds( time_out ) ) ) {
-      t.interrupt();
-      t.join();
-    }
-    if ( not computed ) {
-      result . push_back ( std::string ( "Problem computing SNF.\n") );
-      continue;
-    }
-    // end threading
-
-    bool is_trivial = true;
-    PolyRing < Ring > x;
-    x . resize ( 2 );
-    x [ 1 ] = Ring ( 1 );
-    for ( int j = 0; j < D . number_of_rows (); ++ j ) {
-      PolyRing < Ring > entry = D . read ( j, j );
-      while ( ( entry . degree () >= 0 )
-             && ( entry [ 0 ] == Ring ( 0 ) )) {
-        entry = entry / x;
-      }
-      if ( entry . degree () <= 0 ) continue;
-      is_trivial = false;
-      ss << "   " << entry << "\n";
-    }
-    if ( is_trivial ) ss << "Trivial.\n";
-    result . push_back ( ss . str () );
-    std::cout << "Wrote the poly " << ss . str () << "\n";
-  }
-  return result;
-}
-
 /*****************/
 /* Main Program  */
 /*****************/
@@ -442,8 +357,8 @@ int main ( int argc, char * argv [] ) {
                  *phase_space,
                  subset,
                  map );
-    conley_index_string ( *conley );
-    //check_index ( std::cout, *conley );
+    std::vector<std::string> ci_vec = conleyIndexString ( *conley );
+    for ( int d = 0; d < ci_vec . size (); ++ d ) std::cout << ci_vec[d] << "\n";
     
   }
 #endif

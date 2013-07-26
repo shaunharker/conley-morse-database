@@ -30,7 +30,7 @@ MONOTONICSUBDIVISION := no
 ###########################################
 #
 ifeq ($(USE_CAPD),no)
-USE_BOOST_INTERVAL := yes
+USE_BOOST_INTERVAL := no
 endif 
 #
 include makefile.config
@@ -112,7 +112,6 @@ SingleCMG: $(SINGLECMG)
 	@echo "# Single computer mode with fixed parameter values";
 	@echo "# The executable file SingleCMG is the model directory:" $(MODELDIR);
 	@echo "#";
-
 
 
 WAVEPOOLCMG := ./build/test/WavePoolCMG.o
