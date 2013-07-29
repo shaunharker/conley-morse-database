@@ -131,7 +131,7 @@ inline void CreateDotFile ( const MorseGraph & cmg ) {
   
   // PRINT OUT EDGES OF TRANSITIVE CLOSURE
   BOOST_FOREACH ( int_pair edge, edges ) {
-    if ( transitive_edges . count ( edge ) == 0 )
+    //if ( transitive_edges . count ( edge ) == 0 )
       outfile << edge . first << " -> " << edge . second << ";\n";
   }
   

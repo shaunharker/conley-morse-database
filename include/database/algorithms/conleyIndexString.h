@@ -89,6 +89,12 @@ std::vector<std::string> conleyIndexString ( const chomp::ConleyIndex_t & ci, in
         entry = entry / x;
       }
       if ( entry . degree () <= 0 ) continue;
+      // make it monic
+      PolyRing<Ring> leading_unit;
+      leading_unit . resize ( 1 );
+      leading_unit [ 0 ] = entry[entry . degree ()];
+      entry = entry / leading_unit;
+      
       is_trivial = false;
       ss << "   " << entry << "\n";
     }

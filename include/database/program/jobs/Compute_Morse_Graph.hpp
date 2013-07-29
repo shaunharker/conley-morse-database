@@ -211,6 +211,8 @@ void ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
   // "temp" will store which MorseGraph vertices are hierarchically under a given decomposition node
   std::map < MorseDecomposition *, std::vector<Vertex> > temp;
   std::stack < std::pair < MorseDecomposition *, unsigned int > > eulertourstack;
+  // eulertourstack: an item (md, childnum) means "this is node md, explore child childnum if it exists,
+  // otherwise do an analysis"
   eulertourstack . push ( std::make_pair( root, 0 ) );
   while (  not eulertourstack . empty () ) {
     MorseDecomposition * MD = eulertourstack . top () . first;
@@ -226,7 +228,7 @@ void ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
       // If it has children that are all marked spurious, then it is spurious.
       // If it does not have children, it is spurious if and only if it is already marked spurious
       if ( N > 0 ) {
-        MD -> spurious () = true; // by default, we may switch it back to false
+        MD -> spurious () = true; // by default; we may however switch it back to false
         for ( unsigned int i = 0; i < N; ++ i ) {
           if ( not MD -> children () [ i ] -> spurious () ) MD -> spurious () = false;
         }

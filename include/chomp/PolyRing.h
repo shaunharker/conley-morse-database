@@ -46,33 +46,20 @@ std::ostream & operator << ( std::ostream & outstream, const PolyRing<Field> & p
 	if ( print_me . degree () == -1 ) {
 		outstream << "0";
 		return outstream;
-	}
-	if ( print_me . degree () == 0 ) {
-		outstream << print_me [ 0 ];
-		return outstream;
-	}
-	
-	if ( print_me [ print_me . degree () ] == 1 ) {
-		outstream << "x^" << print_me . degree ();
-	} else {
-		outstream << print_me [ print_me . degree () ] << "x^" << print_me . degree ();
-	}
-	
-	for ( int i = (int) print_me . degree () - 1; i >= 0; -- i ) {
-	  if ( print_me [ i ] == 0 ) continue;
-	  if ( print_me [ i ] == 1 ) {
-		  if ( i > 0 ) {
-			outstream << " + " << "x^" << i;
-		  } else {
-			outstream << " + 1";
-		  }
-		} else {
-			if ( i > 0 ) {
-				outstream << " + " << print_me [ i ] << "x^" << i;
-			} else {
-				outstream << " + " << print_me [ i ];
-			}
-		}
+	}	
+	for ( int i = (int) print_me . degree () ; i >= 0; -- i ) {
+	  if ( print_me [ i ] == Field(0) ) continue;
+	  if ( i != (int)print_me.degree() && print_me[i].balanced_value()>0 ) outstream << "+";
+	  if ( print_me[i].balanced_value() == -1 ) outstream << "-";
+	  if ( print_me[i].balanced_value() != 1 && print_me[i].balanced_value() != -1 ) outstream << print_me[i];
+
+	  if ( i > 1 ) {
+	  	outstream << "x^" << i;
+	  } else if ( i == 1 ) {
+	  	outstream << "x";
+	  } else if ( i == 0 ) {
+	  	if ( print_me[i].balanced_value() != 1 || print_me[i].balanced_value() != -1 ) outstream << "1";
+	  }
 	}
 	return outstream;
 }

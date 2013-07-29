@@ -6,6 +6,9 @@
 #include <algorithm>
 #include <memory>
 
+#include "boost/unordered_set.hpp"
+#include "boost/unordered_map.hpp"
+
 #include "boost/foreach.hpp"
 #include "database/structures/MapGraph.h"
 
@@ -47,6 +50,8 @@ void computeMorseSetsAndReachability (std::vector< boost::shared_ptr<Grid> > * o
 #ifndef NO_REACHABILITY
   //std::cout << "Compute Reachability\n";
   computeReachability ( reach, components, mapgraph, topological_sort );
+
+  
 #endif
   /* Create output grids */
   //std::cout << "Create Output Grids\n";
@@ -426,16 +431,21 @@ void computeReachability ( std::vector < std::vector < unsigned int > > * output
 #endif
   /* Count the Morse Sets */
   unsigned long effort = 0;
+  
   //std::cout << "REACHABILITY.\n";
   //std::cout << "Count the Morse Sets\n";
+  
   size_type number_of_morse_sets = morse_sets . size ();
+  
   //std::cout << "There are " << number_of_morse_sets << " of them.\n";
+  
   if ( number_of_morse_sets == 0 ) return; // trivial case
   output -> resize ( number_of_morse_sets );
   /* Paint the Morse Sets */
   // For each morse set, go through its vertices and 
   // color them according to which morse set they are in.
   // Vertices not in a morse set are colored "number_of_morse_sets"
+  
   //std::cout << "Paint the Morse Sets\n";
 
   std::vector < size_type > morse_paint ( G . num_vertices (), number_of_morse_sets );
@@ -453,7 +463,7 @@ void computeReachability ( std::vector < std::vector < unsigned int > > * output
 #ifdef CMG_VERBOSE
   size_type total_work_to_do = topological_sort . size () * groups;
 #endif
-  // We use a vector called morse_code. It's function it to maintain
+  // We use a vector called morse_code. It's function is to maintain
   // information about which morse sets can reach a given vertex.
   // By processing in topological order, it is possible to give morse_code
   // the correct values in a single pass.
@@ -464,12 +474,15 @@ void computeReachability ( std::vector < std::vector < unsigned int > > * output
   std::vector < unsigned long > condensed_code;
   // Loop through groups.
   for ( size_type group_number = 0; group_number < groups; ++ group_number ) {
+    
     //std::cout << "Process Group " << group_number << "\n";
 
     ++ effort;
     size_type group_size = std::min((size_type) 64, number_of_morse_sets - 64 * group_number);
     size_type offset = 64 * group_number;
+    
     //std::cout << "group_size = " << group_size << "\n";
+    
     morse_code . clear ();
     morse_code . resize ( G . num_vertices (), 0 );
     condensed_code . clear ();
@@ -480,7 +493,9 @@ void computeReachability ( std::vector < std::vector < unsigned int > > * output
       size_type set_number = offset + count;
       unsigned long code = ((unsigned long)1) << count;
       ++ effort;
+      
       //std::cout << "Producing code = " << code << "\n";
+      
       BOOST_FOREACH ( size_type v, morse_sets [ set_number ] ) {
         ++ effort;
         morse_code [ v ] = code;
@@ -489,8 +504,20 @@ void computeReachability ( std::vector < std::vector < unsigned int > > * output
     // Loop through topological sort.
     // Our goal is to produce "condensed_code", which we can read the info off from.
     // The intermediate information is stored in "morse_code"
+    
     //std::cout << "Loop through top sort \n";
-    for ( size_type vi = topological_sort . size () - 1; vi != 0; -- vi ) {
+    
+    // debug
+    /*
+    std::cout << "Warning, inefficient debug code in graphtheory.hpp still on\n";
+    std::vector < uint64_t > inverse_top_sort ( G . num_vertices (), 0 );
+    for ( uint64_t vi = 0; vi != topological_sort . size (); ++ vi ) {
+      inverse_top_sort [ topological_sort [ vi ] ] = vi;
+    }
+    */
+    // end debug
+
+    for ( int64_t vi = topological_sort . size () - 1; vi >= 0; -- vi ) {
 #ifdef CMG_VERBOSE
       ++ progress;
       if ( (100*progress)/total_work_to_do > progresspercent) {
@@ -500,42 +527,58 @@ void computeReachability ( std::vector < std::vector < unsigned int > > * output
       }
 #endif
       size_type v = topological_sort [ vi ];
+      //std::cout << "Vertex " << v << ": ";
       std::vector < size_type > children = G . adjacencies ( v ); // previously const &
+      if ( morse_paint [ v ] != number_of_morse_sets )
+        morse_code [ v ] |= condensed_code [ morse_paint [ v ] ];
       BOOST_FOREACH ( size_type w, children ) {
+        // debug
+        //std::cout << w << " ";
+        /*
+        if ( inverse_top_sort [ w ] > vi ) {
+          if ( morse_paint [ w ] != morse_paint [ v ] ) {
+            std::cout << "DEBUG CHECK FAILED.\n";
+            abort ();
+          } 
+        }
+        */
+        // end debug
         ++ effort;
         morse_code [ w ] |= morse_code [ v ];
         condensed_code [ morse_paint [ w ] ] |= morse_code [ v ];
+
       }
-    } // its okay to ignore 0
+      //std::cout << "\n";
+    } 
 #ifdef CMG_VERBOSE
     ++ progress;
 #endif
-    {
-    size_type v = topological_sort [ 0 ];
-    std::vector < size_type > children = G . adjacencies ( v );
-    BOOST_FOREACH ( size_type w, children ) {
-      ++ effort;
-      morse_code [ w ] |= morse_code [ v ];
-      condensed_code [ morse_paint [ w ] ] |= morse_code [ v ];
-    }
-    } //dry problem
+    
     // now condensed_code is indexed by targets, and contains the sources reaching it.
     
     //std::cout << "Loop through Morse Sets\n";
+    
     // Loop through Morse Sets to learn reachability information
     for ( size_type count = 0; count < number_of_morse_sets; ++ count ) {
       // Read condensed code to determine which of the group reached this morse set
       /* TODO: WRITE NASTY, OPTIMIZED UNROLLED BIT MANIPULATION CODE */
+      
       //std::cout << " condensed_code [ " << count << " ] = " << condensed_code [ count ] << "\n";
+      
       ++ effort;
       unsigned long bit = 1;
       for ( int i = 0; i < 64; ++ i ) {
         ++ effort;
+        
         //std::cout << "(offset, i) = " << offset << ", " << i << "\n";
+        
         if ( condensed_code [ count ] & bit ) {
           ++ effort;
+          
           //std::cout << "bit = " << bit << "\n";
+          
           //std::cout << "Writing connection (" << offset + i << ", " << count << ")\n";
+          
           (*output)[offset + i] . push_back ( count );
         } // if
         bit <<= 1;
@@ -545,7 +588,37 @@ void computeReachability ( std::vector < std::vector < unsigned int > > * output
 #ifdef CMG_VERBOSE
   std::cout << "\r100%  Reachability Analysis Complete.\n ";
 #endif
-  DEBUGPRINT std::cout << "reach effort = " << effort << "\n";
+  //DEBUGPRINT std::cout << "reach effort = " << effort << "\n";
+
+#if 0 
+  // DEBUG
+  // check that "output" is transitively closed
+  boost::unordered_map < unsigned int, boost::unordered_set<unsigned int> > debug_reach;
+  boost::unordered_map < unsigned int, boost::unordered_set<unsigned int> > debug_reach2;
+
+  for ( int i = 0; i < output -> size (); ++ i ) { 
+    const std::vector<unsigned int> & out_edges = (*output) [ i ];
+    BOOST_FOREACH ( unsigned int j, out_edges ) {
+      debug_reach [ i ] . insert ( j );
+    }
+  }
+  for ( int i = 0; i < output -> size (); ++ i ) { 
+    BOOST_FOREACH ( int j, debug_reach [ i ] ) {
+      debug_reach2 [ i ] . insert ( j );
+      BOOST_FOREACH ( int k, debug_reach [ j ] ) {
+        debug_reach2 [ i ] . insert ( k );
+      }
+    }
+  }
+  for ( int i = 0; i < output -> size (); ++ i ) { 
+    if ( debug_reach [ i ] . size () != debug_reach2 [ i ] . size () ) {
+      std::cout << "Reachability Graph Theory Algorithm did not yield a transitive closure\n";
+      abort ();
+    }
+  }
+
+  // END DEBUG
+#endif
 } /* compute_reachability */
 
 
