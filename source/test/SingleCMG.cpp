@@ -212,7 +212,7 @@ int main ( int argc, char * argv [] )
 
   /* INITIALIZE MORSE GRAPH WITH PHASE SPACE *********************/                       //
   morsegraph . phaseSpace () -> initialize ( config . PHASE_BOUNDS );   //
-  morsegraph . phaseSpace () -> periodicity () = config . PERIODIC;   //
+  morsegraph . phaseSpace () -> periodicity () = config . PHASE_PERIODIC;   //
   for ( int i = 0; i < INITIALSUBDIVISIONS; ++ i )               //
     morsegraph . phaseSpace () -> subdivide ();                  //
   /***************************************************************/

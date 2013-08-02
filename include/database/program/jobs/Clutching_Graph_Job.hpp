@@ -209,7 +209,7 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   int PHASE_SUBDIV_MAX;
   int PHASE_SUBDIV_LIMIT;
   chomp::Rect PHASE_BOUNDS;
-  std::vector < bool > PERIODIC;
+  std::vector < bool > PHASE_PERIODIC;
   job >> job_number;
   job >> box_names;
   job >> box_geometries;
@@ -219,7 +219,7 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   job >> PHASE_SUBDIV_MAX;
   job >> PHASE_SUBDIV_LIMIT;
   job >> PHASE_BOUNDS;
-  job >> PERIODIC;
+  job >> PHASE_PERIODIC;
   
   // Prepare data structures
   std::map < size_t, boost::shared_ptr<PhaseGrid> > phase_space_grids;
@@ -236,7 +236,7 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
     size_t box = box_names [ i ];
     box_index [ box ] = i;
     phase_space_grids [ box ] . reset ( new PhaseGrid );
-    phase_space_grids [ box ] -> initialize ( PHASE_BOUNDS, PERIODIC );
+    phase_space_grids [ box ] -> initialize ( PHASE_BOUNDS, PHASE_PERIODIC );
     GeometricMap map ( box_geometries [ i ] );
     // perform computation
     Compute_Morse_Graph 

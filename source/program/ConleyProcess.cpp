@@ -144,7 +144,7 @@ int ConleyProcess::prepare ( Message & job ) {
   job << config.PHASE_SUBDIV_MAX;
   job << config.PHASE_SUBDIV_LIMIT;
   job << config.PHASE_BOUNDS;
-  job << config.PERIODIC;
+  job << config.PHASE_PERIODIC;
 
   std::cout << "Preparing conley job " << job_number 
             << " with GD = " << GD << "  and  ms = (" <<  ms << ")\n";

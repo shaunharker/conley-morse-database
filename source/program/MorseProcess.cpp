@@ -94,11 +94,14 @@ void MorseProcess::initialize ( void ) {
 
 #ifdef PATCHMETHOD
   
+  // We cover the parameter space with patch_width^d patches.
+  // In order to accommodate periodicity, we let the patches overhang from the outer bounds slightly.
   int patch_width = 4; // try to use patch_width^d boxes per patch (plus or minus 1)
   
+  // CONSTUCT THE PARAMETER GRID
   // Initialize parameter space bounds
   parameter_grid = boost::shared_ptr<Grid> ( new PARAMETER_GRID );
-  parameter_grid -> initialize ( config.PARAM_BOUNDS );   /// Parameter space grid
+  parameter_grid -> initialize ( config.PARAM_BOUNDS, config.PARAM_PERIODIC );   /// Parameter space grid
   
   // Subdivide parameter space toplex
   long num_across = 1;
@@ -110,6 +113,7 @@ void MorseProcess::initialize ( void ) {
   }
   
   int patches_across = 1 + num_across / patch_width; // distance between center of patches in box-units
+  // EXAMPLE: num_across = 64, patch_width = 4 ---> patches_across = 9 
   std::cout << "patches_across = " << patches_across << "\n";
   // Create the patches.
   std::vector < chomp::Rect > patches;
@@ -126,9 +130,10 @@ void MorseProcess::initialize ( void ) {
       patch . upper_bounds [ d ] = config.PARAM_BOUNDS . lower_bounds [ d ] + ((double)(1 + coordinates[d])) *
       (config.PARAM_BOUNDS . upper_bounds [ d ] - config.PARAM_BOUNDS . lower_bounds [ d ]) / (double)patches_across + tol;
       
-      if ( patch . lower_bounds [ d ] < config.PARAM_BOUNDS . lower_bounds [ d ] ) patch . lower_bounds [ d ] = config.PARAM_BOUNDS . lower_bounds [ d ];
-      if ( patch . upper_bounds [ d ] > config.PARAM_BOUNDS . upper_bounds [ d ] ) patch . upper_bounds [ d ] = config.PARAM_BOUNDS . upper_bounds [ d ];
-      
+      if ( not config.PARAM_PERIODIC [ d ] ) {
+        if ( patch . lower_bounds [ d ] < config.PARAM_BOUNDS . lower_bounds [ d ] ) patch . lower_bounds [ d ] = config.PARAM_BOUNDS . lower_bounds [ d ];
+        if ( patch . upper_bounds [ d ] > config.PARAM_BOUNDS . upper_bounds [ d ] ) patch . upper_bounds [ d ] = config.PARAM_BOUNDS . upper_bounds [ d ];
+      }
     }
     patches . push_back ( patch );
     // ODOMETER STEP
@@ -274,7 +279,7 @@ int MorseProcess::prepare ( Message & job ) {
   job << config.PHASE_SUBDIV_MAX;
   job << config.PHASE_SUBDIV_LIMIT;
   job << config.PHASE_BOUNDS;
-  job << config.PERIODIC;
+  job << config.PHASE_PERIODIC;
   /// Increment the jobs_sent counter
   ++num_jobs_sent_;
   

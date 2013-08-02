@@ -36,7 +36,8 @@ public:
   int PARAM_DIM;
   int PARAM_SUBDIV_DEPTH;
   Rect PARAM_BOUNDS;
-  
+  std::vector<bool> PARAM_PERIODIC;
+
   /* Phase Space */
   int PHASE_DIM;
   int PHASE_SUBDIV_INIT;
@@ -44,7 +45,7 @@ public:
   int PHASE_SUBDIV_MAX;
   int PHASE_SUBDIV_LIMIT;
   Rect PHASE_BOUNDS; 
-  std::vector<bool> PERIODIC;
+  std::vector<bool> PHASE_PERIODIC;
   
   // Loading
   void loadFromFile ( const char * filename ) {
@@ -95,6 +96,17 @@ public:
       param_ubss >> PARAM_BOUNDS . upper_bounds [ d ];
     }
     
+    PARAM_PERIODIC . resize ( PARAM_DIM, false );
+    boost::optional<std::string> param_periodic = pt.get_optional<std::string>("config.param.periodic");
+    if ( param_periodic ) {
+      std::stringstream param_periodic_ss ( *param_periodic );
+      for ( int d = 0; d < PARAM_DIM; ++ d ) {
+        int x;
+        param_periodic_ss >> x;
+        PARAM_PERIODIC [ d ] = (bool) x;
+      }
+    }
+    
     /* Phase Space */
     PHASE_DIM = pt.get<int>("config.phase.dim");
     PHASE_SUBDIV_MIN = pt.get<int>("config.phase.subdiv.min");
@@ -116,19 +128,15 @@ public:
       phase_ubss >> PHASE_BOUNDS . upper_bounds [ d ];
     }
     
-    PERIODIC . resize ( PHASE_DIM, false );
+    PHASE_PERIODIC . resize ( PHASE_DIM, false );
     boost::optional<std::string> phase_periodic = pt.get_optional<std::string>("config.phase.periodic");
     if ( phase_periodic ) {
-      std::cout << "Found periodic field\n";
       std::stringstream phase_periodic_ss ( *phase_periodic );
       for ( int d = 0; d < PHASE_DIM; ++ d ) {
         int x;
         phase_periodic_ss >> x;
-        PERIODIC [ d ] = (bool) x;
+        PHASE_PERIODIC [ d ] = (bool) x;
       }
-
-    }else {
-      std::cout << "Did not find a periodic field.\n";
     }
     
     
@@ -154,7 +162,7 @@ public:
     ar & PHASE_SUBDIV_MAX;
     ar & PHASE_SUBDIV_LIMIT;
     ar & PHASE_BOUNDS; 
-    ar & PERIODIC;
+    ar & PHASE_PERIODIC;
   }
   
 };

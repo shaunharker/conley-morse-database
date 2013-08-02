@@ -31,7 +31,7 @@ void Conley_Index_Job ( Message * result , const Message & job ) {
   int PHASE_SUBDIV_MAX;
   int PHASE_SUBDIV_LIMIT;
   Rect PHASE_BOUNDS;
-  std::vector < bool > PERIODIC;
+  std::vector < bool > PHASE_PERIODIC;
   job >> job_number;
   job >> incc;
   job >> geo;
@@ -41,7 +41,7 @@ void Conley_Index_Job ( Message * result , const Message & job ) {
   job >> PHASE_SUBDIV_MAX;
   job >> PHASE_SUBDIV_LIMIT;
   job >> PHASE_BOUNDS;
-  job >> PERIODIC;
+  job >> PHASE_PERIODIC;
   
   std::cout << "CIJ: job_number = " << job_number << "  (" << geo << ", " <<  ms << ")\n";
 
@@ -49,7 +49,7 @@ void Conley_Index_Job ( Message * result , const Message & job ) {
   MorseGraph mg;
   
   boost::shared_ptr<Grid> phase_space ( new PhaseGrid );
-  phase_space -> initialize ( PHASE_BOUNDS, PERIODIC );
+  phase_space -> initialize ( PHASE_BOUNDS, PHASE_PERIODIC );
   
      std::cout << "CIJ: geo = " << geo << "\n";
   
@@ -68,7 +68,7 @@ void Conley_Index_Job ( Message * result , const Message & job ) {
     std::cout << "CIJ: returned from Compute_Morse_Graph\n";
 
   // Select Subset
-    std::cout << "periodic = " << (PERIODIC[0] ? "yes" : "no" ) << "\n";
+    std::cout << "PHASE_PERIODIC = " << (PHASE_PERIODIC[0] ? "yes" : "no" ) << "\n";
     std::cout << "phase bounds = " << PHASE_BOUNDS << "\n";
     std::cout << "incc = " << incc << "\n";
     std::cout << "ms = " << ms << "\n";

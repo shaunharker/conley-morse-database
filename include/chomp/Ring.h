@@ -137,7 +137,7 @@ inline std::ostream & operator << ( std::ostream & outstream, const Long & rhs )
 #ifndef RINGDEFINED
 #define RINGDEFINED
 //typedef Long Ring;
-typedef Zp<3> Ring;
+typedef Zp<5> Ring;
 #endif
   
 } // namespace chomp
