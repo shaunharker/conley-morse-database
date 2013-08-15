@@ -134,6 +134,13 @@ int ConleyProcess::prepare ( Message & job ) {
   uint64_t ms = conley_work_items [ job_number ] . second . second;
   Rect GD = database . parameter_space () . geometry ( pb_id );
 
+  // TEMPORARY FIX -- REMOVE, WILL CAUSE ERRORS
+  double tol = 1e-8;
+  for ( int d = 0; d < database . parameter_space () . dimension (); ++ d ) {
+    GD . lower_bounds [ d ] -= tol;
+    GD . upper_bounds [ d ] += tol;
+  }
+  // END DEBUG
 
   job << job_number;
   job << incc;

@@ -73,6 +73,14 @@ void Conley_Index_Job ( Message * result , const Message & job ) {
     std::cout << "incc = " << incc << "\n";
     std::cout << "ms = " << ms << "\n";
     std::cout << "num vertices = " << mg . NumVertices () << "\n";
+
+  CI_Data ci_data;
+  if ( ms >= mg . NumVertices () ) {
+    std::cerr << "Error: request to compute Conley Index for non-existence Morse Node.\n";
+    abort ();
+  }
+  //if ( ms < mg.NumVertices () ) {
+
     std::cout << "CIJ: size of phase space = " << phase_space -> size () << "\n";
     std::cout << "CIJ: size of morse set = " << mg . grid ( ms ) -> size () << "\n";
     std::cout << "phase space grid type: " << typeid( * phase_space ).name() << "\n";
@@ -91,9 +99,8 @@ void Conley_Index_Job ( Message * result , const Message & job ) {
 
   std::cout << "CIJ: producing Conley Index polynomial strings \n";
 
-  CI_Data ci_data;
   ci_data . conley_index = conleyIndexString ( ci_matrix );
- 
+ //}
   
   // Return Result
   * result << job_number;

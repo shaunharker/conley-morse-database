@@ -54,6 +54,14 @@ std::ostream & operator << ( std::ostream & outstream, const Zp<p> & print_me ) 
 template < Prime p >
 int64_t Zp<p>::balanced_value ( void ) const {
 	int64_t v = value_;
+	/*
+	// DEBUG
+	if ( v > value_ || v < 0 ) {
+		std::cout << "Zp coefficient unexpectedly out of range.\n";
+		abort ();
+	}
+	// END DEBUG
+	*/
 	if ( v > p / 2 ) v -= p;
 	return v;
 }

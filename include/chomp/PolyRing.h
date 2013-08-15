@@ -58,7 +58,7 @@ std::ostream & operator << ( std::ostream & outstream, const PolyRing<Field> & p
 	  } else if ( i == 1 ) {
 	  	outstream << "x";
 	  } else if ( i == 0 ) {
-	  	if ( print_me[i].balanced_value() != 1 || print_me[i].balanced_value() != -1 ) outstream << "1";
+	  	if ( print_me[i].balanced_value() == 1 || print_me[i].balanced_value() == -1 ) outstream << "1";
 	  }
 	}
 	return outstream;

@@ -248,13 +248,23 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
       PHASE_SUBDIV_MAX, 
       PHASE_SUBDIV_LIMIT);
     //std::cout << "Morse Graph computed.\n";
-    //if ( conley_morse_graphs [ box ] . NumVertices () == 0 ) std::cout << "WARNING. Box # " << box << " Clutching Job #" << job_number << ", box = " << box_geometries [ i ] << " had no morse sets.\n"; else std::cout << "SUCCESS. Box # " << box << " Clutching Job #" << job_number << ", box = " << box_geometries [ i ] << " had " << conley_morse_graphs [ box ] . NumVertices () << " morse sets.\n";
+    if ( conley_morse_graphs [ box ] . NumVertices () == 0 )  { 
+      std::cerr << "WARNING. Box # " << box << " Clutching Job #" << job_number 
+      << ", box = " << box_geometries [ i ] << " had no morse sets.\n"; 
+    }
   }
   
   // Compute Clutching Graphs
   //std::cout << "--------- 2. Compute Clutching Graphs ---------\n";
   typedef std::pair < size_t, size_t > Adjacency;
   BOOST_FOREACH ( const Adjacency & A, box_adjacencies ) {
+    // Debug
+    if ( conley_morse_graphs . count ( A . first ) == 0  ||
+         conley_morse_graphs . count ( A . second ) == 0 ) {
+      std::cout << "Clutching Job ordered that is not within patch.\n";
+      abort (); // or continue?
+    }
+    // End Debug
     clutching_graphs . push_back ( BG_Data () );
     Clutching ( & clutching_graphs . back (),
                 conley_morse_graphs [ A . first ],

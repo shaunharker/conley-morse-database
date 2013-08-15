@@ -51,17 +51,17 @@
 #endif
 
 using namespace chomp;
-int INITIALSUBDIVISIONS = 6;
-int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 7 - INITIALSUBDIVISIONS;
-int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 12 - INITIALSUBDIVISIONS;
+int SINGLECMG_INITIAL_SUBDIVISIONS = 11;
+int SINGLECMG_MIN_PHASE_SUBDIVISIONS = 12;
+int SINGLECMG_MAX_PHASE_SUBDIVISIONS = 17;
 int SINGLECMG_COMPLEXITY_LIMIT = 100;
 
 
 /**************/
 /*    MAP     */
 /**************/
-#include "database/maps/Newton4D.h"
-
+//#include "database/maps/Newton4D.h"
+#include "/Users/sharker/Desktop/Newton4D-1/ModelMap.h"
 Rect initialize_phase_space_box ( void ) {
   const Real pi = 3.14159265358979323846264338327950288;
   int phase_space_dimension = 1;
@@ -153,6 +153,39 @@ Rect initialize_parameter_space_box ( void ) {
  parameter_space_limits . upper_bounds [ 2 ] =  0.390625;
  parameter_space_limits . lower_bounds [ 3 ]  = 0.453125;
  parameter_space_limits . upper_bounds [ 3 ] = 0.46875;
+
+ // x^2 + x + 1
+
+  parameter_space_limits . lower_bounds [ 0 ] = -0.104;
+  parameter_space_limits . upper_bounds [ 0 ] = -0.104;
+  parameter_space_limits . lower_bounds [ 1 ] = 1.697;
+  parameter_space_limits . upper_bounds [ 1 ] = 1.697;  
+  parameter_space_limits . lower_bounds [ 2 ]  = -1.0;
+  parameter_space_limits . upper_bounds [ 2 ] =  -1.0;
+  parameter_space_limits . lower_bounds [ 3 ]  = 1.0;
+  parameter_space_limits . upper_bounds [ 3 ] = 1.0;
+
+  // x + 21 (discovered polynomial string writing bug with this one)
+  // [-1, -0.96875]x[0.343612, 0.392699]x[-0.84375, -0.8125]x[0.25, 0.28125]
+  parameter_space_limits . lower_bounds [ 0 ] = -1.0;
+  parameter_space_limits . upper_bounds [ 0 ] = -0.96875;
+  parameter_space_limits . lower_bounds [ 1 ] = 0.3436116964863836;
+  parameter_space_limits . upper_bounds [ 1 ] = 0.39269908169872414;  
+  parameter_space_limits . lower_bounds [ 2 ]  = -0.84375;
+  parameter_space_limits . upper_bounds [ 2 ] =  -0.8125;
+  parameter_space_limits . lower_bounds [ 3 ]  = 0.25;
+  parameter_space_limits . upper_bounds [ 3 ] = 0.28125;
+
+  // Empty Hasse Diagram?
+  // [-0.8125, -0.78125]x[2.30711, 2.35619]x[0.59375, 0.625]x[0, 0.03125]
+  parameter_space_limits . lower_bounds [ 0 ] = -0.8125;
+  parameter_space_limits . upper_bounds [ 0 ] = -0.78125;
+  parameter_space_limits . lower_bounds [ 1 ] = 2.3071071049800045;
+  parameter_space_limits . upper_bounds [ 1 ] = 2.356194490192345;  
+  parameter_space_limits . lower_bounds [ 2 ]  = 0.59375;
+  parameter_space_limits . upper_bounds [ 2 ] =  0.625;
+  parameter_space_limits . lower_bounds [ 3 ]  = 0.0;
+  parameter_space_limits . upper_bounds [ 3 ] = 0.03125;
 /*
  // 2D a=-1 b=1 slice
   parameter_space_limits . lower_bounds [ 2 ] = -1.0;
@@ -195,8 +228,10 @@ int PARAMETER_BOXES = 32;
   //parameter_space_limits . upper_bounds [ 0 ] = -0.828125;
   //parameter_space_limits . lower_bounds [ 1 ] = 0.245437;
   //parameter_space_limits . upper_bounds [ 1 ] = 0.269981;
-  //std::cout << "Parameter Space Bounds = " << parameter_space_limits << "\n";
   */
+
+  std::cout << "Parameter Space Bounds = " << parameter_space_limits << "\n";
+
   return parameter_space_limits;
 }
 
@@ -319,9 +354,6 @@ int main ( int argc, char * argv [] ) {
   std::vector<bool> periodicity ( 1, true );
   phase_space -> initialize ( phase_space_bounds, periodicity );
   
-  for ( int i = 0; i < INITIALSUBDIVISIONS; ++ i )
-    phase_space -> subdivide ();
-  std::cout << "C\n";
   /* INITIALIZE MAP */
   ModelMap map ( parameter_box );
   test_map ( map );
@@ -333,6 +365,7 @@ int main ( int argc, char * argv [] ) {
   Compute_Morse_Graph ( & mg,
                        phase_space,
                        map,
+                       SINGLECMG_INITIAL_SUBDIVISIONS,
                        SINGLECMG_MIN_PHASE_SUBDIVISIONS,
                        SINGLECMG_MAX_PHASE_SUBDIVISIONS,
                        SINGLECMG_COMPLEXITY_LIMIT );
