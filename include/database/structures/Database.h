@@ -309,7 +309,7 @@ public:
   void insert ( const Grid::GridElement & p, const DAG_Data & dag );
   void insert ( const Grid::GridElement & p1, const Grid::GridElement & p2, const BG_Data & bg );
   void insert ( const uint64_t incc, const CI_Data & ci );
-  
+
   template < class Map >
   void removeBadBoxes ( void );
 
@@ -602,6 +602,10 @@ inline void Database::postprocess ( void ) {
   // TODO: USE EXTERNAL MEMORY SORT TO AVOID RANDOM ACCESS PATTERN
   std::vector < int64_t > grid_to_dag ( N, -1 );
   BOOST_FOREACH ( const MorseRecord & mr, morse_records () ) {
+    if ( dagData()[ mr . dag_index] . num_vertices == 0 ) {
+      std::cerr << "Warning: database has invalid Morse records\n";
+      continue;
+    }
     grid_to_dag [ mr . grid_element ] = mr . dag_index;
   }
 
@@ -609,6 +613,12 @@ inline void Database::postprocess ( void ) {
   // a union-find structure on grid elements
   ContiguousIntegerUnionFind mgccp_uf (N);
   BOOST_FOREACH ( const ClutchingRecord & cr, clutch_records () ) {
+    // Handle spurious records
+    if ( grid_to_dag [ cr . grid_element_1 ] == -1 ||
+        grid_to_dag [ cr . grid_element_2 ] == -1 ) {
+      std::cerr << "Warning: database has invalid clutching records.\n";
+      continue;
+    }
     if ( is_identity ( dag_data_ [ grid_to_dag [ cr . grid_element_1 ] ], 
                        dag_data_ [ grid_to_dag [ cr . grid_element_2 ] ],
                        bg_data_ [ cr . bg_index ] ) ) {
@@ -674,6 +684,11 @@ inline void Database::postprocess ( void ) {
 
   ContiguousIntegerUnionFind mgcc_uf ( MGCCP_records_ . size () );
   BOOST_FOREACH ( const ClutchingRecord & cr, clutch_records () ) {
+    if ( grid_to_dag [ cr . grid_element_1 ] == -1 ||
+        grid_to_dag [ cr . grid_element_2 ] == -1 ) {
+      std::cerr << "Warning: database has invalid clutching records.\n";
+      continue;
+    }
     uint64_t mgccp1 = pb_to_mgccp_ [ cr . grid_element_1 ];
     uint64_t mgccp2 = pb_to_mgccp_ [ cr . grid_element_2 ];
     DAG_Data & dag1 = dag_data_ [ grid_to_dag [ cr . grid_element_1 ] ];
