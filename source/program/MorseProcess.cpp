@@ -232,13 +232,7 @@ int MorseProcess::prepare ( Message & job ) {
   BOOST_FOREACH ( Grid::GridElement grid_element_in_patch, patch_subset ) {
     // Find geometry of patch cell
     Rect GD = parameter_grid -> geometry ( grid_element_in_patch );
-    // DEBUG -- (check toplex::cover)
-    double tol = 1e-8;
-    for ( int d = 0; d < parameter_grid -> dimension (); ++ d ) {
-      GD . lower_bounds [ d ] -= tol;
-      GD . upper_bounds [ d ] += tol;
-    }
-    // END DEBUG
+
 #ifdef CHECKIFMAPISGOOD
     ModelMap map ( GD );
     if ( not map . good () ) continue;
@@ -248,6 +242,13 @@ int MorseProcess::prepare ( Message & job ) {
     // Store the geometric description of the patch cell
     box_geometries . push_back ( GD );
     // Find the cells in toplex which intersect patch cell
+    // DEBUG -- (check toplex::cover)
+    double tol = 1e-8;
+    for ( int d = 0; d < parameter_grid -> dimension (); ++ d ) {
+      GD . lower_bounds [ d ] -= tol;
+      GD . upper_bounds [ d ] += tol;
+    }
+    // END DEBUG
     GridSubset GD_Cover;
     std::insert_iterator < GridSubset > ii ( GD_Cover, GD_Cover . begin () );
     parameter_grid -> cover ( ii, GD );
