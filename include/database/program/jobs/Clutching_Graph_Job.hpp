@@ -228,8 +228,8 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   std::vector < BG_Data > clutching_graphs;
 
   // Compute Morse Graphs
-  //std::cout << "CLUTCHING JOB " << job_number << ": " << box_names . size () << " BEGINNING.\n";
-  //std::cout << "--------- 1. Compute Morse Graphs ---------\n";
+  std::cout << "CLUTCHING JOB " << job_number << ": " << box_names . size () << " BEGINNING.\n";
+  std::cout << "--------- 1. Compute Morse Graphs --------- " << job_number << "\n";
   for ( unsigned int i = 0; i < box_names . size (); ++ i ) {
     //std::cout << " Processing parameter box " << i << "/" << box_names . size () << "\n";
     //Prepare phase space and map
@@ -255,7 +255,7 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   }
   
   // Compute Clutching Graphs
-  //std::cout << "--------- 2. Compute Clutching Graphs ---------\n";
+  std::cout << "--------- 2. Compute Clutching Graphs --------- " << job_number << "\n";
   typedef std::pair < size_t, size_t > Adjacency;
   BOOST_FOREACH ( const Adjacency & A, box_adjacencies ) {
     // Debug
@@ -272,7 +272,7 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   }
   
   // Create Database
-  //std::cout << "--------- 3. Creating Database ---------\n";
+  std::cout << "--------- 3. Creating Database --------- " << job_number << "\n";
 
   Database database;
   
@@ -287,7 +287,7 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   }
   
   // Return Result
-  //std::cout << "CLUTCHING JOB " << job_number << ": " << box_names . size () << " COMPLETE.\n";
+  std::cout << "CLUTCHING JOB " << job_number << ": " << box_names . size () << " COMPLETE.\n";
 
   *result << job_number;
   *result << database;

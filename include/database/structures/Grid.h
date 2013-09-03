@@ -848,7 +848,20 @@ inline void Grid::relativeComplex ( chomp::RelativePair * pair,
 		newbounds . lower_bounds [ d ] = bounds () . upper_bounds [ d ];
 		newbounds . upper_bounds [ d ] = bounds () . lower_bounds [ d ];
   }
+#ifdef RELATIVECOMPLEXOUTPUT
+long count = 0;
+long endcount = XGridElements . size ();
+int percent = 0;
+#endif
   BOOST_FOREACH ( GridElement e, XGridElements ) {
+#ifdef RELATIVECOMPLEXOUTPUT
+    ++ count;
+    if ( (100.0*count)/endcount > percent ) {
+      percent = (100.0*count)/endcount;
+      std::cout << "\r" << percent << "%    ";
+      std::cout . flush ();
+    }
+#endif
     chomp::Rect geo = geometry ( e );
     for ( int d = 0; d < D; ++ d ) {
       if ( newbounds . lower_bounds [ d ] > geo . lower_bounds [ d ] )
