@@ -79,20 +79,13 @@ ConleyIndex ( ConleyIndex_t * output,
   CellDictionary X_cells;
   CellDictionary S_cells;
   Combinatorial_Map G;
-  
   std::insert_iterator<CellDictionary> Xc_ii ( X_cells, X_cells . begin () );
   BOOST_FOREACH ( Cell cell, S ) {
     S_cells . insert ( cell );
-#if 0
-    Subset & image = G [ cell ] = Subset ();
-#else
-    Subset image = Subset ();
-#endif
-    std::insert_iterator<Subset> image_ii ( image, image . end () );
-    grid . cover ( image_ii, F ( grid . geometry ( grid . find ( cell ) ) ) );
+    std::vector < typename Grid::GridElement > image = 
+      grid . cover ( F ( grid . geometry ( cell ) ) );
     std::copy ( image . begin (), image . end (), Xc_ii );
   } /* boost_foreach */
-  
   /* Construct X and A */
   // note: The cells in A are those in X not in S.
   Subset X, A;

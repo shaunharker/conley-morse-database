@@ -11,7 +11,7 @@
 
 #include <boost/unordered_set.hpp>
 
-#include "database/structures/Grid.h"
+#include "database/structures/TreeGrid.h"
 #include "database/structures/Tree.h"
 #include "database/structures/PointerTree.h"
 
@@ -29,7 +29,7 @@
  * PointerGrid *
  ***************/
 
-class PointerGrid : public Grid {
+class PointerGrid : public TreeGrid {
 public:
 
   // Constructor/Deconstructor Methods
@@ -41,8 +41,9 @@ public:
   virtual Grid::iterator TreeToGrid ( Tree::iterator it ) const;
   virtual const PointerTree & tree ( void ) const;
   virtual PointerTree & tree ( void );
+  virtual PointerGrid * clone ( void ) const;
   virtual void subdivide ( void );
-  virtual void adjoin( const Grid & other );
+  //virtual void adjoin( const Grid & other );
   virtual PointerGrid * subgrid ( const std::deque < GridElement > & grid_elements ) const;
   
   virtual void rebuild ( void );
@@ -70,7 +71,7 @@ public:
   friend class boost::serialization::access;
   template<typename Archive>
   void serialize(Archive & ar, const unsigned int file_version) {
-    ar & boost::serialization::base_object<Grid>(*this);
+    ar & boost::serialization::base_object<TreeGrid>(*this);
     ar & tree_;
     rebuild();
   }
@@ -127,6 +128,31 @@ inline PointerTree & PointerGrid::tree ( void ) {
   return * tree_ . get ();
 }
 
+inline PointerGrid * PointerGrid::clone ( void ) const {
+  //std::cout << "PointerGrid::clone\n";
+  // TODO use tree::clone to simplify
+   // First we must convert the grid_elements to leaves
+  std::deque < Tree::iterator > leaves;
+  for ( iterator it = begin (); it != end (); ++ it ) {
+    leaves . push_back ( GridToTree ( it ) );
+  }
+  // Now we build the subtree
+  boost::shared_ptr<PointerTree> subtree ( tree () . subtree ( leaves ) );
+  
+  if ( not subtree ) {
+    std::cout << "PointerGrid::clone Failed to clone the tree\n";
+    abort ();
+  }
+  // Now we build the subgrid
+  PointerGrid * result = new PointerGrid;
+  result -> tree_ = subtree; // Remark: This deallocates the initial "pointertree" object
+  result -> size_ = size ();
+  result -> initialize ( bounds (), periodicity () );
+  result -> rebuild ();
+  
+  return result;
+}
+
 inline void PointerGrid::subdivide ( void ) {
   // First we subdivide the underlying tree
   //std::cout << "PointerGrid::subdivide, currently have " << size() << " grid elements.\n";
@@ -135,10 +161,12 @@ inline void PointerGrid::subdivide ( void ) {
   //std::cout << "finished PointerGrid::subdivide, now have " << size() << " grid elements.\n";
 }
 
+/*
 inline void PointerGrid::adjoin( const Grid & other ) {
   tree_ -> adjoin ( other . tree () );
   rebuild ();
 }
+*/
 
 // WARNING: WHAT IF THERE ARE DUPLICATES IN GRID_ELEMENTS?
 inline PointerGrid * PointerGrid::subgrid ( const std::deque < GridElement > & grid_elements ) const {

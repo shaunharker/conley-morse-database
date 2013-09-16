@@ -11,7 +11,7 @@
 #include <boost/unordered_set.hpp>
 #include <boost/unordered_map.hpp>
 
-#include "database/structures/Grid.h"
+#include "database/structures/TreeGrid.h"
 #include "database/structures/Tree.h"
 #include "database/structures/SuccinctTree.h"
 
@@ -42,7 +42,7 @@
 // 1.18 bits / nodes for the rank select of the leaves
 // Total ~ 5.37 bits / nodes
 
-class SuccinctGrid : public Grid {
+class SuccinctGrid : public TreeGrid {
 public:
   // Constructor/Deconstructor Methods
   SuccinctGrid ( void );
@@ -53,8 +53,10 @@ public:
   virtual Grid::iterator TreeToGrid ( Tree::iterator it ) const;
   virtual const SuccinctTree & tree ( void ) const;
   virtual SuccinctTree & tree ( void );
+
+  virtual SuccinctGrid * clone ( void ) const;
   virtual void subdivide ( void );
-  virtual void adjoin( const Grid & other );
+  //virtual void adjoin( const Grid & other );
   virtual SuccinctGrid * subgrid ( const std::deque < GridElement > & grid_elements ) const;
   virtual void rebuild ( void );
 
@@ -77,7 +79,7 @@ private:
   template<class Archive>
   void serialize(Archive & ar, const unsigned int version)
   {
-    ar & boost::serialization::base_object<Grid>(*this);
+    ar & boost::serialization::base_object<TreeGrid>(*this);
     ar & tree_;
     ar & leaves_rs_;
   }
@@ -126,15 +128,33 @@ inline SuccinctTree & SuccinctGrid::tree ( void ) {
   return tree_;
 }
 
+inline SuccinctGrid * SuccinctGrid::clone ( void ) const {
+  // TODO -- introduce tree clone to simplify this
+  std::deque < Tree::iterator > leaves;
+  for ( iterator it = begin (); it != end (); ++ it ) {
+    leaves . push_back ( GridToTree ( it ) );
+  }
+ 
+  // Now we build the subgrid
+  SuccinctGrid * result = new SuccinctGrid;
+  result -> tree_ =  * tree () . subtree ( leaves );
+  result -> size_ = size ();
+  result -> initialize ( bounds (), periodicity () );
+  result -> rebuild ();
+  return result;
+}
+
 inline void SuccinctGrid::subdivide(void) {
   tree_ . subdivide();
   rebuild ();
 }
 
+/*
 inline void SuccinctGrid::adjoin( const Grid & other ) {
   tree_ . adjoin ( other . tree () );
   rebuild ();
 }
+*/
 
 inline SuccinctGrid * SuccinctGrid::subgrid ( const std::deque < Grid::GridElement > & grid_elements ) const {
   // First we must convert the grid_elements to leaves

@@ -5,9 +5,9 @@
 #
 CHECKIFMAPISGOOD := yes
 #
-COMPUTE_MORSE_SETS := no
-COMPUTE_CONTINUATION := no
-COMPUTE_CONLEY_INDEX := yes
+COMPUTE_MORSE_SETS := yes
+COMPUTE_CONTINUATION := yes
+COMPUTE_CONLEY_INDEX := no
 DRAW_IMAGES := yes
 #
 # CAPD Library 
@@ -158,6 +158,10 @@ LVCMG: $(LVCMG)
 SELKOVCMG := ./build/test/SelkovCMG.o
 SelkovCMG: $(SELKOVCMG)
 	$(CC) $(LDFLAGS) $(SELKOVCMG) -o $@ $(LDLIBS)
+
+ATLASCMG := ./build/test/AtlasCMG.o
+AtlasCMG: $(ATLASCMG)
+	$(CC) $(LDFLAGS) $(ATLASCMG) -o $@ $(LDLIBS)
 
 SUBMAPTEST := ./build/test/SubdividedMapTest.o
 SubdividedMapTest: $(SUBMAPTEST)

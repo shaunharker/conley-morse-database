@@ -6,13 +6,13 @@
 #include "boost/foreach.hpp"
 #include "boost/tuple/tuple.hpp"
 #include "chomp/Rect.h"
-#include "database/structures/Grid.h"
+#include "database/structures/TreeGrid.h"
 
 template < class CellContainer >
 Picture * draw_picture (const int Width, const int Height,
                         unsigned char Red, unsigned char Green, unsigned char Blue,
-                        const Grid & my_grid, const CellContainer & my_subset ) {
-  chomp::Rect bounds = my_grid . bounds ();
+                        const TreeGrid & my_grid, const CellContainer & my_subset ) {
+  RectGeo bounds = my_grid . bounds ();
   // Prepare variables for bounds finding loop
   Picture::Real x_min = bounds . upper_bounds [ 0 ];
   Picture::Real x_max = bounds . lower_bounds [ 0 ];
@@ -21,7 +21,7 @@ Picture * draw_picture (const int Width, const int Height,
   
   // Find bounds of picture
   BOOST_FOREACH ( Grid::GridElement cell, my_subset ) {
-    chomp::Rect box = my_grid . geometry ( my_grid . find ( cell ) );
+    RectGeo box = * boost::dynamic_pointer_cast < RectGeo > ( my_grid . geometry ( my_grid . find ( cell ) ) );
     x_min = std::min ( x_min, box . lower_bounds [ 0 ] );
     x_max = std::max ( x_max, box . upper_bounds [ 0 ] );
     y_min = std::min ( y_min, box . lower_bounds [ 1 ] );
@@ -38,7 +38,7 @@ Picture * draw_picture (const int Width, const int Height,
 
   // Draw picture
   BOOST_FOREACH ( Grid::GridElement cell, my_subset ) {
-    chomp::Rect box = my_grid . geometry ( my_grid . find ( cell ) );
+    RectGeo box = * boost::dynamic_pointer_cast < RectGeo > ( my_grid . geometry ( my_grid . find ( cell ) ) );
     picture -> draw_square (Red, Green, Blue,
                             box . lower_bounds [ 0 ],
                             box . upper_bounds [ 0 ],
@@ -57,13 +57,13 @@ Picture * draw_picture (const int Width, const int Height,
 inline
 Picture * draw_morse_sets (const int Width,
                            const int Height,
-                           const Grid & my_grid,
+                           const TreeGrid & my_grid,
                            const MorseGraph & conley_morse_graph ) {
   std::cout << "draw_morse_sets\n";
   typedef std::vector<Grid::GridElement> CellContainer;
   using namespace chomp;
   typedef MorseGraph CMG;
-  chomp::Rect bounds = my_grid . bounds ();
+  RectGeo bounds = my_grid . bounds ();
   // Prepare variables for bounds finding loop
   Picture::Real x_min = bounds . upper_bounds [ 0 ];
   Picture::Real x_max = bounds . lower_bounds [ 0 ];
@@ -82,7 +82,7 @@ Picture * draw_morse_sets (const int Width,
     CellContainer my_subset = my_grid . subset ( * my_subgrid );
     for ( CellContainer::const_iterator cellit = my_subset . begin (); 
          cellit != my_subset . end (); ++ cellit ) {
-      chomp::Rect box = my_grid . geometry ( my_grid . find ( *cellit ) );
+      RectGeo box = * boost::dynamic_pointer_cast < RectGeo > ( my_grid . geometry ( my_grid . find ( *cellit ) ) );
       x_min = std::min ( x_min, box . lower_bounds [ 0 ] );
       x_max = std::max ( x_max, box . upper_bounds [ 0 ] );
       y_min = std::min ( y_min, box . lower_bounds [ 1 ] );
@@ -111,7 +111,7 @@ Picture * draw_morse_sets (const int Width,
     for ( CellContainer::const_iterator cellit = my_subset . begin (); 
          cellit != my_subset . end (); ++ cellit ) {
 
-      chomp::Rect box = my_grid . geometry ( my_grid . find ( *cellit ) );
+      RectGeo box = * boost::dynamic_pointer_cast < RectGeo > ( my_grid . geometry ( my_grid . find ( *cellit ) ) );
 
       // DEBUG
       if ( my_subset . size () < 10 ) std::cout << box << " ";
@@ -133,12 +133,12 @@ Picture * draw_morse_sets (const int Width,
 inline
 Picture * draw_grid (const int Width,
                        const int Height,
-                       const Grid & my_grid ) {
+                       const TreeGrid & my_grid ) {
   std::cout << "draw_grid\n";
 
   typedef std::vector<Grid::GridElement> CellContainer;
 
-  chomp::Rect bounds = my_grid . bounds ();
+  RectGeo bounds = my_grid . bounds ();
   // Prepare variables for bounds finding loop
   Picture::Real x_min = bounds . lower_bounds [ 0 ];
   Picture::Real x_max = bounds . upper_bounds [ 0 ];
@@ -149,16 +149,14 @@ Picture * draw_grid (const int Width,
   Picture * picture = new Picture( Width, Height, x_min, x_max, y_min, y_max );
   
   // Loop through top cells to draw them
-  CellContainer my_subset;
-  std::insert_iterator<CellContainer> ii ( my_subset, my_subset . begin () );
-  my_grid . cover ( ii, my_grid . bounds () );
+  CellContainer my_subset = my_grid . cover ( my_grid . bounds () );
   for ( CellContainer::const_iterator cellit = my_subset . begin ();
        cellit != my_subset . end (); ++ cellit ) {
     // Draw the outline of the cell
     unsigned char Red = rand () % 255;
     unsigned char Green = rand () % 255;
     unsigned char Blue = rand () % 255;
-    chomp::Rect box = my_grid . geometry ( my_grid . find ( *cellit ) );
+    RectGeo box = * boost::dynamic_pointer_cast < RectGeo > ( my_grid . geometry ( my_grid . find ( *cellit ) ) );
     Picture::Real volume = ( box . upper_bounds [ 0 ] - box . lower_bounds [ 0 ] )*( box . upper_bounds [ 1 ] - box . lower_bounds [ 1 ] ) ;
     Picture::Real total_volume = ( bounds . upper_bounds [ 0 ] - bounds . lower_bounds [ 0 ] )*( bounds . upper_bounds [ 1 ] - bounds . lower_bounds [ 1 ] ) ;
     Picture::Real ratio = total_volume / volume;
@@ -178,14 +176,14 @@ Picture * draw_grid (const int Width,
 
 inline
 Picture * draw_grid_and_morse_sets (const int Width, const int Height,
-                       const Grid & my_grid,
+                       const TreeGrid & my_grid,
                        const MorseGraph  & conley_morse_graph ) {
   std::cout << "draw_grid_and_morse_sets\n";
 
   typedef std::vector<Grid::GridElement> CellContainer;
   using namespace chomp;
   typedef MorseGraph  CMG;
-  chomp::Rect bounds = my_grid . bounds ();
+  RectGeo bounds = my_grid . bounds ();
   // Prepare variables for bounds finding loop
   Picture::Real x_min = bounds . lower_bounds [ 0 ];
   Picture::Real x_max = bounds . upper_bounds [ 0 ];
@@ -196,16 +194,14 @@ Picture * draw_grid_and_morse_sets (const int Width, const int Height,
   Picture * picture = new Picture( Width, Height, x_min, x_max, y_min, y_max );
   
   // Loop through top cells to draw them
-  CellContainer my_subset;
-  std::insert_iterator<CellContainer> ii ( my_subset, my_subset . begin () );
-  my_grid . cover ( ii, my_grid . bounds () );
+  CellContainer my_subset = my_grid . cover ( my_grid . bounds () );
   
   BOOST_FOREACH ( Grid::GridElement cell, my_subset ) {
     // Draw the outline of the cell
     unsigned char Red = rand () % 255;
     unsigned char Green = rand () % 255;
     unsigned char Blue = rand () % 255;
-    chomp::Rect box = my_grid . geometry ( my_grid . find ( cell ) );
+    RectGeo box = * boost::dynamic_pointer_cast < RectGeo > ( my_grid . geometry ( my_grid . find ( cell ) ) );
     Picture::Real volume = ( box . upper_bounds [ 0 ] - box . lower_bounds [ 0 ] )*( box . upper_bounds [ 1 ] - box . lower_bounds [ 1 ] ) ;
     Picture::Real total_volume = ( bounds . upper_bounds [ 0 ] - bounds . lower_bounds [ 0 ] )*( bounds . upper_bounds [ 1 ] - bounds . lower_bounds [ 1 ] ) ;
     Picture::Real ratio = total_volume / volume;
@@ -234,7 +230,7 @@ Picture * draw_grid_and_morse_sets (const int Width, const int Height,
     boost::shared_ptr<const Grid> my_subgrid ( conley_morse_graph . grid ( *it ) );
     CellContainer my_subset = my_grid . subset ( * my_subgrid );
     BOOST_FOREACH ( Grid::GridElement cell, my_subset ) {
-      chomp::Rect box = my_grid . geometry ( my_grid . find ( cell ) );
+      RectGeo box = * boost::dynamic_pointer_cast < RectGeo > ( my_grid . geometry ( my_grid . find ( cell ) ) );
       picture -> draw_square (Red, Green, Blue,
                               box . lower_bounds [ 0 ],
                               box . upper_bounds [ 0 ],
@@ -263,7 +259,7 @@ Picture * draw_grid_and_morse_sets (const int Width, const int Height,
     boost::shared_ptr<const Grid> my_subgrid ( conley_morse_graph . grid ( *it ) );
     CellContainer my_subset = my_grid . subset ( * my_subgrid );
     BOOST_FOREACH ( Grid::GridElement cell, my_subset ) {
-      chomp::Rect box = my_grid . geometry ( my_grid . find ( cell ) );
+      RectGeo box = * boost::dynamic_pointer_cast < RectGeo > ( my_grid . geometry ( my_grid . find ( cell ) ) );
       picture -> draw_square (Red, Green, Blue,
                               box . lower_bounds [ 0 ],
                               box . upper_bounds [ 0 ],

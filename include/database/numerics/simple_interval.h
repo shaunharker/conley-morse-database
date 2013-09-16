@@ -250,5 +250,9 @@ simple_interval<Real> square (const simple_interval<Real> & term) {
   return result;
 }
 
+template < class Real >
+simple_interval<Real> operator / ( const simple_interval<Real> & lhs, const simple_interval<Real> & rhs ) {
+  return lhs * pow ( rhs, -1.0 );
+}
 
 #endif

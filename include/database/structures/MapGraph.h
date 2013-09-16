@@ -110,9 +110,8 @@ std::vector<typename MapGraph<Map>::Vertex>
 MapGraph<Map>::
 compute_adjacencies ( const Vertex & source ) const {
   //std::cout << "compute_adjacencies.\n";
-  std::vector < Vertex > target;
-  std::insert_iterator < std::vector < Vertex > > ii ( target, target . begin () );
-  grid_ . cover ( ii, f_ ( grid_ . geometry ( source ) ) ); // here is the work
+  std::vector < Vertex > target = 
+    grid_ . cover ( f_ ( grid_ . geometry ( source ) ) ); // here is the work
   //std::cout << "computed.\n";
 
   return target;

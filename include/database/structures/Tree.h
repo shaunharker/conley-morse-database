@@ -45,7 +45,7 @@ public:
  
   // Builder Methods
   virtual void subdivide ( void ) = 0;
-  virtual void adjoin ( const Tree & other ) = 0;
+  //virtual void adjoin ( const Tree & other ) = 0;
   virtual Tree * subtree ( const std::deque < Tree::iterator > & leaves ) const = 0;
   virtual void assign ( const CompressedTree & compressed ) = 0;
 
@@ -106,10 +106,19 @@ inline Tree::size_type Tree::depth ( iterator it ) const {
 template < class InputIterator >
 CompressedTree * Tree::join ( InputIterator start, InputIterator stop ) {
   CompressedTree * result = new CompressedTree;
-  
   std::vector<bool> & balanced_parentheses = result -> balanced_parentheses;
   std::vector<bool> & valid_tree_nodes = result -> valid_tree_nodes;
   
+  bool trivial_case = true; // All trees are empty.
+  for ( InputIterator it = start; it != stop; ++ it ) {
+    if ( (*it) -> size () != 0 ) trivial_case = false;
+  }
+  if ( trivial_case ) {
+    balanced_parentheses.push_back ( true  );
+    valid_tree_nodes.push_back ( false );
+    balanced_parentheses.push_back ( false );
+    return result;
+  }
   //std::cout << "(1";
 
   balanced_parentheses.push_back ( true );
@@ -129,7 +138,8 @@ CompressedTree * Tree::join ( InputIterator start, InputIterator stop ) {
   // State 2: Rise. If rising from the right, rise again on next iteration. Otherwise try to go right on the next iteration.
   std::vector < iterator > iterators;
   for ( InputIterator it = start; it != stop; ++ it ) {
-    iterators . push_back ( (*start) -> begin () );
+    if ( (*it) -> size () == 0 ) continue;
+    iterators . push_back ( (*it) -> begin () );
   }
   size_t N = iterators . size ();
   std::vector < size_t > iterator_depth ( N );
@@ -141,6 +151,7 @@ CompressedTree * Tree::join ( InputIterator start, InputIterator stop ) {
     bool success = false;
     size_t i = 0;
     for ( InputIterator it = start; it != stop; ++ it ) {
+      if ( (*it) -> size () == 0 ) continue;
       //std::cout << "Position 1. i = " << i << ", depth = " << depth << " and state = " << state << "\n";
       // If node is halted, continue
       if ( iterator_depth[i] == depth ) {

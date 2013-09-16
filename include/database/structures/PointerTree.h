@@ -70,7 +70,7 @@ public:
   
   // Mutation Methods
   virtual void subdivide ( void );
-  virtual void adjoin ( const Tree & other );
+  //virtual void adjoin ( const Tree & other );
   virtual PointerTree * subtree ( const std::deque < Tree::iterator > & leaves ) const;
   virtual void assign ( const CompressedTree & compressed );
 
@@ -177,6 +177,7 @@ inline void PointerTree::subdivide ( void ) {
   //debug ();
 }
 
+/*
 inline void PointerTree::adjoin ( const Tree & other ) {
   // Do a tour of "other", forcing the creation of nodes in "this" to follow along
   
@@ -219,13 +220,17 @@ inline void PointerTree::adjoin ( const Tree & other ) {
   }
   
 }
+*/
 
 inline PointerTree * PointerTree::subtree
 ( const std::deque < Tree::iterator > & leaves ) const {
   //std::cout << "PointerTree::raw_subtree with " << leaves.size () << " leaves.\n";
   if ( leaves . empty () ) {
-    std::cout << "Error in subtree: expect nonempty set of leaves\n";
-    abort ();
+    PointerTree * result = new PointerTree;
+    // new PointerTree is initialized with a root; we must erase it
+    delete result -> nodes_ [ 0 ];
+    result -> nodes_ . clear ();
+    return result;
   }
   PointerTree * result = new PointerTree ();
   // Mark part of tree to be copied.

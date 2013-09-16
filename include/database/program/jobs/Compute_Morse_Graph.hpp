@@ -16,6 +16,7 @@ using namespace cimg_library;
 #include "boost/shared_ptr.hpp"
 
 #include "database/algorithms/GraphTheory.h"
+#include "database/algorithms/join.h"
 #include "database/structures/MapGraph.h"
 
 #include <ctime>
@@ -285,8 +286,10 @@ void ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
     } 
   }
 //#ifdef USE_SUCCINCT
-  boost::shared_ptr<CompressedGrid> joinup ( Grid::join ( grids . begin (), grids . end () ) );
-  master_grid -> assign ( * joinup );
+  join ( master_grid, grids . begin (), grids . end () );
+  //std::cout << "IMPLEMENTATION INCOMPLETE: JOIN NOT IMPLEMENTED.\n";
+  //boost::shared_ptr<CompressedGrid> joinup ( Grid::join ( grids . begin (), grids . end () ) );
+  //master_grid -> assign ( * joinup );
 //#endif
 }
 
@@ -313,7 +316,11 @@ void Compute_Morse_Graph (MorseGraph * MG,
   // Produce Morse Set Decomposition Hierarchy
   //std::cout << "COMPUTE MORSE GRAPH\n";
   //std::cout << "Initializing root MorseDecomposition\n";
-  MorseDecomposition * root = new MorseDecomposition ( phase_space, 0 );
+  std::cout << "phase_space -> size () == " << phase_space -> size () << "\n";
+
+  boost::shared_ptr<Grid> root_space ( (Grid *) (phase_space -> clone ()) );
+  std::cout << "root_space -> size () == " << root_space -> size () << "\n";
+  MorseDecomposition * root = new MorseDecomposition ( root_space, 0 );
   //std::cout << "Calling ConstructMorseDecomposition\n";
   ConstructMorseDecomposition<Map> (root,
                                     f,

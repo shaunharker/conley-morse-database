@@ -1,18 +1,19 @@
-// Prism.h
+// PrismGeo.h
 // Shaun Harker
-// 2/21/12 02/21/2012
+// 9/8/2013
 
-#ifndef CHOMP_PRISM_H
-#define CHOMP_PRISM_H
+#ifndef CHOMP_PRISMGEO_H
+#define CHOMP_PRISMGEO_H
 
-#warning prism included
 #define BOOST_UBLAS_NDEBUG
 
 #include <iostream>
 #include <vector>
 #include <cmath>
 
-#include "chomp/Rect.h"
+#include "database/structures/Geo.h"
+#include "database/structures/RectGeo.h"
+
 #include "boost/serialization/serialization.hpp"
 
 #include "boost/foreach.hpp"
@@ -22,8 +23,6 @@
 
 namespace ublas = boost::numeric::ublas;
 
-#ifndef INVERT_MATRIX_HPP
-#define INVERT_MATRIX_HPP
 // REMEMBER to update "lu.hpp" header includes from boost-CVS
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
@@ -32,8 +31,6 @@ namespace ublas = boost::numeric::ublas;
 #include <boost/numeric/ublas/lu.hpp>
 #include <boost/numeric/ublas/io.hpp>
 namespace ublas = boost::numeric::ublas;
-
-namespace chomp {
 
 /* Matrix inversion routine.
  Uses lu_factorize and lu_substitute in uBLAS to invert a matrix */
@@ -54,17 +51,16 @@ bool InvertMatrix (const ublas::matrix<T>& input, ublas::matrix<T>& inverse) {
  	lu_substitute(A, pm, inverse);
  	return true;
 }
-#endif //INVERT_MATRIX_HPP
 
-/*********
- * Prism *
- *********/
+/************
+ * PrismGeo *
+ ************/
 
 typedef double Real;
 typedef ublas::matrix<Real, ublas::row_major> uMatrix;
 typedef ublas::vector<Real> uVector;
 
-class Prism {
+class PrismGeo : public Geo {
 public:
   // { Ax + c : -1 <= x <= 1 }
   int dim;
@@ -83,8 +79,9 @@ private:
   mutable uVector v;
 
 public:
-  Prism ( void ) { Ainv_computed = false; dim = 0;}
-  Prism ( int dim ) : dim ( dim ) {
+
+  PrismGeo ( void ) { Ainv_computed = false; dim = 0;}
+  PrismGeo ( int dim ) : dim ( dim ) {
     A . resize ( dim, dim );
     A = ublas::identity_matrix<Real> ( dim );
     c . resize ( dim );
@@ -101,7 +98,7 @@ public:
     v . resize ( dim );
 
   }
-  bool intersects ( const Rect & R ) const;
+  bool intersects ( const RectGeo & R ) const;
 private:
   friend class boost::serialization::access;
   template<class Archive>
@@ -122,9 +119,9 @@ private:
   
 };
 
-std::ostream & operator << ( std::ostream & output_stream, const Prism & print_me );
+std::ostream & operator << ( std::ostream & output_stream, const PrismGeo & print_me );
 
-inline bool Prism::intersects ( const Rect & r ) const {
+inline bool PrismGeo::intersects ( const RectGeo & r ) const {
   
   // This computes "weak intersection", the notion of
   // whether the prism and rectangle can be seperated with a hyperplane
@@ -188,11 +185,10 @@ inline bool Prism::intersects ( const Rect & r ) const {
   return true;
 }
 
-inline std::ostream & operator << ( std::ostream & output_stream, const Prism & print_me ) {
+inline std::ostream & operator << ( std::ostream & output_stream, const PrismGeo & print_me ) {
   output_stream << " A = " << print_me . A << ", c = " << print_me . c << "\n";
   return output_stream;
 } 
 
-} // namespace chomp
 
 #endif

@@ -46,7 +46,7 @@ public:
   
   // Builder Methods
   virtual void subdivide ( void );
-  virtual void adjoin ( const Tree & other );
+  //virtual void adjoin ( const Tree & other );
   virtual SuccinctTree * subtree ( const std::deque < Tree::iterator > & leaves ) const;
   virtual void assign ( const CompressedTree & compressed );
 
@@ -200,7 +200,7 @@ inline void SuccinctTree::subdivide ( void ) {
   //std::cout << "Postsubdivision:\n";
   //debug ();
 }
-
+/*
 inline void SuccinctTree::adjoin ( const Tree & other ) {
   std::vector < bool > bp;
   std::vector < bool > valid;
@@ -373,12 +373,19 @@ inline void SuccinctTree::adjoin ( const Tree & other ) {
   size_ = newsize;
 
 }
-
+*/
 inline SuccinctTree * SuccinctTree::subtree ( const std::deque < iterator > & leaves ) const {
 
+  std::vector < bool > bp;
+  std::vector < bool > valid;
+
   if ( leaves . empty () ) {
-    std::cout << "Error, empty set. SuccinctTree::subtree\n";
-    abort ();
+    SuccinctTree * result = new SuccinctTree;
+    bp . push_back ( 1 );
+    valid . push_back ( 0 );
+    bp . push_back ( 0 );
+    result -> initialize ( bp , valid );
+    return result;
   }
 
   
@@ -393,8 +400,7 @@ inline SuccinctTree * SuccinctTree::subtree ( const std::deque < iterator > & le
   }
  
   // Now walk through visited nodes and write bp and valid
-  std::vector < bool > bp;
-  std::vector < bool > valid;
+
   
   iterator end_it = end ();
   std::stack < std::pair<iterator, int> > work_stack;

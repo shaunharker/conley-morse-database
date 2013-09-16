@@ -21,7 +21,7 @@
 
 inline std::string returnConleyIndex ( const chomp::ConleyIndex_t & ci );
 
-inline void DrawMorseSets ( const Grid & phase_space, const MorseGraph & conley_morse_graph ) {
+inline void DrawMorseSets ( const TreeGrid & phase_space, const MorseGraph & conley_morse_graph ) {
   // Create a Picture
   int Width =  4096;
   int Height = 4096;

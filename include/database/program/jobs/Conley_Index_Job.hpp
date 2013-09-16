@@ -93,7 +93,7 @@ void Conley_Index_Job ( Message * result , const Message & job ) {
   // Compute Conley Index Record of Morse Set
   ConleyIndex_t ci_matrix;
   ConleyIndex ( & ci_matrix, // ConleyIndex_t
-                *phase_space,
+                * boost::dynamic_pointer_cast<TreeGrid>(phase_space),
                 subset,
                 map );
 
