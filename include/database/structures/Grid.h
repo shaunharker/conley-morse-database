@@ -107,10 +107,12 @@ inline Grid::size_type Grid::size ( void ) const {
 template < class T >
 inline std::vector<Grid::GridElement> Grid::cover ( const std::vector < T > & V ) const {
   std::vector<Grid::GridElement> result;
+  boost::unordered_set<Grid::GridElement> result_set;
   BOOST_FOREACH ( const T & geo, V ) {
     std::vector<Grid::GridElement> cover_vec = cover ( geo );
-    result . insert ( result . end (), cover_vec . begin (), cover_vec . end () );
+    result_set . insert ( cover_vec . begin (), cover_vec . end () );
   }
+  result . insert ( result . end (), result_set . begin (), result_set . end () );
   return result;
 }
 

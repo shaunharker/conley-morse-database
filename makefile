@@ -12,7 +12,7 @@ DRAW_IMAGES := yes
 #
 # CAPD Library 
 #
-USE_CAPD := no
+USE_CAPD := yes
 #
 # Memory saving option : PointerGrid, SuccinctGrid 
 #
@@ -166,6 +166,10 @@ AtlasCMG: $(ATLASCMG)
 SUBMAPTEST := ./build/test/SubdividedMapTest.o
 SubdividedMapTest: $(SUBMAPTEST)
 	$(CC) $(LDFLAGS) $(SUBMAPTEST) -o $@ $(LDLIBS)
+
+ODECMG := ./build/test/odeCMG.o
+odeCMG: $(ODECMG)
+	$(CC) $(LDFLAGS) $(ODECMG) -o $@ $(LDLIBS)
 
 # Cleanup
  .PHONY: clean

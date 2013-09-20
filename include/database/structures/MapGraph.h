@@ -12,6 +12,7 @@
 #include "boost/unordered_map.hpp"
 #include "boost/foreach.hpp"
 
+#include "database/structures/RectGeo.h"
 #include "database/structures/Grid.h"
 
 #ifdef CMDB_STORE_GRAPH
@@ -112,8 +113,29 @@ compute_adjacencies ( const Vertex & source ) const {
   //std::cout << "compute_adjacencies.\n";
   std::vector < Vertex > target = 
     grid_ . cover ( f_ ( grid_ . geometry ( source ) ) ); // here is the work
+#if 0 
+#warning experimental code in mapgraph 
+  double threshold_ = .05;
+  int total_out_edges = 0;
+  std::vector < Vertex > target;
+  boost::unordered_map < Vertex, int > vertex_count;
+  std::vector < RectGeo > outputs = f_ ( grid_ . geometry ( source ) );
+  BOOST_FOREACH ( const RectGeo & r, outputs ) {
+    std::vector < Vertex > target = grid_ . cover ( r );
+    BOOST_FOREACH ( Vertex v, target ) {
+      ++ vertex_count [ v ];
+      ++ total_out_edges;
+    }
+  }
+  typedef std::pair<Vertex, int> value_t;
+  BOOST_FOREACH ( const value_t & v, vertex_count ) {
+    if ( (double)v . second / (double)total_out_edges > threshold_ ) {
+      target . push_back ( v . first );
+    }
+  }
+  
   //std::cout << "computed.\n";
-
+#endif
   return target;
 }
 

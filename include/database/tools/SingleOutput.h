@@ -26,6 +26,7 @@ inline void DrawMorseSets ( const TreeGrid & phase_space, const MorseGraph & con
   int Width =  4096;
   int Height = 4096;
   
+  std::cout << "DrawMorseSets.\n";
   Picture * picture = draw_morse_sets( Width, Height, phase_space, conley_morse_graph );
   Picture * picture2 = draw_grid ( Width, Height, phase_space );
   Picture * picture3 = draw_grid_and_morse_sets( Width, Height, phase_space, conley_morse_graph );
