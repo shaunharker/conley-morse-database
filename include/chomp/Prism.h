@@ -5,7 +5,7 @@
 #ifndef CHOMP_PRISM_H
 #define CHOMP_PRISM_H
 
-#warning prism included
+//#warning prism included
 #define BOOST_UBLAS_NDEBUG
 
 #include <iostream>

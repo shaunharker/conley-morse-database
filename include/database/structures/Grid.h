@@ -51,7 +51,7 @@ public:
   std::vector<Grid::GridElement> cover ( const std::pair < S, T > & V ) const;
   
   uint64_t memory ( void ) const { 
-    std::cout << "warning, Grid::memory not implemented.\n"; 
+    //std::cout << "warning, Grid::memory not implemented.\n"; 
     return 0; 
   }
   // Constructor, Deconstructor
