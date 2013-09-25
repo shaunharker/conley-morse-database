@@ -4,17 +4,17 @@
 #define CMDP_LESLIEMAP_H
 
 //#include <boost/numeric/interval.hpp>
-#include "chomp/Rect.h"
-#include "chomp/Prism.h"
 
+#include "database/structures/RectGeo.h"
+#include "database/structures/PrismGeo.h"
 #include "database/numerics/simple_interval.h"
 #include <vector>
 
 #define PRISM_MAP
 
 struct ModelMap {
-  typedef chomp::Prism Prism;
-  typedef chomp::Rect Rect;
+  typedef PrismGeo Prism;
+  typedef RectGeo Rect;
   typedef chomp::uVector uVector;
   typedef simple_interval<double> interval;
   
@@ -24,6 +24,9 @@ struct ModelMap {
     p0 = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ]);
     p1 = interval (rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ]);
     return;
+  }
+  PrismGeo operator () ( const boost::shared_ptr<Geo> & geo ) const {   
+    return operator () ( * boost::dynamic_pointer_cast<RectGeo> ( geo ) );
   }
   Prism operator () ( const Rect & rectangle ) const {    
     /* Read input */

@@ -8,7 +8,8 @@
 #include "capd/dynset/C0PpedSet.hpp"
 
 //#include <boost/numeric/interval.hpp>
-#include "chomp/Rect.h"
+#include "database/structures/RectGeo.h"
+#include "database/structures/PrismGeo.h"
 //#include "database/numerics/simple_interval.h"
 #include "capd/intervals/lib.h"
 
@@ -16,7 +17,9 @@
 #include <vector>
 
 struct ModelMap {
-  typedef chomp::Rect Rect;
+  typedef RectGeo Rect;
+  typedef PrismGeo Prism; 
+
   capd::IMap f;
   capd::dynsys::DynSysMap<capd::IMap> * map;
   int D;
@@ -33,7 +36,7 @@ struct ModelMap {
   
   
   
-  chomp::Rect intervalMethod ( const chomp::Rect & rectangle ) const {
+  Rect intervalMethod ( const Rect & rectangle ) const {
     using namespace capd;
     
     // Put input into IVector structure "x0"
@@ -44,7 +47,7 @@ struct ModelMap {
     }
     // INTERVAL METHOD CALCULATION
     IVector imethod = f ( box );
-    chomp::Rect result ( D );
+    Rect result ( D );
     for ( int d = 0; d < D; ++ d ) {
       result . lower_bounds [ d ] = imethod [ d ] . leftBound ();
       result . upper_bounds [ d ] = imethod [ d ] . rightBound ();
@@ -52,7 +55,7 @@ struct ModelMap {
     return result;
   }
   
-  chomp::Prism ppedMethod ( const chomp::Rect & rectangle ) const {
+  Prism ppedMethod ( const Rect & rectangle ) const {
     using namespace capd;
     
     // Put input into IVector structure "x0"
@@ -92,10 +95,10 @@ struct ModelMap {
     return P;
   }
   
-  std::vector < chomp::Rect > presubdivision ( const chomp::Rect & rectangle ) const {
+  std::vector < Rect > presubdivision ( const Rect & rectangle ) const {
     using namespace capd;
     
-    std::vector < chomp::Rect > result;
+    std::vector < Rect > result;
     // Put input into IVector structure "x0"
     IVector x0 ( D );
     for ( int d = 0; d < D; ++ d ) {
@@ -160,7 +163,7 @@ struct ModelMap {
     workstack . push_back ( box2 );
     
     BOOST_FOREACH ( const IVector & iv, workstack ) {
-      chomp::Rect item ( D );
+      Rect item ( D );
       for ( int d = 0; d < D; ++ d ) {
         item . lower_bounds [ d ] = iv [ d ] . leftBound ();
         item . upper_bounds [ d ] = iv [ d ] . rightBound ();
@@ -171,15 +174,16 @@ struct ModelMap {
   }
   
   // OPERATOR () FUNCTION
-  std::pair < chomp::Rect, chomp::Prism > operator ()
-  ( const chomp::Rect & rectangle ) const {
+  std::pair < Rect, Prism > operator () ( const boost::shared_ptr<Geo> & geo ) const {   
+    return operator () ( * boost::dynamic_pointer_cast<RectGeo> ( geo ) );
+  }
+  std::pair < Rect, Prism > operator () ( const Rect & rectangle ) const {
     return std::make_pair ( intervalMethod ( rectangle ), ppedMethod ( rectangle ) );
   }
 
-  //chomp::Prism  operator ()
-  //( const chomp::Rect & rectangle ) const {
-  //  return ppedMethod ( rectangle );
-  //}
+  Prism operator () ( const Prism & rectangle ) const {
+    return ppedMethod ( rectangle );
+  }
   
   bool good ( void ) const { return true; }
   
