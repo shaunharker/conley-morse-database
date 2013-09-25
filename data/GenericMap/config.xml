@@ -12,7 +12,7 @@
     <upper> 28 25.0 </upper><!-- Upper bounds of the parameter space (order is important) -->
   </bounds>
   <subdiv>
-    <depth> 2 </depth> <!-- number of subdivisions in each direction of the parameter space -->
+    <depth> 5 </depth> <!-- number of subdivisions in each direction of the parameter space -->
   </subdiv>
 </param>
 <!-- Set up the phase space -->
