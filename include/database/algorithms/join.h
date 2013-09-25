@@ -47,12 +47,9 @@ struct joinImpl < TreeGrid, InputIterator > {
 	static void act ( boost::shared_ptr<TreeGrid> output, 
 	    				  		InputIterator start, 
 	    					  	InputIterator stop ) { 
-		std::cout << "TreeGrid join.\n";
 		boost::shared_ptr<CompressedGrid> joinup 
 			( TreeGrid::join ( start, stop ) );
-		std::cout << "TreeGrid join, about to assign.\n";
   	output -> assign ( * joinup );
-  	std::cout << "TreeGrid join, finished assignment.\n";
 	} 
 };
 
