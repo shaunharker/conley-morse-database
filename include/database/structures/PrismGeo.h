@@ -11,6 +11,7 @@
 #include <vector>
 #include <cmath>
 
+#include "chomp/Prism.h"
 #include "database/structures/Geo.h"
 #include "database/structures/RectGeo.h"
 
@@ -79,7 +80,13 @@ private:
   mutable uVector v;
 
 public:
-
+  // conversion to chomp::Prism
+  operator chomp::Prism ( void ) const {
+    chomp::Prism output ( dim );
+    output . A = A;
+    output . c = c;
+    return output;
+  }
   PrismGeo ( void ) { Ainv_computed = false; dim = 0;}
   PrismGeo ( int dim ) : dim ( dim ) {
     A . resize ( dim, dim );

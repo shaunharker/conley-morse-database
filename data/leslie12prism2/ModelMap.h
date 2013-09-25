@@ -3,15 +3,18 @@
 #ifndef CMDP_LESLIEMAPP2_H
 #define CMDP_LESLIEMAPP2_H
 
+
+#undef MIN
+#undef MAX
 #include "capd/capdlib.h"
 #include "capd/dynsys/DynSysMap.h"
 #include "capd/dynset/C0PpedSet.hpp"
+#include "capd/intervals/lib.h"
 
 //#include <boost/numeric/interval.hpp>
 #include "database/structures/RectGeo.h"
 #include "database/structures/PrismGeo.h"
 //#include "database/numerics/simple_interval.h"
-#include "capd/intervals/lib.h"
 
 
 #include <vector>
@@ -181,9 +184,9 @@ struct ModelMap {
     return std::make_pair ( intervalMethod ( rectangle ), ppedMethod ( rectangle ) );
   }
 
-  Prism operator () ( const Prism & rectangle ) const {
-    return ppedMethod ( rectangle );
-  }
+  //Prism operator () ( const Rect & rectangle ) const {
+  //  return ppedMethod ( rectangle );
+  //}
   
   bool good ( void ) const { return true; }
   
