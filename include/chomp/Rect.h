@@ -14,13 +14,14 @@
 #include "boost/serialization/vector.hpp"
 #include "boost/foreach.hpp"
 
+#include "chomp/Real.h"
+
 namespace chomp {
 
 /*********
  * Rect *
  *********/
 
-#include "chomp/Real.h"
 
 class Rect {
 public:

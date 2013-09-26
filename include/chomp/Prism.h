@@ -33,6 +33,8 @@ namespace ublas = boost::numeric::ublas;
 #include <boost/numeric/ublas/io.hpp>
 namespace ublas = boost::numeric::ublas;
 
+#include "chomp/Real.h"
+
 namespace chomp {
 
 /* Matrix inversion routine.
@@ -60,7 +62,6 @@ bool InvertMatrix (const ublas::matrix<T>& input, ublas::matrix<T>& inverse) {
  * Prism *
  *********/
 
-#include "chomp/Real.h"
 typedef ublas::matrix<Real, ublas::row_major> uMatrix;
 typedef ublas::vector<Real> uVector;
 

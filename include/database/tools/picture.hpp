@@ -14,10 +14,10 @@ Picture * draw_picture (const int Width, const int Height,
                         const TreeGrid & my_grid, const CellContainer & my_subset ) {
   RectGeo bounds = my_grid . bounds ();
   // Prepare variables for bounds finding loop
-  Picture::Real x_min = bounds . upper_bounds [ 0 ];
-  Picture::Real x_max = bounds . lower_bounds [ 0 ];
-  Picture::Real y_min = bounds . upper_bounds [ 1 ];
-  Picture::Real y_max = bounds . lower_bounds [ 1 ];
+  Real x_min = bounds . upper_bounds [ 0 ];
+  Real x_max = bounds . lower_bounds [ 0 ];
+  Real y_min = bounds . upper_bounds [ 1 ];
+  Real y_max = bounds . lower_bounds [ 1 ];
   
   // Find bounds of picture
   BOOST_FOREACH ( Grid::GridElement cell, my_subset ) {
@@ -65,10 +65,10 @@ Picture * draw_morse_sets (const int Width,
   typedef MorseGraph CMG;
   RectGeo bounds = my_grid . bounds ();
   // Prepare variables for bounds finding loop
-  Picture::Real x_min = bounds . upper_bounds [ 0 ];
-  Picture::Real x_max = bounds . lower_bounds [ 0 ];
-  Picture::Real y_min = bounds . upper_bounds [ 1 ];
-  Picture::Real y_max = bounds . lower_bounds [ 1 ];
+  Real x_min = bounds . upper_bounds [ 0 ];
+  Real x_max = bounds . lower_bounds [ 0 ];
+  Real y_min = bounds . upper_bounds [ 1 ];
+  Real y_max = bounds . lower_bounds [ 1 ];
   
 
   // Loop Through Morse Sets to determine bounds
@@ -140,10 +140,10 @@ Picture * draw_grid (const int Width,
 
   RectGeo bounds = my_grid . bounds ();
   // Prepare variables for bounds finding loop
-  Picture::Real x_min = bounds . lower_bounds [ 0 ];
-  Picture::Real x_max = bounds . upper_bounds [ 0 ];
-  Picture::Real y_min = bounds . lower_bounds [ 1 ];
-  Picture::Real y_max = bounds . upper_bounds [ 1 ];
+  Real x_min = bounds . lower_bounds [ 0 ];
+  Real x_max = bounds . upper_bounds [ 0 ];
+  Real y_min = bounds . lower_bounds [ 1 ];
+  Real y_max = bounds . upper_bounds [ 1 ];
   
   // Create picture
   Picture * picture = new Picture( Width, Height, x_min, x_max, y_min, y_max );
@@ -157,10 +157,10 @@ Picture * draw_grid (const int Width,
     unsigned char Green = rand () % 255;
     unsigned char Blue = rand () % 255;
     RectGeo box = * boost::dynamic_pointer_cast < RectGeo > ( my_grid . geometry ( my_grid . find ( *cellit ) ) );
-    Picture::Real volume = ( box . upper_bounds [ 0 ] - box . lower_bounds [ 0 ] )*( box . upper_bounds [ 1 ] - box . lower_bounds [ 1 ] ) ;
-    Picture::Real total_volume = ( bounds . upper_bounds [ 0 ] - bounds . lower_bounds [ 0 ] )*( bounds . upper_bounds [ 1 ] - bounds . lower_bounds [ 1 ] ) ;
-    Picture::Real ratio = total_volume / volume;
-    Picture::Real log_of_ratio = (16.0f - log ( ratio ) / log ( 4.0f) ) * 16.0f;
+    Real volume = ( box . upper_bounds [ 0 ] - box . lower_bounds [ 0 ] )*( box . upper_bounds [ 1 ] - box . lower_bounds [ 1 ] ) ;
+    Real total_volume = ( bounds . upper_bounds [ 0 ] - bounds . lower_bounds [ 0 ] )*( bounds . upper_bounds [ 1 ] - bounds . lower_bounds [ 1 ] ) ;
+    Real ratio = total_volume / volume;
+    Real log_of_ratio = (16.0f - log ( ratio ) / log ( 4.0f) ) * 16.0f;
     Red = Green = Blue = (unsigned char) log_of_ratio;
     picture -> draw_square (Red, Green, Blue,
                                     box . lower_bounds [ 0 ],
@@ -185,10 +185,10 @@ Picture * draw_grid_and_morse_sets (const int Width, const int Height,
   typedef MorseGraph  CMG;
   RectGeo bounds = my_grid . bounds ();
   // Prepare variables for bounds finding loop
-  Picture::Real x_min = bounds . lower_bounds [ 0 ];
-  Picture::Real x_max = bounds . upper_bounds [ 0 ];
-  Picture::Real y_min = bounds . lower_bounds [ 1 ];
-  Picture::Real y_max = bounds . upper_bounds [ 1 ];
+  Real x_min = bounds . lower_bounds [ 0 ];
+  Real x_max = bounds . upper_bounds [ 0 ];
+  Real y_min = bounds . lower_bounds [ 1 ];
+  Real y_max = bounds . upper_bounds [ 1 ];
   
   // Create picture
   Picture * picture = new Picture( Width, Height, x_min, x_max, y_min, y_max );
@@ -202,10 +202,10 @@ Picture * draw_grid_and_morse_sets (const int Width, const int Height,
     unsigned char Green = rand () % 255;
     unsigned char Blue = rand () % 255;
     RectGeo box = * boost::dynamic_pointer_cast < RectGeo > ( my_grid . geometry ( my_grid . find ( cell ) ) );
-    Picture::Real volume = ( box . upper_bounds [ 0 ] - box . lower_bounds [ 0 ] )*( box . upper_bounds [ 1 ] - box . lower_bounds [ 1 ] ) ;
-    Picture::Real total_volume = ( bounds . upper_bounds [ 0 ] - bounds . lower_bounds [ 0 ] )*( bounds . upper_bounds [ 1 ] - bounds . lower_bounds [ 1 ] ) ;
-    Picture::Real ratio = total_volume / volume;
-    Picture::Real log_of_ratio = (32.0 - log ( ratio ) / log ( 2.0) ) * 8.0f;
+    Real volume = ( box . upper_bounds [ 0 ] - box . lower_bounds [ 0 ] )*( box . upper_bounds [ 1 ] - box . lower_bounds [ 1 ] ) ;
+    Real total_volume = ( bounds . upper_bounds [ 0 ] - bounds . lower_bounds [ 0 ] )*( bounds . upper_bounds [ 1 ] - bounds . lower_bounds [ 1 ] ) ;
+    Real ratio = total_volume / volume;
+    Real log_of_ratio = (32.0 - log ( ratio ) / log ( 2.0) ) * 8.0f;
     Red = Green = Blue = (unsigned char) log_of_ratio;
     picture -> draw_square (Red, Green, Blue,
                             box . lower_bounds [ 0 ],

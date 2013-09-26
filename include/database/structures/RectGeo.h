@@ -21,7 +21,7 @@
  * RectGeo *
  ***********/
 
-#include "database/numerics/Rect.h"
+#include "database/numerics/Real.h"
 
 class RectGeo : public Geo {
 public:
