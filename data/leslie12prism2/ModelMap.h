@@ -8,7 +8,6 @@
 #undef MAX
 #include "capd/capdlib.h"
 #include "capd/dynsys/DynSysMap.h"
-#include "capd/dynset/C0PpedSet.hpp"
 #include "capd/intervals/lib.h"
 
 //#include <boost/numeric/interval.hpp>
@@ -67,7 +66,9 @@ struct ModelMap {
       box [ d ] = interval ( rectangle . lower_bounds [ d ],
                             rectangle . upper_bounds [ d ] );
     }
-    capd::dynset::C0PpedSet<IMatrix> rect ( box );
+    //capd::C0PpedSet<IMatrix> rect ( box );
+    capd::C0PpedSet rect ( box );
+
     /* Perform map computation */
     Prism P ( D );
     try {
