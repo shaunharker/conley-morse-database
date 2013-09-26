@@ -269,7 +269,6 @@ inline TreeGrid::~TreeGrid ( void ) {
 
 inline boost::shared_ptr<Geo> TreeGrid::geometry ( GridElement ge ) const {
   //std::cout << "dimension_ = " << dimension_ << "\n";
-  using namespace chomp;
   iterator cell_iterator ( ge ); 
   boost::shared_ptr<RectGeo> return_value ( new RectGeo ( dimension_, Real ( 0 ) ) );
   RectGeo & rect = * return_value ; 
