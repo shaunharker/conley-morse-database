@@ -20,7 +20,7 @@ namespace chomp {
  * Rect *
  *********/
 
-typedef double Real;
+#include "chomp/Real.h"
 
 class Rect {
 public:

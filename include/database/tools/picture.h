@@ -6,9 +6,9 @@
 #include "CImg.h"
 using namespace cimg_library;
 
+#include "database/numerics/Real.h"
 /// Draw to RGBA bitmap
 struct Picture {
-  typedef double Real; // TODO, worry about this
   CImg<unsigned char> bitmap;
   int Width;
   int Height;

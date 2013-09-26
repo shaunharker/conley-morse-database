@@ -21,7 +21,7 @@
  * RectGeo *
  ***********/
 
-typedef double Real;
+#include "database/numerics/Rect.h"
 
 class RectGeo : public Geo {
 public:
