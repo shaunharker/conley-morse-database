@@ -5,8 +5,8 @@
 #
 CHECKIFMAPISGOOD := yes
 #
-COMPUTE_MORSE_SETS := no
-COMPUTE_CONTINUATION := no
+COMPUTE_MORSE_SETS := yes
+COMPUTE_CONTINUATION := yes
 COMPUTE_CONLEY_INDEX := yes
 DRAW_IMAGES := yes
 #
@@ -29,9 +29,9 @@ MONOTONICSUBDIVISION := no
 # END OF ADVANCED OPTIONS
 ###########################################
 #
-ifeq ($(USE_CAPD),no)
-USE_BOOST_INTERVAL := no
-endif 
+#ifeq ($(USE_CAPD),no)
+#USE_BOOST_INTERVAL := yes
+#endif 
 #
 include makefile.config
 CXXFLAGS += -D $(PARAM_SPACE_METHOD)

@@ -23,13 +23,23 @@ For illustration, we implement the Leslie Map.
 using namespace capd;
 #endif
 
+#ifndef USE_BOOST_INTERVAL
+#ifndef USE_CAPD
+#include "database/numerics/simple_interval.h"
+#endif
+#endif
+
 
 struct ModelMap {
   typedef chomp::Rect Rect;
 #ifdef USE_CAPD
 typedef capd::intervals::Interval<double> interval;
 #endif  
-  
+#ifndef USE_BOOST_INTERVAL
+#ifndef USE_CAPD
+  typedef simple_interval<double> interval;
+#endif
+#endif  
   std::vector < interval > parameter;
 
   // constructor
@@ -81,6 +91,9 @@ typedef capd::intervals::Interval<double> interval;
 
     return return_value;
   } 
+  bool good ( void ) const {
+    return true;
+  }
   
 };
 
