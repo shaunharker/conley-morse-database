@@ -88,7 +88,14 @@ typedef capd::intervals::Interval<double> interval;
       return_value . upper_bounds [ i ] = y [ i ] . rightBound ( );
     }
 #endif
-
+#ifndef USE_BOOST_INTERVAL
+#ifndef USE_CAPD
+  for ( unsigned int i=0; i<rectangle.dimension(); ++i ) {
+    return_value . lower_bounds [ i ] = y [ i ] . lower ( );
+    return_value . upper_bounds [ i ] = y [ i ] . upper ( );
+  }
+#endif
+#endif  
     return return_value;
   } 
   bool good ( void ) const {

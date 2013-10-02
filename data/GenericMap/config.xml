@@ -8,11 +8,11 @@
 <param>
   <dim> 2 </dim> <!-- Dimension of the parameter space -->
   <bounds>
-    <lower> 26 22.7 </lower><!-- Lower bounds of the parameter space (order is important) -->
-    <upper> 28 25.0 </upper><!-- Upper bounds of the parameter space (order is important) -->
+    <lower> 8.0 3.0 </lower><!-- Lower bounds of the parameter space (order is important) -->
+    <upper> 37.0 50.0 </upper><!-- Upper bounds of the parameter space (order is important) -->
   </bounds>
   <subdiv>
-    <depth> 2 </depth> <!-- number of subdivisions in each direction of the parameter space -->
+    <depth> 6 </depth> <!-- number of subdivisions in each direction of the parameter space -->
   </subdiv>
 </param>
 <!-- Set up the phase space -->
