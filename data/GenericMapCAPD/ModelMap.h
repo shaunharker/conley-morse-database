@@ -2,8 +2,8 @@
 
 Generic Map File 
 
-This file is fully commented and can serve as a basis for more complicated map.
-For illustration, we implement the 2D Leslie Map using CAPD built-in capabilities
+This file can serve as a basis for more complicated map.
+For illustration, we implement the 2D Leslie Map using the CAPD package
 
 */
 
@@ -11,6 +11,8 @@ For illustration, we implement the 2D Leslie Map using CAPD built-in capabilitie
 #define MODELMAP_H
 
 #undef None
+#undef MAX
+#undef MIN
 #include "capd/capdlib.h"
 #include "capd/dynsys/DynSysMap.h"
 #include "chomp/Rect.h"
@@ -19,7 +21,7 @@ For illustration, we implement the 2D Leslie Map using CAPD built-in capabilitie
 
 struct ModelMap {
   typedef chomp::Rect Rect;
-  typedef capd::intervals::Interval<double> interval;
+  typedef capd::interval interval;
 
 
   std::vector < interval > parameter;

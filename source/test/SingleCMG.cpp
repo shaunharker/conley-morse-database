@@ -70,7 +70,7 @@ Rect parameterBounds ( const Rect parameter_box, const std::vector<Real> b, cons
   std::cout << PARAMETER_BOXES;
   
   Real max = b [ 0 ];
-  for (int i=0; i<b.size(); ++i ) {
+  for (unsigned int i=0; i<b.size(); ++i ) {
     if ( b [ i ] > max ) max = b [ i ];
   }
   if ( max > PARAMETER_BOXES ) {
@@ -186,7 +186,7 @@ int main ( int argc, char * argv [] )
   /* INITIALIZE MAP ************************************************/
   std::vector < Real > b;
   // Check the number of integers provided is correct
-  if ( argc - 1 == parameter_box . dimension() ) {
+  if ( argc - 1 == (int) parameter_box . dimension() ) {
     for ( int i=1; i<argc; ++i ) b . push_back ( (Real) atoi ( argv[i] ) );
   } else {
     //std::cout << "You did not provide the proper number of integers\n";
@@ -247,19 +247,22 @@ int main ( int argc, char * argv [] )
   ConleyMorseGraph & conleymorsegraph = morsegraph;
 #endif
 
-// Always output the Morse Graph
-  std::cout << "Creating graphviz .dot file...\n";                         //
-  CreateDotFile ( conleymorsegraph );  
-  
+
 #ifdef DRAW_IMAGES
   /* DRAW IMAGES ***********************************************************/
-  TIC;                                                                     //
-  std::cout << "Creating image file...\n";                                 //
-  DrawMorseSets ( * (conleymorsegraph . phaseSpace ()), conleymorsegraph );//
-  TOC;                                                                     //
+  if ( conleymorsegraph . phaseSpace () -> dimension () == 2 ) {
+    TIC;                                                                     
+    std::cout << "Creating image file...\n";                                 
+    DrawMorseSets ( * (conleymorsegraph . phaseSpace ()), conleymorsegraph );
+    TOC;                                                                     
+  }
   /*************************************************************************/
 #endif
 
+// Always output the Morse Graph
+  std::cout << "Creating graphviz .dot file...\n";                         
+  CreateDotFile ( conleymorsegraph );  
+  
   return 0;
 } /* main */
 

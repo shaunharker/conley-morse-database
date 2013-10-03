@@ -94,7 +94,11 @@ inline void CreateDotFile ( const MorseGraph & cmg ) {
     vertex_to_index [ *start ] = i;
     //outfile << i << " [label=\""<< cmg . grid (*start) -> size () << "\"]\n";
     // Label the Morse Graph set with their Conley index
-    outfile << i << " [label=\""<< conleyStringForZoo(conleyIndexString ( * cmg . conleyIndex ( *start ) )) << "\"]\n";
+    if ( cmg . conleyIndex ( *start ) ) {
+      outfile << i << " [label=\""<< conleyStringForZoo(conleyIndexString ( * cmg . conleyIndex ( *start ) )) << "\"]\n";
+    } else {
+      outfile << i << "\n";
+    }
     ++ i;
   }
   int N = cmg . NumVertices ();
