@@ -1,9 +1,9 @@
 make clean
-make SingleCMG MODELDIR=./data/GenericMap
+make SingleCMG MODELDIR=./data/Leslie
 make clean
-make SingleCMG MODELDIR=./data/GenericMapCAPD
+make SingleCMG MODELDIR=./data/Leslie/CAPD
 make clean
-make SingleCMG MODELDIR=./data/GenericMapCAPDPrism
+make SingleCMG MODELDIR=./data/Leslie/CAPDPrism
 make clean
 make SingleCMG MODELDIR=./data/Vanderpol
 make clean
