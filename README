@@ -11,8 +11,8 @@ Brief instructions on using the database software:
 To run the "SingleCMG" software:
   A) Change directory to conley-morse-database
   B) TYPE: make clean
-  C) TYPE: make SingleCMG MODELDIR=./data/Leslie
-  D) TYPE: cd ./data/Leslie
+  C) TYPE: make SingleCMG MODELDIR=./examples/Leslie
+  D) TYPE: cd ./examples/Leslie
            ./SingleCMG 20 20
      Output should start streaming down the screen
      Pretty quickly the program should terminate
@@ -21,16 +21,17 @@ To run the "SingleCMG" software:
      See the batch script "TESTS".
 
 To run the full database "Conley_Morse_Database" software:
-  E) TYPE: ./CMDB ./data/Leslie/
+  E) TYPE: ./CMDB ./examples/Leslie/
      It should compile "Conley_Morse_Database"
-     If you are on a cluster with PBS, it will attempt
-      to submit a job with qsub.
-     Otherwise, it will complain that it doesn't know the
-      command qsub. Proceed to:
-  F) TYPE: mpiexec -np 5 ./Conley_Morse_Database ./data/Leslie/
+     It will place the executable in ./examples/Leslie
+     Then it will call the script "SUBMIT" which executes the command
+     mpiexec -np 5 ./examples/Leslie/Conley_Morse_Database ./examples/Leslie/
+     
      It should start computing. The file "progress.txt" should be
      periodically refreshed to indicate progress.
-     Likely you'll want to do this on a cluster, however.
+     Likely you'll want to do this on a cluster, however, in which case
+     you should modify the SUBMIT script to use "qsub" or whatever is 
+     appropriate on your cluster.
 
 To compute on different models, produce a different data directory, with
 config.xml and ModelMap.h files following the example of the "Leslie"
