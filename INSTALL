@@ -6,7 +6,9 @@ Note: If you are reading this, you likely
       have already done this, unless you are 
       browsing the source on the web.
 Details:
-  A) TYPE: svn checkout http://conley-morse-database.googlecode.com/svn/trunk/ conley-morse-database
+  A) TYPE: svn checkout http://conley-morse-database.googlecode.com/svn/tags/conley-morse-database-1.0 conley-morse-database
+
+(Assuming of course you want the 1.0 version.)
 
 (1) Install "cluster-delegator"
 Details:
@@ -43,7 +45,8 @@ Details:
   maps arising from ordinary differential equations (ODEs).
 
   See the CAPD documentation for up to date details on installation.
-  
+  In particular, we have found that it is best to install 
+  "CAPD-Dynsys-4.0"  
   As of this writing, the following seems to work:
     A package called "pkg-config" is required.
     This is often pre-installed. 
