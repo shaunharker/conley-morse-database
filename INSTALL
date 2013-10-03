@@ -11,7 +11,7 @@ Details:
 (1) Install "cluster-delegator"
 Details:
   A) Change directory to parent directory of conley-morse-databse
-  B) TYPE: svn checkout http://cluster-delegator.googlecode.com/svn/trunk/ cluster-delegator
+  B) TYPE: svn checkout http://cluster-delegator.googlecode.com/svn/tags/cluster-delegator-1.0 cluster-delegator
   
 
 (2) Install Boost. 

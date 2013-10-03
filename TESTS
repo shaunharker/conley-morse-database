@@ -1,0 +1,12 @@
+make clean
+make SingleCMG MODELDIR=./data/GenericMap
+make clean
+make SingleCMG MODELDIR=./data/GenericMapCAPD
+make clean
+make SingleCMG MODELDIR=./data/GenericMapCAPDPrism
+make clean
+make SingleCMG MODELDIR=./data/Vanderpol
+make clean
+make SingleCMG MODELDIR=./data/Fisheries
+make clean
+make SingleCMG MODELDIR=./data/JuliaCubic

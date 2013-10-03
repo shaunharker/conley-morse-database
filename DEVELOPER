@@ -1,0 +1,8 @@
+Notes for Developers.
+
+SVN Ignore
+----------
+To make "svn status" more useful, the following line has been used:
+svn propset --recursive svn:ignore --file .svn_ignore . 
+See the .svn_ignore file for details
+

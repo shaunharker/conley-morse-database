@@ -1,7 +1,7 @@
 <config>
 <model>
-  <name>Julia Set Example </name>
-  <desc> Note The parameters do nothing </desc>
+  <name> Julia Set Example </name>
+  <desc> The Newton iteration on the complex plane for z^3-1 </desc>
 </model>
 <param>
   <dim> 2 </dim>
