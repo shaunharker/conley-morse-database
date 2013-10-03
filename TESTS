@@ -1,12 +1,12 @@
 make clean
-make SingleCMG MODELDIR=./data/Leslie
+make SingleCMG MODELDIR=./examples/Leslie
 make clean
-make SingleCMG MODELDIR=./data/Leslie/CAPD
+make SingleCMG MODELDIR=./examples/Leslie/CAPD
 make clean
-make SingleCMG MODELDIR=./data/Leslie/CAPDPrism
+make SingleCMG MODELDIR=./examples/Leslie/CAPDPrism
 make clean
-make SingleCMG MODELDIR=./data/Vanderpol
+make SingleCMG MODELDIR=./examples/Vanderpol
 make clean
-make SingleCMG MODELDIR=./data/Fisheries
+make SingleCMG MODELDIR=./examples/Fisheries
 make clean
-make SingleCMG MODELDIR=./data/JuliaCubic
+make SingleCMG MODELDIR=./examples/JuliaCubic
