@@ -110,7 +110,9 @@ struct ModelMap {
     return ppedMethod ( rectangle );
 
     }
-
+  bool good ( void ) const {
+    return true;
+  }
 };
 
 #endif

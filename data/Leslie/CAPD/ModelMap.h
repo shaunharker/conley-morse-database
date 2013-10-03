@@ -79,7 +79,9 @@ struct ModelMap {
 
     return result;
   }
-
+  bool good ( void ) const { 
+    return true;
+  }
 };
 
 #endif

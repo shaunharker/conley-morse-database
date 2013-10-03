@@ -37,7 +37,9 @@ struct ModelMap {
     return_value . upper_bounds [ 1 ] = y1 . upper ();
     return return_value;
   } 
-  
+  bool good ( void ) const {
+    return true;
+  }
 };
 
 #endif
