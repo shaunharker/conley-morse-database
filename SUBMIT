@@ -1,0 +1,2 @@
+mpiexec -np 5 -x LD_LIBRARY_PATH $1/Conley_Morse_Database $1
+#qsub -v ENV_MODELDIR=$1 script.sh
