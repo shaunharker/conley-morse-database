@@ -1,15 +1,15 @@
 <config> <!-- Beginning of the configuration -->
 <!-- Set up the name and the description of the model -->
 <model>
-  <name> Leslie2D </name>
-  <desc> Two dimensional Leslie model </desc>
+  <name> van der Pol oscillator </name>
+  <desc> The classic van der Pol example </desc>
 </model>
 <!-- Set up the parameter space -->
 <param>
-  <dim> 2 </dim> <!-- Dimension of the parameter space -->
+  <dim> 1 </dim> <!-- Dimension of the parameter space -->
   <bounds>
-    <lower> 8.0 3.0 </lower><!-- Lower bounds of the parameter space (order is important) -->
-    <upper> 37.0 50.0 </upper><!-- Upper bounds of the parameter space (order is important) -->
+    <lower> 2.5 </lower><!-- Lower bounds of the parameter space (order is important) -->
+    <upper> 2.5 </upper><!-- Upper bounds of the parameter space (order is important) -->
   </bounds>
   <subdiv>
     <depth> 6 </depth> <!-- number of subdivisions in each direction of the parameter space -->
@@ -19,8 +19,8 @@
 <phase>
   <dim> 2 </dim> <!-- Dimension of the phase space -->
   <bounds>
-    <lower> 0.0 0.0 </lower> <!-- Lower bounds of the phase space (order is important) -->
-    <upper> 320.056 224.040 </upper> <!-- Upper bounds of the phase space (order is important) -->
+    <lower> -5.0 -5.0 </lower> <!-- Lower bounds of the phase space (order is important) -->
+    <upper> 5.0 5.0 </upper> <!-- Upper bounds of the phase space (order is important) -->
   </bounds>
   <subdiv>
     <init> 0 </init> <!-- Initial number of subdivisions -->

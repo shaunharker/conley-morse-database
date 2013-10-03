@@ -11,9 +11,11 @@ For illustration, we implement the 2D Leslie Map, using CAPD and Prism
 #define MODELMAP_H
 
 #undef None
+#undef MIN
+#undef MAX
 #include "capd/capdlib.h"
 #include "capd/dynsys/DynSysMap.h"
-#include "capd/dynset/C0PpedSet.h"
+//#include "capd/dynset/C0PpedSet.h"
 
 #include "chomp/Rect.h"
 #include "chomp/Prism.h"
@@ -23,7 +25,7 @@ For illustration, we implement the 2D Leslie Map, using CAPD and Prism
 struct ModelMap {
   typedef chomp::Rect Rect;
   typedef chomp::Prism Prism;
-  typedef capd::intervals::Interval<double> interval;
+  typedef capd::interval interval;
 
 
   std::vector < interval > parameter;
@@ -70,7 +72,7 @@ struct ModelMap {
       box [ d ] = interval ( rectangle . lower_bounds [ d ],
                             rectangle . upper_bounds [ d ] );
     }
-    capd::dynset::C0PpedSet<IMatrix> rect ( box );
+    capd::C0PpedSet rect ( box );
     /* Perform map computation */
     Prism P ( D );
     try {
