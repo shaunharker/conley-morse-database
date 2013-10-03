@@ -1,9 +1,14 @@
 conley-morse-database -- computational dynamics software
 
 See "INSTALL" for installation notes.
+If you are having trouble, please send an e-mail to
+sharker81@gmail.com   (Shaun Harker)
+and I'll try to help out.
 
 DATABASE SOFTWARE:
 Brief instructions on using the database software:
+
+To run the "SingleCMG" software:
   A) Change directory to conley-morse-database
   B) TYPE: make clean
   C) TYPE: make SingleCMG MODELDIR=./data/Leslie
@@ -12,8 +17,10 @@ Brief instructions on using the database software:
      Output should start streaming down the screen
      Pretty quickly the program should terminate
      and some output files ought to be produced.
-     You can also try out using the other model directories
-     in data
+     You can also try out using the other model directories.
+     See the batch script "TESTS".
+
+To run the full database "Conley_Morse_Database" software:
   E) TYPE: ./CMDB ./data/Leslie/
      It should compile "Conley_Morse_Database"
      If you are on a cluster with PBS, it will attempt
@@ -27,7 +34,7 @@ Brief instructions on using the database software:
 
 To compute on different models, produce a different data directory, with
 config.xml and ModelMap.h files following the example of the "Leslie"
-example. Beware of errors in these files, however!
+example.
 
 Please e-mail Shaun Harker sharker81@gmail.com
 to for problems or feature requests.
