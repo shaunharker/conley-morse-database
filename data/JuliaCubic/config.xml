@@ -1,0 +1,29 @@
+<config>
+<model>
+  <name>Julia Set Example </name>
+  <desc> Note The parameters do nothing </desc>
+</model>
+<param>
+  <dim> 2 </dim>
+  <bounds>
+    <lower> -5.0 -5.0 </lower>
+    <upper> 5.0 5.0 </upper>
+  </bounds>
+  <subdiv>
+    <depth> 6 </depth>
+  </subdiv>
+</param>
+<phase>
+  <dim> 2 </dim>
+  <bounds>
+    <lower> -5.0 -5.0 </lower>
+    <upper> 5.0 5.0 </upper>
+  </bounds>
+  <subdiv>
+    <init> 11 </init>
+    <min> 12 </min>
+    <max> 14 </max>
+    <limit> 10000 </limit>
+  </subdiv>
+</phase>
+</config>
