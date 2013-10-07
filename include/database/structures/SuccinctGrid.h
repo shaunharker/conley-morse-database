@@ -145,7 +145,7 @@ inline SuccinctGrid * SuccinctGrid::clone ( void ) const {
 }
 
 inline void SuccinctGrid::subdivide(void) {
-  tree_ . subdivide();
+  if ( dimension () > 0 ) tree () . subdivide();
   rebuild ();
 }
 

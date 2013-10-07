@@ -12,7 +12,7 @@ DRAW_IMAGES := yes
 #
 # CAPD Library 
 #
-USE_CAPD := no
+USE_CAPD := yes
 #
 # Memory saving option : PointerGrid, SuccinctGrid 
 #

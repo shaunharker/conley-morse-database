@@ -70,6 +70,13 @@ public:
       std::cout << "number of GridElements = " << it -> second -> size ( ) << "\n";
     }  
   }
+  virtual uint64_t memory ( void ) const {
+    uint64_t result = 0;
+    BOOST_FOREACH ( const IdChartPair & chartpair, charts () ) {
+      result += chartpair . second -> memory ();
+    }
+    return result;
+  }
 
 private:
   boost::unordered_map < size_type, Chart > charts_; 

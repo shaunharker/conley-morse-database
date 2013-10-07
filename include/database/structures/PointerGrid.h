@@ -156,7 +156,7 @@ inline PointerGrid * PointerGrid::clone ( void ) const {
 inline void PointerGrid::subdivide ( void ) {
   // First we subdivide the underlying tree
   //std::cout << "PointerGrid::subdivide, currently have " << size() << " grid elements.\n";
-  tree () . subdivide ();
+  if ( dimension () > 0 ) tree () . subdivide();
   rebuild ();
   //std::cout << "finished PointerGrid::subdivide, now have " << size() << " grid elements.\n";
 }
