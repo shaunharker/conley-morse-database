@@ -287,6 +287,7 @@ void ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
   }
 //#ifdef USE_SUCCINCT
   join ( master_grid, grids . begin (), grids . end () );
+  MG -> phaseSpace () = master_grid;
   //std::cout << "IMPLEMENTATION INCOMPLETE: JOIN NOT IMPLEMENTED.\n";
   //boost::shared_ptr<CompressedGrid> joinup ( Grid::join ( grids . begin (), grids . end () ) );
   //master_grid -> assign ( * joinup );
