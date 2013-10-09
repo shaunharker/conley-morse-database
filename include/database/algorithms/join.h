@@ -96,6 +96,7 @@ struct joinImpl < Atlas, InputIterator > {
 			join ( output -> chart ( chart_id ), charts . begin (), charts . end () );
 			//std::cout << "Atlas join returned from join recursion\n";
 		}
+		output -> update_csum_ ();
 	} 
 };
 #endif

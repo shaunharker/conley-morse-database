@@ -84,7 +84,13 @@ private:
 	// useful for the method geometry
   // TO BE CHANGED
 	std::vector < size_type > csum_;
-  void update_csum_ ( void ) {
+ 
+
+  // Need functions to convert the GridElement from Chart indexing to Atlas indexing
+  GridElement Chart_to_Atlas_GridElement_ ( const GridElement & chart_ge, const size_type & chart_id ) const;
+  std::pair < size_type, GridElement > Atlas_to_Chart_GridElement_ ( const GridElement & atlas_ge ) const;
+public:
+   void update_csum_ ( void ) {
     boost::unordered_map < size_type, Chart >::const_iterator it;
     size_type sum = 0;
     csum_ . clear ( );
@@ -92,13 +98,8 @@ private:
       csum_ . push_back ( sum += it -> second -> size ( ) );
     }  
     //std::cout << "DEBUG update_csum_ " << csum_ . back () << "\n";
-    size_ = csum_ . back ();
+    size_ = sum;
   }
-
-  // Need functions to convert the GridElement from Chart indexing to Atlas indexing
-  GridElement Chart_to_Atlas_GridElement_ ( const GridElement & chart_ge, const size_type & chart_id ) const;
-  std::pair < size_type, GridElement > Atlas_to_Chart_GridElement_ ( const GridElement & atlas_ge ) const;
-
 };
 
 
