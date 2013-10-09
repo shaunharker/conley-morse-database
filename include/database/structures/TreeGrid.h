@@ -214,8 +214,13 @@ inline  std::vector < bool > & TreeGrid::periodicity ( void )  {
 template < class InputIterator >
 CompressedGrid * TreeGrid::join ( InputIterator start, InputIterator stop ) {
   CompressedGrid * result = new CompressedGrid;
+  boost::shared_ptr<TreeGrid> start_ptr;
+  for ( InputIterator it = start; it != stop; ++ it ) {
+    boost::shared_ptr<TreeGrid> ptr = boost::dynamic_pointer_cast<TreeGrid>( * it );
+    if ( ptr -> size () == 0 ) ++ start; else break;
+  }
   if ( start == stop ) return result;
-  boost::shared_ptr<TreeGrid> start_ptr = boost::dynamic_pointer_cast<TreeGrid>(*start);
+  start_ptr = boost::dynamic_pointer_cast<TreeGrid>(*start);
   if ( not start_ptr ) {
     std::cout << "TreeGrid::join error: not iterating over boost::shared_ptr<TreeGrid> container\n";
     abort ();
@@ -233,6 +238,7 @@ CompressedGrid * TreeGrid::join ( InputIterator start, InputIterator stop ) {
       std::cout << "TreeGrid::join error: not iterating over boost::shared_ptr<TreeGrid> container (B)\n";
       abort ();
     }
+    if ( it_ptr -> size () == 0 ) continue;
     tree_pointers . push_back ( &(it_ptr->tree()) );
   }
 
