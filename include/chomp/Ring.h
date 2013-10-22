@@ -52,6 +52,10 @@ public:
     }
   }
   
+  Long balanced_value ( void ) const {
+    return x;
+  }
+
   Long operator - ( void ) const {
     Long result ( - x );
     result . integrity ();

@@ -139,6 +139,34 @@ RelativeMapHomology (RelativeMapHomology_t * output,
   MorseComplex codomain_morse ( codomain );
   PRINT "RMH: Computing Generators of codomain_morse\n";
   Generators_t codomain_morse_gen = SmithGenerators ( codomain_morse, cutoff_dimension );
+
+  // DEBUG
+
+  // Concern: Are the lifted smith generators in codomain_morse the same as the domain_gen
+  //          generators of domain_gen? For a Conley Index computation, we depend on this.
+  //          This debug code will check this explicitly.
+  /*
+  std::cout << "Domain generator basis: \n";
+  for ( int d = 0; d < domain_gen . size (); ++ d ) {
+    std::cout << "Dimension " << d << "\n";
+    for ( int gen = 0; gen < domain_gen [ d ] . size (); ++ gen ) {
+      Chain c = domain_gen [ d ] [ gen ] . first;
+      std::cout << "Domain chain " << gen << " = " << c << "\n";
+    }
+  }
+
+  std::cout << "Codomain generator basis: \n";
+  for ( int d = 0; d < codomain_morse_gen . size (); ++ d ) {
+    std::cout << "Dimension " << d << "\n";
+    for ( int gen = 0; gen < codomain_morse_gen [ d ] . size (); ++ gen ) {
+      Chain c = codomain_morse_gen [ d ] [ gen ] . first;
+      Chain lift = codomain_morse . lift ( c );
+      std::cout << "Codomain chain " << gen << " = " << lift << "\n";
+    }
+  }
+  */
+  // END DEBUG
+
   // Compute the cycles projected into the codomain through the graph 
   std::vector < std::vector < Chain > > codomain_cycles ( D + 1 );
   double homology_time = ((double)(clock()-homology_time_start)/(double)CLOCKS_PER_SEC);
@@ -338,9 +366,12 @@ RelativeMapHomology (RelativeMapHomology_t * output,
           if ( fd == 0 ) answer -= included_preboundary;
           // Add preboundary to adjacent fibers
           Chain bd = full_domain . boundary (fiberchain . first, fd );
+          Ring grade;
+          if ( fd % 2 ) grade = Ring ( -1 ); else grade = Ring ( 1 );
           BOOST_FOREACH ( const Term & s, bd () ) {
             graph_boundary [fd-1] [ s . index () ] . dimension () = d - fd;
-            graph_boundary [fd-1] [ s . index () ] -= included_preboundary * s . coef ();
+            graph_boundary [fd-1] [ s . index () ] -= included_preboundary * 
+                                                      (grade * s . coef ());
           }
         }
       }
@@ -349,6 +380,12 @@ RelativeMapHomology (RelativeMapHomology_t * output,
       // First project into the relative codomain complex
       Chain relative_answer = simplify ( codomain . project ( answer ) );
       
+      // DEBUG
+      // Concern: We want to see what the projection onto the codomain is and make sure
+      //          it is being properly handled.
+      //std::cout << "Projection to codomain (" << d << ", " << gi << "): " << relative_answer << "\n";
+      // END DEBUG
+
       // Project the Relative Graph Cycle to the Codomain
       codomain_cycles [ d ] [ gi ] = codomain_morse . lower ( relative_answer );
       

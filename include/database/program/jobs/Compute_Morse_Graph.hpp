@@ -287,6 +287,7 @@ void ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
 //#ifdef USE_SUCCINCT
   boost::shared_ptr<CompressedGrid> joinup ( Grid::join ( grids . begin (), grids . end () ) );
   master_grid -> assign ( * joinup );
+  MG -> phaseSpace () = master_grid;
 //#endif
 }
 
