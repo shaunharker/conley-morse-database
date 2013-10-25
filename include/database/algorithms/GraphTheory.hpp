@@ -77,8 +77,8 @@ void computeMorseSets (std::vector< boost::shared_ptr<Grid> > * output,
   bool give_up = false;
   
   BOOST_FOREACH ( const Map & f, maps ) {
-    f . exception () = false;
-    std::cout << "Applying a map with timestep " << f . step << "\n";
+    //f . exception () = false;
+    //std::cout << "Applying a map with timestep " << f . step << "\n";
     std::vector< boost::shared_ptr<Grid> > newgrids;
     
     //std::cout << "Create Graph\n";// Create Graph
