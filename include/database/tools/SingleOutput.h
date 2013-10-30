@@ -36,9 +36,9 @@ inline void DrawMorseSets ( const Grid & phase_space, const MorseGraph & conley_
   //picture2 -> saveAsPNG ( "grid.png" );
   //picture3 -> saveAsPNG ( "grid_and_morse.png" );
   
-  picture -> saveAsBMP ( "morse_sets.bmp" );
-  picture2 -> saveAsBMP ( "grid.bmp" );
-  picture3 -> saveAsBMP ( "grid_and_morse.bmp" );
+  picture -> saveAsPNG ( "morse_sets.png" );
+  picture2 -> saveAsPNG ( "grid.png" );
+  picture3 -> saveAsPNG ( "grid_and_morse.png" );
   std::cout << "Output saved.\n";
   
   //picture -> saveAsTIFF ( "morse_sets.tiff" );
