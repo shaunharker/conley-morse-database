@@ -1,0 +1,24 @@
+<config>
+<model>
+  <name> Boolean Switching Model</name>
+  <desc> Two parameter boolean switching model </desc>
+</model>
+<param>
+  <dim> 2 </dim>
+  <bounds>
+    <lower> 0.0 0.0 </lower>
+    <upper> 40.0 30.0 </upper>
+  </bounds>
+  <subdiv>
+    <depth> 6 </depth>
+  </subdiv>
+</param>
+<phase>
+  <subdiv>
+    <init> 11 </init>
+    <min> 12 </min>
+    <max> 14 </max>
+    <limit> 10000 </limit>
+  </subdiv>
+</phase>
+</config>

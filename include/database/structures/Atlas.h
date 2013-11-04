@@ -51,7 +51,7 @@ public:
   typedef std::pair<ChartIterator, ChartIterator> ChartIteratorPair;
   typedef std::pair <size_type, Chart > IdChartPair;
   std::pair<ChartIterator, ChartIterator> charts ( void ) const;
-
+  size_type numCharts ( void ) const;
   Chart & chart ( size_type chart_id );  
   const Chart & chart ( size_type chart_id ) const;
 
@@ -231,6 +231,10 @@ inline void Atlas::importCharts ( const char * inputfile ) {
 
 std::pair<Atlas::ChartIterator, Atlas::ChartIterator> Atlas::charts ( void ) const {
   return std::make_pair ( charts_ . begin (), charts_ . end () );
+}
+
+size_type Atlas::numCharts ( void ) const {
+  return charts_ . size ();
 }
 
 Atlas::Chart & Atlas::chart ( size_type chart_id ) {

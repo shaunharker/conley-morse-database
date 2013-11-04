@@ -34,6 +34,12 @@ BOOST_CLASS_EXPORT_IMPLEMENT(SuccinctGrid);
 BOOST_CLASS_EXPORT_IMPLEMENT(PointerGrid);
 */
 
+void MorseProcess::command_line ( int argcin, char * argvin [] ) {
+  argc = argcin;
+  argv = argvin;
+  model . initialize ( argc, argv );
+}
+
 /* * * * * * * * * * * * */
 /* initialize definition */
 /* * * * * * * * * * * * */
@@ -234,8 +240,10 @@ int MorseProcess::prepare ( Message & job ) {
     Rect GD = parameter_grid -> geometry ( grid_element_in_patch );
 
 #ifdef CHECKIFMAPISGOOD
-    ModelMap map ( GD );
-    if ( not map . good () ) continue;
+    //ModelMap map ( GD );
+    //if ( not map . good () ) continue;
+    if ( not model . map ( GD ) -> good () ) continue;
+    
 #endif
     // Store the name of the patch cell
     box_names . push_back ( grid_element_in_patch );
@@ -256,8 +264,9 @@ int MorseProcess::prepare ( Message & job ) {
     BOOST_FOREACH (  Grid::GridElement grid_element_in_cover, GD_Cover ) {
 #ifdef CHECKIFMAPISGOOD
       Rect adjGD = parameter_grid -> geometry ( grid_element_in_cover );
-      ModelMap adjmap ( adjGD );
-      if ( not adjmap . good () ) continue;
+      //ModelMap adjmap ( adjGD );      
+      //if ( not adjmap . good () ) continue;
+      if ( not model . map ( adjGD ) -> good () ) continue;
 #endif
       if (( patch_subset . count (grid_element_in_cover) != 0 ) && grid_element_in_patch < grid_element_in_cover ) {
         box_adjacencies . push_back ( std::make_pair ( grid_element_in_patch, grid_element_in_cover ) );
@@ -279,8 +288,8 @@ int MorseProcess::prepare ( Message & job ) {
   job << config.PHASE_SUBDIV_MIN;
   job << config.PHASE_SUBDIV_MAX;
   job << config.PHASE_SUBDIV_LIMIT;
-  job << config.PHASE_BOUNDS;
-  job << config.PHASE_PERIODIC;
+  //job << config.PHASE_BOUNDS;
+  //job << config.PHASE_PERIODIC;
   /// Increment the jobs_sent counter
   ++num_jobs_sent_;
   
