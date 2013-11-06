@@ -176,8 +176,10 @@ Atlas::cover ( const Geo & geo ) const {
   // index of the chart : geometric_region . first
   // Rect to be covered : geometric_region . second
   // cover the Rect in the given chart
-  std::vector < GridElement > listge = 
-    charts_ . find ( geometric_region . id() ) -> second -> cover ( geometric_region . rect() );
+  size_type chart_id_of_geo = geometric_region . id ();
+  const Chart & chart_of_geo = * charts_ . find ( chart_id_of_geo ) -> second;
+  if ( chart_of_geo . size () == 0 ) return result;
+  std::vector < GridElement > listge = chart_of_geo . cover ( geometric_region . rect() );
   // // shift the gridelement from chart to atlas and insert it to ii
   BOOST_FOREACH ( Grid::GridElement chart_ge, listge ) {
     GridElement newge = Chart_to_Atlas_GridElement_ ( chart_ge , geometric_region . id() );
