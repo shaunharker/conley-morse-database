@@ -11,11 +11,38 @@
 #include "database/structures/Grid.h"
 #include "database/structures/PointerGrid.h"
 
+#include <boost/thread.hpp>
+#include <boost/chrono/chrono_io.hpp>
+
 #include "chomp/Rect.h"
 #include <vector>
 #include <string>
 
 #include "database/algorithms/conleyIndexString.h"
+
+class ConleyIndexThread {
+
+private:
+  chomp::ConleyIndex_t * ci_matrix;
+  boost::shared_ptr<Grid> phase_space;
+  std::vector < Grid::GridElement > * subset;
+  GeometricMap * map;
+public:
+  bool computed;
+  ConleyIndexThread(  chomp::ConleyIndex_t * ci_matrix,
+                      boost::shared_ptr<Grid> phase_space,
+                      std::vector < Grid::GridElement > * subset,
+                      GeometricMap * map) 
+  : ci_matrix(ci_matrix), phase_space(phase_space), subset(subset), map(map), computed(false) {}
+  void operator () ( void ) {
+    try {
+      ConleyIndex ( ci_matrix, *phase_space, *subset, *map );
+      computed = true;
+    } catch ( ... /* boost::thread_interrupted& */) {
+      computed = false;
+    }
+  }
+};
 
 
 template <class PhaseGrid >
@@ -92,15 +119,27 @@ void Conley_Index_Job ( Message * result , const Message & job ) {
   
   // Compute Conley Index Record of Morse Set
   ConleyIndex_t ci_matrix;
-  ConleyIndex ( & ci_matrix, // ConleyIndex_t
-                *phase_space,
-                subset,
-                map );
 
-  std::cout << "CIJ: producing Conley Index polynomial strings \n";
+  // use a thread to perform the following line:    
+  //      ConleyIndex ( & ci_matrix, *phase_space, subset, map );
 
-  ci_data . conley_index = conleyIndexString ( ci_matrix );
- //}
+  ConleyIndexThread cit ( &ci_matrix, phase_space, &subset, &map);
+  boost::thread t(cit);
+  if ( not t . try_join_for ( boost::chrono::seconds( 3600 ) ) ) {
+   t.interrupt();
+   t.join();
+  }
+  // end threading
+
+  if ( cit . computed ) {
+    std::cout << "CIJ: producing Conley Index polynomial strings \n";
+    ci_data . conley_index = conleyIndexString ( ci_matrix );
+  }
+  if ( not cit . computed ) {
+    ci_data . conley_index = std::vector<string> ();
+    ci_data . conley_index . push_back ( "Relative Homology computation timed out.");
+  }
+
   
   // Return Result
   * result << job_number;
