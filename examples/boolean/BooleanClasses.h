@@ -1,6 +1,10 @@
 #ifndef BOOLEANCLASSES_H
 #define BOOLEANCLASSES_H
 
+#include <boost/python.hpp>
+#include <string>
+#include <sstream>
+
 // Simple Box with the two sets of parameters
 class BooleanBox {
 public:
@@ -45,7 +49,7 @@ bool intersect ( const chomp::Rect & rect1, const chomp::Rect & rect2 ) {
 
 // Check when two faces are identical
 bool operator == ( const Face & face1, const Face & face2 ) {
-	double eps_ = 1e-12;	
+	double eps_ = 1e-10;	
 		if ( face1 . direction != face2 . direction ) {
 			return false;
 		}  
@@ -67,9 +71,12 @@ class BooleanConfig {
 public:
 	void load ( const char * inputfile );
 
-	std::vector < BooleanBox > listboxes ( void ) { return booleanboxes_; }
+	std::vector < BooleanBox > listboxes ( void ) const { return booleanboxes_; }
+  std::vector < BooleanBox > & listboxes ( void ) { return booleanboxes_; }
 
-	chomp::Rect phasespace ( void ) { return phasespace_; }
+	chomp::Rect phasespace ( void ) const { return phasespace_; }
+
+
 
 private:
 	int dimension_;
@@ -82,6 +89,8 @@ private:
 inline void BooleanConfig::load ( const char * inputfile ) {
   using boost::property_tree::ptree;
   ptree pt;
+
+  
   std::ifstream input ( inputfile );
   read_xml(input, pt);
 //

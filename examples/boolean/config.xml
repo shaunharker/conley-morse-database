@@ -7,17 +7,22 @@
   <dim> 2 </dim>
   <bounds>
     <lower> 0.0 0.0 </lower>
-    <upper> 40.0 30.0 </upper>
+    <upper> 0.0 0.0 </upper>
   </bounds>
   <subdiv>
     <depth> 6 </depth>
   </subdiv>
 </param>
 <phase>
+  <dim> 2 </dim>
+  <bounds>
+      <lower>  0.0   0.0  </lower>
+      <upper>  10.0   10.0  </upper>
+  </bounds>
   <subdiv>
-    <init> 11 </init>
-    <min> 12 </min>
-    <max> 14 </max>
+    <init> 0 </init>
+    <min> 8 </min>
+    <max> 10 </max>
     <limit> 10000 </limit>
   </subdiv>
 </phase>

@@ -1,56 +1,123 @@
 <atlas>
-  <dimension>  2  </dimension>
-  <phasespace>
-    <bounds>
-      <lower>  0.0   0.0   </lower>
-      <upper>  8.0   8.0  </upper>
-    </bounds>
-  </phasespace>
+	<!-- Dimension of the space -->
+	<dimension> 2 </dimension>
+	<!-- Define the lower and upper bounds of the phase space along each dimension -->
+	<phasespace>
+		<bounds>
+			<lower> 0.0 0.0 </lower>
+			<upper> 10.0 10.0 </upper>
+		</bounds>
+	</phasespace>
+	<!-- Gamma value along each dimension (assume the same for the whole phase space) -->
   <gamma>
     <lower> -1.0 -1.0 </lower>
     <upper> -1.0 -1.0 </upper>
   </gamma>
-  <listboxes>
-    <box> <!-- box :   -->
-      <bounds>
-        <lower>  0.0   0.0  </lower>
-        <upper>  4.0   4.0  </upper>
-      </bounds>
+	<!-- Give the list of boxes with their lower/upper bounds and sigma values along each dimension -->
+
+	<listboxes>
+		
+		<box> <!-- A -->
+			<bounds>
+				<lower> 0.0 0.0 </lower>
+				<upper> 2.0 4.0 </upper>
+			</bounds>
       <sigma>
-        <lower>  2.0   5.0  </lower>
-        <upper>  2.0   5.0  </upper>
+        <lower>  1.0 4.1  </lower>
+        <upper>  1.0 4.1  </upper>
       </sigma>
-    </box>
-    <box> <!-- box :   -->
-      <bounds>
-        <lower>  4.0   0.0   </lower>
-        <upper>  8.0   4.0   </upper>
-      </bounds>
+		</box>
+
+		<box> <!-- B -->
+			<bounds>
+				<lower> 2.0 0.0 </lower>
+				<upper> 8.0 4.0 </upper>
+			</bounds>
       <sigma>
-        <lower>  2.5   1.0   </lower>
-        <upper>  2.5   1.0   </upper>
+        <lower>  1.9 2.0  </lower>
+        <upper>  1.9 2.0  </upper>
       </sigma>
-    </box>
-    <box> <!-- box :   -->
-      <bounds>
-        <lower>  4.0   4.0   </lower>
-        <upper>  8.0   8.0   </upper>
-      </bounds>
+		</box>
+
+		<box> <!-- C -->
+			<bounds>
+				<lower> 8.0 0.0 </lower>
+				<upper> 10.0 4.0 </upper>
+			</bounds>
       <sigma>
-        <lower>  5.5   3.0   </lower>
-        <upper>  5.5   3.0   </upper>
+        <lower>  7.9 2.0  </lower>
+        <upper>  7.9 2.0  </upper>
       </sigma>
-    </box>
-    <box> <!-- box :   -->
-      <bounds>
-        <lower>  0.0   4.0   </lower>
-        <upper>  4.0   8.0   </upper>
-      </bounds>
+		</box>
+
+		<box> <!-- D -->
+			<bounds>
+				<lower> 0.0 4.0 </lower>
+				<upper> 2.0 6.0 </upper>
+			</bounds>
       <sigma>
-        <lower>  4.5   7.0   </lower>
-        <upper>  4.5   7.0   </upper>
+        <lower>  1.0 6.1  </lower>
+        <upper>  1.0 6.1  </upper>
       </sigma>
-    </box>
-   
-  </listboxes>
+		</box>
+
+		<box> <!-- E -->
+			<bounds>
+				<lower> 2.0 4.0 </lower>
+				<upper> 8.0 6.0 </upper>
+			</bounds>
+      <sigma>
+        <lower>  3.0 5.0  </lower>
+        <upper>  3.0 5.0  </upper>
+      </sigma>
+		</box>
+
+		<box> <!-- F -->
+			<bounds>
+				<lower> 8.0 4.0 </lower>
+				<upper> 10.0 6.0 </upper>
+			</bounds>
+      <sigma>
+        <lower>  9.0 3.9  </lower>
+        <upper>  9.0 3.9  </upper>
+      </sigma>
+		</box>
+
+		<box> <!-- G -->
+			<bounds>
+				<lower> 0.0 6.0 </lower>
+				<upper> 2.0 10.0 </upper>
+			</bounds>
+      <sigma>
+        <lower>  2.1 8.0  </lower>
+        <upper>  2.1 8.0  </upper>
+      </sigma>
+		</box>
+
+		<box> <!-- H -->
+			<bounds>
+				<lower> 2.0 6.0 </lower>
+				<upper> 8.0 10.0 </upper>
+			</bounds>
+      <sigma>
+        <lower>  8.1 8.0  </lower>
+        <upper>  8.1 8.0  </upper>
+      </sigma>
+		</box>
+
+		<box> <!-- I -->
+			<bounds>
+				<lower> 8.0 6.0 </lower>
+				<upper> 10.0 10.0 </upper>
+			</bounds>
+      <sigma>
+        <lower>  9.0 5.9  </lower>
+        <upper>  9.0 5.9  </upper>
+      </sigma>
+		</box>
+
+
+
+	</listboxes>
+
 </atlas>
