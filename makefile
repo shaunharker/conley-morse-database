@@ -18,7 +18,7 @@ USE_CAPD := yes
 #
 HAVE_SUCCINCT := yes
 PARAMETER_GRID := SuccinctGrid
-PHASE_GRID := PointerGrid
+PHASE_GRID := Atlas
 #
 # if modelmap has good() implemented
 PARAM_SPACE_METHOD := PATCHMETHOD

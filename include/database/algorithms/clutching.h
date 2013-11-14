@@ -58,7 +58,11 @@ inline void Clutching( BG_Data * result,
   				  it_pair . first != it_pair . second;
   				  ++ it_pair . first ) {
   			Atlas::Chart chart = it_pair . first -> second;
-  			graph1_trees[count][i] = &(chart -> tree ());
+        if ( chart -> size () > 0 ) {
+  			 graph1_trees[count][i] = &(chart -> tree ());
+        } else {
+         graph1_trees[count][i] = NULL;
+        }
         ++ count;
   		}
   	}
@@ -69,7 +73,11 @@ inline void Clutching( BG_Data * result,
   				  it_pair . first != it_pair . second;
   				  ++ it_pair . first ) {
   			Atlas::Chart chart = it_pair . first -> second;
-  			graph2_trees[count][i] = &(chart -> tree ());
+        if ( chart -> size () > 0 ) {
+         graph2_trees[count][i] = &(chart -> tree ());
+        } else {
+         graph2_trees[count][i] = NULL;
+        }
         ++ count;
   		}
   	}
@@ -111,8 +119,10 @@ inline void Clutching( BG_Data * result,
   // State 2: Rise. If rising from the right, rise again on next iteration. Otherwise try to go right on the next iteration.
   	std::vector < iterator > iters1 ( N1 );
   	std::vector < iterator > iters2 ( N2 );
-  	for ( size_t i = 0; i < N1; ++ i ) iters1[i] = trees1[i] -> begin ();
-  	for ( size_t i = 0; i < N2; ++ i ) iters2[i] = trees2[i] -> begin ();
+  	for ( size_t i = 0; i < N1; ++ i ) 
+      if ( trees1[i] != NULL ) iters1[i] = trees1[i] -> begin ();
+  	for ( size_t i = 0; i < N2; ++ i ) 
+      if ( trees2[i] != NULL ) iters2[i] = trees2[i] -> begin ();
   	std::vector < size_t > depth1 ( N1, 0 );
   	std::vector < size_t > depth2 ( N2, 0 );
   	size_t depth = 0;
@@ -127,6 +137,7 @@ inline void Clutching( BG_Data * result,
   			Vertex set1 = N1;
   			Vertex set2 = N2;
   			for ( size_t i = 0; i < N1; ++ i ) {
+          if ( trees1 [ i ] == NULL ) continue;
       //std::cout << "Position 1. i = " << i << ", depth = " << depth << " and state = " << state << "\n";
       // If node is halted, continue
   				if ( depth1[i] == depth ) {
@@ -166,6 +177,7 @@ inline void Clutching( BG_Data * result,
 
   			}
   			for ( size_t i = 0; i < N2; ++ i ) {
+          if ( trees2 [ i ] == NULL ) continue;
       //std::cout << "Position 2. i = " << i << ", depth = " << depth << " and state = " << state << "\n";
       // If node is halted, continue
   				if ( depth2[i] == depth ) {
