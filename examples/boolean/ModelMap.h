@@ -93,17 +93,17 @@ double findT ( double gamma, double sigma, double xs, double xf ) {
 
 
 
-class Map {
+class ModelMap {
 
 public:
 	typedef uint64_t size_type;
   double lambda;
-  Map ( void ) { }
-  Map ( const chomp::Rect & rectangle, const char * string );
-  Map ( int status, int imageid, double gamma, double sigma, interval T ) : status_(status),imageid_(imageid),gamma_(gamma),sigma_(sigma),T_(T) {}
+  ModelMap ( void ) { }
+  ModelMap ( const chomp::Rect & rectangle, const char * string );
+  ModelMap ( int status, double gamma, double sigma, interval T ) : status_(status),gamma_(gamma),sigma_(sigma),T_(T) {}
 	
   // New Map interface : Now the computation for T are done within Map
-  Map ( int status, int imageid, std::vector<double> gamma, std::vector<double> sigma, Face face1, Face face2 ) : status_(status),imageid_(imageid),gamma_(gamma),sigma_(sigma),face1_(face1),face2_(face2) {}
+  ModelMap ( int status, int imageid, std::vector<double> gamma, std::vector<double> sigma, Face face1, Face face2 ) : status_(status),imageid_(imageid),gamma_(gamma),sigma_(sigma),face1_(face1),face2_(face2) {}
 
 
   // AtlasGeo operator ( ) ( boost::shared_ptr < Geo > geo_ptr ) const {
@@ -111,7 +111,7 @@ public:
 	//  return operator ( ) ( geo );
 	// }
 
-  // Here AtlasGeo is codimension-1
+  // Here AtlasGeo geo is codimension-1
   AtlasGeo operator ( ) ( const AtlasGeo & geo ) const {
     std::vector < AtlasGeo > result;
     uint64_t id = geo . id ();
@@ -141,6 +141,7 @@ public:
       it = ubrg.insert ( it, face1_.rect.upper_bounds[face1_.direction] );
     }
 
+    // Rect is n-dimensional, geo was n-1 dimensional
     chomp::Rect rect ( codim+1, lbrg, ubrg );
 
     // Normal case : 
@@ -212,15 +213,6 @@ public:
         // image using interval arithmetic
         iv = timemap ( gamma_, sigma_, is, iT );
         //
-        //
-        // CHECK IF WE NEED TO PERMUTE 2 ELEMENTS -> DO NOT NEED THAT
-        // from iv, get the bounding box of the image
-        // take the interval needed for the image 
-        // first swicth two elements which are the face1_, face2_ direction 
-        // interval itmp = iv [ face1_ . direction ];
-        // iv [ face1_ . direction ] = iv [ face2_ . direction ];
-        // iv [ face2_ . direction ] = itmp;
-        // for the bounding box use the new iv without the face2_ . direction 
         std::vector < interval > myimage;
         for ( unsigned int i=0; i<codim+1; ++i ) {
           if ( i != face2_ . direction ) {
@@ -276,10 +268,11 @@ public:
 }
 
 
+bool good ( void ) const { return true; }
+
 private:
-  int sourceid_; // store the chart number of the source
-  int imageid_; // store the chart number of the image
   interval T_;
+  int imageid_;
   //
   // status = 0 : normal case 
   // status = 1 : Identity Map (parameters ignored)
