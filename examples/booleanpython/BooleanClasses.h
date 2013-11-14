@@ -15,6 +15,14 @@ public:
 	chomp::Rect gamma;
 	chomp::Rect sigma;
 	chomp::Rect rect;
+  
+  friend class boost::serialization::access;
+  template<class Archive>
+  void serialize(Archive& ar, const unsigned int version) {
+    ar & gamma;
+    ar & sigma;
+    ar & rect;
+  }
 };
 
 std::ostream& operator<< (std::ostream& os, const BooleanBox& box) {
@@ -28,6 +36,13 @@ class Face { // Will only work for cubes
 public: 
   int direction; // means X_{direction} = cst. direction=-1 means a fixed point
   chomp::Rect rect; // will be n-dimensional, and degenerated along the dimension given by direction
+
+  friend class boost::serialization::access;
+  template<class Archive>
+  void serialize(Archive& ar, const unsigned int version) {
+    ar & direction;
+    ar & rect;
+  }
 };
 
 std::ostream& operator<< (std::ostream& os, const Face& face) {
@@ -76,10 +91,19 @@ public:
 
 	chomp::Rect phasespace ( void ) const { return phasespace_; }
 
+
 private:
 	int dimension_;
 	chomp::Rect phasespace_;
 	std::vector < BooleanBox > booleanboxes_;
+public:
+  friend class boost::serialization::access;
+  template<class Archive>
+  void serialize(Archive& ar, const unsigned int version) {
+    ar & dimension_;
+    ar & phasespace_;
+    ar & booleanboxes_;
+  }
 };
 
 

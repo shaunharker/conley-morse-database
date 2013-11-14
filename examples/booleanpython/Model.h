@@ -24,44 +24,65 @@ class Model {
   // return a shared ptr to the phase space Atlas corresponding to
   // parameter p
 
-
   void saveCharts ( int argc, char * argv [] );
 
 private:
-  BooleanConfig booleanconfigoriginal_;
   BooleanConfig booleanconfig_;
   std::vector < Face > faces_;
   int dim_;
+public:
+  friend class boost::serialization::access;
+  template<class Archive>
+  void serialize(Archive& ar, const unsigned int version) {
+    ar & booleanconfig_;
+    ar & faces_;
+    ar & dim_;
+  }
 };
 
+inline void Model::initialize ( int argc, char * argv [] ) { 
+  //
+  std::string directory ( argv[1] );
+  // std::string filename ("/configboolean.xml");
+  std::string filename ("/configspace.py");
+  //
+  // Hack, need the parameter values to construct the phase space
+  Configuration config;
+  config . loadFromFile ( argv[1] );
+  RectGeo parameters = config . PARAM_BOUNDS;
 
-inline boost::shared_ptr<Atlas> Model::phaseSpace ( const Parameter & p ) {
+  booleanconfig_ . load ( (directory+filename).c_str(), parameters );
+  
+  dim_ = booleanconfig_ . phasespace ( ) . dimension ( );
 
-  boost::shared_ptr < Atlas > myatlas ( new Atlas );
+}
 
+// Technically we don't need the parameter since the BooleanBox have been updated already
+inline boost::shared_ptr < AtlasMap > Model::map ( const Parameter & param ) { 
+  //
   //
   std::vector < Face > faces;
   std::vector < Face > * faces_ptr;
   faces_ptr = & faces;
   //
-
-  // Always start from the original configuration of the boolean box
-  // BEGIN WORK
-  std::vector < BooleanBox > boxes = booleanconfigoriginal_ . listboxes ( );
-  // update_parameters ( boxes , p );
-  // END WORK
-
-  booleanconfig_ . listboxes ( ) = boxes;
-
-
-  for (unsigned int i=0; i<boxes.size(); ++i ) {
-    std::cout << boxes[i] <<"\n";
-  }
-
-
+  phaseSpace ( param ); 
   //
+  boost::shared_ptr < AtlasMap > atlasmap = constructMaps ( booleanconfig_ . phasespace ( ), 
+                                                            booleanconfig_ . listboxes ( ), 
+                                                            faces_ );
+  //
+  return atlasmap;
+}
+
+inline boost::shared_ptr<Atlas> Model::phaseSpace ( const Parameter & p ) {
+
+  boost::shared_ptr < Atlas > myatlas ( new Atlas );
+
+  std::vector < Face > faces;
+  std::vector < Face > * faces_ptr;
+  faces_ptr = & faces;
+
   constructFaces ( faces_ptr, booleanconfig_ . listboxes ( ) );
-  // 
   faces_ = faces;
 
   // for ( unsigned int i=0; i<faces_.size(); ++i ) {
@@ -102,45 +123,6 @@ inline boost::shared_ptr<Atlas> Model::phaseSpace ( const Parameter & p ) {
   }
   //
   return myatlas;
-}
-
-
-// Technically we don't need the parameter since the BooleanBox have been updated already
-inline boost::shared_ptr < AtlasMap > Model::map ( const Parameter & param ) { 
-  //
-  //
-  std::vector < Face > faces;
-  std::vector < Face > * faces_ptr;
-  faces_ptr = & faces;
-  //
-  phaseSpace ( param ); 
-  //
-  boost::shared_ptr < AtlasMap > atlasmap = constructMaps ( booleanconfig_ . phasespace ( ), 
-                                                            booleanconfig_ . listboxes ( ), 
-                                                            faces_ );
-  //
-  return atlasmap;
-}
-
-
-inline void Model::initialize ( int argc, char * argv [] ) { 
-  //
-  std::string directory ( argv[1] );
-  // std::string filename ("/configboolean.xml");
-  std::string filename ("/configspace.py");
-  //
-  // Hack, need the parameter values to construct the phase space
-  Configuration config;
-  config . loadFromFile ( argv[1] );
-  RectGeo parameters = config . PARAM_BOUNDS;
-
-  booleanconfig_ . load ( (directory+filename).c_str(), parameters );
-  //
-  dim_ = booleanconfig_ . phasespace ( ) . dimension ( );
-
-  // Save the original set up
-  booleanconfigoriginal_ = booleanconfig_;
-  //
 }
 
 inline void Model::saveCharts ( int argc, char * argv [] ) { 
