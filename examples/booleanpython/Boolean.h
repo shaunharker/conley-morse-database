@@ -75,7 +75,7 @@ bool notonboundary ( const chomp::Rect & phasespace,
 //  Definitions 
 
 
-
+inline
 std::vector < std::pair < Face, Face > > 
 findPairFaces ( const chomp::Rect & phasespace, 
 								const BooleanBox & booleanbox ) {
@@ -162,7 +162,7 @@ return result;
 
 
 
-boost::shared_ptr < ModelMap > constructMaps ( const chomp::Rect & phasespace, 
+inline boost::shared_ptr < ModelMap > constructMaps ( const chomp::Rect & phasespace, 
 											const std::vector < BooleanBox > & boxes, 
 										 const std::vector < Face > & faces ) {
 
@@ -239,7 +239,7 @@ boost::shared_ptr < ModelMap > constructMaps ( const chomp::Rect & phasespace,
 
 
 
-chomp::Rect fixedpoint ( const BooleanBox & box ) { 
+inline chomp::Rect fixedpoint ( const BooleanBox & box ) { 
 
 
 	std::vector < double > lb = box . rect . lower_bounds;
@@ -264,7 +264,7 @@ chomp::Rect fixedpoint ( const BooleanBox & box ) {
 
 
 
-void constructFaces ( std::vector < Face > * faces, const std::vector < BooleanBox > & boxes ) {
+inline void constructFaces ( std::vector < Face > * faces, const std::vector < BooleanBox > & boxes ) {
 
 	for ( unsigned int i=0; i<boxes.size(); ++i ) {
 		constructFaces ( faces, boxes[i] );
@@ -276,7 +276,7 @@ void constructFaces ( std::vector < Face > * faces, const std::vector < BooleanB
 // Given a set of parameters, extract the faces from a booleanbox and add them to faces if not present
 // The faces along the phase space boundary are included
 
-void constructFaces ( std::vector < Face > * faces, const BooleanBox & box ) {
+inline void constructFaces ( std::vector < Face > * faces, const BooleanBox & box ) {
 
 	//
 	chomp::Rect rect = box . rect;
@@ -343,6 +343,7 @@ void constructFaces ( std::vector < Face > * faces, const BooleanBox & box ) {
 
 //
 // Check if there a need for a map : Face1 -> Face2 
+inline 
 bool need_map ( const BooleanBox & box,
 								const Face & face1, const Face & face2 ) {
 
@@ -442,6 +443,7 @@ bool need_map ( const BooleanBox & box,
 
 
 // Check if a BooleanBox contained its fixed point
+inline 
 bool contain_fixed_point ( const BooleanBox & box ) {
 
 	std::vector < double > lb = box . rect . lower_bounds;
@@ -466,6 +468,7 @@ bool contain_fixed_point ( const BooleanBox & box ) {
 
 // // Extract all the faces of the given BooleanBox
 // // if the faces are not part of the vector faces then they are added
+inline 
 void extract_faces ( std::vector < Face > * faces, const BooleanBox & box ) {
 	chomp::Rect rect = box . rect;
 	int dim = rect . dimension ();
@@ -499,6 +502,7 @@ void extract_faces ( std::vector < Face > * faces, const BooleanBox & box ) {
 	}	
 }
 
+inline
 void extract_faces ( std::vector < Face > * faces, const std::vector < BooleanBox > & boxes ) { 
 	for ( unsigned int i=0; i<boxes.size(); ++i ) {
 		extract_faces ( faces, boxes[i] );
@@ -507,6 +511,7 @@ void extract_faces ( std::vector < Face > * faces, const std::vector < BooleanBo
 
 
 // Check if face is on the phase space boundary
+inline
 bool notonboundary ( const chomp::Rect & phasespace, Face & face ) { 
 	//
 	double eps = 1e-10;
@@ -535,6 +540,7 @@ bool notonboundary ( const chomp::Rect & phasespace, Face & face ) {
 //
 // id lb0 ub0 lb1 ub1 ...
 //
+inline
 void exportFaces ( const std::vector < Face > & faces ) {
 	std::ofstream ofile;
 	ofile . open ( "faces.txt" );
@@ -549,7 +555,7 @@ void exportFaces ( const std::vector < Face > & faces ) {
 }
 
 
-
+inline
 void exportCharts ( const char * inputfile, const std::vector < Face > & faces ) {
 	std::ofstream ofile;
 	ofile . open ( inputfile );
