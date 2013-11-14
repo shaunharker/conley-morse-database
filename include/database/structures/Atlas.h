@@ -246,18 +246,22 @@ inline void Atlas::importCharts ( const char * inputfile ) {
   }
 }
 
+inline
 std::pair<Atlas::ChartIterator, Atlas::ChartIterator> Atlas::charts ( void ) const {
   return std::make_pair ( charts_ . begin (), charts_ . end () );
 }
 
+inline
 Atlas::Chart & Atlas::chart ( size_type chart_id ) {
   return charts_ [ chart_id ];
 }
 
+inline
 const Atlas::Chart & Atlas::chart ( size_type chart_id ) const {
   return charts_ . find ( chart_id ) -> second;
 }
 
+inline
 void Atlas::clear ( void ) {
   charts_ . clear ();
   update_csum_ ();
