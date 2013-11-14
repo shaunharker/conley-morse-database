@@ -827,10 +827,8 @@ inline void Database::postprocess ( void ) {
   mgcc_nb_ . resize ( MGCC_Records () . size () );
   BOOST_FOREACH ( Grid::GridElement pb, parameter_space () ) {
     if ( pb_to_mgccp_[pb] == MGCCP_Records () . size () ) continue;
-    std::vector<Grid::GridElement> nbs;
-    std::insert_iterator<std::vector<Grid::GridElement> > ii ( nbs, nbs . begin () );
-    chomp::Rect r = parameter_space () . geometry ( pb );
-    parameter_space () . cover ( ii, r );
+    boost::shared_ptr<Geo> pb_geo = parameter_space () . geometry ( pb );
+    std::vector<Grid::GridElement> nbs = parameter_space () . cover ( * pb_geo );
     BOOST_FOREACH ( Grid::GridElement nb, nbs ) {
       if ( nb == pb ) continue;
       if ( pb_to_mgccp_[nb] == MGCCP_Records () . size () ) continue;

@@ -37,8 +37,8 @@ inline void Clutching( BG_Data * result,
   std::vector < std::vector < Tree * > > graph2_trees;
   size_t num_charts = 1;
   if ( boost::dynamic_pointer_cast<Atlas> ( graph1 . phaseSpace () ) ) {
-  	const Atlas & atlas1 = boost::dynamic_pointer_cast<Atlas> ( graph1 . phaseSpace () )
-  	const Atlas & atlas2 = boost::dynamic_pointer_cast<Atlas> ( graph2 . phaseSpace () )
+  	const Atlas & atlas1 = * boost::dynamic_pointer_cast<Atlas> ( graph1 . phaseSpace () );
+  	const Atlas & atlas2 = * boost::dynamic_pointer_cast<Atlas> ( graph2 . phaseSpace () );
 
   	// Determine number of charts.
   	size_t num_charts1 = atlas1 . numCharts ();
@@ -52,21 +52,25 @@ inline void Clutching( BG_Data * result,
 
   	// Loop through vertices and charts
   	for ( size_t i = 0; i < N1; ++ i ) {
-  		const Atlas & atlas = boost::dynamic_pointer_cast<Atlas> ( graph1 -> grid ( i ) );
-  		for ( Atlas::ChartIteratorPair it_pair = atlas . charts (), size_t count = 0;
+  		const Atlas & atlas = boost::dynamic_pointer_cast<Atlas> ( graph1 . grid ( i ) );
+      size_t count = 0;
+  		for ( Atlas::ChartIteratorPair it_pair = atlas . charts ();
   				  it_pair . first != it_pair . second;
-  				  ++ it_pair . first, ++ count ) {
+  				  ++ it_pair . first ) {
   			Atlas::Chart chart = it_pair -> first;
   			graph1_trees[count][i] = &(chart -> tree ());
+        ++ count;
   		}
   	}
   	for ( size_t i = 0; i < N2; ++ i ) {
-  		const Atlas & atlas = boost::dynamic_pointer_cast<Atlas> ( graph2 -> grid ( i ) );
-  		for ( Atlas::ChartIteratorPair it_pair = atlas . charts (), size_t count = 0;
+  		const Atlas & atlas = boost::dynamic_pointer_cast<Atlas> ( graph2 . grid ( i ) );
+      size_t count = 0;
+  		for ( Atlas::ChartIteratorPair it_pair = atlas . charts ();
   				  it_pair . first != it_pair . second;
-  				  ++ it_pair . first, ++ count ) {
+  				  ++ it_pair . first ) {
   			Atlas::Chart chart = it_pair -> first;
   			graph2_trees[count][i] = &(chart -> tree ());
+        ++ count;
   		}
   	}
   }
@@ -76,12 +80,12 @@ inline void Clutching( BG_Data * result,
   	graph2_trees . resize ( num_charts, std::vector<Tree *> ( N2 ) );
 // Loop through vertices and charts
   	for ( size_t i = 0; i < N1; ++ i ) {
-  		const TreeGrid & grid = boost::dynamic_pointer_cast<TreeGrid> ( graph1 -> grid ( i ) );
-  		graph1_trees[0][i] = &(grid -> tree ());
+  		const TreeGrid & grid = * boost::dynamic_pointer_cast<TreeGrid> ( graph1 . grid ( i ) );
+  		graph1_trees[0][i] = &(grid . tree ());
   	}
   	for ( size_t i = 0; i < N2; ++ i ) {
-  		const TreeGrid & grid = boost::dynamic_pointer_cast<TreeGrid> ( graph2 -> grid ( i ) );
-  		graph2_trees[0][i] = &(grid -> tree ());
+  		const TreeGrid & grid = * boost::dynamic_pointer_cast<TreeGrid> ( graph2 . grid ( i ) );
+  		graph2_trees[0][i] = &(grid . tree ());
   	}
   }
 

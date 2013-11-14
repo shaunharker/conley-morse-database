@@ -72,6 +72,9 @@ public:
       std::cout << "number of GridElements = " << it -> second -> size ( ) << "\n";
     }  
   }
+
+  uint64_t numCharts ( void ) const;
+
   virtual uint64_t memory ( void ) const {
     uint64_t result = 0;
     BOOST_FOREACH ( const IdChartPair & chartpair, charts () ) {
@@ -203,6 +206,10 @@ inline void Atlas::add_chart ( const int & id, const int & dimension, const Rect
   charts_ [ id ] -> initialize ( rect );
   charts_ [ id ] -> dimension  ( ) = dimension;
   update_csum_ ( );
+}
+
+inline uint64_t Atlas::numCharts ( void ) const {
+  return charts_ . size ();
 }
 
 inline void Atlas::importCharts ( const char * inputfile ) {
