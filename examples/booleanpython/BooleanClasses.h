@@ -25,7 +25,7 @@ public:
   }
 };
 
-std::ostream& operator<< (std::ostream& os, const BooleanBox& box) {
+inline std::ostream& operator<< (std::ostream& os, const BooleanBox& box) {
 	os << "Boolean Box with bounds : " << box.rect << " and parameters (gi,si) : ";
   os << box.gamma << " , " << box.sigma;
 	os << "\n";
@@ -45,14 +45,14 @@ public:
   }
 };
 
-std::ostream& operator<< (std::ostream& os, const Face& face) {
+inline std::ostream& operator<< (std::ostream& os, const Face& face) {
   os << "Face for x=cst in the direction : " << face.direction << " , ";
   os << " with bounds : " << face.rect << "\n";
   return os;
 }
 
 // need to know when two faces overlap 
-bool intersect ( const chomp::Rect & rect1, const chomp::Rect & rect2 ) {
+inline bool intersect ( const chomp::Rect & rect1, const chomp::Rect & rect2 ) {
   int dim = rect1 . dimension();
   for ( unsigned int i=0; i<dim; ++i ) { 
     if ( ( rect1.lower_bounds[i] >= rect2.upper_bounds[i] ) || 
@@ -64,7 +64,7 @@ bool intersect ( const chomp::Rect & rect1, const chomp::Rect & rect2 ) {
 }
 
 // Check when two faces are identical
-bool operator == ( const Face & face1, const Face & face2 ) {
+inline bool operator == ( const Face & face1, const Face & face2 ) {
 	double eps_ = 1e-10;	
 		if ( face1 . direction != face2 . direction ) {
 			return false;

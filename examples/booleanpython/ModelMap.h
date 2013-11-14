@@ -34,17 +34,17 @@
 //
 
 // Define the analytical solution 
-double timemap ( double gamma, double sigma, double x0, double T ) {
+inline double timemap ( double gamma, double sigma, double x0, double T ) {
   return - sigma / gamma + ( x0 + sigma / gamma ) * exp ( gamma * T );
 }
 
 // Define the analytical solution 
-interval timemap ( double gamma, double sigma, interval x0, interval T ) {
+inline interval timemap ( double gamma, double sigma, interval x0, interval T ) {
   return - sigma / gamma + ( x0 + sigma / gamma ) * exp ( gamma * T );
 }
 
 // Define the analytical solution 
-std::vector < interval > timemap ( std::vector < double > gamma, std::vector < double > sigma, 
+inline std::vector < interval > timemap ( std::vector < double > gamma, std::vector < double > sigma, 
                                    std::vector < interval > x0, interval T ) {
   std::vector < interval > result;
   int dim = gamma.size();
@@ -59,7 +59,7 @@ std::vector < interval > timemap ( std::vector < double > gamma, std::vector < d
 
 // compute the image of rect after a certain time T 
 // the function above should be used instead
-chomp::Rect timemap ( std::vector < double > gamma, std::vector < double > sigma, chomp::Rect rect, double T ) {
+inline chomp::Rect timemap ( std::vector < double > gamma, std::vector < double > sigma, chomp::Rect rect, double T ) {
   int dim = rect.dimension();
   std::vector < double > lb, ub;
   for ( unsigned int i=0; i<dim; ++i ) {
@@ -77,7 +77,7 @@ chomp::Rect timemap ( std::vector < double > gamma, std::vector < double > sigma
 
 
 // Check if we have a time T, that goes from xs to xf
-bool findTbool ( double gamma, double sigma, double xs, double xf ) { 
+inline bool findTbool ( double gamma, double sigma, double xs, double xf ) { 
   double tmp = ( xf + sigma/gamma ) / ( xs + sigma/gamma );
   if ( tmp>=0.0 && tmp<=1.0 ) {
     return true;
@@ -87,7 +87,7 @@ bool findTbool ( double gamma, double sigma, double xs, double xf ) {
 }
 
 // Return the time T to go from xs to xf
-double findT ( double gamma, double sigma, double xs, double xf ) {
+inline double findT ( double gamma, double sigma, double xs, double xf ) {
   double tmp = ( xf + sigma/gamma ) / ( xs + sigma/gamma );
   return log ( tmp ) / gamma;
 }
