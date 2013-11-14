@@ -45,6 +45,7 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   int PHASE_SUBDIV_MIN;
   int PHASE_SUBDIV_MAX;
   int PHASE_SUBDIV_LIMIT;
+  Model model;
   //chomp::Rect PHASE_BOUNDS;  // HERE
   //std::vector < bool > PHASE_PERIODIC; // HERE
   job >> job_number;
@@ -55,6 +56,7 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   job >> PHASE_SUBDIV_MIN;
   job >> PHASE_SUBDIV_MAX;
   job >> PHASE_SUBDIV_LIMIT;
+  job >> model;
   //job >> PHASE_BOUNDS;     // HERE
   //job >> PHASE_PERIODIC;   // HERE
 // ATLAS JOB END #1
@@ -73,7 +75,7 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
     size_t box = box_names [ i ];
     box_index [ box ] = i;
     // ATLAS JOB BEGIN #2
-    phase_space_grid [ box ] = model . phaseSpace ( box_geometries [ i ] );
+    phase_space_grids [ box ] = model . phaseSpace ( box_geometries [ i ] );
     boost::shared_ptr<GeometricMap> map = model . map ( box_geometries [ i ] );
     // ATLAS JOB END #2
     // perform computation
