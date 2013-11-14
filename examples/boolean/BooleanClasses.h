@@ -1,7 +1,6 @@
 #ifndef BOOLEANCLASSES_H
 #define BOOLEANCLASSES_H
 
-#include <boost/python.hpp>
 #include <string>
 #include <sstream>
 
