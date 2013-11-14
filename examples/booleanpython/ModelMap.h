@@ -1,5 +1,5 @@
-#ifndef MODELMap_H
-#define MODELMap_H
+#ifndef MODELMAP_H
+#define MODELMAP_H
 
 #include <boost/shared_ptr.hpp>
 #include <boost/foreach.hpp>
@@ -7,6 +7,7 @@
 #include "database/structures/Atlas.h"
 #include "database/structures/Geo.h"
 #include "database/structures/RectGeo.h"
+#include "database/maps/AtlasMap.h"
 
 #include "database/numerics/boost_interval.h"
 
@@ -93,17 +94,17 @@ double findT ( double gamma, double sigma, double xs, double xf ) {
 
 
 
-class ModelMap {
+class BooleanChartMap {
 
 public:
 	typedef uint64_t size_type;
   double lambda;
-  ModelMap ( void ) { }
-  ModelMap ( const chomp::Rect & rectangle, const char * string );
-  ModelMap ( int status, double gamma, double sigma, interval T ) : status_(status),gamma_(gamma),sigma_(sigma),T_(T) {}
+  BooleanChartMap ( void ) { }
+  BooleanChartMap ( const chomp::Rect & rectangle, const char * string );
+  BooleanChartMap ( int status, double gamma, double sigma, interval T ) : status_(status),gamma_(gamma),sigma_(sigma),T_(T) {}
 	
   // New Map interface : Now the computation for T are done within Map
-  ModelMap ( int status, int imageid, std::vector<double> gamma, std::vector<double> sigma, Face face1, Face face2 ) : status_(status),imageid_(imageid),gamma_(gamma),sigma_(sigma),face1_(face1),face2_(face2) {}
+  BooleanChartMap ( int status, int imageid, std::vector<double> gamma, std::vector<double> sigma, Face face1, Face face2 ) : status_(status),imageid_(imageid),gamma_(gamma),sigma_(sigma),face1_(face1),face2_(face2) {}
 
 
   // AtlasGeo operator ( ) ( boost::shared_ptr < Geo > geo_ptr ) const {
@@ -283,5 +284,8 @@ private:
 
   interval T_;
 };
+
+
+typedef AtlasMap<BooleanChartMap> ModelMap;
 
 #endif

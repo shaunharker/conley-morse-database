@@ -29,23 +29,30 @@ typedef uint64_t size_type;
 
 // Extract all the faces of a given BooleanBox. Phase space boundary are included.
 // The faces are added to the vector faces if not present
-void extract_faces ( std::vector < Face > * faces, const BooleanBox & box ); 
-void extract_faces ( std::vector < Face > * faces, const std::vector < BooleanBox > & boxes ); 
+void extract_faces ( std::vector < Face > * faces, 
+			               const BooleanBox & box ); 
+void extract_faces ( std::vector < Face > * faces, 
+	                   const std::vector < BooleanBox > & boxes ); 
 
-void constructFaces ( std::vector < Face > * faces, const BooleanBox & box );
+void constructFaces ( std::vector < Face > * faces, 
+	                    const BooleanBox & box );
 
-void constructFaces ( std::vector < Face > * faces, const std::vector < BooleanBox > & boxes );
+void constructFaces ( std::vector < Face > * faces, 
+	                    const std::vector < BooleanBox > & boxes );
 
-boost::shared_ptr < AtlasMap > constructMaps ( const chomp::Rect & phasespace,
-											const std::vector < BooleanBox > & boxes, 
-										 const std::vector < Face > & faces );
+boost::shared_ptr < ModelMap > 
+constructMaps ( const chomp::Rect & phasespace,
+								const std::vector < BooleanBox > & boxes, 
+								const std::vector < Face > & faces );
 
-std::vector < std::pair < Face, Face > > findPairFaces ( const chomp::Rect & phasespace, 
-																												 const BooleanBox & booleanbox );
+std::vector < std::pair < Face, Face > > 
+findPairFaces ( const chomp::Rect & phasespace, 
+								const BooleanBox & booleanbox );
 
 // Check if a map is needed between two faces
 bool need_map ( const BooleanBox & box,
-								const Face & face1, const Face & face2 );
+								const Face & face1, 
+								const Face & face2 );
 
 
 // check if a BooleanBox contained its fixed point
@@ -55,20 +62,23 @@ bool contain_fixed_point ( const BooleanBox & box );
 
 // Output the faces into a file
 void exportFaces ( const std::vector < Face > & faces );
-void exportCharts ( const char * inputfile, const std::vector < Face > & faces );
+void exportCharts ( const char * inputfile, 
+	                  const std::vector < Face > & faces );
 
 // return the fixed point for a given booleanbox
 chomp::Rect fixedpoint ( const BooleanBox & box );
 
 // check if the face is on the phase space boundary
-bool notonboundary ( const chomp::Rect & phasespace, Face & face );
+bool notonboundary ( const chomp::Rect & phasespace, 
+	                   Face & face );
 
 //  Definitions 
 
 
 
-std::vector < std::pair < Face, Face > > findPairFaces ( const chomp::Rect & phasespace, 
-																												 const BooleanBox & booleanbox ) {
+std::vector < std::pair < Face, Face > > 
+findPairFaces ( const chomp::Rect & phasespace, 
+								const BooleanBox & booleanbox ) {
 
 	double delta ( 1e-11 ); // to define a fixed point as a small segment, TO CHANGED
 
@@ -152,11 +162,11 @@ return result;
 
 
 
-boost::shared_ptr < AtlasMap > constructMaps ( const chomp::Rect & phasespace, 
+boost::shared_ptr < ModelMap > constructMaps ( const chomp::Rect & phasespace, 
 											const std::vector < BooleanBox > & boxes, 
 										 const std::vector < Face > & faces ) {
 
-	boost::shared_ptr < AtlasMap > atlasmap ( new AtlasMap );
+	boost::shared_ptr < ModelMap > atlasmap ( new ModelMap );
 
 	std::ofstream ofile;
 	ofile . open ( "MapsGraph.gv" );
@@ -208,14 +218,14 @@ boost::shared_ptr < AtlasMap > constructMaps ( const chomp::Rect & phasespace,
 			}
 			// if we map to a fixed point (it does not matter what face1 is)
 			if ( face2 . direction == -1 ) {
-				ModelMap map ( 2, id2, mygamma, mysigma, face1, face2 );
+				BooleanChartMap map ( 2, id2, mygamma, mysigma, face1, face2 );
 				atlasmap -> addMap ( id1, id2, map );
 			} else if ( notonboundary(phasespace,face2) ) {
 			// if we have a "normal map"
-				ModelMap map ( 0, id2, mygamma, mysigma, face1, face2 );
+				BooleanChartMap map ( 0, id2, mygamma, mysigma, face1, face2 );
 				atlasmap -> addMap ( id1, id2, map );
 			} else { 
-				ModelMap map ( 3, id2, mygamma, mysigma, face1, face2 );
+				BooleanChartMap map ( 3, id2, mygamma, mysigma, face1, face2 );
 				atlasmap -> addMap ( id1, id2, map );
 			}
 		}
@@ -367,7 +377,7 @@ bool need_map ( const BooleanBox & box,
 	// //
 
 	// define a "normal" map : face1 --> face2
-	ModelMap map ( 0, -1, mygamma, mysigma, face1, face2 );
+	BooleanChartMap map ( 0, -1, mygamma, mysigma, face1, face2 );
 	// construct the AtlasGeo from face1 
 	std::vector < double > lb1, ub1, lb2, ub2; 
 	for ( unsigned int i=0; i<dim; ++i ) {

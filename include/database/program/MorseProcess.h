@@ -36,7 +36,7 @@ private:
   std::vector< Cell > jobs_;
 #endif
 #ifdef PATCHMETHOD
-  boost::shared_ptr<Grid> parameter_grid;
+  boost::shared_ptr<TreeGrid> parameter_grid;
   typedef boost::unordered_set<Grid::GridElement> GridSubset;
   std::vector < GridSubset > PS_patches; // morse_work_items
 #endif

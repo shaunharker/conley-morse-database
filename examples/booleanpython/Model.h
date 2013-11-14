@@ -12,15 +12,11 @@ class Model {
     // Load stuff from a file necessary for the methods
     // "map" and "phaseSpace" below to work properly.
 
-  // boost::shared_ptr < AtlasMap > map ( const Parameter & p ) const;
-  boost::shared_ptr < AtlasMap > map ( const Parameter & p );
-  // boost::shared_ptr < AtlasMap > map ( const std::vector < double > & indexg, const std::vector < double > & indexs ) const;
+  boost::shared_ptr < ModelMap > map ( const Parameter & p );
   // return a shared ptr to a map function object corresponding to 
   // parameter p
 
-  // boost::shared_ptr<Grid> phaseSpace ( const Parameter & p );
-  boost::shared_ptr<Atlas> phaseSpace ( const Parameter & p );
-  // boost::shared_ptr<Atlas> phaseSpace ( const std::vector < double > & indexg, const std::vector < double > & indexs );
+  boost::shared_ptr < Grid > phaseSpace ( const Parameter & p );
   // return a shared ptr to the phase space Atlas corresponding to
   // parameter p
 
@@ -58,7 +54,7 @@ inline void Model::initialize ( int argc, char * argv [] ) {
 }
 
 // Technically we don't need the parameter since the BooleanBox have been updated already
-inline boost::shared_ptr < AtlasMap > Model::map ( const Parameter & param ) { 
+inline boost::shared_ptr < ModelMap > Model::map ( const Parameter & param ) { 
   //
   //
   std::vector < Face > faces;
@@ -67,14 +63,14 @@ inline boost::shared_ptr < AtlasMap > Model::map ( const Parameter & param ) {
   //
   phaseSpace ( param ); 
   //
-  boost::shared_ptr < AtlasMap > atlasmap = constructMaps ( booleanconfig_ . phasespace ( ), 
+  boost::shared_ptr < ModelMap > atlasmap = constructMaps ( booleanconfig_ . phasespace ( ), 
                                                             booleanconfig_ . listboxes ( ), 
                                                             faces_ );
   //
   return atlasmap;
 }
 
-inline boost::shared_ptr<Atlas> Model::phaseSpace ( const Parameter & p ) {
+inline boost::shared_ptr < Grid > Model::phaseSpace ( const Parameter & p ) {
 
   boost::shared_ptr < Atlas > myatlas ( new Atlas );
 
@@ -122,7 +118,7 @@ inline boost::shared_ptr<Atlas> Model::phaseSpace ( const Parameter & p ) {
     }
   }
   //
-  return myatlas;
+  return boost::dynamic_pointer_cast<Grid> ( myatlas );
 }
 
 inline void Model::saveCharts ( int argc, char * argv [] ) { 

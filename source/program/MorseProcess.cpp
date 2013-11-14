@@ -106,7 +106,7 @@ void MorseProcess::initialize ( void ) {
   
   // CONSTUCT THE PARAMETER GRID
   // Initialize parameter space bounds
-  parameter_grid = boost::shared_ptr<Grid> ( new PARAMETER_GRID );
+  parameter_grid = boost::shared_ptr<TreeGrid> ( new PARAMETER_GRID );
   parameter_grid -> initialize ( config.PARAM_BOUNDS, config.PARAM_PERIODIC );   /// Parameter space grid
   
   // Subdivide parameter space toplex
@@ -122,12 +122,12 @@ void MorseProcess::initialize ( void ) {
   // EXAMPLE: num_across = 64, patch_width = 4 ---> patches_across = 9 
   std::cout << "patches_across = " << patches_across << "\n";
   // Create the patches.
-  std::vector < chomp::Rect > patches;
+  std::vector < RectGeo > patches;
   // Loop through D-tuples
   std::vector < int > coordinates ( config.PARAM_DIM, 0);
   bool finished = false;
   while ( not finished ) {
-    chomp::Rect patch ( config.PARAM_DIM );
+    RectGeo patch ( config.PARAM_DIM );
     for ( int d = 0; d < config.PARAM_DIM; ++ d ) {
       // tol shouldn't be necessary if cover is rigorous
       double tol = (config.PARAM_BOUNDS . upper_bounds [ d ] - config.PARAM_BOUNDS . lower_bounds [ d ]) / (double) (1000 * num_across);
@@ -157,11 +157,10 @@ void MorseProcess::initialize ( void ) {
   
   size_t debug_size = 0;
   std::cout << "Created " << patches . size () << " patches.\n";
-  BOOST_FOREACH ( const chomp::Rect & patch, patches ) {
-    // Cover the geometric region with top cells
-    GridSubset patch_subset;
-    std::insert_iterator < GridSubset > ii ( patch_subset, patch_subset . begin () );
-    parameter_grid -> cover ( ii, patch );
+  BOOST_FOREACH ( const RectGeo & patch, patches ) {
+    // Cover the geometric region with top cells 
+    std::vector<Grid::GridElement> patch_vector = parameter_grid -> cover ( patch );
+    GridSubset patch_subset ( patch_vector . begin (), patch_vector . end () );
     // Add "patch_subset" to the growing vector of patches
     PS_patches . push_back (patch_subset);
     debug_size += patch_subset . size ();
@@ -237,7 +236,9 @@ int MorseProcess::prepare ( Message & job ) {
   /// Find adjacency information for cells in the patch
   BOOST_FOREACH ( Grid::GridElement grid_element_in_patch, patch_subset ) {
     // Find geometry of patch cell
-    Rect GD = parameter_grid -> geometry ( grid_element_in_patch );
+    boost::shared_ptr<RectGeo> rect_geo = boost::dynamic_pointer_cast<RectGeo> 
+      ( parameter_grid -> geometry ( grid_element_in_patch ) );
+    RectGeo GD = * rect_geo;
 
 #ifdef CHECKIFMAPISGOOD
     //ModelMap map ( GD );
@@ -257,16 +258,17 @@ int MorseProcess::prepare ( Message & job ) {
       GD . upper_bounds [ d ] += tol;
     }
     // END DEBUG
-    GridSubset GD_Cover;
-    std::insert_iterator < GridSubset > ii ( GD_Cover, GD_Cover . begin () );
-    parameter_grid -> cover ( ii, GD );
+    std::vector<Grid::GridElement> GD_Cover_vec = parameter_grid -> cover ( GD );
+    GridSubset GD_Cover ( GD_Cover_vec . begin (), GD_Cover_vec . end () );
+    
     // Store the cells in the patch which intersect the patch cell as adjacency pairs
     BOOST_FOREACH (  Grid::GridElement grid_element_in_cover, GD_Cover ) {
 #ifdef CHECKIFMAPISGOOD
-      Rect adjGD = parameter_grid -> geometry ( grid_element_in_cover );
+      boost::shared_ptr<RectGeo> adjGD = boost::dynamic_pointer_cast<RectGeo> 
+        ( parameter_grid -> geometry ( grid_element_in_cover ) );
       //ModelMap adjmap ( adjGD );      
       //if ( not adjmap . good () ) continue;
-      if ( not model . map ( adjGD ) -> good () ) continue;
+      if ( not model . map ( *adjGD ) -> good () ) continue;
 #endif
       if (( patch_subset . count (grid_element_in_cover) != 0 ) && grid_element_in_patch < grid_element_in_cover ) {
         box_adjacencies . push_back ( std::make_pair ( grid_element_in_patch, grid_element_in_cover ) );
