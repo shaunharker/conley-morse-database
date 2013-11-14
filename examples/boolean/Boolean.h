@@ -306,20 +306,24 @@ void constructFaces ( std::vector < Face > * faces, const BooleanBox & box ) {
 	ubounds = rect . upper_bounds;
 	unsigned int j;
 	//
+	double eps = 1e-11;
 	// We consider the fixed points
 	// we could make the function fixedpoint return the proper rect
 	//
 	Face fp;
-	fp . direction = -1;
 	int hasfixedpoint = 0;
 	if ( contain_fixed_point ( box ) ) {
 		// add a face at the fixed point inside the boolean box
+		fp . direction = -1;	
 		fp . rect = fixedpoint ( box );
-		hasfixedpoint = 1;
+		for ( unsigned int i=0; i<dim; ++i ) {
+			fp . rect . lower_bounds [ i ] = - 0.5 * eps + fp . rect . lower_bounds [ i ];
+			fp . rect . upper_bounds [ i ] = 0.5 * eps + fp . rect . upper_bounds [ i ];
+		}
 		// no need to check if it is in faces ( it cannot be )
 	} else { 
 		// add a face at the center of the boolean box
-		double eps = 1e-11;
+		fp . direction = -1;
 		fp . rect = box . rect;
 		for ( unsigned int i=0; i<dim; ++i ) {
 			fp . rect . lower_bounds [ i ] = - 0.5 * eps + 0.5 * ( box . rect . lower_bounds [ i ] + box . rect . upper_bounds [ i ] );
