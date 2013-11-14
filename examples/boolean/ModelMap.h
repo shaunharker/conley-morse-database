@@ -114,7 +114,6 @@ public:
   // Here AtlasGeo geo is codimension-1
   AtlasGeo operator ( ) ( const AtlasGeo & geo ) const {
     std::vector < AtlasGeo > result;
-    uint64_t id = geo . id ();
   	RectGeo rectgeo = geo . rect ();
 
     int codim = rectgeo . lower_bounds . size();
@@ -271,18 +270,18 @@ public:
 bool good ( void ) const { return true; }
 
 private:
-  interval T_;
-  int imageid_;
   //
   // status = 0 : normal case 
   // status = 1 : Identity Map (parameters ignored)
   // status = 2 : Map to a fixed point given by -sigma_/gamma_
   // status = 3 : Map to a GridElement that cannot be covered
   int status_;
-
+  int imageid_;
   std::vector < double > gamma_;
   std::vector < double > sigma_;
   Face face1_, face2_;
+
+  interval T_;
 };
 
 #endif

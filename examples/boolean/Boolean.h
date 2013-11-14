@@ -311,7 +311,6 @@ void constructFaces ( std::vector < Face > * faces, const BooleanBox & box ) {
 	// we could make the function fixedpoint return the proper rect
 	//
 	Face fp;
-	int hasfixedpoint = 0;
 	if ( contain_fixed_point ( box ) ) {
 		// add a face at the fixed point inside the boolean box
 		fp . direction = -1;	
