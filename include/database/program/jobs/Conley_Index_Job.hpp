@@ -27,19 +27,20 @@ private:
   boost::shared_ptr<Grid> phase_space;
   std::vector < Grid::GridElement > * subset;
   GeometricMap * map;
+  bool * computed;
 public:
-  bool computed;
   ConleyIndexThread(  chomp::ConleyIndex_t * ci_matrix,
                       boost::shared_ptr<Grid> phase_space,
                       std::vector < Grid::GridElement > * subset,
-                      GeometricMap * map) 
-  : ci_matrix(ci_matrix), phase_space(phase_space), subset(subset), map(map), computed(false) {}
+                      GeometricMap * map,
+                      bool * computed ) 
+  : ci_matrix(ci_matrix), phase_space(phase_space), subset(subset), map(map), computed(computed) {}
   void operator () ( void ) {
     try {
       ConleyIndex ( ci_matrix, *phase_space, *subset, *map );
-      computed = true;
+      *computed = true;
     } catch ( ... /* boost::thread_interrupted& */) {
-      computed = false;
+      *computed = false;
     }
   }
 };
@@ -123,7 +124,8 @@ void Conley_Index_Job ( Message * result , const Message & job ) {
   // use a thread to perform the following line:    
   //      ConleyIndex ( & ci_matrix, *phase_space, subset, map );
 
-  ConleyIndexThread cit ( &ci_matrix, phase_space, &subset, &map);
+  bool computed;
+  ConleyIndexThread cit ( &ci_matrix, phase_space, &subset, &map, &computed);
   boost::thread t(cit);
   if ( not t . try_join_for ( boost::chrono::seconds( 3600 ) ) ) {
    t.interrupt();
@@ -131,11 +133,11 @@ void Conley_Index_Job ( Message * result , const Message & job ) {
   }
   // end threading
 
-  if ( cit . computed ) {
+  if ( computed ) {
     std::cout << "CIJ: producing Conley Index polynomial strings \n";
     ci_data . conley_index = conleyIndexString ( ci_matrix );
   }
-  if ( not cit . computed ) {
+  if ( not computed ) {
     ci_data . conley_index = std::vector<string> ();
     ci_data . conley_index . push_back ( "Relative Homology computation timed out.");
   }
