@@ -22,7 +22,7 @@
 BOOST_CLASS_EXPORT_IMPLEMENT(SuccinctGrid);
 #endif
 BOOST_CLASS_EXPORT_IMPLEMENT(PointerGrid);
-
+BOOST_CLASS_EXPORT_IMPLEMENT(UniformGrid);
 
 int main ( int argc, char * argv [] ) {
   delegator::Start ();

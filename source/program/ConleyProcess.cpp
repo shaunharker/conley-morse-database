@@ -36,6 +36,12 @@ BOOST_CLASS_EXPORT_IMPLEMENT(SuccinctGrid);
 BOOST_CLASS_EXPORT_IMPLEMENT(PointerGrid);
 */
 
+void ConleyProcess::command_line ( int argcin, char * argvin [] ) {
+  argc = argcin;
+  argv = argvin;
+  model . initialize ( argc, argv );
+}
+
 /* * * * * * * * * * * * */
 /* initialize definition */
 /* * * * * * * * * * * * */
@@ -105,7 +111,8 @@ void ConleyProcess::initialize ( void ) {
     uint64_t pb_id = conley_work_items [ job_number ] . second . first;
     uint64_t ms = conley_work_items [ job_number ] . second . second;
 
-  	Rect GD = database . parameter_space () . geometry ( pb_id );
+  	RectGeo GD = * boost::dynamic_pointer_cast < RectGeo > 
+                 ( database . parameter_space () . geometry ( pb_id ) );
     outfile << "Job " << job_number << ": INCC = " << incc << " PB = " 
             << pb_id << ", MS = " << ms << ", geo = " << GD << "\n";
     std::cout << "Job " << job_number << ": INCC = " << incc << " PB = " 
@@ -132,27 +139,20 @@ int ConleyProcess::prepare ( Message & job ) {
   uint64_t incc = conley_work_items [ job_number ] . first;
   uint64_t pb_id = conley_work_items [ job_number ] . second . first;
   uint64_t ms = conley_work_items [ job_number ] . second . second;
-  Rect GD = database . parameter_space () . geometry ( pb_id );
+  RectGeo GD = * boost::dynamic_pointer_cast < RectGeo > 
+                 (database . parameter_space () . geometry ( pb_id ) );
 
-/*
-  // TEMPORARY FIX -- REMOVE, WILL CAUSE ERRORS
-  double tol = 1e-8;
-  for ( int d = 0; d < database . parameter_space () . dimension (); ++ d ) {
-    GD . lower_bounds [ d ] -= tol;
-    GD . upper_bounds [ d ] += tol;
-  }
-  // END DEBUG
-*/
   job << job_number;
   job << incc;
   job << GD;
   job << ms;
-    job << config.PHASE_SUBDIV_INIT;
+  job << config.PHASE_SUBDIV_INIT;
   job << config.PHASE_SUBDIV_MIN;
   job << config.PHASE_SUBDIV_MAX;
   job << config.PHASE_SUBDIV_LIMIT;
-  job << config.PHASE_BOUNDS;
-  job << config.PHASE_PERIODIC;
+  job << model;
+  //job << config.PHASE_BOUNDS;
+  //job << config.PHASE_PERIODIC;
 
   std::cout << "Preparing conley job " << job_number 
             << " with GD = " << GD << "  and  ms = (" <<  ms << ")\n";

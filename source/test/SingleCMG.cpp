@@ -24,7 +24,7 @@
 
 #include "database/structures/MorseGraph.h"
 #include "database/program/jobs/Compute_Morse_Graph.h"
-#include "database/structures/RectGeo.h"
+#include "chomp/Rect.h"
 
 #include "database/tools/SingleOutput.h"
 #include "database/numerics/simple_interval.h"
@@ -58,32 +58,33 @@ int SINGLECMG_MIN_PHASE_SUBDIVISIONS;
 int SINGLECMG_MAX_PHASE_SUBDIVISIONS;
 int SINGLECMG_COMPLEXITY_LIMIT;
 
-RectGeo parameterBounds ( const RectGeo parameter_box, const std::vector<Real> b, const int param_subdiv ) {
+Rect parameterBounds ( const Rect parameter_box, 
+                       const std::vector<Real> b, 
+                       const int param_subdiv ) {
   
   int parameter_space_dimension = parameter_box . dimension();
- 
-  RectGeo parameter_space_limits ( parameter_box );
-
-  double PARAMETER_BOXES = pow(2,param_subdiv);
-  RectGeo parameter_box_new ( parameter_space_dimension );
-
-  std::cout << PARAMETER_BOXES;
+  Rect parameter_space_limits ( parameter_box );
+  std::vector<double> PARAMETER_BOXES_ACROSS ( parameter_space_dimension );
+  for ( int dim = 0; dim < parameter_space_dimension; ++ dim ) {
+    PARAMETER_BOXES_ACROSS[dim] = pow(2,param_subdiv[dim]);
+  }
+  Rect parameter_box_new ( parameter_space_dimension );
   
   Real max = b [ 0 ];
   for (unsigned int i=0; i<b.size(); ++i ) {
     if ( b [ i ] > max ) max = b [ i ];
   }
   if ( max > PARAMETER_BOXES ) {
-    std::cout << "The choice of the subinterval for the parameters is incorrect.";
+    std::cout << "The choice of parameter box is invalid.";
     std::cout << "Check the arguments of SingleCMG\n";
     exit(-1);
   }
 
   for ( int i=0; i<parameter_space_dimension; ++i ) {
     parameter_box_new . lower_bounds [ i ] = parameter_space_limits . lower_bounds [ i ] + 
-      ( parameter_space_limits . upper_bounds [ i ] - parameter_space_limits . lower_bounds [ i ] ) * b[i] / PARAMETER_BOXES;
+      ( parameter_space_limits . upper_bounds [ i ] - parameter_space_limits . lower_bounds [ i ] ) * b[i] / PARAMETER_BOXES_ACROSS[i];
     parameter_box_new . upper_bounds [ i ] = parameter_space_limits . lower_bounds [ i ] + 
-      ( parameter_space_limits . upper_bounds [ i ] - parameter_space_limits . lower_bounds [ i ] ) * ( b[i] + 1.0 ) / PARAMETER_BOXES;
+      ( parameter_space_limits . upper_bounds [ i ] - parameter_space_limits . lower_bounds [ i ] ) * ( b[i] + 1.0 ) / PARAMETER_BOXES_ACROSS[i];
   }
 
   return parameter_box_new;
@@ -123,15 +124,9 @@ void computeMorseGraph ( MorseGraph & morsegraph,
                        SINGLECMG_MIN_PHASE_SUBDIVISIONS,
                        SINGLECMG_MAX_PHASE_SUBDIVISIONS,
                        SINGLECMG_COMPLEXITY_LIMIT );
-  //debug
-  boost::shared_ptr<TreeGrid> phaseSpace = 
-    boost::dynamic_pointer_cast<TreeGrid> ( morsegraph . phaseSpace () );
-  std::cout << "MG end -- phaseSpace dimension = " << phaseSpace -> dimension () << "\n";
-  //end debug
   if ( outputfile != NULL ) {
     morsegraph . save ( outputfile );
   }
-
 }
 
 /**************************************/
@@ -146,13 +141,6 @@ void computeConleyMorseGraph ( MorseGraph & morsegraph,
     morsegraph . load ( inputfile );
   }
   boost::shared_ptr < Grid > phase_space = morsegraph . phaseSpace ();
-
-  //debug
-  boost::shared_ptr<TreeGrid> phaseSpace = 
-    boost::dynamic_pointer_cast<TreeGrid> ( morsegraph . phaseSpace () );
-  std::cout << "CMG begin -- phaseSpace dimension = " << phaseSpace -> dimension () << "\n";
-  //end debug
-
 #ifdef CMG_VERBOSE
   std::cout << "Number of Morse Sets = " << morsegraph . NumVertices () << "\n";
 #endif
@@ -165,7 +153,7 @@ void computeConleyMorseGraph ( MorseGraph & morsegraph,
     boost::shared_ptr<ConleyIndex_t> conley ( new ConleyIndex_t );
     morsegraph . conleyIndex ( v ) = conley;
     ConleyIndex ( conley . get (),
-                 * boost::dynamic_pointer_cast<TreeGrid>(phase_space),
+                 *phase_space,
                  subset,
                  map );
     
@@ -193,8 +181,8 @@ int main ( int argc, char * argv [] )
   Configuration config;
   config . loadFromFile ( "./" );
 
-  RectGeo parameter_box = config . PARAM_BOUNDS;
-  int param_subdiv_depth = config . PARAM_SUBDIV_DEPTH;
+  Rect parameter_box = config . PARAM_BOUNDS;
+  std::vector<int> param_subdiv_depth = config . PARAM_SUBDIV_DEPTH;
 
   /* INITIALIZE MAP ************************************************/
   std::vector < Real > b;
@@ -204,12 +192,15 @@ int main ( int argc, char * argv [] )
   } else {
     //std::cout << "You did not provide the proper number of integers\n";
     std::cout << "Expecting " << config . PARAM_DIM << " integers ";
-    std::cout << "in the interval [0, " << (int)(pow(2,param_subdiv_depth)-1) << "]\n";
+    std::cout << "in the interval "; 
+    for ( int dim = 0; dim < parameter_box . dimension(); ++ dim ) {
+      if ( dim > 0 ) std::cout << " x ";
+      std::cout << "[0, " << (int)(pow(2,param_subdiv_depth[dim])-1) << "]\n";
     std::cout << "Program terminated, no computation performed\n";
     exit(-1);
   }
 
-  RectGeo parameter_box_new = parameterBounds ( parameter_box, b, param_subdiv_depth );
+  Rect parameter_box_new = parameterBounds ( parameter_box, b, param_subdiv_depth );
   ModelMap map ( parameter_box_new );
   /*****************************************************************/
   
@@ -222,13 +213,12 @@ int main ( int argc, char * argv [] )
 #ifdef COMPUTE_MORSE_SETS
 
   MorseGraph morsegraph ( new PHASE_GRID ); 
-  boost::shared_ptr<TreeGrid> phaseSpace = 
-    boost::dynamic_pointer_cast<TreeGrid> ( morsegraph . phaseSpace () );
-  /* INITIALIZE MORSE GRAPH WITH PHASE SPACE *********************/                       
-  phaseSpace -> initialize ( config . PHASE_BOUNDS );   
-  phaseSpace -> periodicity () = config . PHASE_PERIODIC;   
-  for ( int i = 0; i < INITIALSUBDIVISIONS; ++ i )               
-    phaseSpace -> subdivide ();                  
+
+  /* INITIALIZE MORSE GRAPH WITH PHASE SPACE *********************/                       //
+  morsegraph . phaseSpace () -> initialize ( config . PHASE_BOUNDS );   //
+  morsegraph . phaseSpace () -> periodicity () = config . PHASE_PERIODIC;   //
+  for ( int i = 0; i < INITIALSUBDIVISIONS; ++ i )               //
+    morsegraph . phaseSpace () -> subdivide ();                  //
   /***************************************************************/
 
   /* COMPUTE MORSE GRAPH *************************************/
@@ -240,7 +230,7 @@ int main ( int argc, char * argv [] )
   std::cout << "Total Time for Finding Morse Sets ";         //
 #ifndef NO_REACHABILITY                                      //
   std::cout << "and reachability relation: ";                //
-#else                                                        //
+#else                                                      //
   std::cout << ": ";                                         //
 #endif                                                       //
   TOC;                                                       //
@@ -250,6 +240,7 @@ int main ( int argc, char * argv [] )
 
 
 #ifdef COMPUTE_CONLEY_INDEX
+
   /* COMPUTE CONLEY MORSE GRAPH ***************************************/
   TIC;                                                             //
   ConleyMorseGraph conleymorsegraph ( "data.mg" );
@@ -260,23 +251,22 @@ int main ( int argc, char * argv [] )
   ConleyMorseGraph & conleymorsegraph = morsegraph;
 #endif
 
+
 #ifdef DRAW_IMAGES
   /* DRAW IMAGES ***********************************************************/
-  TIC;                                                                     
-  std::cout << "Creating image file...\n";                                 
-  DrawMorseSets ( * boost::dynamic_pointer_cast<TreeGrid> 
-                    (conleymorsegraph . phaseSpace ()), 
-                     conleymorsegraph );
-  TOC;                                                                     
+  if ( conleymorsegraph . phaseSpace () -> dimension () == 2 ) {
+    TIC;                                                                     
+    std::cout << "Creating image file...\n";                                 
+    DrawMorseSets ( * (conleymorsegraph . phaseSpace ()), conleymorsegraph );
+    TOC;                                                                     
+  }
   /*************************************************************************/
 #endif
-  
+
 // Always output the Morse Graph
   std::cout << "Creating graphviz .dot file...\n";                         
   CreateDotFile ( conleymorsegraph );  
   
-
-
   return 0;
 } /* main */
 
