@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <boost/shared_ptr.hpp>
+#include "database/structures/Grid.h"
 
 
 
