@@ -8,11 +8,14 @@
 #include <vector>
 #include "database/structures/Grid.h"
 
+#include "Model.h"
+
 /* * * * * * * * * * * * * * */
 /* ConleyProcess declaration */
 /* * * * * * * * * * * * * * */
 class ConleyProcess : public Coordinator_Worker_Process {
 public:
+  void command_line ( int argc, char * argv [] );
   void initialize ( void );
   int  prepare ( Message & job );
   void work ( Message & result, const Message & job ) const;
@@ -24,6 +27,7 @@ private:
   std::vector < std::pair < uint64_t, std::pair < Grid::GridElement, uint64_t > > > conley_work_items;
   Configuration config;
   Database database;
+  Model model;
 
   std::set<uint64_t> progress_detail;
   int progress_bar;                         // progress bar

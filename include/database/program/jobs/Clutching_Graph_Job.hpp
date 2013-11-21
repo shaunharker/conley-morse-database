@@ -78,7 +78,7 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
     phase_space_grids [ box ] = boost::dynamic_pointer_cast < PhaseGrid > 
       ( model . phaseSpace ( box_geometries [ i ] ) );
     if ( not phase_space_grids [ box ] ) {
-      std::cout << "PHASE SPACE incorrectly chosen.\n";
+      std::cout << "PHASE SPACE incorrectly chosen in makefile.\n";
     }
     boost::shared_ptr<GeometricMap> map = model . map ( box_geometries [ i ] );
     // ATLAS JOB END #2

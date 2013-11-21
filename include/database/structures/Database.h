@@ -23,6 +23,7 @@
 #include "database/structures/Grid.h"
 #include "database/structures/SuccinctGrid.h"
 #include "database/structures/PointerGrid.h"
+#include "database/structures/UniformGrid.h"
 #include "database/structures/MorseGraph.h"
 
 #include "boost/archive/binary_iarchive.hpp"
