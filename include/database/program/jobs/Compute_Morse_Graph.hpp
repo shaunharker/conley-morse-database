@@ -317,10 +317,10 @@ void Compute_Morse_Graph (MorseGraph * MG,
   // Produce Morse Set Decomposition Hierarchy
   //std::cout << "COMPUTE MORSE GRAPH\n";
   //std::cout << "Initializing root MorseDecomposition\n";
-  std::cout << "phase_space -> size () == " << phase_space -> size () << "\n";
+  //std::cout << "phase_space -> size () == " << phase_space -> size () << "\n";
 
   boost::shared_ptr<Grid> root_space ( (Grid *) (phase_space -> clone ()) );
-  std::cout << "root_space -> size () == " << root_space -> size () << "\n";
+  //std::cout << "root_space -> size () == " << root_space -> size () << "\n";
   MorseDecomposition * root = new MorseDecomposition ( root_space, 0 );
   //std::cout << "Calling ConstructMorseDecomposition\n";
   ConstructMorseDecomposition<Map> (root,

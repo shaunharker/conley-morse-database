@@ -12,6 +12,15 @@
 #include <boost/foreach.hpp>
 #include <boost/iterator/counting_iterator.hpp>
 #include <boost/unordered_map.hpp>
+#include "boost/shared_ptr.hpp"
+
+#include "boost/serialization/serialization.hpp"
+#include "boost/serialization/vector.hpp"
+#include "boost/serialization/export.hpp"
+#include "boost/serialization/shared_ptr.hpp"
+
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
 
 #include "database/structures/Grid.h"
 #include "database/structures/Geo.h"
@@ -59,8 +68,19 @@ private:
   std::vector<uint64_t> sizes_;
   std::vector<uint64_t> multipliers_;
   int dimension_;
+
+  friend class boost::serialization::access;
+  template<typename Archive>
+  void serialize(Archive & ar, const unsigned int file_version) {
+    ar & boost::serialization::base_object<Grid>(*this);
+    ar & bounds_;
+    ar & sizes_;
+    ar & multipliers_;
+    ar & dimension_;
+  }
 };
 
+BOOST_CLASS_EXPORT_KEY(UniformGrid);
 
 inline void UniformGrid::initialize ( const RectGeo & bounds,
                                       const std::vector<uint64_t> & sizes,
@@ -77,6 +97,8 @@ inline void UniformGrid::initialize ( const RectGeo & bounds,
   for ( int d = 1; d < dimension (); ++ d ) {
     multipliers_ [ d ] = sizes_ [ d - 1 ] * multipliers_ [ d - 1 ];
   }
+  size_ = multipliers_ [ dimension () - 1 ] * sizes_ [ dimension () - 1 ];
+  std::cout << "UniformGrid::initialize. bounds set to " << bounds_ << "\n";
 }
 
 inline UniformGrid * UniformGrid::clone ( void ) const {
@@ -117,10 +139,10 @@ UniformGrid::geometry ( Grid::GridElement ge ) const {
   }
   for ( int d = 0; d < dimension (); ++ d ) {
     result -> lower_bounds [ d ] = 
-      bounds_.lower_bounds[d]+((double)coordinates[d])
+      bounds_.lower_bounds[d]+((double)coordinates[d])/(double)sizes_[d]
       *(bounds_.upper_bounds[d]-bounds_.lower_bounds[d]);
     result -> upper_bounds [ d ] = 
-      bounds_.lower_bounds[d]+((double)coordinates[d] + 1.0)
+      bounds_.lower_bounds[d]+((double)coordinates[d] + 1.0)/(double)sizes_[d]
       *(bounds_.upper_bounds[d]-bounds_.lower_bounds[d]);
   }
   return boost::dynamic_pointer_cast<Geo> ( result );
@@ -129,10 +151,13 @@ UniformGrid::geometry ( Grid::GridElement ge ) const {
 inline std::vector<Grid::GridElement>
 UniformGrid::cover ( const Geo & geo ) const { 
   const RectGeo & rect = dynamic_cast<const RectGeo &> ( geo );
+  //std::cout << "UniformGrid::cover ( " << rect << " ):\n";
+
   std::vector<Grid::GridElement> result;
-  std::vector<uint64_t> lower_coordinates ( dimension () );
-  std::vector<uint64_t> upper_coordinates ( dimension () );
+  std::vector<int64_t> lower_coordinates ( dimension () );
+  std::vector<int64_t> upper_coordinates ( dimension () );
   uint64_t address = 0;
+  //std::cout << "   ";
   for ( int d = 0; d < dimension (); ++ d ) {
     lower_coordinates [ d ] =  std::ceil ( (double) width ( d ) *
                               (rect.lower_bounds[d]-bounds_.lower_bounds[d])/
@@ -140,9 +165,18 @@ UniformGrid::cover ( const Geo & geo ) const {
     upper_coordinates [ d ] = 1 + std::floor ( (double) width ( d ) *
                               (rect.upper_bounds[d]-bounds_.lower_bounds[d])/
                               (bounds_.upper_bounds[d]-bounds_.lower_bounds[d]) + 1.0 );
+    if ( lower_coordinates [ d ] < 0 ) lower_coordinates [ d ] = 0;
+    if ( upper_coordinates [ d ] > sizes_ [ d ] ) upper_coordinates [ d ] = sizes_ [ d ];
+
     address += multipliers_ [ d ] * lower_coordinates [ d ];
+    //if ( d != 0 ) std::cout << " x ";
+    //std::cout << "[" << lower_coordinates[d]<<", "<<upper_coordinates[d]<<")";
+    //std::cout << "[" << lower_coordinates[d]<<", "<<upper_coordinates[d]<<")";
   }
-  std::vector<uint64_t> coordinates = lower_coordinates;
+
+  //std::cout << "\n";
+
+  std::vector<int64_t> coordinates = lower_coordinates;
   bool finished = false;
   while ( not finished ) {
     result . push_back ( Grid::GridElement ( address ) );

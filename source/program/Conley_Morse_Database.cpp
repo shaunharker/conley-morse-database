@@ -27,6 +27,7 @@ BOOST_CLASS_EXPORT_IMPLEMENT(UniformGrid);
 int main ( int argc, char * argv [] ) {
   delegator::Start ();
 #ifdef COMPUTE_MORSE_SETS
+  std::cout << "STARTING MORSE PROCESS\n";
   time_t morsestarttime = time ( NULL );
   delegator::Run < MorseProcess > (argc, argv);
   time_t morsetime = time ( NULL ) - morsestarttime;
@@ -40,6 +41,7 @@ int main ( int argc, char * argv [] ) {
 #endif
 
 #ifdef COMPUTE_CONTINUATION
+  std::cout << "STARTING CONTINUATION PROCESS\n";
   int comm_rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
   if ( comm_rank == 0 ) {
@@ -59,7 +61,8 @@ int main ( int argc, char * argv [] ) {
   }
 #endif
 
-#ifdef COMPUTE_CONLEY_INDEX
+#ifdef COMPUTE_CONLEY_INDEX  
+  std::cout << "STARTING CONLEY PROCESS\n";
   time_t conleystarttime = time ( NULL );
   delegator::Run < ConleyProcess > (argc, argv);
   time_t conleytime = time ( NULL ) - conleystarttime;

@@ -3,7 +3,10 @@
 #ifndef CMDP_GRAPHTHEORY
 #define CMDP_GRAPHTHEORY
 
+#include "database/structures/Grid.h"
 #include <vector>
+#include <queue>
+
 #include <boost/shared_ptr.hpp>
 
 
@@ -26,16 +29,16 @@ void compute_morse_sets (std::vector< CellContainer > * output,
 
 /** compute_strong_components */
 template < class OutEdgeGraph >
-void compute_strong_components (std::vector<std::vector<typename OutEdgeGraph::size_type> > * output, 
+void computeStrongComponents (std::vector<std::deque<typename OutEdgeGraph::size_type> > * output, 
                                 const OutEdgeGraph & G, 
-          /* optional output */ std::vector<typename OutEdgeGraph::size_type> * topological_sort = NULL);
+          /* optional output */ std::deque<typename OutEdgeGraph::size_type> * topological_sort = NULL);
 
 /** compute_reachability */
 template < class Graph >
-void compute_reachability ( std::vector < std::vector < unsigned int > > * output, 
+void computeReachability ( std::vector < std::deque < unsigned int > > * output, 
                            std::vector<std::vector<typename Graph::size_type> > & morse_sets, 
                            const Graph & G, 
-                           const std::vector<typename Graph::size_type> & topological_sort );
+                           const std::deque<typename Graph::size_type> & topological_sort );
 
 #include "database/algorithms/GraphTheory.hpp"
 

@@ -132,6 +132,17 @@ void MorseProcess::initialize ( void ) {
           patch . upper_bounds [ d ] = config.PARAM_BOUNDS . upper_bounds [ d ];
       }
     }
+    // DEBUG
+    /*
+    std::cout << "Patch = ";
+    for ( int d = 0; d < config.PARAM_DIM; ++ d ) {
+      if ( d != 0 ) std::cout << " x ";
+      std::cout << "[" << patch . lower_bounds [ d ] 
+          << ", " << patch . upper_bounds [ d ] << "]";
+    }
+    std::cout << "\n";
+    */
+    // END DEBUG
     patches . push_back ( patch );
     // ODOMETER STEP
     finished = true;
@@ -182,12 +193,12 @@ int MorseProcess::prepare ( Message & job ) {
   std::cout << "MorseProcess::prepare: Preparing job " << job_number << "\n";
   
   /// Variables needed for job.
-  // Cell Name data (translate back into top-cell names from index number)
-  std::vector < size_t > box_names;
+  // grid elements in parameter space
+  std::vector < Grid::GridElement > box_names;
   // Geometric Description Data
-  std::vector < Rect > box_geometries;
+  std::vector < RectGeo > box_geometries;
   /// Adjacency information vector
-  std::vector < std::pair < size_t, size_t > > box_adjacencies;
+  std::vector < std::pair < Grid::GridElement, Grid::GridElement > > box_adjacencies;
 
   
   //size_t local_clutchings_ordered = 0;
@@ -201,12 +212,15 @@ int MorseProcess::prepare ( Message & job ) {
     boost::shared_ptr<RectGeo> rect_geo = boost::dynamic_pointer_cast<RectGeo> 
       ( parameter_grid -> geometry ( grid_element_in_patch ) );
     RectGeo GD = * rect_geo;
+    //std::cout << "Geometry of cell in patch: " << GD << "\n";
+    //std::cout << "  Name of box =" << grid_element_in_patch << "\n";
 
 #ifdef CHECKIFMAPISGOOD
     if ( not model . map ( GD ) -> good () ) continue;
 #endif
     // Store the name of the patch cell
     box_names . push_back ( grid_element_in_patch );
+    //std::cout << "  Pushing box " << grid_element_in_patch << "\n";
     // Store the geometric description of the patch cell
     box_geometries . push_back ( GD );
     // Find the cells in toplex which intersect patch cell

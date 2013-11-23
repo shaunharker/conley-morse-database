@@ -38,9 +38,9 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
 
 // ATLAS JOB BEGIN #1
   size_t job_number;
-  std::vector <size_t> box_names;
-  std::vector < chomp::Rect > box_geometries;
-  std::vector <std::pair<size_t, size_t> > box_adjacencies;
+  std::vector < Grid::GridElement> box_names;
+  std::vector < RectGeo > box_geometries;
+  std::vector <std::pair<Grid::GridElement, Grid::GridElement> > box_adjacencies;
   int PHASE_SUBDIV_INIT;
   int PHASE_SUBDIV_MIN;
   int PHASE_SUBDIV_MAX;
@@ -61,25 +61,26 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   //job >> PHASE_PERIODIC;   // HERE
 // ATLAS JOB END #1
   // Prepare data structures
-  std::map < size_t, boost::shared_ptr<PhaseGrid> > phase_space_grids;
-  std::map < size_t, MorseGraph> conley_morse_graphs;
-  std::map < size_t, size_t > box_index;
+  std::map < Grid::GridElement, boost::shared_ptr<PhaseGrid> > phase_space_grids;
+  std::map < Grid::GridElement, MorseGraph> conley_morse_graphs;
   std::vector < BG_Data > clutching_graphs;
 
   // Compute Morse Graphs
   std::cout << "CLUTCHING JOB " << job_number << ": " << box_names . size () << " BEGINNING.\n";
   std::cout << "--------- 1. Compute Morse Graphs --------- " << job_number << "\n";
-  for ( unsigned int i = 0; i < box_names . size (); ++ i ) {
+  for ( size_t i = 0; i < box_names . size (); ++ i ) {
     //std::cout << " Processing parameter box " << i << "/" << box_names . size () << "\n";
     //Prepare phase space and map
-    size_t box = box_names [ i ];
-    box_index [ box ] = i;
+    Grid::GridElement box = box_names [ i ];
     // ATLAS JOB BEGIN #2
     phase_space_grids [ box ] = boost::dynamic_pointer_cast < PhaseGrid > 
       ( model . phaseSpace ( box_geometries [ i ] ) );
     if ( not phase_space_grids [ box ] ) {
       std::cout << "PHASE SPACE incorrectly chosen in makefile.\n";
     }
+    // DEBUG
+    //std::cout << "Parameter = " << box_geometries [ i ] << ", box = " << box << "\n";
+    // END DEBUG
     boost::shared_ptr<GeometricMap> map = model . map ( box_geometries [ i ] );
     // ATLAS JOB END #2
     // perform computation
@@ -100,7 +101,7 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   
   // Compute Clutching Graphs
   std::cout << "--------- 2. Compute Clutching Graphs --------- " << job_number << "\n";
-  typedef std::pair < size_t, size_t > Adjacency;
+  typedef std::pair < Grid::GridElement, Grid::GridElement > Adjacency;
   BOOST_FOREACH ( const Adjacency & A, box_adjacencies ) {
     // Debug
     if ( conley_morse_graphs . count ( A . first ) == 0  ||
@@ -121,7 +122,7 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   Database database;
   
   // Create Parameter Box Records
-  typedef std::pair < size_t, MorseGraph > indexed_cmg_t;
+  typedef std::pair < Grid::GridElement, MorseGraph > indexed_cmg_t;
   BOOST_FOREACH ( const indexed_cmg_t & cmg, conley_morse_graphs ) {
     database . insert ( cmg . first, DAG_Data ( cmg . second ) );
   }

@@ -597,6 +597,10 @@ void Database::removeBadBoxes ( void ) {
 inline void Database::postprocess ( void ) {
   uint64_t N = parameter_space_ -> size ();
 
+  std::cout << "Database::postprocess\n";
+  std::cout << " Number of parameter space grid elements = " << N << "\n";
+  std::cout << " Number of Morse Records = " << morse_records () . size () << "\n";
+  std::cout << " Number of DAGs = " << dagData () . size () << "\n";
   // Loop through morse records and create a temporary lookup
   // from grid elements to dag codes
 
@@ -604,7 +608,8 @@ inline void Database::postprocess ( void ) {
   std::vector < int64_t > grid_to_dag ( N, -1 );
   BOOST_FOREACH ( const MorseRecord & mr, morse_records () ) {
     if ( dagData()[ mr . dag_index] . num_vertices == 0 ) {
-      std::cerr << "Warning: database has invalid Morse records\n";
+      std::cout << "Warning: Morse Record " << mr . grid_element 
+      << " is associated with DAG << " << mr . dag_index << ", which has no vertices.\n";
       continue;
     }
     grid_to_dag [ mr . grid_element ] = mr . dag_index;
@@ -612,23 +617,31 @@ inline void Database::postprocess ( void ) {
 
   // Process the clutching records sequentially, and create
   // a union-find structure on grid elements
+
+  std::cout << "Database::postprocess Process clutching in sequence and create union-find\n";
   ContiguousIntegerUnionFind mgccp_uf (N);
+  std::cout << "0\n";
   BOOST_FOREACH ( const ClutchingRecord & cr, clutch_records () ) {
     // Handle spurious records
+    std::cout << "A\n";
     if ( grid_to_dag [ cr . grid_element_1 ] == -1 ||
         grid_to_dag [ cr . grid_element_2 ] == -1 ) {
-      std::cerr << "Warning: database has invalid clutching records.\n";
+      std::cout << "Warning: database has invalid clutching records.\n";
       continue;
     }
+    std::cout << "B\n";
+
     if ( is_identity ( dag_data_ [ grid_to_dag [ cr . grid_element_1 ] ], 
                        dag_data_ [ grid_to_dag [ cr . grid_element_2 ] ],
                        bg_data_ [ cr . bg_index ] ) ) {
+      std::cout << "C\n";
       mgccp_uf . Union ( cr . grid_element_1, cr . grid_element_2 );
     }
   }
 
   // Now we use the union-find structure mgccp_uf to make
   // "Morse Graph Continuation Class Pieces"
+  std::cout << "Database::postprocess create MGCCP \n";
 
   boost::unordered_map < Grid::GridElement, uint64_t > rep_to_mgccp;
   BOOST_FOREACH ( Grid::GridElement ge, * parameter_space_ ) {
@@ -654,6 +667,8 @@ inline void Database::postprocess ( void ) {
   }
 
   // Create singleton INCCP records regardless of continuation
+  std::cout << "Database::postprocess create INCCP \n";
+
   ContiguousIntegerUnionFind incc_uf;
   for ( uint64_t mgccp_index = 0; mgccp_index < MGCCP_Records () . size (); ++ mgccp_index ) {
     const MGCCP_Record & mgccp_record = MGCCP_Records () [ mgccp_index ];
@@ -682,6 +697,7 @@ inline void Database::postprocess ( void ) {
   // Process the clutching records sequentially, and create a union-find
   // structure on MGCC pieces. Also, analyze the bipartite graph
   // connected components to create INCCPs
+  std::cout << "Database::postprocess create mgcc_uf\n";
 
   ContiguousIntegerUnionFind mgcc_uf ( MGCCP_records_ . size () );
   BOOST_FOREACH ( const ClutchingRecord & cr, clutch_records () ) {
@@ -961,7 +977,7 @@ inline void Database::save ( const char * filename ) {
 }
 
 inline void Database::load ( const char * filename ) {
-      //std::cout << "Database LOAD\n";
+  std::cout << "Database LOAD\n";
   std::ifstream ifs(filename);
   if ( not ifs . good () ) {
     std::cout << "Could not load " << filename << "\n";

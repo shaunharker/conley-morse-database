@@ -10,7 +10,7 @@
     <upper> 60.0 60.0 </upper>
   </bounds>
   <subdiv>
-    <depth> 6 </depth>
+    <depth> 2 </depth>
   </subdiv>
 </param>
 <phase>
@@ -21,8 +21,8 @@
   </bounds>
   <subdiv>
     <init> 0 </init>
-    <min> 8 </min>
-    <max> 10 </max>
+    <min> 4 </min>
+    <max> 8 </max>
     <limit> 10000 </limit>
   </subdiv>
 </phase>
