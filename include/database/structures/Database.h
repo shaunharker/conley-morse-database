@@ -618,30 +618,26 @@ inline void Database::postprocess ( void ) {
   // Process the clutching records sequentially, and create
   // a union-find structure on grid elements
 
-  std::cout << "Database::postprocess Process clutching in sequence and create union-find\n";
+  //std::cout << "Database::postprocess Process clutching in sequence and create union-find\n";
   ContiguousIntegerUnionFind mgccp_uf (N);
-  std::cout << "0\n";
   BOOST_FOREACH ( const ClutchingRecord & cr, clutch_records () ) {
     // Handle spurious records
-    std::cout << "A\n";
     if ( grid_to_dag [ cr . grid_element_1 ] == -1 ||
         grid_to_dag [ cr . grid_element_2 ] == -1 ) {
       std::cout << "Warning: database has invalid clutching records.\n";
       continue;
     }
-    std::cout << "B\n";
 
     if ( is_identity ( dag_data_ [ grid_to_dag [ cr . grid_element_1 ] ], 
                        dag_data_ [ grid_to_dag [ cr . grid_element_2 ] ],
                        bg_data_ [ cr . bg_index ] ) ) {
-      std::cout << "C\n";
       mgccp_uf . Union ( cr . grid_element_1, cr . grid_element_2 );
     }
   }
 
   // Now we use the union-find structure mgccp_uf to make
   // "Morse Graph Continuation Class Pieces"
-  std::cout << "Database::postprocess create MGCCP \n";
+  //std::cout << "Database::postprocess create MGCCP \n";
 
   boost::unordered_map < Grid::GridElement, uint64_t > rep_to_mgccp;
   BOOST_FOREACH ( Grid::GridElement ge, * parameter_space_ ) {
@@ -667,7 +663,7 @@ inline void Database::postprocess ( void ) {
   }
 
   // Create singleton INCCP records regardless of continuation
-  std::cout << "Database::postprocess create INCCP \n";
+  //std::cout << "Database::postprocess create INCCP \n";
 
   ContiguousIntegerUnionFind incc_uf;
   for ( uint64_t mgccp_index = 0; mgccp_index < MGCCP_Records () . size (); ++ mgccp_index ) {
@@ -697,7 +693,7 @@ inline void Database::postprocess ( void ) {
   // Process the clutching records sequentially, and create a union-find
   // structure on MGCC pieces. Also, analyze the bipartite graph
   // connected components to create INCCPs
-  std::cout << "Database::postprocess create mgcc_uf\n";
+  //std::cout << "Database::postprocess create mgcc_uf\n";
 
   ContiguousIntegerUnionFind mgcc_uf ( MGCCP_records_ . size () );
   BOOST_FOREACH ( const ClutchingRecord & cr, clutch_records () ) {
