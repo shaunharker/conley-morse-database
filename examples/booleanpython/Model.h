@@ -22,6 +22,9 @@ class Model {
 
   void saveCharts ( int argc, char * argv [] );
 
+
+  BooleanConfig booleanconfig( void ) const { return booleanconfig_; }
+
 private:
   BooleanConfig booleanconfig_;
   std::vector < Face > faces_;
@@ -39,7 +42,6 @@ public:
 inline void Model::initialize ( int argc, char * argv [] ) { 
   //
   std::string directory ( argv[1] );
-  // std::string filename ("/configboolean.xml");
   std::string filename ("/configspace.py");
   //
   // Hack, need the parameter values to construct the phase space
@@ -53,7 +55,6 @@ inline void Model::initialize ( int argc, char * argv [] ) {
 
 }
 
-// Technically we don't need the parameter since the BooleanBox have been updated already
 inline boost::shared_ptr < ModelMap > Model::map ( const Parameter & param ) { 
   //
   //
@@ -80,14 +81,6 @@ inline boost::shared_ptr < Grid > Model::phaseSpace ( const Parameter & p ) {
 
   constructFaces ( faces_ptr, booleanconfig_ . listboxes ( ) );
   faces_ = faces;
-
-  // for ( unsigned int i=0; i<faces_.size(); ++i ) {
-  //   std::cout << faces_[i];
-  // }
-
-
-  // exportFaces ( faces_ );
-  // exportCharts ( faces_ );
 
   // for each face, add a chart to the atlas
   // This will keep the ordering between faces and charts consistent
@@ -127,7 +120,12 @@ inline void Model::saveCharts ( int argc, char * argv [] ) {
   std::string filename ("/charts.dat");
   //
   exportCharts ( (directory+filename).c_str(), faces_ );
-
 }
+
+
+
+
+
+
 
 #endif

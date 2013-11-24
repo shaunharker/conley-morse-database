@@ -130,8 +130,11 @@ findPairFaces ( const chomp::Rect & phasespace,
 // 		// 
 		fp . rect = chomp::Rect ( dim, lb, ub ); // right now we assume, fixed point ~ tiny 
 		for ( unsigned int i=0; i<faces.size(); ++i ) { 
-			std::pair < Face, Face > newpair ( faces[i], fp );
-			result . push_back ( newpair );
+			// here we should check if the face is along the phase space boundary 
+			if ( notonboundary(phasespace,faces[i]) ) {
+				std::pair < Face, Face > newpair ( faces[i], fp );
+				result . push_back ( newpair );
+			}
 		}
 		std::pair < Face, Face > newpair ( fp, fp ); // add the map of the fixed point onto itself
 		result . push_back ( newpair );

@@ -45,12 +45,10 @@ def config( a21, a22 ):
 	#gamma = np.array ( [ -1.0, -1.0, -1.0 ] );
 
 	string += "<gamma>\n"
-	string += "<lower> -1.5 -1.5 -1.5 -1.5 </lower>\n"
-	string += "<upper> -0.5 -0.5 -0.5 -0.5 </upper>\n"
+	string += "<lower> -1.0 -1.0 -1.0 -1.0 </lower>\n"
+	string += "<upper> -1.0 -1.0 -1.0 -1.0 </upper>\n"
 	string += "</gamma>\n"
 
-	# for the random sigma error bar
-	delta=0.0
 
 	# thresholds in each direction 
 	theta1 = np.array ( [ min(k3,k21), max(k3,k21) ] )
@@ -100,8 +98,8 @@ def config( a21, a22 ):
 	        sigmat = stepfunc(0.0,a4,k4,0.5*(theta3[k]+theta3[k+1]))
 
 	        string += "<sigma>\n"
-	        string += "<lower>"+str(sigmax-delta/2.0)+" "+str(sigmay-delta/2.0)+" "+str(sigmaz-delta/2.0)+" "+str(sigmat-delta/2.0)+" "+"</lower>\n"
-	        string += "<upper>"+str(sigmax+delta/2.0)+" "+str(sigmay+delta/2.0)+" "+str(sigmaz+delta/2.0)+" "+str(sigmat+delta/2.0)+" "+"</upper>\n"
+	        string += "<lower>"+str(sigmax)+" "+str(sigmay)+" "+str(sigmaz)+" "+str(sigmat)+" "+"</lower>\n"
+	        string += "<upper>"+str(sigmax)+" "+str(sigmay)+" "+str(sigmaz)+" "+str(sigmat)+" "+"</upper>\n"
 	        string += "</sigma>\n"
 	        string += "</box>\n"
 

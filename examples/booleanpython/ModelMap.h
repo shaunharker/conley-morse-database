@@ -258,6 +258,8 @@ public:
     //
     //
     
+
+
       for ( unsigned int i=0; i<codim; ++i ) { 
         rect0 . lower_bounds [ i ] = y [ i ] . lower ( );
         rect0 . upper_bounds [ i ] = y [ i ] . upper ( );

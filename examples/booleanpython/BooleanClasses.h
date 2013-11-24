@@ -51,14 +51,23 @@ inline std::ostream& operator<< (std::ostream& os, const Face& face) {
   return os;
 }
 
-// need to know when two faces overlap 
+// need to know when two faces overlap properly
+
 inline bool intersect ( const chomp::Rect & rect1, const chomp::Rect & rect2 ) {
   int dim = rect1 . dimension();
   for ( unsigned int i=0; i<dim; ++i ) { 
-    if ( ( rect1.lower_bounds[i] >= rect2.upper_bounds[i] ) || 
-         ( rect1.upper_bounds[i] <= rect2.lower_bounds[i] ) ) {
+    // if ( ( rect1.lower_bounds[i] >= rect2.upper_bounds[i] ) || 
+    //      ( rect1.upper_bounds[i] <= rect2.lower_bounds[i] ) ) {
+    //   return false;
+    // } 
+    // add a small epsilon to avoid some false positive in the intersection
+    if ( rect1.lower_bounds[i] >= rect2.upper_bounds[i] - 1e-10 ) {
       return false;
-    } 
+    }
+    if ( rect1.upper_bounds[i] <= rect2.lower_bounds[i] + 1e-10 ) {
+      return false;
+    }
+
   }
   return true;
 }
