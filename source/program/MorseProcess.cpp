@@ -7,7 +7,14 @@
 #include <ctime>
 #include <cmath>
 
+#include <vector>
+
+#include "boost/unordered_set.hpp"
+#include "boost/unordered_map.hpp"
 #include "boost/foreach.hpp"
+#include "boost/shared_ptr.hpp"
+#include "boost/thread.hpp"
+#include "boost/chrono/chrono_io.hpp"
 
 #include "database/program/Configuration.h"
 #include "database/program/MorseProcess.h"
@@ -27,14 +34,6 @@
 
 #include "ModelMap.h"
 
-/* In Conley_Morse_Database.cpp
-#include <boost/serialization/export.hpp>
-#ifdef HAVE_SUCCINCT
-BOOST_CLASS_EXPORT_IMPLEMENT(SuccinctGrid);
-#endif
-BOOST_CLASS_EXPORT_IMPLEMENT(PointerGrid);
-*/
-
 void MorseProcess::command_line ( int argcin, char * argvin [] ) {
   argc = argcin;
   argv = argvin;
@@ -45,7 +44,6 @@ void MorseProcess::command_line ( int argcin, char * argvin [] ) {
 /* initialize definition */
 /* * * * * * * * * * * * */
 void MorseProcess::initialize ( void ) {
-  using namespace chomp;
   std::cout << "Attempting to load configuration...\n";
   config . loadFromFile ( argv[1] );
   std::cout << "Loaded configuration.\n";
@@ -259,8 +257,7 @@ int MorseProcess::prepare ( Message & job ) {
   job << config.PHASE_SUBDIV_MAX;
   job << config.PHASE_SUBDIV_LIMIT;
   job << model;
-  //job << config.PHASE_BOUNDS;
-  //job << config.PHASE_PERIODIC;
+
   /// Increment the jobs_sent counter
   ++num_jobs_sent_;
   
@@ -268,21 +265,51 @@ int MorseProcess::prepare ( Message & job ) {
   return 0;
 }
  
+struct ClutchingJobWorkThread {
+  Message * result;
+  const Message * job;
+  bool * computed;
+
+  ClutchingJobWorkThread
+            ( Message * result, 
+              const Message * job,
+              bool * computed ) 
+  : result(result), job(job), computed(computed) {}
+
+  void operator () ( void ) {
+    try {
+      Clutching_Graph_Job < PHASE_GRID > ( result , *job );
+      *computed = true;
+    } catch ( ... /* boost::thread_interrupted& */) {
+      *computed = false;
+    }
+  }
+};
 /* * * * * * * * * */
 /* work definition */
 /* * * * * * * * * */
 void MorseProcess::work ( Message & result, const Message & job ) const {
-  using namespace chomp;
-	Clutching_Graph_Job < PHASE_GRID > ( &result , job );
-  //result << (size_t)0;
-  //result << Database ();
+  // Read Job Number
+  size_t job_number;
+  job >> job_number;
+  result << job_number;
+  // Perform work
+  bool computed;
+  ClutchingJobWorkThread cj ( &result, &job, &computed );
+  boost::thread t(cj);
+  if ( not t . try_join_for ( boost::chrono::seconds( 3600 ) ) ) {
+    t.interrupt();
+    t.join();
+  }
+  if ( not computed ) {
+    result << Database ();
+  }
 }
 
 /* * * * * * * * * * */
 /* accept definition */
 /* * * * * * * * * * */
 void MorseProcess::accept(const Message &result) {
-  using namespace chomp;
   /// Read the results from the result message
   size_t job_number;
   Database job_database;
