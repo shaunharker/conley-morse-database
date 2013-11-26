@@ -120,8 +120,6 @@ public:
   /// Put reachability information obtained in "reachability_"
   template < class Map >
   const std::vector < MorseDecomposition * > & decompose ( const Map & f ) {
-    // Subdivide self
-    grid_ -> subdivide (); // better here i guess
     //std::cout << "Perform Morse Decomposition\n"; // Perform Morse Decomposition
     computeMorseSetsAndReachability <Map> ( &decomposition_, &reachability_, * (grid_ . get ()), f );
     //std::cout << "Create Hierarchy Structure\n";// Create Hierarchy Structure with Subdivided Grids for Morse Sets
@@ -134,7 +132,6 @@ public:
 
   template < class Map >
   const std::vector < MorseDecomposition * > & decomposeODE ( const std::vector<Map> & maps ) {
-    grid_ -> subdivide (); // better here i guess
     //std::cout << "Perform Morse Decomposition\n"; // Perform Morse Decomposition
     computeMorseSets <Map> ( &decomposition_, &reachability_, grid_, maps );
     //std::cout << "Create Hierarchy Structure\n";// Create Hierarchy Structure with Subdivided Grids for Morse Sets
@@ -163,6 +160,14 @@ public:
   }
 };
 
+// The MorseDecomposition Tree
+//  The level of subdivision of the root is whatever the initial level is, which we call 0.
+//  The level of subdivision of an internal node in the tree is equal to its depth
+//  The level of subdivision of a leaf node in the tree is the same as the level of
+//      subdivision of its parent.
+//  The children of a node correspond to its Morse Sets (although they may be subdivided).
+//  Algorithmically, this means we call decompose whenever the depth <= the number of
+//  subdivisions we want.
 // ConstructMorseDecomposition
 template < class Map >
 void
@@ -181,7 +186,7 @@ ConstructMorseDecomposition (MorseDecomposition * root,
     MorseDecomposition * work_node = pq . top ();
     pq . pop ();
 #ifdef ODE_METHOD
-    if ( work_node -> size () < 8 ) continue; // DEBUG
+   // if ( work_node -> size () < 8 ) continue; // DEBUG
 #endif
 #ifndef ODE_METHOD
     std::vector < MorseDecomposition * > children = work_node -> decompose ( f );
@@ -193,8 +198,13 @@ ConstructMorseDecomposition (MorseDecomposition * root,
       work_node -> spurious () = true;
     }
     BOOST_FOREACH ( MorseDecomposition * child, children ) {
-      if ( child -> depth () == Max ) continue;
-      if ( child -> depth () >= Min && child -> size () >= Limit ) continue;
+      // Note. depth() should be the number of times it is subdivided,
+      //       unless it is a leaf. When is a child a leaf?
+      //      It (a) its depth is at least Min + 1, its size is greater than limit
+      //      or (b) its depth is at least Max + 1
+      if ( child -> depth () > Max ) continue;
+      if ( child -> depth () > Min && child -> size () > Limit ) continue;
+      child -> grid () -> subdivide ();
       pq . push ( child );
     }
   }
