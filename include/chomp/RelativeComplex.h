@@ -70,7 +70,7 @@ inline RelativeComplex::RelativeComplex ( Complex * X,
  	                                        const std::vector < boost::unordered_set <uint64_t> > & A ) : full ( X )  {
  	for ( int d = 0; d <= X -> dimension (); ++ d ) {
  		for ( uint64_t i = 0; i < X -> size ( d ); ++ i ) {
-      if ( (A . size () >= d) || (A [ d ] . count ( i ) == 0) ) {
+      if ( (A . size () >= (size_t)d) || (A [ d ] . count ( i ) == 0) ) {
  			  insertCell ( i, d );
       }
  		}
@@ -99,13 +99,12 @@ inline void RelativeComplex::coboundary ( Chain * output, const Index input, int
   
 inline void RelativeComplex::include (Chain * output, 
                                       const Chain & input ) const {
-    int D = output -> dimension () = input . dimension ();
-    BOOST_FOREACH ( const Term & t, input () ) {
-    	* output += Term ( indexToCell ( t . index (), D ), t . coef () ); 
-    }
-    *output = simplify ( *output ); 
-  }
-} // namespace chomp
+  int D = output -> dimension () = input . dimension ();
+  BOOST_FOREACH ( const Term & t, input () ) {
+   	* output += Term ( indexToCell ( t . index (), D ), t . coef () ); 
+   }
+   *output = simplify ( *output ); 
+}
 
 inline void RelativeComplex::project (Chain * output, 
                                       const Chain & input ) const {
@@ -116,7 +115,8 @@ inline void RelativeComplex::project (Chain * output,
     	* output += s; 
     }
     *output = simplify ( *output ); 
-  }
+}
+
 } // namespace chomp
 
 #endif
