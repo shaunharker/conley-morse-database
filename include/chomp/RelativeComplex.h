@@ -54,11 +54,11 @@ private:
 	
 	RelativeComplex ( Complex * X, const std::vector < boost::unordered_set <uint64_t> > & A );
 
-	void include ( Chain * output, const Chain & input );
-	void project ( Chain * output, const Chain & input );
+	void include ( Chain * output, const Chain & input ) const;
+	void project ( Chain * output, const Chain & input ) const;
 
-	Chain include ( const Chain & input ) { Chain output; include ( &output, input ); return output; }
-	Chain project ( const Chain & input ) { Chain output; project ( &output, input ); return output; }
+	Chain include ( const Chain & input ) const { Chain output; include ( &output, input ); return output; }
+	Chain project ( const Chain & input ) const { Chain output; project ( &output, input ); return output; }
 
 };
 
@@ -68,9 +68,9 @@ private:
 
 inline RelativeComplex::RelativeComplex ( Complex * X, 
  	                                        const std::vector < boost::unordered_set <uint64_t> > & A ) : full ( X )  {
- 	A . resize ( X . dimension () + 1 );
- 	for ( int d = 0; d <= X . dimension (); ++ d ) {
- 		for ( uint64_t i = 0; i < X . size ( d ); ++ i ) {
+ 	A . resize ( X -> dimension () + 1 );
+ 	for ( int d = 0; d <= X -> dimension (); ++ d ) {
+ 		for ( uint64_t i = 0; i < X -> size ( d ); ++ i ) {
  			if ( A [ d ] . count ( i ) == 0 ) insertCell ( i, d );
  		}
  	}
