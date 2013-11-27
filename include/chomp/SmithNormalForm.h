@@ -395,7 +395,6 @@ void SmithPivot (SparseMatrix<R> * U,
   //END DEBUG
 
   //DEBUG
-  R pivot_value = D -> read ( pivot_index ); 
   if ( D -> read (i, j) == R ( 0 ) ) {
     std::cout << "Pivot cannot be zero!\n";
     exit ( 1 );
@@ -403,6 +402,7 @@ void SmithPivot (SparseMatrix<R> * U,
   //END DEBUG
   
   #ifdef SNF_DEBUG
+  R pivot_value = D -> read ( pivot_index ); 
   std::cout << " **** SMITH PIVOT (" << i << ", " <<
    j << ") value = " << pivot_value << " **** \n";
   print_matrix ( * D );
