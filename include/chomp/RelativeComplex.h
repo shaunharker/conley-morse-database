@@ -52,7 +52,7 @@ private:
 
 	public:
 	
-	RelativeComplex ( Complex * X, const std::vector < boost::unordered_set <uint64_t> > & A );
+	RelativeComplex ( Complex * X, const std::vector < boost::unordered_set <Index> > & A );
 
 	void include ( Chain * output, const Chain & input ) const;
 	void project ( Chain * output, const Chain & input ) const;
@@ -67,7 +67,7 @@ private:
  *******************************/
 
 inline RelativeComplex::RelativeComplex ( Complex * X, 
- 	                                        const std::vector < boost::unordered_set <uint64_t> > & A ) : full ( X )  {
+ 	                                        const std::vector < boost::unordered_set <Index> > & A ) : full ( X )  {
  	for ( int d = 0; d <= X -> dimension (); ++ d ) {
  		for ( uint64_t i = 0; i < X -> size ( d ); ++ i ) {
       if ( (A . size () >= (size_t)d) || (A [ d ] . count ( i ) == 0) ) {
