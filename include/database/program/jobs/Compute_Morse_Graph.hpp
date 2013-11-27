@@ -128,6 +128,7 @@ public:
   decompose ( const Map & f ) {
     //std::cout << "decompose at depth " << depth () << "\n";
     computeMorseSetsAndReachability <Map> ( &decomposition_, &reachability_, * (grid_ . get ()), f );    
+    //std::cout << "  found " << decomposition_ . size () << " components\n";
   }
 
   const std::vector < MorseDecomposition * > & 
@@ -137,6 +138,8 @@ public:
       children_ . push_back ( new MorseDecomposition ( decomposition_ [ i ] -> clone (), 
                                                        depth() + 1 ) );
     }
+    //std::cout << "  spawned " << children_ . size () << " children\n";
+
     return children_;
   } 
 
@@ -187,19 +190,35 @@ ConstructMorseDecomposition (MorseDecomposition * root,
     }
     MorseDecomposition * work_node = pq . top ();
     pq . pop ();
+    //std::cout << "Depth " << work_node -> depth () << ", node " << work_node 
+    //          << ", size = " << work_node -> size () << "\n";
+
+    // Do not decompose if past Min depth and over the Limit size.
+    if ( ( work_node -> depth () > Min ) 
+         && ( work_node -> size () > Limit ) ) {
+      //std::cout << "Halting search due to Limit.\n";
+      continue;
+    }
+
     work_node -> decompose ( f );
-    if ( (work_node -> depth () < Min)
-        || ( work_node -> depth () < Max && work_node -> size () < Limit ) ) {
+
+    // Check for spuriousness
+    if ( work_node -> decomposition ()  . empty () ) {
+      //std::cout << "Empty decomposition for " << work_node << ", marking as spurious.\n";
+      work_node -> spurious () = true;
+    }
+
+    // Hierarchical Step
+    if ( (work_node -> depth () < Max) ) {
       std::vector < MorseDecomposition * > children = work_node -> spawn ();
       BOOST_FOREACH ( MorseDecomposition * child, children ) {
         child -> grid () -> subdivide ();
         pq . push ( child );
       }
-    }
-    // Check if node is "spurious", i.e. it has an immediate trivial Morse decomposition
-    if ( work_node -> decomposition ()  . empty () ) {
-      work_node -> spurious () = true;
-    }
+    } 
+    //else {
+      //std::cout << "Halting search due to Max.\n";
+    //}
   }
 }
 
@@ -222,8 +241,8 @@ void ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
     MorseDecomposition * MD = eulertourstack . top () . first;
     unsigned int childnum = eulertourstack . top () . second;
     eulertourstack . pop ();
-    unsigned int N = MD -> children () . size ();
-    if ( childnum < N ) {
+    unsigned int NC = MD -> children () . size ();
+    if ( childnum < NC ) {
         eulertourstack . push ( std::make_pair ( MD, childnum + 1 ) );
         eulertourstack . push ( std::make_pair ( MD -> children () [ childnum ], 0 ) );
     } else {
@@ -231,58 +250,75 @@ void ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
       // Check for Spuriousness
       // If it has children that are all marked spurious, then it is spurious.
       // If it does not have children, it is spurious if and only if it is already marked spurious
-      if ( N > 0 ) {
+      if ( NC > 0 ) {
         MD -> spurious () = true; // by default; we may however switch it back to false
-        for ( unsigned int i = 0; i < N; ++ i ) {
+        for ( unsigned int i = 0; i < NC; ++ i ) {
           if ( not MD -> children () [ i ] -> spurious () ) MD -> spurious () = false;
         }
       }
-      if ( MD -> spurious () ) continue;
-      if ( MD -> depth () == Min ) grids . push_back ( MD -> grid () ); 
-      if ( MD -> depth () > Min ) continue; 
-
-// Intermediate MD node reachability step
-#ifndef NO_REACHABILITY
-      for ( unsigned int i = 0; i < N; ++ i ) {
-        const std::vector < unsigned int > & reaches = MD -> reachability () [ i ];
-        BOOST_FOREACH ( unsigned int j, reaches ) {
-          if ( i == j ) continue;
-          BOOST_FOREACH ( Vertex u, temp [ MD -> children () [ i ] ] ) {
-            BOOST_FOREACH ( Vertex v, temp [ MD -> children () [ j ] ] ) {
-              MG -> AddEdge ( u, v );
-            }
-          }
-        }
-      }
-
-#endif
-
       temp [ MD ] = std::vector < Vertex > ();
+
+      if ( MD -> depth () > Min ) continue; 
+      grids . push_back ( MD -> grid () );
+      if ( MD -> spurious () ) { 
+        //std::cout << "Spurious Rule 1 invoked on MD = " << MD << "\n";
+        continue;
+      }
+      // Case 1. Min Depth Case
       // Morse Graph Vertex Creation Step 
       // (and special case for reachability)
       if ( MD -> depth () == Min ) {
+        //std::cout << "Node " << MD << "\n";
+        boost::unordered_map < int, Vertex > non_spurious_decomposition;
         unsigned int ND = MD -> decomposition () . size ();
         for ( int i = 0 ; i < ND; ++ i ) {
-          if ( (N == ND) && MD -> children () [ i ] -> spurious () ) continue;
+          //std::cout << "Child " << i << " out of " << ND << "\n";
+          if ( (NC == ND) && MD -> children () [ i ] -> spurious () ) { 
+            //std::cout << "Spurious Rule 2 invoked, skipping child " << i << ".\n";
+            continue;
+          }
           Vertex v = MG -> AddVertex ();
+          //std::cout << "Adding vertex " << v << " for child " << i << "\n";
           MG -> grid ( v ) = MD -> decomposition () [ i ];
           temp [ MD ] . push_back ( v );
+          non_spurious_decomposition [ i ] = v;
         }
 #ifndef NO_REACHABILITY
-        for ( int i = 0 ; i < ND; ++ i ) {
-          Vertex u = temp [ MD ] [ i ];
+        typedef std::pair<int, Vertex> intVertexPair;
+        BOOST_FOREACH ( const intVertexPair & ivp, non_spurious_decomposition ) {
+          int i = ivp . first;
+          Vertex u = ivp . second;
           const std::vector < unsigned int > & reaches = MD -> reachability () [ i ];
           BOOST_FOREACH ( unsigned int j, reaches ) {
             if ( i == j ) continue;
-            Vertex v = temp [ MD ] [ j ];
+            if ( non_spurious_decomposition . count ( j ) == 0 ) continue;
+            Vertex v = non_spurious_decomposition [ j ];
             MG -> AddEdge ( u, v );
+            //std::cout << "(A) Adding edge " << u << " " << v << "\n";
           }
         }
 #endif
       } 
+      // Case 2. Less than Min Depth Case
       // temp [MD] creation step
       if ( MD -> depth () < Min ) {
-        for ( unsigned int i = 0; i < N; ++ i ) {
+      // Intermediate MD node reachability step
+#ifndef NO_REACHABILITY
+        for ( unsigned int i = 0; i < NC; ++ i ) {
+          const std::vector < unsigned int > & reaches = MD -> reachability () [ i ];
+          BOOST_FOREACH ( unsigned int j, reaches ) {
+           if ( i == j ) continue;
+           BOOST_FOREACH ( Vertex u, temp [ MD -> children () [ i ] ] ) {
+              BOOST_FOREACH ( Vertex v, temp [ MD -> children () [ j ] ] ) {
+                MG -> AddEdge ( u, v );
+                //std::cout << "(B) Adding edge " << u << " " << v << "\n";
+              }
+            }
+          }
+        }
+#endif
+        // Create temp for intermediate
+        for ( unsigned int i = 0; i < NC; ++ i ) {
           temp [ MD ] . insert (temp [ MD ] . begin (),
                                 temp [ MD -> children () [ i ] ] . begin (),
                                 temp [ MD -> children () [ i ] ] . end ());
