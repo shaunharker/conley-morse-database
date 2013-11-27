@@ -6,12 +6,12 @@
 <param>
   <dim> 2 </dim>
   <bounds>
-    <lower> 8.0 3.0 </lower>
-    <upper> 37.0 50.0 </upper>
+    <lower> 19.6 21.8 </lower>
+    <upper> 19.6 21.8 </upper>
   </bounds>
   <subdiv>
     <depth> 6 </depth>
-    <sizes> 23 41 </sizes>
+    <sizes> 2 2 </sizes>
   </subdiv>
 </param>
 <phase>
@@ -21,9 +21,9 @@
     <upper> 320.056 224.040 </upper>
   </bounds>
   <subdiv>
-    <init> 11 </init>
-    <min> 12 </min>
-    <max> 14 </max>
+    <init> 24 </init>
+    <min> 24 </min>
+    <max> 24 </max>
     <limit> 10000 </limit>
   </subdiv>
 </phase>

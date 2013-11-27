@@ -66,7 +66,8 @@ public:
 
   // Constructor
   template < class GridPtr >
-  MorseDecomposition ( GridPtr grid, int depth ) : grid_ ( grid ), spurious_(false), depth_(depth) {
+  MorseDecomposition ( GridPtr grid, int depth ) 
+  : grid_ ( grid ), spurious_(false), depth_(depth) {
     if ( grid_ . get () == NULL ) {std::cout << "Error Compute_Morse_Graph.hpp line 65\n"; abort (); }
 #ifdef MEMORYBOOKKEEPING
     max_grid_external_memory += grid -> memory ();
@@ -88,6 +89,11 @@ public:
   /// MorseDecomposition::depth
   /// tell how deep in hierarchical decomposition we are
   size_t depth ( void ) const { return depth_; }
+
+  /// MorseDecomposition::decomposition
+  const std::vector< boost::shared_ptr<Grid> > & decomposition ( void ) const {
+    return decomposition_;
+  }
 
   /// MorseDecomposition::children
   /// accessor method to return vector of MorseDecomposition * pointing to hierarchical children.
@@ -118,31 +124,22 @@ public:
   /// Fill these into "decomposition_"
   /// Fill children_ with an equal sized vector of pointers to new MorseDecomposition objects seeded with those sets.
   /// Put reachability information obtained in "reachability_"
-  template < class Map >
-  const std::vector < MorseDecomposition * > & decompose ( const Map & f ) {
-    //std::cout << "Perform Morse Decomposition\n"; // Perform Morse Decomposition
-    computeMorseSetsAndReachability <Map> ( &decomposition_, &reachability_, * (grid_ . get ()), f );
-    //std::cout << "Create Hierarchy Structure\n";// Create Hierarchy Structure with Subdivided Grids for Morse Sets
+  template < class Map > void 
+  decompose ( const Map & f ) {
+    //std::cout << "decompose at depth " << depth () << "\n";
+    computeMorseSetsAndReachability <Map> ( &decomposition_, &reachability_, * (grid_ . get ()), f );    
+  }
+
+  const std::vector < MorseDecomposition * > & 
+  spawn ( void ) {
+    //std::cout << "spawn at depth " << depth () << "\n";
     for ( size_t i = 0; i < decomposition_ . size (); ++ i ) {      
-      //decomposition_ [ i ] -> subdivide ();
-      children_ . push_back ( new MorseDecomposition ( decomposition_ [ i ], depth() + 1 ) );
+      children_ . push_back ( new MorseDecomposition ( decomposition_ [ i ] -> clone (), 
+                                                       depth() + 1 ) );
     }
     return children_;
-  }
+  } 
 
-  template < class Map >
-  const std::vector < MorseDecomposition * > & decomposeODE ( const std::vector<Map> & maps ) {
-    //std::cout << "Perform Morse Decomposition\n"; // Perform Morse Decomposition
-    computeMorseSets <Map> ( &decomposition_, &reachability_, grid_, maps );
-    //std::cout << "Create Hierarchy Structure\n";// Create Hierarchy Structure with Subdivided Grids for Morse Sets
-    for ( size_t i = 0; i < decomposition_ . size (); ++ i ) {
-      //decomposition_ [ i ] -> subdivide ();
-      children_ . push_back ( new MorseDecomposition ( decomposition_ [ i ], depth() + 1 ) );
-    }
-    return children_;
-  }
-
-  
 private:
   // Member Data
   boost::shared_ptr<Grid> grid_;
@@ -178,34 +175,30 @@ ConstructMorseDecomposition (MorseDecomposition * root,
                              const unsigned int Limit ) {
   size_t nodes_processed = 0;
   // We use a priority queue in order to do the more difficult computations first.
-  std::priority_queue < MorseDecomposition *, std::vector<MorseDecomposition *>, MorseDecompCompare > pq;
+  std::priority_queue < MorseDecomposition *, 
+                        std::vector<MorseDecomposition *>, 
+                        MorseDecompCompare > pq;
   pq . push ( root );
   while ( not pq . empty () ) {
     ++ nodes_processed;
-    if ( nodes_processed % 1000 == 0 ) std::cout << nodes_processed << " nodes have been encountered on Morse Decomposition Hierarchy.\n";
+    if ( nodes_processed % 1000 == 0 ) { 
+      std::cout << nodes_processed 
+        << " nodes have been encountered on Morse Decomposition Hierarchy.\n";
+    }
     MorseDecomposition * work_node = pq . top ();
     pq . pop ();
-#ifdef ODE_METHOD
-   // if ( work_node -> size () < 8 ) continue; // DEBUG
-#endif
-#ifndef ODE_METHOD
-    std::vector < MorseDecomposition * > children = work_node -> decompose ( f );
-#else
-    std::vector < MorseDecomposition * > children = work_node -> decomposeODE ( f );
-#endif
-    if ( children . empty () ) {
-      // Mark as spurious
-      work_node -> spurious () = true;
+    work_node -> decompose ( f );
+    if ( (work_node -> depth () < Min)
+        || ( work_node -> depth () < Max && work_node -> size () < Limit ) ) {
+      std::vector < MorseDecomposition * > children = work_node -> spawn ();
+      BOOST_FOREACH ( MorseDecomposition * child, children ) {
+        child -> grid () -> subdivide ();
+        pq . push ( child );
+      }
     }
-    BOOST_FOREACH ( MorseDecomposition * child, children ) {
-      // Note. depth() should be the number of times it is subdivided,
-      //       unless it is a leaf. When is a child a leaf?
-      //      It (a) its depth is at least Min + 1, its size is greater than limit
-      //      or (b) its depth is at least Max + 1
-      if ( child -> depth () > Max ) continue;
-      if ( child -> depth () > Min && child -> size () > Limit ) continue;
-      child -> grid () -> subdivide ();
-      pq . push ( child );
+    // Check if node is "spurious", i.e. it has an immediate trivial Morse decomposition
+    if ( work_node -> decomposition ()  . empty () ) {
+      work_node -> spurious () = true;
     }
   }
 }
@@ -245,47 +238,50 @@ void ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
         }
       }
       if ( MD -> spurious () ) continue;
-      if ( MD -> depth () > Min ) continue;
-      grids . push_back ( MD -> grid () );
+      if ( MD -> depth () == Min ) grids . push_back ( MD -> grid () ); 
+      if ( MD -> depth () > Min ) continue; 
 
-      // Amalgamate reachability information
+// Intermediate MD node reachability step
 #ifndef NO_REACHABILITY
       for ( unsigned int i = 0; i < N; ++ i ) {
-        // "reaches" will tell us which children of MD are reachable from the ith child of MD
         const std::vector < unsigned int > & reaches = MD -> reachability () [ i ];
-        //std::cout << "reaching info: " << reaches . size () << "\n";
-        // We loop through the MorseGraph vertices corresponding to the ith child
-        // and the jth child, and record the reachability.
         BOOST_FOREACH ( unsigned int j, reaches ) {
           if ( i == j ) continue;
-          BOOST_FOREACH ( Vertex u,
-                         temp [ MD -> children () [ i ] ] ) {
-            BOOST_FOREACH ( Vertex v,
-                           temp [ MD -> children () [ j ] ] ) {
-              //std::cout << "Adding edge (" << u << ", " << v << ")\n";
+          BOOST_FOREACH ( Vertex u, temp [ MD -> children () [ i ] ] ) {
+            BOOST_FOREACH ( Vertex v, temp [ MD -> children () [ j ] ] ) {
               MG -> AddEdge ( u, v );
             }
           }
         }
       }
-#endif
-      // Aggregate temp data
-      temp [ MD ] = std::vector < Vertex > ();
-      if ( (MD -> depth () == Min) && (MD -> spurious () == false) ) {
-        if ( MD -> grid () . get () == NULL ) {
-          std::cout << "Error at ComputeMorseGraph.hpp line 268\n";
-          abort ();
-        }
-        Vertex v = MG -> AddVertex ();
-        MG -> grid ( v ) = MD -> grid ();
-        //std::cout << " .CMG. vertex " << v << " has a grid of type " << typeid( * MG -> grid ( v ) ).name() << "\n";
 
-        if ( MG -> grid ( v ) . get () == NULL ) {
-          std::cout << "Error at ComputeMorseGraph.hpp line 274\n";
-          abort ();
+#endif
+
+      temp [ MD ] = std::vector < Vertex > ();
+      // Morse Graph Vertex Creation Step 
+      // (and special case for reachability)
+      if ( MD -> depth () == Min ) {
+        unsigned int ND = MD -> decomposition () . size ();
+        for ( int i = 0 ; i < ND; ++ i ) {
+          if ( (N == ND) && MD -> children () [ i ] -> spurious () ) continue;
+          Vertex v = MG -> AddVertex ();
+          MG -> grid ( v ) = MD -> decomposition () [ i ];
+          temp [ MD ] . push_back ( v );
         }
-        temp [ MD ] . push_back ( v );
-      } else if ( N > 0 ) {
+#ifndef NO_REACHABILITY
+        for ( int i = 0 ; i < ND; ++ i ) {
+          Vertex u = temp [ MD ] [ i ];
+          const std::vector < unsigned int > & reaches = MD -> reachability () [ i ];
+          BOOST_FOREACH ( unsigned int j, reaches ) {
+            if ( i == j ) continue;
+            Vertex v = temp [ MD ] [ j ];
+            MG -> AddEdge ( u, v );
+          }
+        }
+#endif
+      } 
+      // temp [MD] creation step
+      if ( MD -> depth () < Min ) {
         for ( unsigned int i = 0; i < N; ++ i ) {
           temp [ MD ] . insert (temp [ MD ] . begin (),
                                 temp [ MD -> children () [ i ] ] . begin (),
@@ -295,13 +291,8 @@ void ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
       }
     } 
   }
-//#ifdef USE_SUCCINCT
   join ( master_grid, grids . begin (), grids . end () );
   MG -> phaseSpace () = master_grid;
-  //std::cout << "IMPLEMENTATION INCOMPLETE: JOIN NOT IMPLEMENTED.\n";
-  //boost::shared_ptr<CompressedGrid> joinup ( Grid::join ( grids . begin (), grids . end () ) );
-  //master_grid -> assign ( * joinup );
-//#endif
 }
 
 
@@ -356,5 +347,19 @@ void Compute_Morse_Graph (MorseGraph * MG,
 #endif
   //std::cout << "Returning from COMPUTE MORSE GRAPH\n";
 }
+
+#endif
+
+#if 0
+  template < class Map >
+  const std::vector < MorseDecomposition * > & decomposeODE ( const std::vector<Map> & maps ) {
+    //std::cout << "Perform Morse Decomposition\n"; // Perform Morse Decomposition
+    computeMorseSets <Map> ( &decomposition_, &reachability_, grid_, maps );
+    //std::cout << "Create Hierarchy Structure\n";// Create Hierarchy Structure with Subdivided Grids for Morse Sets
+    for ( size_t i = 0; i < decomposition_ . size (); ++ i ) {
+      children_ . push_back ( new MorseDecomposition ( decomposition_ [ i ] . clone (), depth() + 1 ) );
+    }
+    return children_;
+  }
 
 #endif
