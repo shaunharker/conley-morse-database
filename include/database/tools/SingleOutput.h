@@ -75,13 +75,16 @@ std::string conleyStringForZoo ( const std::vector<std::string> & ci_strings ) {
     return ci_string;
 }
 
-inline void CreateDotFile ( const MorseGraph & cmg ) {
+inline void CreateDotFile ( const char * inputfile, const MorseGraph & cmg ) {
   typedef MorseGraph::Vertex V;
   typedef MorseGraph::Edge E;
   typedef MorseGraph::VertexIterator VI;
   typedef MorseGraph::EdgeIterator EI;
   
-  std::ofstream outfile ("morsegraph.gv");
+
+
+  // std::ofstream outfile ("morsegraph.gv");
+  std::ofstream outfile (inputfile);
   
   outfile << "digraph G { \n";
   //outfile << "node [ shape = point, color=black  ];\n";

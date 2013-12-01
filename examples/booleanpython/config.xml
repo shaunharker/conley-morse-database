@@ -6,8 +6,8 @@
 <param>
   <dim> 2 </dim>
   <bounds>
-    <lower> 0.0 200.0 </lower>
-    <upper> 0.0 200.0 </upper>
+    <lower> 0.0 0.0 </lower>
+    <upper> 200.0 200.0 </upper>
     <sizes> 2 2 </sizes>
   </bounds>
   <subdiv>

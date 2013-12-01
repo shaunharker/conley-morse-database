@@ -18,9 +18,9 @@ public:
   void addMap ( const size_type & chartid1, const size_type & chartid2, const ChartMap & map );
 
 	void list_maps ( void ) const {
-		typename boost::unordered_map < size_type, std::vector < std::pair < size_type, ChartMap > > >::iterator it;
+		// typename boost::unordered_map < size_type, std::vector < std::pair < size_type, ChartMap > > >::iterator it;
 		std::cout << "List of Maps : \n";
-		for ( it=maps_.begin(); it!=maps_.end(); ++it ) {
+		for ( typename boost::unordered_map < size_type, std::vector < std::pair < size_type, ChartMap > > >::const_iterator it=maps_.begin(); it!=maps_.end(); ++it ) {
 			std::vector < std::pair < size_type, ChartMap > > mymaps = it->second;
 			for ( unsigned int i=0; i<mymaps.size(); ++i ) {
 				std::cout << "Map from " << it->first << " to " << mymaps[i].first <<"\n";
@@ -49,6 +49,7 @@ public:
   }
 
   bool good ( void ) const { return true; }
+
 private:
   boost::unordered_map < size_type, std::vector < std::pair < size_type, ChartMap > > > maps_;  
 };

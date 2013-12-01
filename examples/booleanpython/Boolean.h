@@ -80,7 +80,7 @@ std::vector < std::pair < Face, Face > >
 findPairFaces ( const chomp::Rect & phasespace, 
 								const BooleanBox & booleanbox ) {
 
-	double delta ( 1e-11 ); // to define a fixed point as a small segment, TO CHANGED
+	// double delta ( 1e-11 ); // to define a fixed point as a small segment, TO CHANGED
 
 	std::vector < std::pair < Face, Face > > result;
 // //
@@ -124,8 +124,8 @@ findPairFaces ( const chomp::Rect & phasespace,
 		std::vector < double > lb, ub;
 // 		// Assume small rect around the fixed point
 		for ( unsigned int i=0; i<dim; ++i ) {
-			lb . push_back ( - mysigma [ i ] / mygamma [ i ] - delta/2.0);
-			ub . push_back ( - mysigma [ i ] / mygamma [ i ] + delta/2.0);
+			lb . push_back ( - mysigma [ i ] / mygamma [ i ] ); //- delta/2.0);
+			ub . push_back ( - mysigma [ i ] / mygamma [ i ] ); //+ delta/2.0);
 		}
 // 		// 
 		fp . rect = chomp::Rect ( dim, lb, ub ); // right now we assume, fixed point ~ tiny 

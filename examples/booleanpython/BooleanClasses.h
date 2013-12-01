@@ -116,13 +116,24 @@ public:
 };
 
 
+class BasicRect {
+  std::vector < double > lower_bounds;
+  std::vector < double > upper_bounds;
+};
+
 // Valid in Higher Dimension
 inline void BooleanConfig::load ( const char * inputfile, const RectGeo & param ) {
   using boost::property_tree::ptree;
   ptree pt;
 
   Py_Initialize ( ); 
-  std::cout << "Using Python " << Py_GetVersion() << std::endl;
+
+
+// boost::python::class_<std::vector<double> >("PyVec")
+// .def(boost::python::vector_indexing_suite<std::vector<double> >());
+
+
+  // std::cout << "Using Python " << Py_GetVersion() << std::endl;
   //  // Retrieve the main module.
   boost::python::object main = boost::python::import("__main__");
   
@@ -134,10 +145,13 @@ inline void BooleanConfig::load ( const char * inputfile, const RectGeo & param 
 
   boost::python::object pyf = main.attr("config");
 
-  double A, B;
+  double A, B; //, C, D;
   A = 0.5 * ( param.lower_bounds[0] + param.upper_bounds[0] );
   B = 0.5 * ( param.lower_bounds[1] + param.upper_bounds[1] );
+  // C = 0.5 * ( param.lower_bounds[2] + param.upper_bounds[2] );
+  // D = 0.5 * ( param.lower_bounds[3] + param.upper_bounds[3] );
   
+  //std::string message = boost::python::extract<std::string>(pyf ( A, B, C, D ));
   std::string message = boost::python::extract<std::string>(pyf ( A, B ));
 
   Py_Finalize ( );

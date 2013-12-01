@@ -66,6 +66,7 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
     //std::cout << " Processing parameter box " << i << "/" << box_names . size () << "\n";
     //Prepare phase space and map
     Grid::GridElement box = box_names [ i ];
+
     phase_space_grids [ box ] = boost::dynamic_pointer_cast < PhaseGrid > 
       ( model . phaseSpace ( box_geometries [ i ] ) );
     if ( not phase_space_grids [ box ] ) {

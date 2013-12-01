@@ -63,7 +63,7 @@ public:
   void add_chart ( const int & id, const RectGeo & rect);
   void add_chart ( const int & id, const int & dimension, const RectGeo & rect);
 
-  void list_charts ( void ) {
+  void list_charts ( void ) const {
     boost::unordered_map < size_type, Chart >::const_iterator it;
     std::cout << "\nList of charts :\n";
     for ( it=charts_.begin(); it!=charts_.end(); ++it ) {

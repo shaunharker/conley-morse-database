@@ -21,7 +21,7 @@
 //
 // X ( t ) = -sigma/gamma + ( X(0) + sigma/gamma ) * exp ( gamma * t )
 //
-// Will take and return an AtlasGeo of Codimension 1
+// Will take and return an AtlasGeo of Dimension 1
 // 
 //
 // Map between two faces defined as : face1 -> face2
@@ -104,7 +104,14 @@ public:
   BooleanChartMap ( int status, double gamma, double sigma, interval T ) : status_(status),gamma_(gamma),sigma_(sigma),T_(T) {}
 	
   // New Map interface : Now the computation for T are done within Map
-  BooleanChartMap ( int status, int imageid, std::vector<double> gamma, std::vector<double> sigma, Face face1, Face face2 ) : status_(status),imageid_(imageid),gamma_(gamma),sigma_(sigma),face1_(face1),face2_(face2) {}
+  BooleanChartMap ( int status, 
+                    int imageid, 
+                    std::vector<double> gamma, 
+                    std::vector<double> sigma, 
+                    Face face1, 
+                    Face face2 ) 
+  : status_(status),imageid_(imageid),gamma_(gamma),
+    sigma_(sigma),face1_(face1),face2_(face2) {}
 
 
   // AtlasGeo operator ( ) ( boost::shared_ptr < Geo > geo_ptr ) const {
@@ -114,12 +121,17 @@ public:
 
   // Here AtlasGeo geo is codimension-1
   AtlasGeo operator ( ) ( const AtlasGeo & geo ) const {
-    std::vector < AtlasGeo > result;
+    // Special case of a fixed point
+    if ( face2_.direction == -1 ) {
+      AtlasGeo fixed_point ( imageid_, RectGeo ( 0 ) );
+      return fixed_point;
+    }
+    // We can assume the map is between codim-1 faces
   	RectGeo rectgeo = geo . rect ();
 
-    int codim = rectgeo . lower_bounds . size();
+    int atlasgeodim = rectgeo . lower_bounds . size();
 
-    RectGeo rect0 ( codim );
+    RectGeo rect0 ( atlasgeodim );
     
     std::vector < interval > x, y;
 
@@ -128,24 +140,26 @@ public:
     std::vector < double > ubrg = rectgeo . upper_bounds;
     std::vector < double >::iterator it;
     it = lbrg . begin();
+    /*
     if ( face1_.direction == -1 ) {
       // std::cout << "we are dealing with a fixed point \n";
       it = lbrg.insert ( it, face1_.rect.lower_bounds[face1_.direction] );
       it = ubrg . begin();
       it = ubrg.insert ( it, face1_.rect.upper_bounds[face1_.direction] );
     } else { 
-      it += face1_.direction;
-      it = lbrg.insert ( it, face1_.rect.lower_bounds[face1_.direction] );
-      it = ubrg . begin();
-      it += face1_.direction;
-      it = ubrg.insert ( it, face1_.rect.upper_bounds[face1_.direction] );
-    }
+      */
+    it += face1_.direction;
+    it = lbrg.insert ( it, face1_.rect.lower_bounds[face1_.direction] );
+    it = ubrg . begin();
+    it += face1_.direction;
+    it = ubrg.insert ( it, face1_.rect.upper_bounds[face1_.direction] );
+    //}
 
     // Rect is n-dimensional, geo was n-1 dimensional
-    chomp::Rect rect ( codim+1, lbrg, ubrg );
+    RectGeo rect ( atlasgeodim+1, lbrg, ubrg );
 
     // Normal case : 
-    if ( status_ == 0 ) {
+    //if ( status_ == 0 ) {
       int dir1 = face1_ . direction;
       int dir2 = face2_ . direction;
 
@@ -169,14 +183,14 @@ public:
         // compute the image of the face 
         // std::cout << "rect : " << rect << "\n";
         std::vector < interval > ix, iy;
-        for ( unsigned int i=0; i<codim+1; ++i ) {
+        for ( unsigned int i=0; i<atlasgeodim+1; ++i ) {
           ix . push_back ( interval ( rect.lower_bounds[i], rect.upper_bounds[i] ) ); 
         }
 
         iy = timemap ( gamma_, sigma_, ix, interval(T,T) );
 
         std::vector < double > lb, ub;
-        for ( unsigned int i=0; i<codim+1; ++i ) {
+        for ( unsigned int i=0; i<atlasgeodim+1; ++i ) {
           // do not keep the image along the direction dir2
           if ( i != dir2 ) {
             lb . push_back ( iy[i].lower() );
@@ -207,14 +221,14 @@ public:
         // std::vector < double > lb2, ub2;
         interval iT ( std::min(T1,T2), std::max(T1,T2) );
         std::vector < interval > is, iv;
-        for ( unsigned int i=0; i<codim+1; ++i ) {
+        for ( unsigned int i=0; i<atlasgeodim+1; ++i ) {
           is . push_back ( interval ( rect.lower_bounds [ i ], rect.upper_bounds [ i ] ) );
         }
         // image using interval arithmetic
         iv = timemap ( gamma_, sigma_, is, iT );
         //
         std::vector < interval > myimage;
-        for ( unsigned int i=0; i<codim+1; ++i ) {
+        for ( unsigned int i=0; i<atlasgeodim+1; ++i ) {
           if ( i != face2_ . direction ) {
             myimage . push_back ( iv [ i ] );
           }
@@ -231,19 +245,19 @@ public:
         }
 
       }
-    }
-
+    //}
+/*
     if ( status_ == 1) {    //
       // Identity Maps
       // std::cout << "perform an identity map\n";
-      for ( unsigned int i=0; i<codim; ++i ) {
+      for ( unsigned int i=0; i<Dim; ++i ) {
         y . push_back ( interval ( rectgeo.lower_bounds[i], rectgeo.upper_bounds[i] ) );
       }
      } 
     if ( status_ == 2 ) {
       // Map to a fixed point given by sigma_, gamma_ values 
       // std::cout << "mapping to a fixed point\n";
-      for ( unsigned int i=1; i<codim+1; ++i ) {
+      for ( unsigned int i=1; i<Dim+1; ++i ) {
         y . push_back ( interval ( -sigma_[i]/gamma_[i], -sigma_[i]/gamma_[i] ) );
       }
     }
@@ -251,23 +265,22 @@ public:
       // Map to a GridElement that cannot be covered
       // used when a GridElement is mapped outside the phase space
       // std::cout << "mapping outside the phase space\n";
-      for ( unsigned int i=0; i<codim; ++i ) {
+      for ( unsigned int i=0; i<Dim; ++i ) {
         y . push_back ( interval ( 1E+37, 1E+37 ) );
       }
     }
+    */
     //
     //
     
-
-
-      for ( unsigned int i=0; i<codim; ++i ) { 
+      for ( unsigned int i=0; i<atlasgeodim; ++i ) { 
         rect0 . lower_bounds [ i ] = y [ i ] . lower ( );
         rect0 . upper_bounds [ i ] = y [ i ] . upper ( );
       }
     
     //
     return AtlasGeo ( imageid_, rect0 );
-}
+  }
 
 
 bool good ( void ) const { return true; }

@@ -7,18 +7,18 @@ CHECKIFMAPISGOOD := yes
 #
 COMPUTE_MORSE_SETS := yes
 COMPUTE_CONTINUATION := yes
-COMPUTE_CONLEY_INDEX := yes
+COMPUTE_CONLEY_INDEX := no
 DRAW_IMAGES := yes
 #
 # CAPD Library 
 #
-USE_CAPD := yes
+USE_CAPD := no
 #
 # Memory saving option : PointerGrid, SuccinctGrid 
 #
 HAVE_SUCCINCT := yes
 PARAMETER_GRID := UniformGrid
-PHASE_GRID := PointerGrid
+PHASE_GRID := Atlas
 #
 # if modelmap has good() implemented
 PARAM_SPACE_METHOD := PATCHMETHOD
@@ -30,7 +30,7 @@ MONOTONICSUBDIVISION := no
 ###########################################
 #
 ifeq ($(USE_CAPD),no)
-USE_BOOST_INTERVAL := no
+USE_BOOST_INTERVAL := yes
 endif 
 #
 include makefile.config
@@ -102,6 +102,23 @@ EXPORTXML += ./build/structures/XMLExporter.o
 ExportXML: $(EXPORTXML)
 	$(CC) $(LDFLAGS) $(EXPORTXML) -o $@ $(LDLIBS)
 
+ATLASCMG := ./build/test/AtlasCMG.o 
+AtlasCMG: $(ATLASCMG)
+	$(CC) $(LDFLAGS) -I$(MODELDIR) $(ATLASCMG) -o $@ $(LDLIBS)
+	
+BOOLEANCMG := ./build/test/BooleanCMG.o 
+BooleanCMG: $(BOOLEANCMG)
+	$(CC) $(LDFLAGS) -I$(MODELDIR) $(BOOLEANCMG) -o $@ $(LDLIBS)
+#	mv BooleanCMG $(MODELDIR)
+#	@echo "BooleanCMG was moved to " $(MODELDIR)
+
+BOOLEANTESTCMG := ./build/test/BooleanTestCMG.o 
+BooleanTestCMG: $(BOOLEANTESTCMG)
+	$(CC) $(LDFLAGS) -I$(MODELDIR) $(BOOLEANTESTCMG) -o $@ $(LDLIBS)
+#	mv BooleanCMG $(MODELDIR)
+#	@echo "BooleanCMG was moved to " $(MODELDIR)
+
+
 
 SINGLECMG := ./build/test/SingleCMG.o 
 SingleCMG: $(SINGLECMG)
@@ -158,10 +175,6 @@ LVCMG: $(LVCMG)
 SELKOVCMG := ./build/test/SelkovCMG.o
 SelkovCMG: $(SELKOVCMG)
 	$(CC) $(LDFLAGS) $(SELKOVCMG) -o $@ $(LDLIBS)
-
-ATLASCMG := ./build/test/AtlasCMG.o
-AtlasCMG: $(ATLASCMG)
-	$(CC) $(LDFLAGS) $(ATLASCMG) -o $@ $(LDLIBS)
 
 SUBMAPTEST := ./build/test/SubdividedMapTest.o
 SubdividedMapTest: $(SUBMAPTEST)

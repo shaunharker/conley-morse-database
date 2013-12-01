@@ -104,10 +104,11 @@ inline boost::shared_ptr < Grid > Model::phaseSpace ( const Parameter & p ) {
       }
     }
     // check if it is a fixed point
-    if ( faces_ [ i ]  . direction != - 1) {
+    if ( faces_ [ i ]  . direction != - 1) {      
       myatlas -> add_chart ( i, RectGeo ( dim_ - 1, lb, ub ) );
     } else { 
-      myatlas -> add_chart ( i, 0, RectGeo ( dim_ - 1, lb, ub ) );
+      // myatlas -> add_chart ( i, 0, RectGeo ( dim_ - 1, lb, ub ) );
+      myatlas -> add_chart ( i, RectGeo ( 0 ) );
     }
   }
   //
