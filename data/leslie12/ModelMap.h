@@ -34,11 +34,12 @@ struct ModelMap {
     interval y1 = (double) 0.7 * x0;
     
     /* Write output */
+    double tol = 1e-8;
     RectGeo return_value ( 2 );
-    return_value . lower_bounds [ 0 ] = y0 . lower ();
-    return_value . upper_bounds [ 0 ] = y0 . upper ();
-    return_value . lower_bounds [ 1 ] = y1 . lower ();
-    return_value . upper_bounds [ 1 ] = y1 . upper ();
+    return_value . lower_bounds [ 0 ] = y0 . lower () - tol;
+    return_value . upper_bounds [ 0 ] = y0 . upper () + tol;
+    return_value . lower_bounds [ 1 ] = y1 . lower () - tol;
+    return_value . upper_bounds [ 1 ] = y1 . upper () + tol;
     return return_value;
   } 
   bool good ( void ) const { return true; }

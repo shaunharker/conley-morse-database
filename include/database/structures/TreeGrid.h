@@ -287,14 +287,12 @@ inline boost::shared_ptr<Geo> TreeGrid::geometry ( GridElement ge ) const {
   /* Climb the tree */
   Tree::iterator root = tree () . begin ();
   Tree::iterator it = GridToTree ( cell_iterator );
-  // int division_dimension = tree () . depth ( it ) % dimension ();
   int division_dimension = tree () . depth ( it ) % dimension ();
 
   while ( it != root ) {
     //std::cout << "visiting " << *it << " with parent " <<  * tree().parent(it) << "\n";
     //std::cout . flush ();
     Tree::iterator parent = tree () . parent ( it );
-    // -- division_dimension; if ( division_dimension < 0 ) division_dimension = dimension () - 1;
     -- division_dimension; if ( division_dimension < 0 ) division_dimension = dimension () - 1;
     if ( tree () . left ( parent ) == it ) {
       /* This is a left-child */
@@ -307,8 +305,7 @@ inline boost::shared_ptr<Geo> TreeGrid::geometry ( GridElement ge ) const {
     rect . upper_bounds [ division_dimension ] /= Real ( 2 );
     it = parent;
   } /* while */
-  // for ( int dimension_index = 0; dimension_index < dimension_; ++ dimension_index ) {
-    for ( int dimension_index = 0; dimension_index < dimension(); ++ dimension_index ) {
+  for ( int dimension_index = 0; dimension_index < dimension(); ++ dimension_index ) {
     //std::cout << "dimension_index =  " << dimension_index << " out of " << dimension_ << "\n";
     //std::cout << "rect . lower_bounds . size () == " << rect . lower_bounds . size () << "\n";
     //std::cout << "bounds_ . lower_bounds . size () == " << bounds_ . lower_bounds . size () << "\n";

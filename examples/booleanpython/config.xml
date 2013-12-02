@@ -4,15 +4,15 @@
   <desc> Two parameter boolean switching model </desc>
 </model>
 <param>
-  <dim> 2 </dim>
+  <dim> 4 </dim>
   <bounds>
-    <lower> 0.0 0.0 </lower>
-    <upper> 200.0 200.0 </upper>
-    <sizes> 2 2 </sizes>
+<lower> 2.0 0.6 1.0 2.5 </lower>
+<upper> 2.0 0.6 1.0 2.5 </upper>
   </bounds>
   <subdiv>
     <depth> 2 </depth>
-  </subdiv>
+	<sizes> 2 2 2 2  </sizes>
+</subdiv>
 </param>
 <phase>
   <dim> 4 </dim>
