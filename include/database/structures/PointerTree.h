@@ -224,12 +224,14 @@ inline void PointerTree::adjoin ( const Tree & other ) {
 
 inline PointerTree * PointerTree::subtree
 ( const std::deque < Tree::iterator > & leaves ) const {
-  //std::cout << "PointerTree::raw_subtree with " << leaves.size () << " leaves.\n";
+  //std::cout << "PointerTree::subtree with " << leaves.size () << " leaves.\n";
+  //std::cout << "   size of tree = " << size () << "\n";
   if ( leaves . empty () ) {
     PointerTree * result = new PointerTree;
     // new PointerTree is initialized with a root; we must erase it
     delete result -> nodes_ [ 0 ];
     result -> nodes_ . clear ();
+    result -> size_ = 0;
     return result;
   }
   PointerTree * result = new PointerTree ();
@@ -238,7 +240,9 @@ inline PointerTree * PointerTree::subtree
   Tree::iterator root = begin ();
   BOOST_FOREACH ( Tree::iterator leaf, leaves ) {
     Tree::iterator it = leaf;
+    //std::cout << "Inspecting leaf " << *leaf << "\n";
     while ( it != root ) {
+      //std::cout << "  ->Inspecting leaf " << *it << "\n";
       if ( part_of_tree [ * it ] == true ) break; // efficiency
       part_of_tree [ * it ] = true;
       it = parent ( it );
@@ -247,7 +251,8 @@ inline PointerTree * PointerTree::subtree
   part_of_tree [ * root ] = true;
   // Construct pointer tree for marked part of tree
   // Strategy: store pairs of "old iterator, new parent node"
-  // store a stack of bools to represent left or right child. omit the entry for root.
+  // store a stack of bools "parity" to represent left or right child. 
+  // omit the entry for root in "parity".
   std::stack < std::pair<Tree::iterator, PointerTreeNode *> > dfs_stack;
   std::stack < bool > parity;
   dfs_stack . push ( std::make_pair ( root, (PointerTreeNode *)NULL ) );
@@ -281,13 +286,17 @@ inline PointerTree * PointerTree::subtree
       node = result -> nodes_ [ 0 ];
     }
     // Enqueue left and right children of "node" for insertion if they exist
+    //std::cout << "Enqueue (left) and right\n";
     Tree::iterator left_it = left ( old_it );
     if ( left_it != end () ) {
+      //std::cout << "Found a left child.\n";
       dfs_stack . push ( std::make_pair (left_it, node) );
       parity . push ( false );
     }
+    //std::cout << "Enqueue left and (right)\n";
     Tree::iterator right_it = right ( old_it );
     if ( right_it != end () ) {
+      //std::cout << "Found a right child.\n";
       dfs_stack . push ( std::make_pair (right_it, node) );
       parity . push ( true );
     }
@@ -297,7 +306,6 @@ inline PointerTree * PointerTree::subtree
 }
 
 inline void PointerTree::assign ( const CompressedTree & compressed ) {
-  
   const std::vector<bool> & balanced_parentheses = compressed . balanced_parentheses;
   const std::vector<bool> & valid_tree_nodes = compressed . valid_tree_nodes;
   /*
@@ -361,7 +369,34 @@ inline void PointerTree::debug ( void ) const {
     std::cout << i << " == " << nodes_[i] -> contents_ << "\n";
     if ( nodes_[i] -> parent_ != NULL ) {
       std::cout << i << ":" << nodes_[i]->parent_->contents_ << " -> " << nodes_[i]->contents_ << "\n";
+      if ( nodes_[i] -> left_ != NULL ) {
+        if ( nodes_[i] -> left_ -> contents_ >= size () ) {
+          std::cout << "contents wrong! " << nodes_[i] -> left_ -> contents_ << "\n";
+          abort ();
+        }
+      }
+      if ( nodes_[i] -> right_ != NULL ) {
+        if ( nodes_[i] -> right_ -> contents_ >= size () ) {
+          std::cout << "contents wrong!" << nodes_[i] -> right_ -> contents_ << "\n";
+          abort ();
+        }
+      }
     }
+  }
+  // method 2. Recurse.
+  std::stack < Tree::iterator > stack_of_nodes;
+  stack_of_nodes . push ( begin () );
+  while ( not stack_of_nodes . empty () ) {
+    Tree::iterator it = stack_of_nodes . top ();
+    stack_of_nodes . pop ();
+    if ( it == end () ) continue;
+    if ( nodes_ [ *it ] -> contents_ != *it ) {
+      std::cout << "Content damaged.\n";
+      abort ();
+    }
+    stack_of_nodes . push ( left ( it ) );
+    stack_of_nodes . push ( right ( it ) );
+
   }
   std::cout << "finish pointertree debug output\n";
 }
