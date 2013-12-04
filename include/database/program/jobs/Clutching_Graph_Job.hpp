@@ -63,7 +63,8 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   std::cout << "CLUTCHING JOB " << "with " << box_names . size () << " parameter boxes BEGINNING.\n";
   std::cout << "--------- 1. Compute Morse Graphs --------- " << "\n";
   for ( size_t i = 0; i < box_names . size (); ++ i ) {
-    //std::cout << " Processing parameter box " << i << "/" << box_names . size () << "\n";
+    std::cout << " Processing parameter box " << i << "/" << box_names . size () 
+      << ", " << box_geometries [ i ] << "\n";
     //Prepare phase space and map
     Grid::GridElement box = box_names [ i ];
 
