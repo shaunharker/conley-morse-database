@@ -1,12 +1,15 @@
 import numpy as np
 import itertools
 
-
-def config ( A, B, C, D ):
+def config ( parameter ):
     amax=12.0
     bmax=2.5
     cmax=2.5
     dmax=2.5
+    A=parameter[0]
+    B=parameter[1]
+    C=parameter[2]
+    D=parameter[3]
     xmlstr = genStringForFixedParams ( test4DExample1,(A,B,C,D,amax,bmax,cmax,dmax) )
     return xmlstr
 
@@ -222,7 +225,7 @@ def generateXML(lowerbounds,upperbounds,lowerdecayrates,upperdecayrates,doms,lsi
 
 if __name__ == "__main__":
     xmlstr = genStringForFixedParams(test4DExample1,(8.0,0.6,0.6,0.6,12.0,2.5,2.5,2.5))
-    print(xmlstr)
+    # print(xmlstr)
     # variables, affectedby, maps, thresholds, loweramplitudes, upperamplitudes, lowerdecayrates, upperdecayrates, productionrates, upperbounds, lowerbounds = xyz3DExample()
     # xmlstr = convertInputsToXML(variables, affectedby, maps, thresholds, loweramplitudes, upperamplitudes, lowerdecayrates, upperdecayrates, productionrates, upperbounds, lowerbounds)
     # print(xmlstr)
