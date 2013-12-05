@@ -6,6 +6,7 @@
 #include <string>
 #include <sstream>
 
+
 // Simple Box with the two sets of parameters
 class BooleanBox {
 public:
@@ -126,11 +127,28 @@ inline void BooleanConfig::load ( const char * inputfile, const RectGeo & param 
   using boost::property_tree::ptree;
   ptree pt;
 
+// struct PyRect
+// {
+//   std::vector<double> lower_bounds;
+//   std::vector<double> upper_bounds;
+// };
+
+// BOOST_PYTHON_MODULE(databasemodule)
+// {
+//   boost::python::class_<PyRect>("PyRect")
+//     .def("lower_bounds", &PyRect::lower_bounds)
+//     .def("upper_bounds", &PyRect::upper_bounds)
+
+// }
+
+std::string message;
+
   Py_Initialize ( ); 
 
+// try{
 
-// boost::python::class_<std::vector<double> >("PyVec")
-// .def(boost::python::vector_indexing_suite<std::vector<double> >());
+boost::python::class_<std::vector<double> >("PyVec")
+.def(boost::python::vector_indexing_suite<std::vector<double> >());
 
 
   // std::cout << "Using Python " << Py_GetVersion() << std::endl;
@@ -145,20 +163,63 @@ inline void BooleanConfig::load ( const char * inputfile, const RectGeo & param 
 
   boost::python::object pyf = main.attr("config");
 
-  double A, B; //, C, D;
-  A = 0.5 * ( param.lower_bounds[0] + param.upper_bounds[0] );
-  B = 0.5 * ( param.lower_bounds[1] + param.upper_bounds[1] );
+  // boost::python::object pyf2 = main.attr("confignew");
+
+  std::vector < double > lb = param . lower_bounds;
+  std::vector < double > ub = param . upper_bounds;
+
+  std::vector < double > v;
+  for ( unsigned int i=0; i<lb.size(); ++i ) {
+    v . push_back ( 0.5*(lb[i]+ub[i]) );
+  }
+
+  global["pyvector"]=v;
+
+  boost::python::object ignored = boost::python::exec("result = config(pyvector)", global, global);
+  message = boost::python::extract<std::string>(global["result"]);
+
+
+  // double A, B, C, D, E, F;
+  // A = 0.5 * ( param.lower_bounds[0] + param.upper_bounds[0] );
+  // B = 0.5 * ( param.lower_bounds[1] + param.upper_bounds[1] );
   // C = 0.5 * ( param.lower_bounds[2] + param.upper_bounds[2] );
   // D = 0.5 * ( param.lower_bounds[3] + param.upper_bounds[3] );
+  // E = 0.5 * ( param.lower_bounds[4] + param.upper_bounds[4] );
+  // F = 0.5 * ( param.lower_bounds[5] + param.upper_bounds[5] );
   
-  //std::string message = boost::python::extract<std::string>(pyf ( A, B, C, D ));
-  std::string message = boost::python::extract<std::string>(pyf ( A, B ));
+  // std::string message = boost::python::extract<std::string>(pyf ( A, B, C, D, E, F ));
+  // std::string message = boost::python::extract<std::string>(pyf ( A, B, C, D ));
+  // std::string message = boost::python::extract<std::string>(pyf ( A, B ));
+
+// }catch(boost::python::error_already_set &){
+
+//     PyObject *ptype, *pvalue, *ptraceback;
+//     PyErr_Fetch(&ptype, &pvalue, &ptraceback);
+
+//     boost::python::handle<> hType(ptype);
+//     boost::python::object extype(hType);
+//     boost::python::handle<> hTraceback(ptraceback);
+//     boost::python::object traceback(hTraceback);
+
+//     //Extract error message
+//     std::string strErrorMessage = boost::python::extract<std::string>(pvalue);
+//     std::cout << "Error Message : " << strErrorMessage << "\n";
+//     //Extract line number (top entry of call stack)
+//     // if you want to extract another levels of call stack
+//     // also process traceback.attr("tb_next") recurently
+//     long lineno = boost::python::extract<long> (traceback.attr("tb_lineno"));
+//     std::string filename = boost::python::extract<std::string>(traceback.attr("tb_frame").attr("f_code").attr("co_filename"));
+//     std::string funcname = boost::python::extract<std::string>(traceback.attr("tb_frame").attr("f_code").attr("co_name"));
+
+//     std::cout << "filename : " << filename <<"\n";
+//     std::cout << "function : " << funcname <<"\n";
+
+// }
 
   Py_Finalize ( );
 
   std::stringstream ss ( message );
   read_xml(ss, pt);
-  
 
   // std::ifstream input ( inputfile );
   // read_xml(input, pt);
