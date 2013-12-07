@@ -1,8 +1,11 @@
 #ifndef CMDB_MODEL_H
 #define CMDB_MODEL_H
 
+#include "boost/timer.hpp"
+
 #include "Boolean.h"
 #include "database/program/Configuration.h"
+
 
 class Model {
  public:
@@ -22,13 +25,12 @@ class Model {
 
   void saveCharts ( int argc, char * argv [] );
 
-
-  BooleanConfig booleanconfig( void ) const { return booleanconfig_; }
-
 private:
   BooleanConfig booleanconfig_;
   std::vector < Face > faces_;
   int dim_;
+  std::string path_;
+
 public:
   friend class boost::serialization::access;
   template<class Archive>
@@ -36,31 +38,25 @@ public:
     ar & booleanconfig_;
     ar & faces_;
     ar & dim_;
+    ar & path_;
   }
 };
 
 inline void Model::initialize ( int argc, char * argv [] ) { 
   //
-  std::string directory ( argv[1] );
-  std::string filename ("/configspace.py");
-  //
-  // Hack, need the parameter values to construct the phase space
   Configuration config;
   config . loadFromFile ( argv[1] );
-  RectGeo parameters = config . PARAM_BOUNDS;
-
-  booleanconfig_ . load ( (directory+filename).c_str(), parameters );
   
-  dim_ = booleanconfig_ . phasespace ( ) . dimension ( );
+  path_ = std::string(argv[1]);
+
+  dim_ = config . PHASE_DIM; 
 
 }
 
 inline boost::shared_ptr < ModelMap > Model::map ( const Parameter & param ) { 
   //
   //
-  std::vector < Face > faces;
-  std::vector < Face > * faces_ptr;
-  faces_ptr = & faces;
+  // boost::timer time_start;
   //
   phaseSpace ( param ); 
   //
@@ -68,12 +64,45 @@ inline boost::shared_ptr < ModelMap > Model::map ( const Parameter & param ) {
                                                             booleanconfig_ . listboxes ( ), 
                                                             faces_ );
   //
+  // double time_elapsed = time_start . elapsed();
+
+  // std::cout << "Model::Map took " << time_elapsed << " s (note: one phaseSpace call is included)\n";
+
   return atlasmap;
 }
 
+
+
 inline boost::shared_ptr < Grid > Model::phaseSpace ( const Parameter & p ) {
 
+  // boost::timer time_start;
+
   boost::shared_ptr < Atlas > myatlas ( new Atlas );
+
+// Initialize the python interpreter on the first call only
+  static bool firstcall=true;
+  if ( firstcall ) {
+    std::cout << "Initialize python\n";
+// Initialize python 
+    Py_Initialize ( );
+
+    PyEval_InitThreads();
+    PyEval_ReleaseLock();
+  // To be able to pass std::vector<double> to python function 
+    boost::python::class_<std::vector<double> >("PyVec")
+      .def(boost::python::vector_indexing_suite<std::vector<double> >());
+      firstcall = false;
+  }
+
+// Execute the initialization of booleanconfig through a thread
+  // std::string directory ( path_ );
+  std::string filename ("/configspace.py");
+  // RunPythonThread ( BooleanConfig *bc, std::string inputfile, const RectGeo parameters )
+  RunPythonThread pythonthread ( &booleanconfig_, path_+filename, p );
+
+  boost::thread t ( pythonthread );
+
+  t.join();
 
   std::vector < Face > faces;
   std::vector < Face > * faces_ptr;
@@ -111,21 +140,22 @@ inline boost::shared_ptr < Grid > Model::phaseSpace ( const Parameter & p ) {
       myatlas -> add_chart ( i, RectGeo ( 0 ) );
     }
   }
+
+  // double time_elapsed = time_start . elapsed();
+
+  // std::cout << "Model::PhaseSpace took " << time_elapsed << " s\n";
+
   //
   return boost::dynamic_pointer_cast<Grid> ( myatlas );
 }
 
 inline void Model::saveCharts ( int argc, char * argv [] ) { 
   //
-  std::string directory ( argv[1] );
+  std::string directory ( path_ );
   std::string filename ("/charts.dat");
   //
   exportCharts ( (directory+filename).c_str(), faces_ );
 }
-
-
-
-
 
 
 

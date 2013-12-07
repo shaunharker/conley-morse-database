@@ -1,16 +1,23 @@
 import numpy as np
 import itertools
 
+# This function is called from boost::python
+# parameter is the list of parameter values 
+# followed by the max values they can take, i.e
+# A,B,C, Amax, Bmax, Cmax
 def config ( parameter ):
-    amax=12.0
-    bmax=2.5
-    cmax=2.5
-    dmax=2.5
-    A=parameter[0]
-    B=parameter[1]
-    C=parameter[2]
-    D=parameter[3]
-    xmlstr = genStringForFixedParams ( test4DExample1,(A,B,C,D,amax,bmax,cmax,dmax) )
+
+    # amax=12.0
+    # bmax=2.5
+    # cmax=2.5
+    # dmax=2.5
+    # A=parameter[0]
+    # B=parameter[1]
+    # C=parameter[2]
+    # D=parameter[3]
+    # xmlstr = genStringForFixedParams ( test4DExample1,(A,B,C,D,amax,bmax,cmax,dmax) )
+
+    xmlstr = genStringForFixedParams ( test4DExample1, tuple(parameter) )
     return xmlstr
 
 

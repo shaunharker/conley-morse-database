@@ -14,10 +14,10 @@
 
 #include "chomp/Rect.h"
 #include "database/structures/Atlas.h"
-#include "database/Maps/AtlasMap.h"
+#include "database/maps/AtlasMap.h"
 
 #include "BooleanClasses.h"
-#include "ModelMap.h"
+#include "BooleanMap.h"
 
 #include <stdlib.h>
 
@@ -171,14 +171,15 @@ inline boost::shared_ptr < ModelMap > constructMaps ( const chomp::Rect & phases
 
 	boost::shared_ptr < ModelMap > atlasmap ( new ModelMap );
 
+//
+#ifdef SINGLEPARAMETER
 	std::ofstream ofile;
 	ofile . open ( "MapsGraph.gv" );
 	ofile << "Digraph G { \n";
-
+#endif
+//
 	// loop through the BooleanBox : 
 	for ( unsigned int i=0; i<boxes.size(); ++i ) {
-
-		// std::cout << "\nBoolean Box : " << booleanbox[i] <<"\n";
 
 		// retrieve the parameters
 		chomp::Rect gamma = boxes[i] . gamma;
@@ -210,6 +211,8 @@ inline boost::shared_ptr < ModelMap > constructMaps ( const chomp::Rect & phases
 			if ( id1 == -1 ) { std::cout << "error for id1\n"; std::cout << face1; abort(); }
 			if ( id2 == -1 ) { std::cout << "error for id2\n"; std::cout << face2; abort(); }
 
+//
+#ifdef SINGLEPARAMETER
 			if ( face2 . direction != -1 ) {
 				if ( notonboundary(phasespace,face2) ) {
 					ofile << id1 << " -> " << id2 << "\n";
@@ -219,6 +222,8 @@ inline boost::shared_ptr < ModelMap > constructMaps ( const chomp::Rect & phases
 			} else { 
 				ofile << id1 << " -> " << id2 << "\n";
 			}
+#endif
+//
 			// if we map to a fixed point (it does not matter what face1 is)
 			if ( face2 . direction == -1 ) {
 				BooleanChartMap map ( 2, id2, mygamma, mysigma, face1, face2 );
@@ -233,9 +238,11 @@ inline boost::shared_ptr < ModelMap > constructMaps ( const chomp::Rect & phases
 			}
 		}
 	}
-
+//
+#ifdef SINGLEPARAMETER
 	ofile << "}\n";
 	ofile . close ( );
+#endif
 
 	return atlasmap;
 }
