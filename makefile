@@ -3,11 +3,11 @@
 ###########################################
 #
 #
-CHECKIFMAPISGOOD := yes
+CHECKIFMAPISGOOD := no
 #
 COMPUTE_MORSE_SETS := yes
 COMPUTE_CONTINUATION := yes
-COMPUTE_CONLEY_INDEX := no
+COMPUTE_CONLEY_INDEX := yes
 DRAW_IMAGES := yes
 #
 # CAPD Library 
@@ -17,8 +17,8 @@ USE_CAPD := no
 # Memory saving option : PointerGrid, SuccinctGrid 
 #
 HAVE_SUCCINCT := yes
-PARAMETER_GRID := UniformGrid
-PHASE_GRID := Atlas
+PARAMETER_GRID := EdgeGrid
+PHASE_GRID := PointerGrid
 #
 # if modelmap has good() implemented
 PARAM_SPACE_METHOD := PATCHMETHOD

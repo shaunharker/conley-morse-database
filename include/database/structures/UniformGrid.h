@@ -159,10 +159,10 @@ UniformGrid::cover ( const Geo & geo ) const {
   uint64_t address = 0;
   //std::cout << "   ";
   for ( int d = 0; d < dimension (); ++ d ) {
-    lower_coordinates [ d ] =  std::ceil ( (double) width ( d ) *
+    lower_coordinates [ d ] = std::ceil ( (double) width ( d ) *
                               (rect.lower_bounds[d]-bounds_.lower_bounds[d])/
                               (bounds_.upper_bounds[d]-bounds_.lower_bounds[d]) - 1.0);
-    upper_coordinates [ d ] = 1 + std::floor ( (double) width ( d ) *
+    upper_coordinates [ d ] = std::floor ( (double) width ( d ) *
                               (rect.upper_bounds[d]-bounds_.lower_bounds[d])/
                               (bounds_.upper_bounds[d]-bounds_.lower_bounds[d]) + 1.0 );
     if ( lower_coordinates [ d ] < 0 ) lower_coordinates [ d ] = 0;

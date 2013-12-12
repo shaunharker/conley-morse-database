@@ -10,6 +10,7 @@
 
 #include "boost/foreach.hpp"
 
+#include "database/structures/Database.h"
 #include "database/program/Configuration.h"
 #include "database/program/ConleyProcess.h"
 #include "database/program/jobs/Conley_Index_Job.h"
@@ -19,7 +20,9 @@
 #include "database/structures/SuccinctGrid.h"
 #endif
 #include "database/structures/PointerGrid.h"
-
+#include "database/structures/UniformGrid.h"
+#include "database/structures/EdgeGrid.h"
+ 
 #include "chomp/Rect.h"
 
 #include "ModelMap.h"

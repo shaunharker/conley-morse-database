@@ -16,6 +16,7 @@
 #include "boost/thread.hpp"
 #include "boost/chrono/chrono_io.hpp"
 
+#include "database/structures/Database.h"
 #include "database/program/Configuration.h"
 #include "database/program/MorseProcess.h"
 #include "database/program/jobs/Clutching_Graph_Job.h"
@@ -27,6 +28,7 @@
 #endif
 #include "database/structures/PointerGrid.h"
 #include "database/structures/UniformGrid.h"
+#include "database/structures/EdgeGrid.h"
 
 #include "chomp/Rect.h"
 #include "chomp/Complex.h"
@@ -81,7 +83,14 @@ void MorseProcess::initialize ( void ) {
                          config.PARAM_PERIODIC );
   }
   
-
+  // Initialization for EdgeGrid
+  if ( boost::dynamic_pointer_cast < EdgeGrid > ( parameter_grid ) ) {
+    boost::shared_ptr<EdgeGrid> grid = 
+      boost::dynamic_pointer_cast < EdgeGrid > ( parameter_grid );
+    grid -> initialize ( config.PARAM_BOUNDS, 
+                         config.PARAM_SUBDIV_SIZES,
+                         config.PARAM_PERIODIC );
+  }
 
   // JOB CONSTRUCTION
 

@@ -17,12 +17,20 @@
 #include "database/program/ConleyProcess.h"
 #endif
 
+#ifdef HAVE_SUCCINCT
+#include "database/structures/SuccinctGrid.h"
+#endif
+#include "database/structures/PointerGrid.h"
+#include "database/structures/UniformGrid.h"
+#include "database/structures/EdgeGrid.h"
+ 
 #include <boost/serialization/export.hpp>
 #ifdef HAVE_SUCCINCT
 BOOST_CLASS_EXPORT_IMPLEMENT(SuccinctGrid);
 #endif
 BOOST_CLASS_EXPORT_IMPLEMENT(PointerGrid);
 BOOST_CLASS_EXPORT_IMPLEMENT(UniformGrid);
+BOOST_CLASS_EXPORT_IMPLEMENT(EdgeGrid);
 
 int main ( int argc, char * argv [] ) {
   delegator::Start ();
