@@ -141,7 +141,7 @@ void Conley_Index_Job ( Message * result , const Message & job ) {
   }
   if ( not computed ) {
     ci_data . conley_index = std::vector<string> ();
-    ci_data . conley_index . push_back ( "Relative Homology computation timed out.");
+    ci_data . conley_index . push_back ( "Relative Homology computation timed out.\n");
   }
 
   

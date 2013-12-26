@@ -875,7 +875,9 @@ inline void Database::makeAttractorsMinimal ( void ) {
     const std::vector<std::string> & conley_string = 
       ciData () [ incc_conley () [ incc ] ] . conley_index;
     if ( conley_string . size () == 0 ) continue;
-    if ( conley_string [ 0 ] != "Trivial.\n" ) {
+    if ( conley_string [ 0 ] != "Trivial.\n" && 
+         conley_string [ 0 ] != "Relative Homology computation timed out.\n" && 
+         conley_string [ 0 ] != "Problem computing SNF.\n" ) {
       const INCC_Record & incc_record = INCC_Records () [ incc ];
       BOOST_FOREACH ( uint64_t inccp, incc_record . inccp_indices ) {
         //std::cout << "INCCP = " << inccp << "\n";
