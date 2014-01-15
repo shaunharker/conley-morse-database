@@ -91,6 +91,7 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
       std::cerr << "WARNING. Box # " << box << " Clutching Job #"  
       << ", box = " << box_geometries [ i ] << " had no morse sets.\n"; 
     }
+    model . annotate ( & conley_morse_graphs [ box ] );
   }
   
   // Compute Clutching Graphs
@@ -118,7 +119,7 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   // Create Parameter Box Records
   typedef std::pair < Grid::GridElement, MorseGraph > indexed_cmg_t;
   BOOST_FOREACH ( const indexed_cmg_t & cmg, conley_morse_graphs ) {
-    database . insert ( cmg . first, DAG_Data ( cmg . second ) );
+    database . insert ( cmg . first, cmg . second );
   }
   // Create Clutching Records
   for ( uint64_t i = 0; i < box_adjacencies . size (); ++ i ) {

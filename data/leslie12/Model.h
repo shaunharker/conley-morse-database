@@ -2,6 +2,7 @@
 #define CMDB_MODEL_H
 
 #include "ModelMap.h"
+#include "database/structures/MorseGraph.h"
 #include "database/program/Configuration.h"
 
 class Model {
@@ -20,7 +21,7 @@ class Model {
   // return a shared ptr to the phase space corresponding to
   // parameter p
 
-
+  void annotate ( MorseGraph * mg_in ) const;
 private:
   Configuration config_;
 public:
@@ -45,5 +46,13 @@ inline boost::shared_ptr < Grid > Model::phaseSpace ( const Parameter & p ) {
   return boost::dynamic_pointer_cast<Grid> ( space );
 }
 
+inline void Model::annotate( MorseGraph * mg_in ) const {
+  MorseGraph & mg = *mg_in;
+  mg . annotation () . insert ( "annotation_A" );
+  mg . annotation () . insert ( "annotation_B" );
+  for ( int v = 0; v < mg.NumVertices(); ++ v ) {
+    mg . annotation ( v ) . insert ( std::string ( "annotation_C" ) );
+  }
+}
 
 #endif

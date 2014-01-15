@@ -159,28 +159,100 @@ inline std::size_t hash_value(CI_Data const& ci) {
 /*   RECORDS     */
 /*****************/
 
+struct Annotation_Record {
+  std::set<uint64_t> string_indices;
+  bool operator == ( const Annotation_Record & rhs ) const {
+    if ( string_indices . size () != rhs . string_indices . size () ) return false;
+    std::set<uint64_t>::iterator it1, it2;
+    it1 = string_indices . begin ();
+    it2 = rhs . string_indices . begin ();
+    for ( uint64_t i = 0; i < string_indices . size (); ++ i ) {
+      if ( *it1 != *it2 ) return false;
+      ++ it1;
+      ++ it2;
+    }
+    return true;
+  }
+  friend class boost::serialization::access;
+  template<class Archive>
+  void serialize(Archive& ar, const unsigned int version) {
+    ar & boost::serialization::make_nvp("SS", string_indices);
+  }
+};
+inline std::size_t hash_value(Annotation_Record const& stringset) {
+  std::size_t seed = 0;
+  BOOST_FOREACH ( uint64_t s, stringset . string_indices ) {
+    boost::hash_combine(seed, s );
+  }
+  return seed;
+}
+
 // MORSE RECORD
 
-class MorseRecord {
+class MorseGraphRecord {
+public:
+  uint64_t dag_index;
+  uint64_t annotation_index;
+  std::vector<uint64_t> annotation_index_by_vertex;
+  // Constructor
+  MorseGraphRecord ( void ) {};
+  MorseGraphRecord ( uint64_t dag_index,
+                     uint64_t annotation_index,
+                     const std::vector<uint64_t> & annotation_index_by_vertex ):
+                     dag_index(dag_index), 
+                     annotation_index(annotation_index), 
+                     annotation_index_by_vertex(annotation_index_by_vertex) {};
+
+  bool operator == ( const MorseGraphRecord & rhs ) const {
+    if ( dag_index != rhs . dag_index ) return false;
+    if ( annotation_index != rhs . annotation_index ) return false;
+    if ( annotation_index_by_vertex . size () 
+         != rhs . annotation_index_by_vertex . size () ) return false;
+    for ( uint64_t i = 0; i < annotation_index_by_vertex . size (); ++ i ) {
+      if ( annotation_index_by_vertex [ i ] != 
+           rhs . annotation_index_by_vertex [ i ] ) return false;
+    }
+    return true;
+  }
+  friend class boost::serialization::access;
+  template<class Archive>
+  void serialize(Archive& ar, const unsigned int version) {
+    ar & boost::serialization::make_nvp("DAG", dag_index );
+    ar & boost::serialization::make_nvp("A", annotation_index);
+    ar & boost::serialization::make_nvp("ABV", annotation_index_by_vertex);
+
+  }
+};
+inline std::size_t hash_value(MorseGraphRecord const& mg) {
+  std::size_t seed = 0;
+  boost::hash_combine(seed, mg . dag_index );
+  boost::hash_combine(seed, mg . annotation_index );
+  BOOST_FOREACH ( uint64_t a, mg . annotation_index_by_vertex ) {
+    boost::hash_combine(seed, a );
+  }
+  return seed;
+}
+
+
+class ParameterRecord {
 public:
   uint64_t grid_element;
-  uint64_t dag_index;
+  uint64_t morsegraph_index;
   
   // Constructor
-  MorseRecord ( void ) {};
-  MorseRecord ( uint64_t grid_element, uint64_t dag_index )
-  : grid_element ( grid_element ), dag_index ( dag_index ) {};
-  bool operator < ( const MorseRecord & rhs ) const {
+  ParameterRecord ( void ) {};
+  ParameterRecord ( uint64_t grid_element, uint64_t morsegraph_index )
+  : grid_element ( grid_element ), morsegraph_index ( morsegraph_index ) {};
+  bool operator < ( const ParameterRecord & rhs ) const {
     return grid_element < rhs . grid_element;
   }
   friend class boost::serialization::access;
     template<class Archive>
   void serialize(Archive& ar, const unsigned int version) {
     ar & boost::serialization::make_nvp("GE", grid_element);
-    ar & boost::serialization::make_nvp("DAG", dag_index);
+    ar & boost::serialization::make_nvp("MG", morsegraph_index);
   }
 };
-
 // CLUTCHING RECORD
 
 class ClutchingRecord {
@@ -211,13 +283,13 @@ public:
 
 struct MGCCP_Record {
   std::vector<Grid::GridElement> grid_elements;
-  uint64_t dag_index;
+  uint64_t morsegraph_index;
  
   friend class boost::serialization::access;
   template<class Archive>
   void serialize(Archive& ar, const unsigned int version) {
     ar & boost::serialization::make_nvp("GES", grid_elements);
-    ar & boost::serialization::make_nvp("DAG", dag_index);
+    ar & boost::serialization::make_nvp("MG", morsegraph_index);
 
   }
 };
@@ -279,17 +351,26 @@ struct INCC_Record {
 class Database {
 private:
   friend class boost::serialization::access;
-  std::vector < MorseRecord > morse_records_;
+  // raw data
+  std::vector < ParameterRecord > parameter_records_;
   std::vector < ClutchingRecord > clutch_records_;
   boost::shared_ptr < Grid > parameter_space_;
+  // data_/index_ pairs
+  std::vector < std::string > string_data_;
+  std::vector < Annotation_Record > annotation_data_;
+  std::vector < MorseGraphRecord > morsegraph_data_;
   std::vector < DAG_Data > dag_data_;
   std::vector < BG_Data > bg_data_;
   std::vector < CS_Data > cs_data_;
   std::vector < CI_Data > ci_data_;
+  boost::unordered_map < std::string, uint64_t > string_index_;
+  boost::unordered_map < Annotation_Record, uint64_t > annotation_index_;
+  boost::unordered_map < MorseGraphRecord, uint64_t > morsegraph_index_;
   boost::unordered_map < DAG_Data, uint64_t > dag_index_;
   boost::unordered_map < BG_Data, uint64_t > bg_index_;
   boost::unordered_map < CS_Data, uint64_t > cs_index_;
   boost::unordered_map < CI_Data, uint64_t > ci_index_;
+  // continuation data
   boost::unordered_map < INCCP_Record, uint64_t > inccp_index_;
   std::vector < uint64_t > pb_to_mgccp_;
   std::vector < uint64_t > mgccp_to_mgcc_;
@@ -309,12 +390,20 @@ public:
   void merge ( const Database & other );
 
   void insert ( boost::shared_ptr<Grid> grid );
-  void insert ( const Grid::GridElement & p, const DAG_Data & dag );
+  uint64_t insert ( const DAG_Data & dag );
+  uint64_t insert ( const std::string & s );
+  uint64_t insert ( const Annotation_Record & annotation );
+  uint64_t insert ( const std::set<std::string> & annotation );
+  uint64_t insert ( const MorseGraphRecord & mgr );
+  void insert ( const ParameterRecord & pr );
+  void insert ( const Grid::GridElement & p, const MorseGraph & mg );
+  uint64_t insert ( const BG_Data & bg );
+  uint64_t insert ( const CS_Data & cs );
+  uint64_t insert ( const CI_Data & cs );
+
   void insert ( const Grid::GridElement & p1, const Grid::GridElement & p2, const BG_Data & bg );
   void insert ( const uint64_t incc, const CI_Data & ci );
 
-  template < class Map >
-  void removeBadBoxes ( void );
 
   void postprocess ( void );
   void makeAttractorsMinimal ( void );
@@ -324,9 +413,14 @@ public:
   
   const Grid & parameter_space ( void ) const { return *parameter_space_;}
 
-  const std::vector < MorseRecord > & morse_records ( void ) const;
+  const std::vector < ParameterRecord > & parameter_records ( void ) const;
   const std::vector < ClutchingRecord > & clutch_records ( void ) const;
-
+  const std::vector < MorseGraphRecord > & morsegraphData ( void ) const 
+    { return morsegraph_data_; }
+  const std::vector < std::string > & stringData ( void ) const 
+    { return string_data_; }
+  const std::vector < Annotation_Record > & annotationData ( void ) const 
+    { return annotation_data_; }
   const std::vector < DAG_Data > & dagData ( void ) const 
     { return dag_data_; }
   const std::vector < BG_Data > & bgData ( void ) const 
@@ -335,13 +429,19 @@ public:
     { return cs_data_; }
   const std::vector < CI_Data > & ciData ( void ) const 
     { return ci_data_; }
+  uint64_t morsegraphIndex ( MorseGraphRecord const& item ) const 
+    { if ( morsegraph_index_ . count ( item ) == 0 ) return morsegraphData().size(); return morsegraph_index_ . find (item) -> second; }
+  uint64_t stringIndex ( std::string const& item ) const 
+    { if ( string_index_ . count ( item ) == 0 ) return stringData().size(); return string_index_ . find (item) -> second; }
+  uint64_t annotationIndex ( Annotation_Record const& item ) const 
+    { if ( annotation_index_ . count ( item ) == 0 ) return annotationData().size(); return annotation_index_ . find (item) -> second; }
   uint64_t dagIndex ( DAG_Data const& item ) const 
     { if ( dag_index_ . count ( item ) == 0 ) return dagData().size(); return dag_index_ . find (item) -> second; }
   uint64_t bgIndex ( BG_Data const& item ) const 
     { if ( bg_index_ . count ( item ) == 0 ) return bgData().size(); return bg_index_ . find (item) -> second; }
   uint64_t csIndex ( CS_Data const& item ) const 
     { if ( cs_index_ . count ( item ) == 0 ) return csData().size(); return cs_index_ . find (item) -> second; }
- uint64_t ciIndex ( CI_Data const& item ) const 
+  uint64_t ciIndex ( CI_Data const& item ) const 
     { if ( ci_index_ . count ( item ) == 0 ) return ciData().size(); return ci_index_ . find (item) -> second; }
   uint64_t inccpIndex ( INCCP_Record const& item ) const 
     { if ( inccp_index_ . count ( item ) == 0 ) return INCCP_Records().size(); return inccp_index_ . find (item) -> second; }
@@ -370,15 +470,21 @@ public:
     if ( has_space ) {
       ar & boost::serialization::make_nvp("PARAMETERSPACE", parameter_space_);
     }
+    ar & boost::serialization::make_nvp("STRINGDATA", string_data_);
+    ar & boost::serialization::make_nvp("ANNOTEDATA", annotation_data_);
+    ar & boost::serialization::make_nvp("MGDATA", morsegraph_data_);
     ar & boost::serialization::make_nvp("DAGDATA", dag_data_);
     ar & boost::serialization::make_nvp("BGDATA", bg_data_);
     ar & boost::serialization::make_nvp("CSDATA", cs_data_);
     ar & boost::serialization::make_nvp("CIDATA", ci_data_);
+    ar & boost::serialization::make_nvp("STRINGINDEX", string_index_);
+    ar & boost::serialization::make_nvp("ANNOTEINDEX", annotation_index_);
+    ar & boost::serialization::make_nvp("MGINDEX", morsegraph_index_);
     ar & boost::serialization::make_nvp("DAGINDEX", dag_index_);
     ar & boost::serialization::make_nvp("BGINDEX", bg_index_);
     ar & boost::serialization::make_nvp("CSINDEX", cs_index_);
     ar & boost::serialization::make_nvp("CIINDEX", ci_index_);
-    ar & boost::serialization::make_nvp("MORSERECORDS", morse_records_);
+    ar & boost::serialization::make_nvp("PARAMETERRECORDS", parameter_records_);
     ar & boost::serialization::make_nvp("CLUTCHRECORDS", clutch_records_);
     ar & boost::serialization::make_nvp("MGCCP", MGCCP_records_);
     ar & boost::serialization::make_nvp("INCCP", INCCP_records_);
@@ -395,6 +501,13 @@ public:
     ar & boost::serialization::make_nvp("INCCCONLEY",incc_conley_);
 
   }
+   bool is_identity ( const MorseGraphRecord & mgr1, 
+                      const MorseGraphRecord & mgr2, 
+                      const BG_Data & bg );
+
+   bool is_isomorphism ( const MorseGraphRecord & mgr1, 
+                         const MorseGraphRecord & mgr2, 
+                         const BG_Data & bg );
 };
 
     /*******************/
@@ -418,33 +531,58 @@ namespace std{
 #include "boost/foreach.hpp"
 
 
-    // database merging
+// database merging
+// We assume only "raw" records:
+// parameter records
+// clutching records
+// dag data
+// bg data
+// string data
+// annotation data
+// morse graph data
 inline void Database::merge ( const Database & other ) {
   std::vector < uint64_t > dag_reindex ( other . dag_data_ . size () );
   std::vector < uint64_t > bg_reindex ( other . bg_data_ . size () );
+  std::vector < uint64_t > string_reindex ( other . string_data_ . size () );
+  std::vector < uint64_t > annotation_reindex ( other . annotation_data_ . size () );
+  std::vector < uint64_t > morsegraph_reindex ( other . morsegraph_data_ . size () );
 
   for ( uint64_t i = 0; i < other . dag_data_ . size (); ++ i ) {
     const DAG_Data & item = other . dag_data_ [ i ];
-    if ( dag_index_ . count ( item ) ) {
-      dag_reindex [ i ] = dag_index_ [ item ];
-    } else {
-      dag_reindex [ i ] = dag_index_ [ item ] = dag_data_ . size ();
-      dag_data_ . push_back ( item );
-    }
+    dag_reindex [ i ] = insert ( item );
   }
   for ( uint64_t i = 0; i < other . bg_data_ . size (); ++ i ) {
     const BG_Data & item = other . bg_data_ [ i ];
-    if ( bg_index_ . count ( item ) ) {
-      bg_reindex [ i ] = bg_index_ [ item ];
-    } else {
-      bg_reindex [ i ] = bg_index_ [ item ] = bg_data_ . size ();
-      bg_data_ . push_back ( item );
+    bg_reindex [ i ] = insert ( item );
+  }
+  for ( uint64_t i = 0; i < other . string_data_ . size (); ++ i ) {
+    const std::string & item = other . string_data_ [ i ];
+    string_reindex [ i ] = insert ( item );
+  }
+  for ( uint64_t i = 0; i < other . annotation_data_ . size (); ++ i ) {
+    const Annotation_Record & item = other . annotation_data_ [ i ];
+    Annotation_Record converted;
+    BOOST_FOREACH ( uint64_t string_index, item . string_indices ) {
+      converted . string_indices . insert ( string_reindex [ string_index ] );
     }
+    annotation_reindex [ i ] = insert ( converted );
+  }
+  for ( uint64_t i = 0; i < other . morsegraph_data_ . size (); ++ i ) {
+    const MorseGraphRecord & item = other . morsegraph_data_ [ i ];
+    MorseGraphRecord converted;
+    converted . dag_index = dag_reindex [ item . dag_index ];
+    converted . annotation_index = annotation_reindex [ item . annotation_index ];
+    BOOST_FOREACH ( uint64_t annotation_index, item . annotation_index_by_vertex ) {
+      converted . annotation_index_by_vertex . 
+        push_back ( annotation_reindex [ annotation_index ] );
+    }
+    morsegraph_reindex [ i ] = insert ( converted );
   }
 
-  BOOST_FOREACH ( MorseRecord record, other . morse_records_ ) {
-    record . dag_index = dag_reindex [ record . dag_index ];
-    morse_records_ . push_back ( record );
+  // records with repeats allowed
+  BOOST_FOREACH ( ParameterRecord record, other . parameter_records_ ) {
+    record . morsegraph_index = morsegraph_reindex [ record . morsegraph_index ];
+    parameter_records_ . push_back ( record );
   }
   BOOST_FOREACH ( ClutchingRecord record, other . clutch_records_ ) {
     record . bg_index = bg_reindex [ record . bg_index ];
@@ -452,34 +590,110 @@ inline void Database::merge ( const Database & other ) {
   }
 }
 
-    // record insertion
+// record insertion
 inline void Database::insert ( boost::shared_ptr<Grid> grid ) {
   parameter_space_ = grid;
 }
 
-inline void Database::insert ( const Grid::GridElement & p, const DAG_Data & dag ) {
+inline uint64_t Database::insert ( const DAG_Data & dag ) {
   if ( dag_index_ . count ( dag ) == 0 ) {
     dag_index_ [ dag ] = dag_data_ . size ();
     dag_data_ . push_back ( dag );
   }
-  morse_records_ . push_back ( MorseRecord ( p, dag_index_ [ dag ] ) );
+  return dag_index_ [ dag ];
 }
 
-inline void Database::insert ( const Grid::GridElement & p1, const Grid::GridElement & p2, const BG_Data & bg ) {
-   if ( bg_index_ . count ( bg ) == 0 ) {
+
+inline uint64_t Database::insert ( const std::string & s ) {
+  if ( string_index_ . count ( s ) == 0 ) {
+    string_index_ [ s ] = string_data_ . size ();
+    string_data_ . push_back ( s );
+  }
+  return string_index_ [ s ];
+}
+
+inline uint64_t Database::insert ( const Annotation_Record & ar ) {
+  if ( annotation_index_ . count ( ar ) == 0 ) {
+    annotation_index_ [ ar ] = annotation_data_ . size ();
+    annotation_data_ . push_back ( ar );
+  }
+  return annotation_index_ [ ar ];
+}
+
+inline uint64_t Database::insert ( const std::set<std::string> & annotation ) {
+  Annotation_Record ar;
+  BOOST_FOREACH ( const std::string & s, annotation ) {
+    ar . string_indices . insert ( insert ( s ) );
+  }
+  return insert ( ar );
+}
+
+inline uint64_t Database::insert ( const MorseGraphRecord & mgr ) {
+  if ( morsegraph_index_ . count ( mgr ) == 0 ) {
+    morsegraph_index_ [ mgr ] = morsegraph_data_ . size ();
+    morsegraph_data_ . push_back ( mgr );
+  }
+  return morsegraph_index_ [ mgr ];
+}
+
+inline void Database::insert ( const ParameterRecord & pr ) {
+  parameter_records_ . push_back ( pr );
+}
+
+inline void Database::insert ( const Grid::GridElement & p, const MorseGraph & mg ) {
+  // Create DAG Data and/or Retrieve dag_index 
+  DAG_Data dag ( mg );
+  uint64_t dag_index = insert ( dag );
+  // Create Annotation Records and/or retrieve indices
+  uint64_t annotation_index = insert ( mg . annotation () );
+  uint64_t num_vertices = mg . NumVertices ();
+  std::vector < uint64_t > annotation_index_by_vertex ( num_vertices );
+  for ( uint64_t v = 0; v < num_vertices; ++ v ) {
+    annotation_index_by_vertex [ v ] = insert ( mg . annotation ( v ) ); 
+  }
+  // Create MorseGraphRecord
+  MorseGraphRecord mgr ( dag_index, annotation_index, annotation_index_by_vertex );
+  uint64_t morsegraph_index = insert ( mgr );
+
+  // Create ParameterRecord
+  ParameterRecord pr ( p, morsegraph_index );
+  insert ( pr );
+}
+
+inline uint64_t Database::insert ( const BG_Data & bg ) {
+  if ( bg_index_ . count ( bg ) == 0 ) {
     bg_index_ [ bg ] = bg_data_ . size ();
     bg_data_ . push_back ( bg );
   }
-  clutch_records_ . push_back ( ClutchingRecord ( p1, p2, bg_index_ [ bg ] ) );
+  return bg_index_ [ bg ];
 }
 
-inline void Database::insert ( const uint64_t incc, const CI_Data & ci ) {
+inline uint64_t Database::insert ( const CS_Data & cs ) {
+  if ( cs_index_ . count ( cs ) == 0 ) {
+    cs_index_ [ cs ] = cs_data_ . size ();
+    cs_data_ . push_back ( cs );
+  }
+  return cs_index_ [ cs ];
+}
+
+inline uint64_t Database::insert ( const CI_Data & ci ) {
   if ( ci_index_ . count ( ci ) == 0 ) {
     ci_index_ [ ci ] = ci_data_ . size ();
     ci_data_ . push_back ( ci );
   }
+  return ci_index_ [ ci ];
+}
+inline void Database::insert ( const Grid::GridElement & p1, 
+                               const Grid::GridElement & p2, 
+                               const BG_Data & bg ) {
+  uint64_t bg_index = insert ( bg );
+  clutch_records_ . push_back ( ClutchingRecord ( p1, p2, bg_index ) );
+}
+
+inline void Database::insert ( const uint64_t incc, const CI_Data & ci ) {
+  uint64_t ci_index = insert ( ci );
   incc_conley_ . resize ( INCC_records_ . size () );
-  incc_conley_ [ incc ] = ci_index_ [ ci ];
+  incc_conley_ [ incc ] = ci_index;
 }
 
 // POSTPROCESSING ALGORITHM
@@ -538,16 +752,25 @@ private:
   std::vector<uint64_t> rank;
 };
 
-
-inline bool is_identity ( const DAG_Data & dag1, const DAG_Data & dag2, const BG_Data & bg ) {
+inline bool Database::is_identity ( const MorseGraphRecord & mgr1, 
+                          const MorseGraphRecord & mgr2, 
+                          const BG_Data & bg ) {
+  const DAG_Data & dag1 = dagData()[mgr1.dag_index];
+  const DAG_Data & dag2 = dagData()[mgr2.dag_index];
+  if ( dag1 . num_vertices != dag2 . num_vertices ) return false;
+  if ( dag1 . num_vertices != bg . edges . size () ) return false;
   for ( uint64_t i = 0; i < bg . edges . size (); ++ i ) {
     if ( bg . edges [ i ] . first != bg . edges [ i ] . second ) return false;
   }
-  if ( boost::hash<DAG_Data>() ( dag1 ) != boost::hash<DAG_Data>() ( dag2 ) ) return false;
-  return true;
+  return ( mgr1 == mgr2 );
 }
 
-inline bool is_isomorphism ( const DAG_Data & dag1, const DAG_Data & dag2, const BG_Data & bg ) {
+inline bool Database::is_isomorphism ( const MorseGraphRecord & mgr1, 
+                                       const MorseGraphRecord & mgr2, 
+                                       const BG_Data & bg ) {
+  const DAG_Data & dag1 = dagData()[mgr1.dag_index];
+  const DAG_Data & dag2 = dagData()[mgr2.dag_index];
+  // Check that it is a bijection
   if ( dag1 . num_vertices != dag2 . num_vertices ) return false;
   boost::unordered_map < int, int > forward;
   boost::unordered_map < int, int > backward;
@@ -558,10 +781,13 @@ inline bool is_isomorphism ( const DAG_Data & dag1, const DAG_Data & dag2, const
     if ( backward . count ( e . second ) != 0 ) return false;
     forward [ e . first ] = e . second;
     backward [ e . second ] = e . first;
+    if ( mgr1.annotation_index_by_vertex[e.first] != 
+         mgr2.annotation_index_by_vertex[e.second] ) return false;
     ++ num_clutch_edges;
   }
   if ( num_clutch_edges != (uint64_t) dag1 . num_vertices ) return false;
   if ( num_clutch_edges != (uint64_t) dag2 . num_vertices ) return false;
+  // Check that the partial order is respected
   boost::unordered_set < Edge > po1;
   boost::unordered_set < Edge > po2;
   BOOST_FOREACH ( const Edge & e, dag1 . partial_order ) po1 . insert ( e );
@@ -577,44 +803,27 @@ inline bool is_isomorphism ( const DAG_Data & dag1, const DAG_Data & dag2, const
   return true;
 }
 
-template < class Map >
-void Database::removeBadBoxes ( void ) {
-  std::vector < MorseRecord > retained_morse_records;
-  std::vector < ClutchingRecord > retained_clutching_records;
-
-  BOOST_FOREACH ( const MorseRecord & mr, morse_records () ) {
-    Map f ( parameter_space () . geometry ( mr . grid_element ) );
-    if ( f . good () ) retained_morse_records . push_back ( mr );
-  }
-
-  BOOST_FOREACH ( const ClutchingRecord & cr, clutch_records () ) {
-    Map f ( parameter_space () . geometry ( cr . grid_element_1 ) );
-    Map g ( parameter_space () . geometry ( cr . grid_element_2 ) );
-    if ( f . good () && g . good () ) retained_clutching_records . push_back ( cr );
-  }
-  std::swap ( morse_records_ , retained_morse_records );
-  std::swap ( clutch_records_, retained_clutching_records ); 
-}
-
 inline void Database::postprocess ( void ) {
   uint64_t N = parameter_space_ -> size ();
 
   std::cout << "Database::postprocess\n";
   std::cout << " Number of parameter space grid elements = " << N << "\n";
-  std::cout << " Number of Morse Records = " << morse_records () . size () << "\n";
+  std::cout << " Number of Morse Records = " << parameter_records () . size () << "\n";
   std::cout << " Number of DAGs = " << dagData () . size () << "\n";
   // Loop through morse records and create a temporary lookup
   // from grid elements to dag codes
 
   // TODO: USE EXTERNAL MEMORY SORT TO AVOID RANDOM ACCESS PATTERN
-  std::vector < int64_t > grid_to_dag ( N, -1 );
-  BOOST_FOREACH ( const MorseRecord & mr, morse_records () ) {
-    if ( dagData()[ mr . dag_index] . num_vertices == 0 ) {
-      std::cout << "Warning: Morse Record " << mr . grid_element 
-      << " is associated with DAG << " << mr . dag_index << ", which has no vertices.\n";
+  std::vector < int64_t > grid_to_mgr ( N, -1 );
+  BOOST_FOREACH ( const ParameterRecord & pr, parameter_records () ) {
+    uint64_t morsegraph_index = pr . morsegraph_index;
+    const MorseGraphRecord & mgr = morsegraphData() [ morsegraph_index ];
+    if ( dagData()[ mgr . dag_index] . num_vertices == 0 ) {
+      std::cout << "Warning: Parameter Record " << pr . grid_element 
+      << " is associated with DAG << " << mgr . dag_index << ", which has no vertices.\n";
       continue;
     }
-    grid_to_dag [ mr . grid_element ] = mr . dag_index;
+    grid_to_mgr [ pr . grid_element ] = (int64_t) morsegraph_index;
   }
 
   // Process the clutching records sequentially, and create
@@ -624,14 +833,14 @@ inline void Database::postprocess ( void ) {
   ContiguousIntegerUnionFind mgccp_uf (N);
   BOOST_FOREACH ( const ClutchingRecord & cr, clutch_records () ) {
     // Handle spurious records
-    if ( grid_to_dag [ cr . grid_element_1 ] == -1 ||
-        grid_to_dag [ cr . grid_element_2 ] == -1 ) {
+    if ( grid_to_mgr [ cr . grid_element_1 ] == -1 ||
+        grid_to_mgr [ cr . grid_element_2 ] == -1 ) {
       std::cout << "Warning: database has invalid clutching records.\n";
       continue;
     }
 
-    if ( is_identity ( dag_data_ [ grid_to_dag [ cr . grid_element_1 ] ], 
-                       dag_data_ [ grid_to_dag [ cr . grid_element_2 ] ],
+    if ( is_identity ( morsegraph_data_ [ grid_to_mgr [ cr . grid_element_1 ] ], 
+                       morsegraph_data_ [ grid_to_mgr [ cr . grid_element_2 ] ],
                        bg_data_ [ cr . bg_index ] ) ) {
       mgccp_uf . Union ( cr . grid_element_1, cr . grid_element_2 );
     }
@@ -643,7 +852,7 @@ inline void Database::postprocess ( void ) {
 
   boost::unordered_map < Grid::GridElement, uint64_t > rep_to_mgccp;
   BOOST_FOREACH ( Grid::GridElement ge, * parameter_space_ ) {
-    if ( grid_to_dag [ ge ] == - 1) continue; // ignore uncomputed grid elements
+    if ( grid_to_mgr [ ge ] == - 1) continue; // ignore uncomputed grid elements
     Grid::GridElement mgccp_rep = mgccp_uf . Find ( ge );
     if ( rep_to_mgccp . count ( mgccp_rep ) == 0 ) {
      rep_to_mgccp [ mgccp_rep ] = MGCCP_records_ . size ();
@@ -651,7 +860,7 @@ inline void Database::postprocess ( void ) {
     }
     uint64_t mgccp_index = rep_to_mgccp [ mgccp_rep ];
     MGCCP_records_ [ mgccp_index ] . grid_elements . push_back ( ge );
-    MGCCP_records_ [ mgccp_index ] . dag_index = grid_to_dag [ ge ];
+    MGCCP_records_ [ mgccp_index ] . morsegraph_index = grid_to_mgr [ ge ];
   }
 
   // clear: mgcc_uf, rep_to_mgccp
@@ -670,8 +879,8 @@ inline void Database::postprocess ( void ) {
   ContiguousIntegerUnionFind incc_uf;
   for ( uint64_t mgccp_index = 0; mgccp_index < MGCCP_Records () . size (); ++ mgccp_index ) {
     const MGCCP_Record & mgccp_record = MGCCP_Records () [ mgccp_index ];
-    uint64_t dag_index = mgccp_record . dag_index;
-    const DAG_Data & dag = dag_data_ [ dag_index ];
+    const MorseGraphRecord & mgr = morsegraphData() [ mgccp_record . morsegraph_index ];
+    const DAG_Data & dag = dag_data_ [ mgr . dag_index ];
     uint64_t n = dag . num_vertices;
     for ( uint64_t i = 0; i < n; ++ i ) {
       CS_Data cs;
@@ -699,23 +908,27 @@ inline void Database::postprocess ( void ) {
 
   ContiguousIntegerUnionFind mgcc_uf ( MGCCP_records_ . size () );
   BOOST_FOREACH ( const ClutchingRecord & cr, clutch_records () ) {
-    if ( grid_to_dag [ cr . grid_element_1 ] == -1 ||
-        grid_to_dag [ cr . grid_element_2 ] == -1 ) {
+    if ( grid_to_mgr [ cr . grid_element_1 ] == -1 ||
+        grid_to_mgr [ cr . grid_element_2 ] == -1 ) {
       std::cerr << "Warning: database has invalid clutching records.\n";
       continue;
     }
     uint64_t mgccp1 = pb_to_mgccp_ [ cr . grid_element_1 ];
     uint64_t mgccp2 = pb_to_mgccp_ [ cr . grid_element_2 ];
-    DAG_Data & dag1 = dag_data_ [ grid_to_dag [ cr . grid_element_1 ] ];
-    DAG_Data & dag2 = dag_data_ [ grid_to_dag [ cr . grid_element_2 ] ];
+
+    const MorseGraphRecord & mgr1 = morsegraph_data_ [ grid_to_mgr [ cr . grid_element_1 ] ];
+    const MorseGraphRecord & mgr2 = morsegraph_data_ [ grid_to_mgr [ cr . grid_element_2 ] ];
+
     BG_Data & bg = bg_data_ [ cr . bg_index ];
 
     if ( mgcc_uf . Find ( mgccp1 ) == mgcc_uf . Find ( mgccp2 ) ) continue;
-    if ( is_isomorphism ( dag1, dag2, bg ) ) {
+    if ( is_isomorphism ( mgr1, mgr2, bg ) ) {
       mgcc_uf . Union ( mgccp1, mgccp2 );
     }
     // Analyze ClutchingRecord
     // (1) Generate a list of pairs of convex sets which are matched by the BG
+    const DAG_Data & dag1 = dag_data_ [ mgr1 . dag_index ];
+    const DAG_Data & dag2 = dag_data_ [ mgr2 . dag_index ];
     ContiguousIntegerUnionFind bg_connected_components ( dag1 . num_vertices + dag2 . num_vertices );
     typedef std::pair < int, int > Edge;
     BOOST_FOREACH ( Edge & edge, bg . edges ) {
@@ -740,17 +953,16 @@ inline void Database::postprocess ( void ) {
         BOOST_FOREACH ( uint64_t x, dag1_components [ i ] ) cs1 . vertices . push_back ( x );
         BOOST_FOREACH ( uint64_t x, dag2_components [ i ] ) cs2 . vertices . push_back ( x );
         
-        if ( cs_index_ . count ( cs1 ) == 0 ) {
-          cs_index_ [ cs1 ] = cs_data_ . size ();
-          cs_data_ . push_back ( cs1 );
-        }
-        uint64_t cs1_index = cs_index_ [ cs1 ];
+        uint64_t cs1_index = insert ( cs1 );
+        uint64_t cs2_index = insert ( cs2 );
 
-        if ( cs_index_ . count ( cs2 ) == 0 ) {
-          cs_index_ [ cs2 ] = cs_data_ . size ();
-          cs_data_ . push_back ( cs2 );
-        }
-        uint64_t cs2_index = cs_index_ [ cs2 ];
+        // Check if annotations match (continue if they do not)
+        // WARNING, USES SINGLETON ASSUMPTION
+        uint64_t v1 = * dag1_components [ i ] . begin ();
+        uint64_t v2 = * dag2_components [ i ] . begin ();
+        if ( mgr1.annotation_index_by_vertex[v1] 
+             != mgr2.annotation_index_by_vertex[v2] ) continue;
+        // END ANNOTATION MATCHING
 
         // Produce INCCP Records if necessary
         INCCP_Record inccp1, inccp2;
@@ -852,7 +1064,7 @@ inline void Database::postprocess ( void ) {
   }
 
   // Get rid of the bulky parts
-  morse_records_ . clear ();
+  parameter_records_ . clear ();
   clutch_records_ . clear ();
 }
 
@@ -885,8 +1097,9 @@ inline void Database::makeAttractorsMinimal ( void ) {
         const INCCP_Record & inccp_record = INCCP_Records () [ inccp ];
         uint64_t mgccp = inccp_record . mgccp_index;
         uint64_t cs = inccp_record . cs_index;
-        MGCCP_Record & mgccp_record = MGCCP_records_ [ mgccp ];
-        DAG_Data dag_data = dagData () [ mgccp_record . dag_index ];
+        const MGCCP_Record & mgccp_record = MGCCP_records_ [ mgccp ];
+        MorseGraphRecord & mgr = morsegraph_data_ [ mgccp_record . morsegraph_index ];
+        DAG_Data dag_data = dagData () [ mgr . dag_index ];
         const CS_Data & cs_data = csData () [ cs ];
         DAG_Data new_dag;
         new_dag . num_vertices = dag_data . num_vertices;
@@ -911,15 +1124,10 @@ inline void Database::makeAttractorsMinimal ( void ) {
           }
         }
         // register the new dag
-        if ( dag_index_ . count ( new_dag ) == 0 ) {
-          dag_index_ [ new_dag ] = dag_data_ . size ();
-          dag_data_ . push_back ( new_dag );
-        }
-        //uint64_t old_dag_index = mgccp_record . dag_index;
-        uint64_t new_dag_index = dag_index_ [ new_dag ];
+        uint64_t new_dag_index = insert ( new_dag ); 
         //std::cout << "Old dag index = " << old_dag_index << "\n";
         //std::cout << "New dag index = " << new_dag_index << "\n";
-        mgccp_record . dag_index = new_dag_index;
+        mgr . dag_index = new_dag_index;
       }
     }
   }
@@ -953,8 +1161,9 @@ inline void Database::performTransitiveReductions ( void ) {
     dag_index_ [ dag ] = dag_index;
   }
 }
-    // record access
-inline const std::vector < MorseRecord > & Database::morse_records ( void ) const { return morse_records_; }
+
+// record access
+inline const std::vector < ParameterRecord > & Database::parameter_records ( void ) const { return parameter_records_; }
 inline const std::vector < ClutchingRecord > & Database::clutch_records ( void ) const { return clutch_records_; }
 inline const std::vector < MGCCP_Record > & Database::MGCCP_Records ( void ) const { return MGCCP_records_; }
 inline const std::vector < INCCP_Record > & Database::INCCP_Records ( void ) const { return INCCP_records_; }
@@ -964,7 +1173,7 @@ inline const std::vector < INCC_Record > & Database::INCC_Records ( void ) const
 
 
 
-    // file operations
+// file operations
 inline void Database::save ( const char * filename ) {
   std::cout << "Database SAVE\n";
   std::ofstream ofs(filename);

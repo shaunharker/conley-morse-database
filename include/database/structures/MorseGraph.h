@@ -89,6 +89,11 @@ class MorseGraph {
   boost::shared_ptr<chomp::ConleyIndex_t> & conleyIndex (Vertex vertex);
   boost::shared_ptr<const chomp::ConleyIndex_t> conleyIndex (Vertex vertex) const;
   
+  std::set< std::string > & annotation ( void );
+  std::set< std::string > & annotation ( Vertex vertex );
+  const std::set< std::string > & annotation ( void ) const;
+  const std::set< std::string > & annotation ( Vertex vertex ) const;
+
   /** Remove the grids associated with the vertices */
   void clearGrids ( void );
   
@@ -119,7 +124,8 @@ private:
   boost::shared_ptr < Grid > phasespace_;
   std::vector < boost::shared_ptr <Grid > > grids_;
   std::vector < boost::shared_ptr < chomp::ConleyIndex_t > > conleyindexes_;
-  
+  std::set < std::string > annotation_;
+  std::vector < std::set < std::string > > annotation_by_vertex_;
   //// SERIALIZATION
   friend class boost::serialization::access;
   template<class Archive>
@@ -129,6 +135,8 @@ private:
     ar & phasespace_;
     ar & grids_;
     ar & conleyindexes_;
+    ar & annotation_;
+    ar & annotation_by_vertex_;
   }
 };
 
@@ -223,6 +231,24 @@ boost::shared_ptr<chomp::ConleyIndex_t> & MorseGraph::conleyIndex(Vertex vertex)
 inline boost::shared_ptr<const chomp::ConleyIndex_t>
 MorseGraph::conleyIndex (Vertex vertex) const {
   return conleyindexes_ [ vertex ];
+}
+
+inline std::set< std::string > & MorseGraph::annotation ( void ) {
+  return annotation_;
+}
+
+inline std::set< std::string > & MorseGraph::annotation ( Vertex vertex ) {
+  if ( annotation_by_vertex_ . size () <= vertex ) {
+    annotation_by_vertex_ . resize ( vertex + 1 );
+  }
+  return annotation_by_vertex_ [ vertex ];
+}
+inline const std::set< std::string > & MorseGraph::annotation ( void ) const {
+  return annotation_;
+}
+
+inline const std::set< std::string > & MorseGraph::annotation ( Vertex vertex ) const {
+  return annotation_by_vertex_ [ vertex ];
 }
 
 /** method to clear grids associated with all vertices */
