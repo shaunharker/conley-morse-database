@@ -22,6 +22,9 @@
 //#define CMDB_STORE_GRAPH
 //#define ODE_METHOD
 
+//#include "Model.h"
+#include "ModelMap.h"
+
 #include "database/structures/MorseGraph.h"
 #include "database/program/jobs/Compute_Morse_Graph.h"
 #include "chomp/Rect.h"
@@ -31,7 +34,7 @@
 
 #include "database/program/Configuration.h"
 
-#include "ModelMap.h"
+
 
 /*************************/
 /* Subdivision Settings  */
@@ -60,7 +63,7 @@ int SINGLECMG_COMPLEXITY_LIMIT;
 
 Rect parameterBounds ( const Rect parameter_box, 
                        const std::vector<Real> b, 
-                       const int param_subdiv ) {
+                       const std::vector<int> param_subdiv ) {
   
   int parameter_space_dimension = parameter_box . dimension();
   Rect parameter_space_limits ( parameter_box );
@@ -70,15 +73,7 @@ Rect parameterBounds ( const Rect parameter_box,
   }
   Rect parameter_box_new ( parameter_space_dimension );
   
-  Real max = b [ 0 ];
-  for (unsigned int i=0; i<b.size(); ++i ) {
-    if ( b [ i ] > max ) max = b [ i ];
-  }
-  if ( max > PARAMETER_BOXES ) {
-    std::cout << "The choice of parameter box is invalid.";
-    std::cout << "Check the arguments of SingleCMG\n";
-    exit(-1);
-  }
+  // TODO, argument checking
 
   for ( int i=0; i<parameter_space_dimension; ++i ) {
     parameter_box_new . lower_bounds [ i ] = parameter_space_limits . lower_bounds [ i ] + 
@@ -140,7 +135,13 @@ void computeConleyMorseGraph ( MorseGraph & morsegraph,
   if ( inputfile != NULL ) {
     morsegraph . load ( inputfile );
   }
-  boost::shared_ptr < Grid > phase_space = morsegraph . phaseSpace ();
+  boost::shared_ptr < TreeGrid > phase_space = 
+    boost::dynamic_pointer_cast<TreeGrid> ( morsegraph . phaseSpace () );
+  if ( not phase_space ) {
+    std::cout << "Cannot interface with chomp for this grid type.\n";
+    std::cout << " (not producing .cmg file.)\n";
+    return;
+  }
 #ifdef CMG_VERBOSE
   std::cout << "Number of Morse Sets = " << morsegraph . NumVertices () << "\n";
 #endif
@@ -177,6 +178,9 @@ clock_t global_timer;
 int main ( int argc, char * argv [] )
 {
 
+  //Model model;
+  //model . initialize ( argc, argv );
+
   // Load the configuration file 
   Configuration config;
   config . loadFromFile ( "./" );
@@ -196,6 +200,7 @@ int main ( int argc, char * argv [] )
     for ( int dim = 0; dim < parameter_box . dimension(); ++ dim ) {
       if ( dim > 0 ) std::cout << " x ";
       std::cout << "[0, " << (int)(pow(2,param_subdiv_depth[dim])-1) << "]\n";
+    }
     std::cout << "Program terminated, no computation performed\n";
     exit(-1);
   }
@@ -212,28 +217,30 @@ int main ( int argc, char * argv [] )
 
 #ifdef COMPUTE_MORSE_SETS
 
-  MorseGraph morsegraph ( new PHASE_GRID ); 
+  boost::shared_ptr < TreeGrid > phaseGrid ( new PHASE_GRID );
 
-  /* INITIALIZE MORSE GRAPH WITH PHASE SPACE *********************/                       //
-  morsegraph . phaseSpace () -> initialize ( config . PHASE_BOUNDS );   //
-  morsegraph . phaseSpace () -> periodicity () = config . PHASE_PERIODIC;   //
-  for ( int i = 0; i < INITIALSUBDIVISIONS; ++ i )               //
-    morsegraph . phaseSpace () -> subdivide ();                  //
+  MorseGraph morsegraph ( phaseGrid ); 
+
+  /* INITIALIZE MORSE GRAPH WITH PHASE SPACE *********************/
+  phaseGrid -> initialize ( config . PHASE_BOUNDS );
+  phaseGrid -> periodicity () = config . PHASE_PERIODIC;
+  for ( int i = 0; i < INITIALSUBDIVISIONS; ++ i )  
+    phaseGrid -> subdivide ();      
   /***************************************************************/
 
   /* COMPUTE MORSE GRAPH *************************************/
-  TIC;                                                       //
+  TIC;                                                       
   computeMorseGraph ( morsegraph, map,
                       SINGLECMG_MIN_PHASE_SUBDIVISIONS, 
                       SINGLECMG_MAX_PHASE_SUBDIVISIONS,
-                      SINGLECMG_COMPLEXITY_LIMIT, "data.mg" );        //
-  std::cout << "Total Time for Finding Morse Sets ";         //
-#ifndef NO_REACHABILITY                                      //
-  std::cout << "and reachability relation: ";                //
-#else                                                      //
-  std::cout << ": ";                                         //
-#endif                                                       //
-  TOC;                                                       //
+                      SINGLECMG_COMPLEXITY_LIMIT, "data.mg" );        
+  std::cout << "Total Time for Finding Morse Sets ";         
+#ifndef NO_REACHABILITY                                      
+  std::cout << "and reachability relation: ";                
+#else                                                      
+  std::cout << ": ";                                         
+#endif                                                       
+  TOC;                                                       
   /***********************************************************/
 #endif // endif for COMPUTE_MORSE_SETS
 
@@ -254,10 +261,13 @@ int main ( int argc, char * argv [] )
 
 #ifdef DRAW_IMAGES
   /* DRAW IMAGES ***********************************************************/
-  if ( conleymorsegraph . phaseSpace () -> dimension () == 2 ) {
+  boost::shared_ptr<TreeGrid> cmg_treegrid =
+     boost::dynamic_pointer_cast<TreeGrid> ( conleymorsegraph . phaseSpace () );
+
+  if ( cmg_treegrid && cmg_treegrid -> dimension () == 2 ) {
     TIC;                                                                     
     std::cout << "Creating image file...\n";                                 
-    DrawMorseSets ( * (conleymorsegraph . phaseSpace ()), conleymorsegraph );
+    DrawMorseSets ( * cmg_treegrid, conleymorsegraph );
     TOC;                                                                     
   }
   /*************************************************************************/
@@ -265,7 +275,7 @@ int main ( int argc, char * argv [] )
 
 // Always output the Morse Graph
   std::cout << "Creating graphviz .dot file...\n";                         
-  CreateDotFile ( conleymorsegraph );  
+  CreateDotFile ( "morsegraph.gv", conleymorsegraph );  
   
   return 0;
 } /* main */

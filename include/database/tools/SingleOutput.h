@@ -75,7 +75,7 @@ std::string conleyStringForZoo ( const std::vector<std::string> & ci_strings ) {
     return ci_string;
 }
 
-inline void CreateDotFile ( const char * inputfile, const MorseGraph & cmg ) {
+inline void CreateDotFile ( const char * outputfile, const MorseGraph & cmg ) {
   typedef MorseGraph::Vertex V;
   typedef MorseGraph::Edge E;
   typedef MorseGraph::VertexIterator VI;
@@ -84,7 +84,7 @@ inline void CreateDotFile ( const char * inputfile, const MorseGraph & cmg ) {
 
 
   // std::ofstream outfile ("morsegraph.gv");
-  std::ofstream outfile (inputfile);
+  std::ofstream outfile (outputfile);
   
   outfile << "digraph G { \n";
   //outfile << "node [ shape = point, color=black  ];\n";
@@ -119,33 +119,36 @@ inline void CreateDotFile ( const char * inputfile, const MorseGraph & cmg ) {
     if ( index_source != index_target ) // Cull the self-edges
       edges . insert ( std::make_pair ( index_source, index_target ) );
   }
-  // TRANSITIVE REDUCTION (n^5, non-optimal)
-  // We determine those edges (a, c) for which there are edges (a, b) and (b, c)
-  // and store them in "transitive_edges"
-  std::set < int_pair > transitive_edges;
+
+  // Transitive Reduction
+  // Assumption: edges is already transitively closed (and has no self-edges)
+  // Technique: R = G - G^2
+
+  boost::unordered_map < int, boost::unordered_set < int > > G, squared;
   BOOST_FOREACH ( int_pair edge, edges ) {
-    for ( int j = 0; j < N; ++ j ) {
-      bool left = false;
-      bool right = false;
-      BOOST_FOREACH ( int_pair edge2, edges ) {
-        if ( edge2 . first == edge . first && edge2 . second == j ) left = true;
-        if ( edge2 . first == j && edge2 . second == edge . second ) right = true;
-      }
-      if ( left && right ) transitive_edges . insert ( edge );
+    if ( edge . first != edge . second ) {
+      G [ edge . first ] . insert ( edge . second );
     }
+  }
+  for ( int u = 0; u < N; ++ u ) {
+    BOOST_FOREACH( int v, G [ u ] ) {
+      BOOST_FOREACH ( int w, G [ v ] ) {
+        squared [ u ] . insert ( w );
+      }
+    }
+  }
+  std::vector < int_pair > reduced;
+  BOOST_FOREACH ( int_pair edge, edges ) {
+    if ( squared [ edge . first ] . count ( edge . second ) == 0 )
+      reduced . push_back ( edge );
   }
   
   // PRINT OUT EDGES OF TRANSITIVE CLOSURE
-  BOOST_FOREACH ( int_pair edge, edges ) {
-    //if ( transitive_edges . count ( edge ) == 0 )
+  BOOST_FOREACH ( int_pair edge, reduced ) {
       outfile << edge . first << " -> " << edge . second << ";\n";
   }
   
-  edges . clear ();
-  transitive_edges . clear ();
-  
   outfile << "}\n";
-  
   outfile . close ();
   
 }

@@ -12,6 +12,7 @@
 #include <boost/serialization/serialization.hpp>
 #include <boost/unordered_set.hpp>
 #include <boost/unordered_map.hpp>
+#include <boost/serialization/set.hpp>
 #include <boost/serialization/unordered_set.hpp>
 #include <boost/serialization/unordered_map.hpp>
 #include "boost/serialization/shared_ptr.hpp"

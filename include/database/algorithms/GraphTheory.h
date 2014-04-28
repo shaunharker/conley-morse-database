@@ -31,8 +31,8 @@ void compute_morse_sets (std::vector< CellContainer > * output,
 template < class OutEdgeGraph >
 void computeStrongComponents (std::vector<std::deque<typename OutEdgeGraph::size_type> > * output, 
                                 const OutEdgeGraph & G, 
-          /* optional output */ std::deque<typename OutEdgeGraph::size_type> * topological_sort = NULL);
-
+          /* optional output */ std::deque<typename OutEdgeGraph::size_type> * topological_sort = NULL,
+          /* optional output */ std::deque<typename OutEdgeGraph::size_type> * SCC_root = NULL);
 /** compute_reachability */
 template < class Graph >
 void computeReachability ( std::vector < std::deque < unsigned int > > * output, 

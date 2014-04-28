@@ -23,11 +23,11 @@
 #include "ModelMap.h"
 typedef ModelMap GeometricMap;
 
-#include "chomp/Rect.h"
+#include "database/structures/RectGeo.h"
 
 class Configuration {
 public:
-  typedef chomp::Rect Rect;
+  typedef RectGeo Rect;
   // Model, name and description
   std::string MODEL_NAME;
   std::string MODEL_DESC;

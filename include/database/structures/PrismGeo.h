@@ -11,7 +11,9 @@
 #include <vector>
 #include <cmath>
 
+#ifdef HAVECHOMP
 #include "chomp/Prism.h"
+#endif
 #include "database/structures/Geo.h"
 #include "database/structures/RectGeo.h"
 
@@ -81,12 +83,15 @@ private:
 
 public:
   // conversion to chomp::Prism
+  #ifdef HAVECHOMP
+
   operator chomp::Prism ( void ) const {
     chomp::Prism output ( dim );
     output . A = A;
     output . c = c;
     return output;
   }
+  #endif
   PrismGeo ( void ) { Ainv_computed = false; dim = 0;}
   PrismGeo ( int dim ) : dim ( dim ) {
     A . resize ( dim, dim );

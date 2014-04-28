@@ -13,7 +13,7 @@
 #include <boost/unordered_set.hpp>
 #include "boost/serialization/serialization.hpp"
 #include "boost/serialization/vector.hpp"
-
+#include "boost/shared_ptr.hpp"
 #include "database/structures/Geo.h"
 
 // Declaration

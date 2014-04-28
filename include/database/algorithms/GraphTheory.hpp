@@ -136,67 +136,6 @@ void computeMorseSets (std::vector< boost::shared_ptr<Grid> > * output,
 #endif
 }
 
-#if 0
-
-// CURRENTLY UNUSABLE. Need to update to use auto_ptr
-// Need to use new grid interface.
-// is shared_ptr more appropriate? confusion.
-/* compute_morse_sets */
-template < class MorseGraph, class Grid, class Map >
-void computeMorseSets (std::vector< std::auto_ptr<Grid> > * output,
-                       const Grid & G,
-                       const Map & f,
-                       /* optional output */ MorseGraph * MG ) {
-  
-  // Clear output
-  output -> clear ();
-  
-  // Create Graph
-  MapGraph < Grid, Map > mapgraph ( G, f );
-  
-  // Check if Morse Graph output required.
-  if ( MG == NULL ) {
-    // The user doesn't want a Morse Graph.
-    std::vector < typename MapGraph::set > components;
-    computeStrongComponents ( &components, mapgraph );
-    BOOST_FOREACH ( const typename MapGraph::set & component, components ) {
-      (*output) . push_back ( std::auto_ptr<Grid> (G . subgrid ( component )) );
-    }
-  } else {
-    // The user wants us to determine reachability and provide a Morse Graph.
-    /* Produce Strong Components and Topological Sort */
-    std::vector< typename MapGraph::vertex > topological_sort;
-    std::vector < typename MapGraph::set > components;
-    computeStrongComponents ( &components, mapgraph, &topological_sort );
-    BOOST_FOREACH ( const typename MapGraph::set & component, components ) {
-      (*output) . push_back ( std::auto_ptr<Grid> (G . subgrid ( component )) );
-    }
-    
-    /* Produce Reachability Information */
-    std::vector < std::vector < unsigned int > > reach_info;
-    computeReachability ( &reach_info, components, mapgraph, topological_sort );
-    
-    /* Produce Morse Graph Vertices */
-    typedef typename MorseGraph::Vertex cmg_vertex_t;
-    std::map < unsigned int, cmg_vertex_t > translate_to_cmg;
-    for (unsigned int s = 0; s < output -> size (); ++ s ) {
-      cmg_vertex_t new_vertex = MG -> AddVertex ();
-      translate_to_cmg [ s ] = new_vertex;
-      MG -> CellSet ( new_vertex ) = (*output) [ s ];
-    }
-    
-    /* Produce Morse Graph Edges */
-    for (unsigned int s = 0; s < reach_info . size (); ++ s ) {
-      BOOST_FOREACH ( unsigned int t, reach_info [ s ] ) {
-        MG -> AddEdge ( translate_to_cmg [ s ], translate_to_cmg [ t ] );
-      }
-    }
-    
-  } /* if-else */
-  
-}
-#endif
-
 /*******************
  *   GRAPH THEORY  *
  *******************/
@@ -205,7 +144,8 @@ void computeMorseSets (std::vector< std::auto_ptr<Grid> > * output,
 template < class OutEdgeGraph >
 void computeStrongComponents (std::vector<std::deque<typename OutEdgeGraph::size_type> > * output,
                               const OutEdgeGraph & G,
-         /* optional output */std::deque<typename OutEdgeGraph::size_type> * topological_sort ) {
+         /* optional output */std::deque<typename OutEdgeGraph::size_type> * topological_sort,
+         /* optional output */std::deque<typename OutEdgeGraph::size_type> * SCC_root ) {
   // typedefs and const variables
   long int effort = 0;
   typedef typename OutEdgeGraph::size_type size_type;
@@ -219,6 +159,7 @@ void computeStrongComponents (std::vector<std::deque<typename OutEdgeGraph::size
   size_type N = G . num_vertices ();
   std::vector<size_type> index ( N, sentinel ); // An index of "sentinel" means has not been explored.
   std::vector<bool> committed ( N, 0 );
+  if ( SCC_root != 0 ) SCC_root -> resize ( N );
   size_type current_index = 0;
   lowlink_stack . push_back ( std::make_pair ( sentinel, sentinel ) ); // so there is always a top.
 
@@ -384,6 +325,10 @@ void computeStrongComponents (std::vector<std::deque<typename OutEdgeGraph::size
           // Mark the vertices in the component as committed to an SCC
           BOOST_FOREACH ( size_type u, SCC ) {
             committed [ u ] = true;
+            // new top sort
+            // If user wants topological sort, give it to them.
+            if ( topological_sort != NULL ) topological_sort -> push_front ( u );
+            if ( SCC_root != NULL ) (*SCC_root) [ u ] = v;
           }
           /* Send the SCC to output if contains at least one edge */
           if ( SCC . size () > 1 || self_connected ) {
@@ -395,8 +340,10 @@ void computeStrongComponents (std::vector<std::deque<typename OutEdgeGraph::size
           }
 
         }
+        
         // If user wants topological sort, give it to them.
-        if ( topological_sort != NULL ) topological_sort -> push_back ( dfs_stack. back () . second );
+        //if ( topological_sort != NULL ) topological_sort -> push_back ( dfs_stack. back () . second );
+        
         // Pop the vertex from the dfs stack        
         dfs_stack . pop_back ();
       } // if visited
