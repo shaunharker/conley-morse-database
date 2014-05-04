@@ -1,31 +1,21 @@
 ############################################
 # makefile for Conley-Morse Database project
-###########################################
-#
-#
-CHECKIFMAPISGOOD := no
-#
+############################################
+# 
 COMPUTE_MORSE_SETS := yes
 COMPUTE_CONTINUATION := yes
 COMPUTE_CONLEY_INDEX := yes
-DRAW_IMAGES := yes
-#
-# CAPD Library 
-#
+# Optional Libraries: CAPD Library, SDSL Library
 USE_CAPD := no
-#
-# Memory saving option : PointerGrid, SuccinctGrid 
-#
-HAVE_SUCCINCT := yes
-PARAMETER_GRID := EdgeGrid
+USE_SDSL := yes
+# Parameter grid options: EdgeGrid UniformGrid PointerGrid SuccinctGrid
+PARAMETER_GRID := UniformGrid
+# Phase grid options: PointerGrid SuccinctGrid
 PHASE_GRID := PointerGrid
-#
-# if modelmap has good() implemented
-PARAM_SPACE_METHOD := PATCHMETHOD
+# Monotonic subdivision property: set to yes
+# if map satisfied F(A) < F(B) whenever A < B
+# and better partial orders can be obtained
 MONOTONICSUBDIVISION := no
-#
-#
-#
 # END OF ADVANCED OPTIONS
 ###########################################
 #
@@ -34,12 +24,11 @@ USE_BOOST_INTERVAL := yes
 endif 
 #
 include makefile.config
-CXXFLAGS += -D $(PARAM_SPACE_METHOD)
 CXXFLAGS += -DPARAMETER_GRID=$(PARAMETER_GRID) 
 CXXFLAGS += -DPHASE_GRID=$(PHASE_GRID)
 
-ifeq ($(HAVE_SUCCINCT),yes)
-	CXXFLAGS += -DHAVE_SUCCINCT
+ifeq ($(USE_SDSL),yes)
+	CXXFLAGS += -DUSE_SDSL
 endif
 
 ifeq ($(MONOTONICSUBDIVISION),yes)
@@ -49,10 +38,6 @@ endif
 ifeq ($(USE_BOOST_INTERVAL),yes)
 	CXXFLAGS += -D USE_BOOST_INTERVAL
 endif
-
-ifeq ($(DRAW_IMAGES),yes)
-CXXFLAGS += -D DRAW_IMAGES
-endif 
 
 .PHONY: all
 all: Conley_Morse_Database
@@ -95,30 +80,9 @@ GRAPHPROCESS := ./build/program/GraphProcess.o
 GraphProcess: $(GRAPHPROCESS)
 	$(CC) $(LDFLAGS) $(GRAPHPROCESS) -o $@ $(LDLIBS)
 
-EXPORTXML := ./build/program/ExportXML.o
-EXPORTXML += ./build/structures/Database.o
-EXPORTXML += ./build/structures/XMLExporter.o
-
-ExportXML: $(EXPORTXML)
-	$(CC) $(LDFLAGS) $(EXPORTXML) -o $@ $(LDLIBS)
-
 ATLASCMG := ./build/test/AtlasCMG.o 
 AtlasCMG: $(ATLASCMG)
 	$(CC) $(LDFLAGS) -I$(MODELDIR) $(ATLASCMG) -o $@ $(LDLIBS)
-	
-BOOLEANCMG := ./build/test/BooleanCMG.o 
-BooleanCMG: $(BOOLEANCMG)
-	$(CC) $(LDFLAGS) -I$(MODELDIR) $(BOOLEANCMG) -o $@ $(LDLIBS)
-#	mv BooleanCMG $(MODELDIR)
-#	@echo "BooleanCMG was moved to " $(MODELDIR)
-
-BOOLEANTESTCMG := ./build/test/BooleanTestCMG.o 
-BooleanTestCMG: $(BOOLEANTESTCMG)
-	$(CC) $(LDFLAGS) -I$(MODELDIR) $(BOOLEANTESTCMG) -o $@ $(LDLIBS)
-#	mv BooleanCMG $(MODELDIR)
-#	@echo "BooleanCMG was moved to " $(MODELDIR)
-
-
 
 SINGLECMG := ./build/test/SingleCMG.o 
 SingleCMG: $(SINGLECMG)
@@ -130,60 +94,6 @@ SingleCMG: $(SINGLECMG)
 	@echo "# The executable file SingleCMG is the model directory:" $(MODELDIR);
 	@echo "#";
 
-
-WAVEPOOLCMG := ./build/test/WavePoolCMG.o
-WavePoolCMG: $(WAVEPOOLCMG)
-	$(CC) $(LDFLAGS) $(WAVEPOOLCMG) -o $@ $(LDLIBS)
-
-NEWWAVEPOOLCMG := ./build/test/NewWavePoolCMG.o
-NewWavePoolCMG: $(NEWWAVEPOOLCMG)
-	$(CC) $(LDFLAGS) $(NEWWAVEPOOLCMG) -o $@ $(LDLIBS)
-
-
-#SINGLECMG := ./build/test/SingleCMG.o 
-#SingleCMG: $(SINGLECMG)
-#	$(CC) $(LDFLAGS) $(SINGLECMG) -o $@ $(LDLIBS)
-
-RMHTEST := ./build/test/RMHTest.o
-RMHTest: $(RMHTEST)
-	$(CC) $(LDFLAGS) $(RMHTEST) -o $@ $(LDLIBS)
-
-HENONCMG := ./build/test/HenonCMG.o
-HenonCMG: $(HENONCMG)
-	$(CC) $(LDFLAGS) $(HENONCMG) -o $@ $(LDLIBS)
-
-NEWTONCMG := ./build/test/NewtonCMG.o
-NewtonCMG: $(NEWTONCMG)
-	$(CC) $(LDFLAGS) $(NEWTONCMG) -o $@ $(LDLIBS)
-
-JUSTINCMG := ./build/test/JustinCMG.o
-JustinCMG: $(JUSTINCMG)
-	$(CC) $(LDFLAGS) $(JUSTINCMG) -o $@ $(LDLIBS)
-
-ALLANCMG := ./build/test/AllanCMG.o
-AllanCMG: $(ALLANCMG)
-	$(CC) $(LDFLAGS) $(ALLANCMG) -o $@ $(LDLIBS)
-
-TRAVELCMG := ./build/test/TravelCMG.o
-TravelCMG: $(TRAVELCMG)
-	$(CC) $(LDFLAGS) $(TRAVELCMG) -o $@ $(LDLIBS)
-
-LVCMG := ./build/test/LVCMG.o
-LVCMG: $(LVCMG)
-	$(CC) $(LDFLAGS) $(LVCMG) -o $@ $(LDLIBS)
-
-SELKOVCMG := ./build/test/SelkovCMG.o
-SelkovCMG: $(SELKOVCMG)
-	$(CC) $(LDFLAGS) $(SELKOVCMG) -o $@ $(LDLIBS)
-
-SUBMAPTEST := ./build/test/SubdividedMapTest.o
-SubdividedMapTest: $(SUBMAPTEST)
-	$(CC) $(LDFLAGS) $(SUBMAPTEST) -o $@ $(LDLIBS)
-
-ODECMG := ./build/test/odeCMG.o
-odeCMG: $(ODECMG)
-	$(CC) $(LDFLAGS) $(ODECMG) -o $@ $(LDLIBS)
-
 # Cleanup
  .PHONY: clean
 clean:
@@ -191,15 +101,7 @@ clean:
 	find ./build -name "*.so" -delete
 	rm -f Conley_Morse_Database
 	rm -f SingleCMG
-	rm -f ExportXML
-	rm -f NewtonCMG
-	rm -f AllanCMG
-	rm -f JustinCMG
-	rm -f SelkovCMG
-	rm -f TravelCMG
-	rm -f RMHTest
-	rm -f SubdividedMapTest
-	rm -f LVCMG
+	rm -f AtlasCMG
 
 # Create build directories
 .PHONY: build-dirs
@@ -209,4 +111,3 @@ dirs:
 	mkdir build/structures
 	mkdir build/test
 	mkdir build/tools
-	mkdir build/tools/lodepng

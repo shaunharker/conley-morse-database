@@ -19,7 +19,7 @@
 #include "database/program/jobs/Conley_Index_Job.h"
 #include "database/structures/UnionFind.hpp"
 
-#ifdef USE_SUCCINCT
+#ifdef USE_SDSL
 #include "database/structures/SuccinctGrid.h"
 #endif
 #include "database/structures/PointerGrid.h"
@@ -36,7 +36,7 @@
 
 /*  in Conley_Morse_Database.cpp
 #include <boost/serialization/export.hpp>
-#ifdef HAVE_SUCCINCT
+#ifdef USE_SDSL
 BOOST_CLASS_EXPORT_IMPLEMENT(SuccinctGrid);
 #endif
 BOOST_CLASS_EXPORT_IMPLEMENT(PointerGrid);

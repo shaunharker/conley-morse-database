@@ -18,6 +18,7 @@
 
 #define CMG_VERBOSE
 #define MEMORYBOOKKEEPING
+#define DRAW_IMAGES
 //#define NO_REACHABILITY
 //#define CMDB_STORE_GRAPH
 //#define ODE_METHOD

@@ -1,8 +1,0 @@
-Unit tests are written using cutter testing framework 
-  http://cutter.sourceforge.net/
-If you want to run unit tests, you need to
-  (1) Install cutter (please see the installation manual of cutter)
-  (2) Modify makefile.config for your environment
-  (3) Type "make -f makefile.unittest run-unittests" on your terminal
-      to build tests and to run those tests
-You will get the message of "100% passed" after some log messages.

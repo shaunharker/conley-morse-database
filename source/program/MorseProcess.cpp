@@ -23,7 +23,7 @@
 #include "database/structures/UnionFind.hpp"
 #include "database/structures/Database.h"
 
-#ifdef HAVE_SUCCINCT
+#ifdef USE_SDSL
 #include "database/structures/SuccinctGrid.h"
 #endif
 #include "database/structures/PointerGrid.h"
