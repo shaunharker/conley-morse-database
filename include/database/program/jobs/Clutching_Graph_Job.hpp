@@ -8,6 +8,7 @@
 #include <vector>
 #include <ctime>
 #include <set>
+
 #include "boost/iterator_adaptors.hpp"
 #include "boost/iterator/counting_iterator.hpp"
 #include "boost/serialization/vector.hpp"
@@ -18,13 +19,7 @@
 #include "database/structures/MorseGraph.h"
 #include "database/program/jobs/Compute_Morse_Graph.h"
 #include "database/structures/Database.h"
-#include "database/structures/Tree.h"
-
 #include "database/algorithms/clutching.h"
-
-#include "chomp/Rect.h"
-
-
 
 /** Main function for clutching graph job.
  *
@@ -35,19 +30,14 @@ template <class PhaseGrid>
 void Clutching_Graph_Job ( Message * result , const Message & job ) {
   
   // Read Job Message
-
-  std::vector < Grid::GridElement> box_names;
-  std::vector < RectGeo > box_geometries;
-  std::vector <std::pair<Grid::GridElement, Grid::GridElement> > box_adjacencies;
+  boost::shared_ptr<ParameterPatch> patch;
   int PHASE_SUBDIV_INIT;
   int PHASE_SUBDIV_MIN;
   int PHASE_SUBDIV_MAX;
   int PHASE_SUBDIV_LIMIT;
   Model model;
   
-  job >> box_names;
-  job >> box_geometries;
-  job >> box_adjacencies;
+  job >> patch;
   job >> PHASE_SUBDIV_INIT;
   job >> PHASE_SUBDIV_MIN;
   job >> PHASE_SUBDIV_MAX;
@@ -55,79 +45,81 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   job >> model;
  
   // Prepare data structures
-  std::map < Grid::GridElement, boost::shared_ptr<PhaseGrid> > phase_space_grids;
-  std::map < Grid::GridElement, MorseGraph> conley_morse_graphs;
-  std::vector < BG_Data > clutching_graphs;
+  Database database;
+  boost::unordered_map < uint64_t, MorseGraph> morse_graphs;
 
   // Compute Morse Graphs
-  std::cout << "CLUTCHING JOB " << "with " << box_names . size () << " parameter boxes BEGINNING.\n";
+  size_t num_parameters = patch -> vertices . size ();
+  std::cout << "CLUTCHING JOB " << "with " << num_parameters << " parameter boxes BEGINNING.\n";
   std::cout << "--------- 1. Compute Morse Graphs --------- " << "\n";
-  for ( size_t i = 0; i < box_names . size (); ++ i ) {
-    std::cout << " Processing parameter box " << i << "/" << box_names . size () 
-      << ", " << box_geometries [ i ] << "\n";
-    //Prepare phase space and map
-    Grid::GridElement box = box_names [ i ];
 
-    phase_space_grids [ box ] = boost::dynamic_pointer_cast < PhaseGrid > 
-      ( model . phaseSpace ( box_geometries [ i ] ) );
-    if ( not phase_space_grids [ box ] ) {
+  size_t count = 0;
+  BOOST_FOREACH ( uint64_t vertex, patch -> vertices ) {
+    // Obtain parameter associated with vertex
+    boost::shared_ptr<Parameter> parameter = patch -> parameter [ vertex ];
+    
+    // Debug output
+    std::cout << " Processing parameter box " << ++count << "/" << num_parameters 
+      << ", " << * parameter << "\n";
+
+    // Prepare dynamical map
+    boost::shared_ptr<GeometricMap> map = model . map ( parameter );
+    if ( not map . good () ) continue;
+    
+    // Prepare phase space
+    boost::shared_ptr<PhaseGrid> phase_space = 
+      boost::dynamic_pointer_cast < PhaseGrid > ( model . phaseSpace ( parameter ) );    
+ 
+    // Check for errors
+    if ( not phase_space_grids [ vertex ] ) {
       std::cout << "PHASE SPACE incorrectly chosen in makefile.\n";
     }
-    // DEBUG
-    //std::cout << "Parameter = " << box_geometries [ i ] << ", box = " << box << "\n";
-    // END DEBUG
-    boost::shared_ptr<GeometricMap> map = model . map ( box_geometries [ i ] );
-    // perform computation
+
+    // Perform Morse Graph computation
     Compute_Morse_Graph 
-    ( & conley_morse_graphs  [ box ],
-      phase_space_grids [ box ], 
-      *map, 
+    ( & morse_graphs [ vertex ],
+      phase_space, 
+      * map, 
       PHASE_SUBDIV_INIT,
       PHASE_SUBDIV_MIN, 
       PHASE_SUBDIV_MAX, 
-      PHASE_SUBDIV_LIMIT);
-    //std::cout << "Morse Graph computed.\n";
-    if ( conley_morse_graphs [ box ] . NumVertices () == 0 )  { 
-      std::cerr << "WARNING. Box # " << box << " Clutching Job #"  
-      << ", box = " << box_geometries [ i ] << " had no morse sets.\n"; 
+      PHASE_SUBDIV_LIMIT );
+
+    // Check for warnings
+    if ( morse_graphs [ vertex ] . NumVertices () == 0 )  { 
+      std::cerr << "WARNING. Vertex # " << vertex << ", parameter = " 
+      << *parameter << " yielded no morse sets.\n"; 
     }
-    model . annotate ( & conley_morse_graphs [ box ] );
+
+    // Annotate the morse graph
+    model . annotate ( & morse_graphs [ vertex ] );
+
+    // Insert Morse graph into database
+    database . insert ( vertex, morse_graphs [ vertex ] );
   }
   
   // Compute Clutching Graphs
   std::cout << "--------- 2. Compute Clutching Graphs --------- " << "\n";
-  typedef std::pair < Grid::GridElement, Grid::GridElement > Adjacency;
-  BOOST_FOREACH ( const Adjacency & A, box_adjacencies ) {
-    // Debug
-    if ( conley_morse_graphs . count ( A . first ) == 0  ||
-         conley_morse_graphs . count ( A . second ) == 0 ) {
-      std::cout << "Clutching Job ordered that is not within patch.\n";
-      abort (); // or continue?
+  typedef std::pair < uint64_t, uint64_t > Adjacency;
+  BOOST_FOREACH ( const Adjacency & A, patch . edges ) {
+    uint64_t u = A . first;
+    uint64_t v = A . second;
+    // If adjacency between uncomputed Morse sets, continue.
+    if ( morse_graphs . count ( u ) == 0  ||
+         morse_graphs . count ( v ) == 0 ) {
+      continue;
     }
-    // End Debug
-    clutching_graphs . push_back ( BG_Data () );
-    Clutching ( & clutching_graphs . back (),
-                conley_morse_graphs [ A . first ],
-                conley_morse_graphs [ A . second ]);
-  }
-  
-  // Create Database
-  std::cout << "--------- 3. Creating Database --------- " << "\n";
+    // Compute clutching graph
+    BG_Data clutching_graph;
+    Clutching ( & clutching_graph,
+                morse_graphs [ u ],
+                morse_graphs [ v ]);
 
-  Database database;
-  
-  // Create Parameter Box Records
-  typedef std::pair < Grid::GridElement, MorseGraph > indexed_cmg_t;
-  BOOST_FOREACH ( const indexed_cmg_t & cmg, conley_morse_graphs ) {
-    database . insert ( cmg . first, cmg . second );
-  }
-  // Create Clutching Records
-  for ( uint64_t i = 0; i < box_adjacencies . size (); ++ i ) {
-    database . insert ( box_adjacencies [ i ] . first, box_adjacencies [ i ] . second, clutching_graphs [ i ] );
+    // Insert clutching graph into database
+    database . insert ( u, v, clutching_graph );
   }
   
   // Return Result
-  std::cout << "CLUTCHING JOB with " << box_names . size () << " parameter boxes COMPLETE.\n";
-
+  std::cout << "CLUTCHING JOB with " << num_parameters << " parameters COMPLETE.\n";
   *result << database;
 }

@@ -16,7 +16,7 @@
 
 #include "database/structures/Geo.h"
 
-#ifdef HAVECHOMP
+#ifndef MISSING_CHOMP
 #include "chomp/Rect.h"
 #endif
 
@@ -32,7 +32,7 @@ public:
   std::vector < Real > lower_bounds;
   std::vector < Real > upper_bounds;
 
-#ifdef HAVECHOMP
+#ifndef MISSING_CHOMP
   // chomp::Rect conversions
   operator chomp::Rect ( void ) const {
     chomp::Rect output;

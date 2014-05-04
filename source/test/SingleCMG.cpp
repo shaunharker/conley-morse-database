@@ -27,7 +27,7 @@
 
 #include "database/structures/MorseGraph.h"
 #include "database/program/jobs/Compute_Morse_Graph.h"
-#include "chomp/Rect.h"
+#include "database/structures/RectGeo.h"
 
 #include "database/tools/SingleOutput.h"
 #include "database/numerics/simple_interval.h"
@@ -54,17 +54,14 @@ BOOST_CLASS_EXPORT_IMPLEMENT(SuccinctGrid);
 BOOST_CLASS_EXPORT_IMPLEMENT(PointerGrid);
 #endif
 
-using namespace chomp;
-
-int INITIALSUBDIVISIONS;
-int SINGLECMG_MIN_PHASE_SUBDIVISIONS;
-int SINGLECMG_MAX_PHASE_SUBDIVISIONS;
-int SINGLECMG_COMPLEXITY_LIMIT;
-
-Rect parameterBounds ( const Rect parameter_box, 
-                       const std::vector<Real> b, 
-                       const std::vector<int> param_subdiv ) {
-  
+/// Choose a parameter region from within a parameter box
+/// given coordinates "b" and a subdivision level (dimension-wise)
+/// "param_subdiv". For example, param_subdiv[2] = 3 means that
+/// there will be 8 boxes in dimension 2.
+RectGeo parameterBounds ( const RectGeo & parameter_box, 
+                          const std::vector<Real> b, 
+                          const std::vector<int> & param_subdiv ) {
+  typedef RectGeo Rect;
   int parameter_space_dimension = parameter_box . dimension();
   Rect parameter_space_limits ( parameter_box );
   std::vector<double> PARAMETER_BOXES_ACROSS ( parameter_space_dimension );
@@ -73,8 +70,6 @@ Rect parameterBounds ( const Rect parameter_box,
   }
   Rect parameter_box_new ( parameter_space_dimension );
   
-  // TODO, argument checking
-
   for ( int i=0; i<parameter_space_dimension; ++i ) {
     parameter_box_new . lower_bounds [ i ] = parameter_space_limits . lower_bounds [ i ] + 
       ( parameter_space_limits . upper_bounds [ i ] - parameter_space_limits . lower_bounds [ i ] ) * b[i] / PARAMETER_BOXES_ACROSS[i];
@@ -90,6 +85,7 @@ Rect parameterBounds ( const Rect parameter_box,
 /*************************/
 void computeMorseGraph (MorseGraph & morsegraph,
                         ModelMap & map,
+                        const int SINGLECMG_INIT_PHASE_SUBDIVISIONS,
                         const int SINGLECMG_MIN_PHASE_SUBDIVISIONS,
                         const int SINGLECMG_MAX_PHASE_SUBDIVISIONS,
                         const int SINGLECMG_COMPLEXITY_LIMIT,
@@ -105,6 +101,7 @@ void computeConleyMorseGraph (MorseGraph & morsegraph,
 /*******************************/
 void computeMorseGraph ( MorseGraph & morsegraph,
                         ModelMap & map,
+                        const int SINGLECMG_INIT_PHASE_SUBDIVISIONS,
                         const int SINGLECMG_MIN_PHASE_SUBDIVISIONS,
                         const int SINGLECMG_MAX_PHASE_SUBDIVISIONS,
                         const int SINGLECMG_COMPLEXITY_LIMIT,
@@ -116,6 +113,7 @@ void computeMorseGraph ( MorseGraph & morsegraph,
   Compute_Morse_Graph ( & morsegraph,
                        phase_space,
                        map,
+                       SINGLECMG_INIT_PHASE_SUBDIVISIONS,
                        SINGLECMG_MIN_PHASE_SUBDIVISIONS,
                        SINGLECMG_MAX_PHASE_SUBDIVISIONS,
                        SINGLECMG_COMPLEXITY_LIMIT );
@@ -151,12 +149,12 @@ void computeConleyMorseGraph ( MorseGraph & morsegraph,
 #ifdef CMG_VERBOSE
     std::cout << "Calling Conley_Index on Morse Set " << v << "\n";
 #endif
-    boost::shared_ptr<ConleyIndex_t> conley ( new ConleyIndex_t );
+    boost::shared_ptr<chomp::ConleyIndex_t> conley ( new chomp::ConleyIndex_t );
     morsegraph . conleyIndex ( v ) = conley;
-    ConleyIndex ( conley . get (),
-                 *phase_space,
-                 subset,
-                 map );
+    chomp::ConleyIndex ( conley . get (),
+                        *phase_space,
+                        subset,
+                        map );
     
   }
   if ( outputfile != NULL ) {
@@ -185,14 +183,16 @@ int main ( int argc, char * argv [] )
   Configuration config;
   config . loadFromFile ( "./" );
 
-  Rect parameter_box = config . PARAM_BOUNDS;
+  RectGeo parameter_box = config . PARAM_BOUNDS;
   std::vector<int> param_subdiv_depth = config . PARAM_SUBDIV_DEPTH;
 
   /* INITIALIZE MAP ************************************************/
   std::vector < Real > b;
+  RectGeo parameter_box_new;
   // Check the number of integers provided is correct
   if ( argc - 1 == (int) parameter_box . dimension() ) {
     for ( int i=1; i<argc; ++i ) b . push_back ( (Real) atoi ( argv[i] ) );
+    parameter_box_new = parameterBounds ( parameter_box, b, param_subdiv_depth );
   } else {
     //std::cout << "You did not provide the proper number of integers\n";
     std::cout << "Expecting " << config . PARAM_DIM << " integers ";
@@ -201,19 +201,18 @@ int main ( int argc, char * argv [] )
       if ( dim > 0 ) std::cout << " x ";
       std::cout << "[0, " << (int)(pow(2,param_subdiv_depth[dim])-1) << "]\n";
     }
-    std::cout << "Program terminated, no computation performed\n";
-    exit(-1);
+    std::cout << "Computing using entire parameter region as parameter.\n";
+    parameter_box_new = parameter_box;
   }
 
-  Rect parameter_box_new = parameterBounds ( parameter_box, b, param_subdiv_depth );
   ModelMap map ( parameter_box_new );
   /*****************************************************************/
   
   /* INITIALIZE THE PHASE SPACE SUBDIVISION PARAMETERS FROM CONFIG FILE */
-  INITIALSUBDIVISIONS = config . PHASE_SUBDIV_INIT;
-  SINGLECMG_MIN_PHASE_SUBDIVISIONS = config . PHASE_SUBDIV_MIN;
-  SINGLECMG_MAX_PHASE_SUBDIVISIONS = config . PHASE_SUBDIV_MAX;
-  SINGLECMG_COMPLEXITY_LIMIT= config . PHASE_SUBDIV_LIMIT;
+  int SINGLECMG_INIT_PHASE_SUBDIVISIONS = config . PHASE_SUBDIV_INIT;
+  int SINGLECMG_MIN_PHASE_SUBDIVISIONS = config . PHASE_SUBDIV_MIN;
+  int SINGLECMG_MAX_PHASE_SUBDIVISIONS = config . PHASE_SUBDIV_MAX;
+  int SINGLECMG_COMPLEXITY_LIMIT= config . PHASE_SUBDIV_LIMIT;
 
 #ifdef COMPUTE_MORSE_SETS
 
@@ -223,14 +222,13 @@ int main ( int argc, char * argv [] )
 
   /* INITIALIZE MORSE GRAPH WITH PHASE SPACE *********************/
   phaseGrid -> initialize ( config . PHASE_BOUNDS );
-  phaseGrid -> periodicity () = config . PHASE_PERIODIC;
-  for ( int i = 0; i < INITIALSUBDIVISIONS; ++ i )  
-    phaseGrid -> subdivide ();      
+  phaseGrid -> periodicity () = config . PHASE_PERIODIC;      
   /***************************************************************/
 
   /* COMPUTE MORSE GRAPH *************************************/
   TIC;                                                       
   computeMorseGraph ( morsegraph, map,
+                      SINGLECMG_INIT_PHASE_SUBDIVISIONS,
                       SINGLECMG_MIN_PHASE_SUBDIVISIONS, 
                       SINGLECMG_MAX_PHASE_SUBDIVISIONS,
                       SINGLECMG_COMPLEXITY_LIMIT, "data.mg" );        
@@ -249,10 +247,10 @@ int main ( int argc, char * argv [] )
 #ifdef COMPUTE_CONLEY_INDEX
 
   /* COMPUTE CONLEY MORSE GRAPH ***************************************/
-  TIC;                                                             //
+  TIC;                                                             
   ConleyMorseGraph conleymorsegraph ( "data.mg" );
-  computeConleyMorseGraph ( conleymorsegraph, map, "data.cmg" );    //
-  TOC;                                                                //
+  computeConleyMorseGraph ( conleymorsegraph, map, "data.cmg" );    
+  TOC;                                                                
   /********************************************************************/
 #else
   ConleyMorseGraph & conleymorsegraph = morsegraph;

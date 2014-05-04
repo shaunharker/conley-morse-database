@@ -15,7 +15,7 @@
 #include "database/structures/PrismGeo.h"
 
 // Chomp Interface
-#ifdef HAVECHOMP
+#ifndef MISSING_CHOMP
 #include "chomp/Rect.h"
 #include "chomp/RelativePair.h"
 #include "chomp/CubicalComplex.h"
@@ -91,7 +91,7 @@ public:
                            const GridElement ge,
                            int depth ) const;
   
-#ifdef HAVECHOMP
+#ifndef MISSING_CHOMP
   template < class Container > void
   relativeComplex ( chomp::RelativePair * pair ,
                    const Container & XGridElements ,
@@ -875,7 +875,7 @@ inline void TreeGrid::GridElementToCubes ( std::vector<std::vector < uint32_t > 
   
 }
 
-#ifdef HAVECHOMP
+#ifndef MISSING_CHOMP
 template < class Container >
 inline void TreeGrid::relativeComplex ( chomp::RelativePair * pair,
                                     const Container & XGridElements,

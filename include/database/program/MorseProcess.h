@@ -21,19 +21,20 @@ public:
   void work ( Message & result, const Message & job ) const;
   void accept ( const Message &result );
   void finalize ( void ); 
+
+  void checkpoint ( void );
+  void progressReport ( void );
+
 private:
   size_t num_jobs_;
   size_t num_jobs_sent_;
   Configuration config;
   Model model;
   Database database;
-  int progress_bar;                         // progress bar
-  clock_t time_of_last_checkpoint;
-  clock_t time_of_last_progress;
+  int progress_bar_;                         // progress bar
+  clock_t time_of_last_progress_report_;
 
-  boost::shared_ptr<Grid> parameter_grid;
-  typedef boost::unordered_set<Grid::GridElement> GridSubset;
-  std::vector < GridSubset > PS_patches; // morse_work_items
+  boost::shared_ptr<ParameterSpace> parameter_space_;
 };
 
 #endif

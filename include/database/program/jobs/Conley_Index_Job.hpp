@@ -54,7 +54,7 @@ void Conley_Index_Job ( Message * result , const Message & job ) {
   // Read job
   size_t job_number;
   uint64_t incc;
-  RectGeo geo;
+  boost::shared_ptr<Parameter> parameter;
   uint64_t ms;
   int PHASE_SUBDIV_INIT;
   int PHASE_SUBDIV_MIN;
@@ -65,7 +65,7 @@ void Conley_Index_Job ( Message * result , const Message & job ) {
   //std::vector < bool > PHASE_PERIODIC;
   job >> job_number;
   job >> incc;
-  job >> geo;
+  job >> parameter;
   job >> ms;
   job >> PHASE_SUBDIV_INIT;
   job >> PHASE_SUBDIV_MIN;
@@ -75,7 +75,7 @@ void Conley_Index_Job ( Message * result , const Message & job ) {
   //job >> PHASE_BOUNDS;
   //job >> PHASE_PERIODIC;
   
-  std::cout << "CIJ: job_number = " << job_number << "  (" << geo << ", " <<  ms << ")\n";
+  std::cout << "CIJ: job_number = " << job_number << "  (" << *parameter << ", " <<  ms << ")\n";
 
   std::cout << "CIJ: geo = " << geo << "\n";
 
@@ -83,8 +83,8 @@ void Conley_Index_Job ( Message * result , const Message & job ) {
   MorseGraph mg;
   
   boost::shared_ptr<TreeGrid> phase_space = 
-    boost::dynamic_pointer_cast<TreeGrid> ( model . phaseSpace ( geo ) );
-  boost::shared_ptr<GeometricMap> map = model . map ( geo );
+    boost::dynamic_pointer_cast<TreeGrid> ( model . phaseSpace ( parameter ) );
+  boost::shared_ptr<GeometricMap> map = model . map ( parameter );
 
   std::cout << "CIJ: calling Compute_Morse_Graph\n";
   
@@ -135,18 +135,21 @@ void Conley_Index_Job ( Message * result , const Message & job ) {
   }
   // end threading
 
+  int error_code = 0; // 0--success 1--SNFtimeout 2--RMHtimeout
   if ( computed ) {
     std::cout << "CIJ: producing Conley Index polynomial strings \n";
-    ci_data . conley_index = conleyIndexString ( ci_matrix );
+    ci_data . conley_index = conleyIndexString ( ci_matrix, &error_code );
   }
   if ( not computed ) {
     ci_data . conley_index = std::vector<string> ();
     ci_data . conley_index . push_back ( "Relative Homology computation timed out.\n");
+    error_code = 2;
   }
 
   
   // Return Result
   * result << job_number;
+  * result << error_code;
   * result << incc;
   * result << ci_data;
   

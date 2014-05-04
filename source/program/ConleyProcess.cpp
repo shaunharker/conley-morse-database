@@ -10,6 +10,9 @@
 
 #include "boost/foreach.hpp"
 
+#include <boost/thread.hpp>
+#include <boost/chrono/chrono_io.hpp>
+
 #include "database/structures/Database.h"
 #include "database/program/Configuration.h"
 #include "database/program/ConleyProcess.h"
@@ -50,9 +53,7 @@ void ConleyProcess::command_line ( int argcin, char * argvin [] ) {
 /* * * * * * * * * * * * */
 void ConleyProcess::initialize ( void ) {
   using namespace chomp;
-  time_of_last_checkpoint = clock ();
-  time_of_last_progress = clock ();
-  progress_bar = 0;
+  time_of_last_progress_report_ = clock ();
 
   // LOAD DATABASE
   num_jobs_sent_ = 0;
@@ -65,8 +66,189 @@ void ConleyProcess::initialize ( void ) {
   std::string filestring ( argv[1] );
   std::string appendstring ( "/database.mdb" );
   database . load ( (filestring + appendstring) . c_str () );
-    
-  // DETERMINE CONLEY JOBS
+
+  num_incc_ = database . INCC_Records () . size ();
+  finished_ . resize ( num_incc_, false );
+  attempts_ . resize ( num_incc_, 0 );
+  num_finished_ = 0;
+
+  checkpoint_timer_runnning_ = false;
+}
+
+/* * * * * * * * * * */
+/* write definition  */
+/* * * * * * * * * * */
+int ConleyProcess::prepare ( Message & job ) {
+  using namespace chomp;
+
+  if ( num_finished_ = num_incc_ ) return 1; // Code 1: No more jobs.
+
+  if ( not checkpoint_timer_running_ ) {
+    job << (uint64_t) 0; // Checkpoint timer job
+    checkpoint_timer_running_ = true;
+    return;
+  } else {
+    job << 1; // Conley Job
+  }
+
+  std::cout << " ConleyProcess::prepare\n";
+  std::cout << " num_jobs_sent_ = " << num_jobs_sent_ << "\n";
+  std::cout << " num_jobs_ = " << num_jobs_ << "\n";
+  
+  while ( finished_ [ current_incc_ ] ) {
+    ++ current_incc_;
+    if ( current_incc_ == num_incc_ ) current_incc_ = 0;
+  }
+
+  size_t attempt = attempts_ [ current_incc_ ] ++;
+  uint64_t incc = current_incc_;
+  uint64_t pi;
+  uint64_t ms;
+
+  const INCC_Record & incc_record = database . INCC_Records () [ incc ];
+  
+  if ( attempt < incc_record . smallest_reps . size () ) {
+    // Find a small representative
+    std::pair < uint64_t, uint64_t > pair = 
+      std::advance ( incc_record . smallest_reps . begin (), attempt ) -> second;
+    pi = pair . first;
+    ms = pair . second;
+  } else {
+    // Find a random representative
+    uint64_t incc_size = database . incc_sizes [ incc ];
+    bool chose_representative = false;
+    while ( not chose_representative ) {
+      BOOST_FOREACH ( uint64_t inccp, incc_record . inccp_indices ) {
+        const INCCP_Record & inccp_record = 
+         database . INCCP_Records () [ inccp ];
+        uint64_t cs = inccp_record . cs_index;
+        if ( database . csData () [ cs ] . vertices . size () != 1 ) continue;
+        const MGCCP_Record & mgccp_record = 
+         database . MGCCP_Records () [ inccp_record . mgccp_index ];
+        uint64_t mgccp_size = mgccp_record . parameter_indices . size ();
+        if ( rand () % incc_size >= mgccp_size ) continue;
+        
+        pi = mgccp_record . parameter_indices [ rand () % mgccp_size ];
+        ms =  database . csData () [ cs ] . vertices [ 0 ];
+        chose_representative = true;
+        break;
+      }
+    }
+  }
+
+  size_t job_number = num_jobs_sent_;
+  boost::shared_ptr<Parameter> parameter = 
+    database . parameter_space () . parameter ( pb_id ) );
+  job << job_number;
+  job << incc;
+  job << parameter;
+  job << ms;
+  job << config.PHASE_SUBDIV_INIT;
+  job << config.PHASE_SUBDIV_MIN;
+  job << config.PHASE_SUBDIV_MAX;
+  job << config.PHASE_SUBDIV_LIMIT;
+  job << model;
+  //job << config.PHASE_BOUNDS;
+  //job << config.PHASE_PERIODIC;
+
+  std::cout << "Preparing conley job " << job_number 
+            << " with parameter = " << parameter << "  and  ms = (" <<  ms << ")\n";
+  /// Increment the jobs_sent counter
+  ++num_jobs_sent_;
+  
+  /// A new job was prepared and sent
+  return 0; // Code 0: Job was sent.
+}
+
+/* * * * * * * * * */
+/* work definition */
+/* * * * * * * * * */
+void ConleyProcess::work ( Message & result, const Message & job ) const {
+  uint64_t job_type;
+  job >> job_type;
+  switch ( job_type ) {
+    case 0:
+      // Checkpoint timer job
+      boost::this_thread::sleep( boost::posix_time::seconds(3600) );
+      result << (uint64_t) 0;
+      break;
+    case 1:
+      result << (uint64_t) 1;
+      Conley_Index_Job < GRIDCHOICE > ( &result , job );
+      break;
+  }
+}
+
+/* * * * * * * * * */
+/* read definition */
+/* * * * * * * * * */
+void ConleyProcess::accept (const Message &result) {
+  /// Read the results from the result message
+  uint64_t result_type;
+  result >> result_type;
+  if ( result_type == 0 ) {
+    // Checkpoint Timer finished.
+    checkpoint_timer_running_ = false;
+    checkpoint ();
+    progressReport ();
+  } else {
+  // Accepting result of normal job.
+    size_t job_number;
+    int error_code;
+    uint64_t incc;
+    CI_Data job_result;
+    result >> job_number;
+    result >> error_code;
+    result >> incc;
+    result >> job_result;
+
+    if ( error_code == 0 && not finished_[incc] ) { 
+      database . insert ( incc, job_result );
+      finished_ [ incc ] = true;
+      ++ num_finished_;
+    } else if ( error_code == 1 && not finished_[incc] ) {
+      // partial answer, do not mark as finished but include result
+      database . insert ( incc, job_result );
+    }
+
+  }
+  std::cout << "ConleyProcess::accept: Received result " 
+            << job_number << "\n";
+  clock_t current_time = clock ();
+  if ( (float)(current_time - time_of_last_progress_report_ ) / (float)CLOCKS_PER_SEC > 1.0f ) {
+    progressReport ();
+  }
+}
+
+/* * * * * * * * * * * */
+/* finalize definition */
+/* * * * * * * * * * * */
+void ConleyProcess::finalize ( void ) {
+  std::cout << "ConleyProcess::finalize ()\n";
+  checkpoint ();
+}
+
+
+void ConleyProcess::checkpoint ( void ) {
+  std::string filestring ( argv[1] );
+  std::string appendstring ( "/database.cmdb" );
+  database . save ( (filestring + appendstring) . c_str () );
+}
+
+void ConleyProcess::progressReport ( void ) {
+  std::ofstream progress_file ( "conleyprogress.txt" );
+  progress_file << "Conley Process Progress: " << num_finished_ << " / " << num_jobs_ << "\n";
+  progress_file << "INCCs which have not been computed yet:\n";
+  for ( uint64_t incc = 0; i < num_incc_; ++ incc ) {
+    if ( not finished_ [ incc ] ) progress_file << incc << " " ;
+  }
+  progress_file << "\n";
+  progress_file . close ();
+  time_of_last_progress_report_ = clock ();
+}
+#if 0
+
+// DETERMINE CONLEY JOBS
   // we only compute conley index for INCC records that have a representative
   // with a single morse set. This requires searching the representatives.
   uint64_t num_incc = database . INCC_Records () . size ();
@@ -115,7 +297,7 @@ void ConleyProcess::initialize ( void ) {
     uint64_t pb_id = conley_work_items [ job_number ] . second . first;
     uint64_t ms = conley_work_items [ job_number ] . second . second;
 
-  	RectGeo GD = * boost::dynamic_pointer_cast < RectGeo > 
+    RectGeo GD = * boost::dynamic_pointer_cast < RectGeo > 
                  ( database . parameter_space () . geometry ( pb_id ) );
     outfile << "Job " << job_number << ": INCC = " << incc << " PB = " 
             << pb_id << ", MS = " << ms << ", geo = " << GD << "\n";
@@ -124,91 +306,5 @@ void ConleyProcess::initialize ( void ) {
   }
   std::cout << "Finished writing job list.\n";
   outfile . close ();
-}
 
-/* * * * * * * * * * */
-/* write definition  */
-/* * * * * * * * * * */
-int ConleyProcess::prepare ( Message & job ) {
-  using namespace chomp;
-  // All jobs have already been sent.
-  std::cout << " ConleyProcess::prepare\n";
-  std::cout << " num_jobs_sent_ = " << num_jobs_sent_ << "\n";
-  std::cout << " num_jobs_ = " << num_jobs_ << "\n";
-  
-  if (num_jobs_sent_ == num_jobs_) return 1; // Code 1: No more jobs.
-  
-  size_t job_number = num_jobs_sent_;
-
-  uint64_t incc = conley_work_items [ job_number ] . first;
-  uint64_t pb_id = conley_work_items [ job_number ] . second . first;
-  uint64_t ms = conley_work_items [ job_number ] . second . second;
-  RectGeo GD = * boost::dynamic_pointer_cast < RectGeo > 
-                 (database . parameter_space () . geometry ( pb_id ) );
-
-  job << job_number;
-  job << incc;
-  job << GD;
-  job << ms;
-  job << config.PHASE_SUBDIV_INIT;
-  job << config.PHASE_SUBDIV_MIN;
-  job << config.PHASE_SUBDIV_MAX;
-  job << config.PHASE_SUBDIV_LIMIT;
-  job << model;
-  //job << config.PHASE_BOUNDS;
-  //job << config.PHASE_PERIODIC;
-
-  std::cout << "Preparing conley job " << job_number 
-            << " with GD = " << GD << "  and  ms = (" <<  ms << ")\n";
-  /// Increment the jobs_sent counter
-  ++num_jobs_sent_;
-  
-  /// A new job was prepared and sent
-  return 0; // Code 0: Job was sent.
-}
-
-/* * * * * * * * * */
-/* work definition */
-/* * * * * * * * * */
-void ConleyProcess::work ( Message & result, const Message & job ) const {
-  Conley_Index_Job < GRIDCHOICE > ( &result , job );
-}
-
-/* * * * * * * * * */
-/* read definition */
-/* * * * * * * * * */
-void ConleyProcess::accept (const Message &result) {
-  /// Read the results from the result message
-  size_t job_number;
-  uint64_t incc;
-  CI_Data job_result;
-  result >> job_number;
-  result >> incc;
-  result >> job_result;
-  database . insert ( incc, job_result );
-  std::cout << "ConleyProcess::accept: Received result " 
-            << job_number << "\n";
-  ++ progress_bar;
-  progress_detail . erase ( incc );
-  clock_t time = clock ();
-  if ( (float)(time - time_of_last_progress ) / (float)CLOCKS_PER_SEC > 1.0f ) {
-    std::ofstream progress_file ( "conleyprogress.txt" );
-    progress_file << "Conley Process Progress: " << progress_bar << " / " << num_jobs_ << "\n";
-    BOOST_FOREACH ( uint64_t incc, progress_detail ) {
-      progress_file << incc << " " ;
-    }
-    progress_file << "\n";
-    progress_file . close ();
-    time_of_last_progress = time;
-  }
-}
-
-/* * * * * * * * * * * */
-/* finalize definition */
-/* * * * * * * * * * * */
-void ConleyProcess::finalize ( void ) {
-  std::cout << "ConleyProcess::finalize ()\n";
-  std::string filestring ( argv[1] );
-  std::string appendstring ( "/database.cmdb" );
-  database . save ( (filestring + appendstring) . c_str () );
-}
+#endif
