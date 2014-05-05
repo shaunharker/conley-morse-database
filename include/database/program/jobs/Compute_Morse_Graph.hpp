@@ -290,7 +290,7 @@ void ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
           Vertex u = ivp . second;
           const std::vector < unsigned int > & reaches = MD -> reachability () [ i ];
           BOOST_FOREACH ( unsigned int j, reaches ) {
-            if ( i == j ) continue;
+            if ( (int) i == (int) j ) continue;
             if ( non_spurious_decomposition . count ( j ) == 0 ) continue;
             Vertex v = non_spurious_decomposition [ j ];
             MG -> AddEdge ( u, v );
