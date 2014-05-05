@@ -169,6 +169,7 @@ inline MorseGraph::Vertex MorseGraph::AddVertex ( void ) {
   int v = num_vertices_ ++;
   grids_ . push_back ( boost::shared_ptr <Grid > ());
   conleyindexes_ . push_back ( boost::shared_ptr <chomp::ConleyIndex_t > ());
+  annotation_by_vertex_ . resize ( num_vertices );
   return v;
 }
 
@@ -240,11 +241,9 @@ inline std::set< std::string > & MorseGraph::annotation ( void ) {
 }
 
 inline std::set< std::string > & MorseGraph::annotation ( Vertex vertex ) {
-  if ( annotation_by_vertex_ . size () <= vertex ) {
-    annotation_by_vertex_ . resize ( vertex + 1 );
-  }
   return annotation_by_vertex_ [ vertex ];
 }
+
 inline const std::set< std::string > & MorseGraph::annotation ( void ) const {
   return annotation_;
 }
