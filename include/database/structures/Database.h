@@ -356,6 +356,7 @@ struct INCC_Record {
   template<class Archive>
   void serialize(Archive& ar, const unsigned int version) {
     ar & boost::serialization::make_nvp("INCCPS", inccp_indices);
+    ar & boost::serialization::make_nvp("SMALLREP", smallest_reps );
   }
 };
 
