@@ -98,6 +98,11 @@ public:
 	///    Return the parameter object associated with a vertex
 	virtual boost::shared_ptr<Parameter> parameter ( ParameterIndex v ) const = 0;
 	
+	/// search
+	///    Given a parameter, find the vertex associated with it
+	///    (This can be used to find a parameter which might contain the other)
+	virtual uint64_t search ( boost::shared_ptr<Parameter> parameter ) const = 0;
+	
 	/// patch
 	///    Return a "ParameterPatch" object
 	///    A sequence of calls to this function will return a sequence

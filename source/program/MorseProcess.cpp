@@ -59,8 +59,10 @@ void MorseProcess::initialize ( void ) {
   checkpoint_timer_running_ = false;
 
   // Construct Parameter Space
+  boost::shared_ptr<Grid> parameter_grid ( new PARAMETER_GRID );
   parameter_space_ = boost::shared_ptr<ParameterSpace> ( new EuclideanParameterSpace );
-  parameter_space_ -> initialize ( config );
+  boost::dynamic_pointer_cast<EuclideanParameterSpace> (parameter_space_) 
+    -> initialize ( config, parameter_grid );
   database . insert ( parameter_space_ );
 
   //std::cout << "MorseProcess num_jobs_ = " << num_jobs_ << "\n";

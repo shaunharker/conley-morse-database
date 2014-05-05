@@ -40,7 +40,10 @@ public:
 
 	/// initialize
 	///    Create the ParameterSpace given the configuration specified
-	void initialize ( const Configuration & config );
+  virtual void initialize ( const Configuration & config );
+
+	void initialize ( const Configuration & config,
+                    boost::shared_ptr<Grid> parameter_grid  );
 
 	/// adjacencies
 	///    Return a vector of adjacent vertices.
@@ -54,6 +57,11 @@ public:
 	///    Return the parameter object associated with a vertex
 	virtual boost::shared_ptr<Parameter> parameter ( uint64_t v ) const;
 	
+  /// search
+  ///    Given a parameter, find the vertex associated with it
+  ///    (This can be used to find a parameter which might contain the other)
+  virtual uint64_t search ( boost::shared_ptr<Parameter> parameter ) const;
+  
 	/// patch
 	///    Return a "ParameterPatch" object
 	///    A sequence of calls to this function will return a sequence
@@ -99,8 +107,14 @@ BOOST_CLASS_EXPORT_KEY(EuclideanParameterSpace);
 
 inline void
 EuclideanParameterSpace::initialize ( const Configuration & config ) {
-  // CONSTUCT THE PARAMETER GRID
-  parameter_grid_ = boost::shared_ptr<Grid> ( new PARAMETER_GRID );
+  boost::shared_ptr<Grid> parameter_grid ( new UniformGrid );
+  initialize ( config, parameter_grid );
+}
+
+inline void
+EuclideanParameterSpace::initialize ( const Configuration & config, 
+                                      boost::shared_ptr<Grid> parameter_grid ) {
+  parameter_grid_ = parameter_grid;
 
   // Initialization for TreeGrid
   if ( boost::dynamic_pointer_cast < TreeGrid > ( parameter_grid_ ) ) {
@@ -185,6 +199,14 @@ EuclideanParameterSpace::parameter ( uint64_t v ) const {
 	boost::shared_ptr<RectGeo> geo = boost::dynamic_pointer_cast<RectGeo> 
       ( parameter_grid_ -> geometry ( v ) );
   return boost::shared_ptr<Parameter> ( new EuclideanParameter ( geo ) );
+}
+
+inline uint64_t 
+EuclideanParameterSpace::search ( boost::shared_ptr<Parameter> parameter ) const {
+  RectGeo geo = * boost::dynamic_pointer_cast<EuclideanParameter> ( parameter ) -> geo;
+  std::vector<uint64_t> vertices = parameter_grid_ -> cover ( geo );
+  if ( vertices . size () != 1 ) return * end ();
+  return vertices [ 0 ];
 }
 
 inline boost::shared_ptr<ParameterPatch> 
