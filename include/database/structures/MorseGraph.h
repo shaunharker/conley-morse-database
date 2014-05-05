@@ -169,7 +169,7 @@ inline MorseGraph::Vertex MorseGraph::AddVertex ( void ) {
   int v = num_vertices_ ++;
   grids_ . push_back ( boost::shared_ptr <Grid > ());
   conleyindexes_ . push_back ( boost::shared_ptr <chomp::ConleyIndex_t > ());
-  annotation_by_vertex_ . resize ( num_vertices );
+  annotation_by_vertex_ . resize ( num_vertices_ );
   return v;
 }
 
