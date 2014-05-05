@@ -270,7 +270,8 @@ EdgeGrid::cover ( const Geo & geo ) const {
       lower_coordinates [ d ] = 0;
       touching_lower . insert ( d );
     }
-    if ( upper_coordinates [ d ] > sizes_ [ d ] ) upper_coordinates [ d ] = sizes_ [ d ];
+    if ( upper_coordinates [ d ] > (int64_t) sizes_ [ d ] ) 
+      upper_coordinates [ d ] = (int64_t) sizes_ [ d ];
 
     address += multipliers_ [ d ] * lower_coordinates [ d ];
     
@@ -320,7 +321,7 @@ EdgeGrid::cover ( const Geo & geo ) const {
   }
   // DEBUG
   std::cout << "Cover results: \n";
-  for ( int i = 0; i < result . size (); ++ i ) {
+  for ( size_t i = 0; i < result . size (); ++ i ) {
     std::cout << result [ i ] << " ";
   }
   std::cout << "\n";

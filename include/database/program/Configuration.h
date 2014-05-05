@@ -90,7 +90,7 @@ public:
       if ( PARAM_SUBDIV_DEPTH . size () == 1 && PARAM_DIM > 1 ) {
         PARAM_SUBDIV_DEPTH . resize ( PARAM_DIM, PARAM_SUBDIV_DEPTH [ 0 ] );
       }
-      if ( PARAM_SUBDIV_DEPTH . size () != PARAM_DIM ) {
+      if ( (int) PARAM_SUBDIV_DEPTH . size () != PARAM_DIM ) {
         std::cout << "Configuration Error. Invalid number of inputs in config.param.subdiv.depth field\n";
         throw 1;
       }
@@ -104,7 +104,7 @@ public:
       if ( PARAM_SUBDIV_SIZES . size () == 1 && PARAM_DIM > 1 ) {
         PARAM_SUBDIV_SIZES . resize ( PARAM_DIM, PARAM_SUBDIV_SIZES [ 0 ] );
       }
-      if ( PARAM_SUBDIV_SIZES . size () != PARAM_DIM ) {
+      if ( (int) PARAM_SUBDIV_SIZES . size () != PARAM_DIM ) {
         std::cout << "Configuration Error. Invalid number of inputs in config.param.subdiv.sizes field\n";
         throw 1;
       }

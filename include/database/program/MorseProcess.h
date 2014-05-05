@@ -31,7 +31,7 @@ private:
   Configuration config;
   Model model;
   Database database;
-  int progress_bar_;                         // progress bar
+  size_t progress_bar_;                         // progress bar
   clock_t time_of_last_progress_report_;
   clock_t time_of_last_checkpoint_;
   bool checkpoint_timer_running_;

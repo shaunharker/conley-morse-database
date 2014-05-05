@@ -356,6 +356,7 @@ struct INCC_Record {
   template<class Archive>
   void serialize(Archive& ar, const unsigned int version) {
     ar & boost::serialization::make_nvp("INCCPS", inccp_indices);
+    ar & boost::serialization::make_nvp("SMALLREP", smallest_reps );
   }
 };
 
@@ -817,7 +818,7 @@ inline bool Database::is_identity ( const MorseGraphRecord & mgr1,
   const DAG_Data & dag1 = dagData()[mgr1.dag_index];
   const DAG_Data & dag2 = dagData()[mgr2.dag_index];
   if ( dag1 . num_vertices != dag2 . num_vertices ) return false;
-  if ( dag1 . num_vertices != bg . edges . size () ) return false;
+  if ( dag1 . num_vertices != (int) bg . edges . size () ) return false;
   for ( uint64_t i = 0; i < bg . edges . size (); ++ i ) {
     if ( bg . edges [ i ] . first != bg . edges [ i ] . second ) return false;
   }

@@ -93,9 +93,9 @@ void MorseProcess::initialize ( void ) {
 int MorseProcess::prepare ( Message & job ) {
   using namespace chomp;
   
-  if (num_jobs_sent_ == num_jobs_) return 1; // if all jobs sent
+  if ( progress_bar_ == num_jobs_ ) return 1; // nothing to compute
 
-  if ( not checkpoint_timer_running_ ) {
+  if ( not checkpoint_timer_running_  || num_jobs_sent_ == num_jobs_ ) {
     job << (uint64_t) 0; // Checkpoint timer job
     checkpoint_timer_running_ = true;
     return 0;
