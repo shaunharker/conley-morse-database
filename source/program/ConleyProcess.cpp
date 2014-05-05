@@ -71,8 +71,9 @@ void ConleyProcess::initialize ( void ) {
   finished_ . resize ( num_incc_, false );
   attempts_ . resize ( num_incc_, 0 );
   num_finished_ = 0;
+  current_incc_ = 0;
 
-  checkpoint_timer_runnning_ = false;
+  checkpoint_timer_running_ = false;
 }
 
 /* * * * * * * * * * */
@@ -81,19 +82,18 @@ void ConleyProcess::initialize ( void ) {
 int ConleyProcess::prepare ( Message & job ) {
   using namespace chomp;
 
-  if ( num_finished_ = num_incc_ ) return 1; // Code 1: No more jobs.
+  if ( num_finished_ == num_incc_ ) return 1; // Code 1: No more jobs.
 
   if ( not checkpoint_timer_running_ ) {
     job << (uint64_t) 0; // Checkpoint timer job
     checkpoint_timer_running_ = true;
-    return;
+    return 0;
   } else {
-    job << 1; // Conley Job
+    job << (uint64_t) 1; // Conley Job
   }
 
   std::cout << " ConleyProcess::prepare\n";
   std::cout << " num_jobs_sent_ = " << num_jobs_sent_ << "\n";
-  std::cout << " num_jobs_ = " << num_jobs_ << "\n";
   
   while ( finished_ [ current_incc_ ] ) {
     ++ current_incc_;
@@ -109,13 +109,15 @@ int ConleyProcess::prepare ( Message & job ) {
   
   if ( attempt < incc_record . smallest_reps . size () ) {
     // Find a small representative
-    std::pair < uint64_t, uint64_t > pair = 
-      std::advance ( incc_record . smallest_reps . begin (), attempt ) -> second;
+    std::set<std::pair<uint64_t, std::pair<uint64_t, uint64_t> > >::iterator it;
+    it = incc_record . smallest_reps . begin ();
+    std::advance ( it, attempt );
+    std::pair < uint64_t, uint64_t > pair = it -> second;
     pi = pair . first;
     ms = pair . second;
   } else {
     // Find a random representative
-    uint64_t incc_size = database . incc_sizes [ incc ];
+    uint64_t incc_size = database . incc_sizes () [ incc ];
     bool chose_representative = false;
     while ( not chose_representative ) {
       BOOST_FOREACH ( uint64_t inccp, incc_record . inccp_indices ) {
@@ -138,7 +140,7 @@ int ConleyProcess::prepare ( Message & job ) {
 
   size_t job_number = num_jobs_sent_;
   boost::shared_ptr<Parameter> parameter = 
-    database . parameter_space () . parameter ( pb_id ) );
+    database . parameter_space () . parameter ( pi );
   job << job_number;
   job << incc;
   job << parameter;
@@ -152,7 +154,7 @@ int ConleyProcess::prepare ( Message & job ) {
   //job << config.PHASE_PERIODIC;
 
   std::cout << "Preparing conley job " << job_number 
-            << " with parameter = " << parameter << "  and  ms = (" <<  ms << ")\n";
+            << " with parameter = " << *parameter << "  and  ms = (" <<  ms << ")\n";
   /// Increment the jobs_sent counter
   ++num_jobs_sent_;
   
@@ -169,28 +171,37 @@ void ConleyProcess::work ( Message & result, const Message & job ) const {
   switch ( job_type ) {
     case 0:
       // Checkpoint timer job
-      boost::this_thread::sleep( boost::posix_time::seconds(3600) );
+      std::cout << "ConleyProcess::work. Checkpoint timer job detected.\n";
+      boost::this_thread::sleep( boost::posix_time::seconds(60) );
       result << (uint64_t) 0;
       break;
     case 1:
+      std::cout << "ConleyProcess::work. Normal job detected.\n";
+
       result << (uint64_t) 1;
       Conley_Index_Job < GRIDCHOICE > ( &result , job );
       break;
   }
+  std::cout << "ConleyProcess::work. Job complete.\n";
+
 }
 
 /* * * * * * * * * */
 /* read definition */
 /* * * * * * * * * */
 void ConleyProcess::accept (const Message &result) {
+  clock_t current_time = clock ();
   /// Read the results from the result message
   uint64_t result_type;
   result >> result_type;
   if ( result_type == 0 ) {
     // Checkpoint Timer finished.
     checkpoint_timer_running_ = false;
-    checkpoint ();
-    progressReport ();
+    if ( (float)(current_time - time_of_last_checkpoint_ ) 
+      / (float)CLOCKS_PER_SEC > 3600.0f ) {
+      checkpoint ();
+      progressReport ();
+    }
   } else {
   // Accepting result of normal job.
     size_t job_number;
@@ -210,11 +221,10 @@ void ConleyProcess::accept (const Message &result) {
       // partial answer, do not mark as finished but include result
       database . insert ( incc, job_result );
     }
-
-  }
-  std::cout << "ConleyProcess::accept: Received result " 
+    std::cout << "ConleyProcess::accept: Received result " 
             << job_number << "\n";
-  clock_t current_time = clock ();
+  }
+
   if ( (float)(current_time - time_of_last_progress_report_ ) / (float)CLOCKS_PER_SEC > 1.0f ) {
     progressReport ();
   }
@@ -233,13 +243,14 @@ void ConleyProcess::checkpoint ( void ) {
   std::string filestring ( argv[1] );
   std::string appendstring ( "/database.cmdb" );
   database . save ( (filestring + appendstring) . c_str () );
+  time_of_last_checkpoint_ = clock ();
 }
 
 void ConleyProcess::progressReport ( void ) {
   std::ofstream progress_file ( "conleyprogress.txt" );
-  progress_file << "Conley Process Progress: " << num_finished_ << " / " << num_jobs_ << "\n";
+  progress_file << "Conley Process Progress: " << num_finished_ << " / " << num_incc_ << "\n";
   progress_file << "INCCs which have not been computed yet:\n";
-  for ( uint64_t incc = 0; i < num_incc_; ++ incc ) {
+  for ( uint64_t incc = 0; incc < num_incc_; ++ incc ) {
     if ( not finished_ [ incc ] ) progress_file << incc << " " ;
   }
   progress_file << "\n";

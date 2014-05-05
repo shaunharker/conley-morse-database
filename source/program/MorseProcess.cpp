@@ -54,6 +54,7 @@ void MorseProcess::initialize ( void ) {
   // Checkpoint/Progress variable initialization
   time_of_last_progress_report_ = clock ();
   progress_bar_ = 0;
+  num_jobs_ = 0;
   num_jobs_sent_ = 0;
   checkpoint_timer_running_ = false;
 
@@ -62,12 +63,16 @@ void MorseProcess::initialize ( void ) {
   parameter_space_ -> initialize ( config );
   database . insert ( parameter_space_ );
 
+  //std::cout << "MorseProcess num_jobs_ = " << num_jobs_ << "\n";
+
   // Count number of patches
   size_t num_calc = 0;
   while ( 1 ) {
-    boost::shared_ptr<ParameterPatch> p = parameter_space_ . patch ();
+    boost::shared_ptr<ParameterPatch> p = parameter_space_ -> patch ();
     if ( p -> empty () ) break;
-    ++ num_jobs;
+    ++ num_jobs_;
+    //std::cout << "MorseProcess num_jobs_ = " << num_jobs_ << "\n";
+
     num_calc += p -> vertices . size ();
   }
   
@@ -77,7 +82,7 @@ void MorseProcess::initialize ( void ) {
   std::cout << "  There are " << num_jobs_ << " jobs.\n";
   std::cout << "  Within those jobs, there are " << num_calc << " parameter box calculations to be done.\n";
   std::cout << "  On average, a single parameter box calculation will be done " << 
-    (double) parameter_space_ -> size () / (double) num_calc  << " times.\n";
+    (double) num_calc  / (double) parameter_space_ -> size ()  << " times.\n";
 }
 
 /* * * * * * * * * * * */
@@ -91,9 +96,9 @@ int MorseProcess::prepare ( Message & job ) {
   if ( not checkpoint_timer_running_ ) {
     job << (uint64_t) 0; // Checkpoint timer job
     checkpoint_timer_running_ = true;
-    return;
+    return 0;
   } else {
-    job << 1; // Conley Job
+    job << (uint64_t) 1; // Conley Job
   }
 
   // Job number (job id) of job to be sent
@@ -149,10 +154,12 @@ void MorseProcess::work ( Message & result, const Message & job ) const {
   switch ( job_type ) {
   case 0:
     // Checkpoint timer job
-    boost::this_thread::sleep( boost::posix_time::seconds(3600) );
+    std::cout << "MorseProcess::work. Checkpoint timer job detected.\n";
+    boost::this_thread::sleep( boost::posix_time::seconds(60) );
     result << (uint64_t) 0;
     break;
   case 1:
+    std::cout << "MorseProcess::work. Normal Job detected.\n";
     result << (uint64_t) 1;
     // Read Job Number
     size_t job_number;
@@ -171,12 +178,14 @@ void MorseProcess::work ( Message & result, const Message & job ) const {
     }
     break;
   }
+  std::cout << "MorseProcess::work. Job complete.\n";
 }
 
 /* * * * * * * * * * */
 /* accept definition */
 /* * * * * * * * * * */
 void MorseProcess::accept(const Message &result) {
+  clock_t current_time = clock ();
   /// Read the results from the result message
   uint64_t result_type;
   result >> result_type;
@@ -184,8 +193,11 @@ void MorseProcess::accept(const Message &result) {
     // Checkpoint Timer finished.
     checkpoint_timer_running_ = false;
     // Save a checkpoint
-    checkpoint ();
-    progressReport ();
+    if ( (float)(current_time - time_of_last_checkpoint_ ) 
+      / (float)CLOCKS_PER_SEC > 3600.0f ) {
+      checkpoint ();
+      progressReport ();
+    }
   } else {
     // Accepting result of normal job.
     // Read the results from the result message
@@ -195,12 +207,11 @@ void MorseProcess::accept(const Message &result) {
     result >> job_database;
     // Merge the results
     database . merge ( job_database );
+    ++ progress_bar_;
+    std::cout << "MorseProcess::read: Received result " 
+      << job_number << "\n";
   }
 
-  std::cout << "MorseProcess::read: Received result " 
-            << job_number << "\n";
-  ++ progress_bar_;
-  clock_t current_time = clock ();
   if ( (float)(current_time - time_of_last_progress_report_ ) / (float)CLOCKS_PER_SEC > 1.0f ) {
     progressReport ();
   }
@@ -218,6 +229,7 @@ void MorseProcess::checkpoint ( void ) {
   std::string filestring ( argv[1] );
   std::string appendstring ( "/database.raw" );
   database . save ( (filestring + appendstring) . c_str () );
+  time_of_last_checkpoint_ = clock();
 }
 
 void MorseProcess::progressReport ( void ) {

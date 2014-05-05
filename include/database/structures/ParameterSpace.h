@@ -10,6 +10,9 @@
 #include "boost/serialization/unordered_map.hpp"
 #include "boost/serialization/shared_ptr.hpp"
 
+#include <boost/iterator/counting_iterator.hpp>
+
+#include "database/program/Configuration.h"
 
 /// class Parameter
 ///    This is an abstract base class for use with the base class ParameterSpace
@@ -17,6 +20,12 @@ class Parameter {
 public:
 	virtual ~Parameter ( void ) {}
   
+  // Serialization
+  friend class boost::serialization::access;
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int version) {
+  }
+
   /// std stream interface
   friend std::ostream & 
   operator << ( std::ostream & out, const Parameter & print_me ) {
@@ -68,26 +77,26 @@ public:
 	// typedef
 	typedef uint64_t ParameterIndex;
 	typedef boost::counting_iterator < ParameterIndex > iterator;
-
+	typedef iterator const_iterator;
 	// Constructor/Deconstructor
 	ParameterSpace ( void ) {}
 	virtual ~ParameterSpace ( void ) {}
 
 	/// initialize
 	///    Create the ParameterSpace given the configuration specified
-	virtual void initialize ( const Configuration & config );
+	virtual void initialize ( const Configuration & config ) = 0;
 
 	/// adjacencies
 	///    Return a vector of adjacent vertices.
-	virtual std::vector<ParameterIndex> adjacencies ( ParameterIndex v ) const;
+	virtual std::vector<ParameterIndex> adjacencies ( ParameterIndex v ) const = 0;
 	
 	/// size
 	///    Return the number of vertices
-	virtual uint64_t size ( void ) const;
+	virtual uint64_t size ( void ) const = 0;
 
 	/// parameter
 	///    Return the parameter object associated with a vertex
-	virtual boost::shared_ptr<Parameter> parameter ( ParameterIndex v ) const;
+	virtual boost::shared_ptr<Parameter> parameter ( ParameterIndex v ) const = 0;
 	
 	/// patch
 	///    Return a "ParameterPatch" object

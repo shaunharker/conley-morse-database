@@ -4,6 +4,7 @@
 #define CMDP_LESLIEMAP_H
 
 //#include <boost/numeric/interval.hpp>
+#include "database/structures/EuclideanParameterSpace.h"
 #include "database/structures/RectGeo.h"
 #include "database/numerics/simple_interval.h"
 #include <boost/shared_ptr.hpp>
@@ -14,7 +15,8 @@ struct ModelMap {
   
   interval parameter1, parameter2;
   
-  ModelMap ( const RectGeo & rectangle ) {
+  ModelMap ( boost::shared_ptr<Parameter> parameter ) {
+    RectGeo rectangle = * boost::dynamic_pointer_cast<EuclideanParameter> ( parameter ) -> geo;
     parameter1 = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ]);
     parameter2 = interval (rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ]);
     return;

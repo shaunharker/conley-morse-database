@@ -350,7 +350,7 @@ struct INCC_Record {
 
   /// smallest reps is a set of pairs representing INCC representatives
   ///   the format is (morse set size, (parameter index, convex set index))
-  std::set<std::pair<uint64_t,<std::pair<uint64_t,uint64_t> > > smallest_reps;
+  std::set<std::pair<uint64_t,std::pair<uint64_t,uint64_t> > > smallest_reps;
 
   friend class boost::serialization::access;
   template<class Archive>
@@ -863,7 +863,7 @@ inline bool Database::is_isomorphism ( const MorseGraphRecord & mgr1,
 }
 
 inline void Database::postprocess ( void ) {
-  typedef ParameterIndex uint64_t;
+  typedef uint64_t ParameterIndex;
 
   uint64_t N = parameter_space_ -> size ();
 
@@ -1117,8 +1117,6 @@ inline void Database::postprocess ( void ) {
     uint64_t morsegraph_index = pr . morsegraph_index;
     const MorseGraphRecord & mgr = morsegraphData() [ morsegraph_index ];
     uint64_t mgccp_index = pb_to_mgccp_ [ pi ];
-    const MGCCP_Record & mgccp_record = MGCCP_Records () [ mgccp_index ];
-
     // Iterate through INCCP records associated with MGCCP 
     //   (unforunately this is complicated)
     uint64_t n = dagData()[ mgr . dag_index] . num_vertices;
@@ -1134,15 +1132,15 @@ inline void Database::postprocess ( void ) {
       inccp_record . cs_index = cs_index;
       inccp_record . mgccp_index = mgccp_index;
       // Fetch INCC associated with INCCP
-      inccp_index = inccp_index_ [ inccp_record ];
+      uint64_t inccp_index = inccp_index_ [ inccp_record ];
       uint64_t incc_index = inccp_to_incc_ [ inccp_index ];
-      INCC_Record & incc_record = INCC_Records () [ incc_index ];
+      INCC_Record & incc_record = INCC_records_ [ incc_index ];
       uint64_t morseset_size = pr . morseset_sizes [ i ];
       incc_record . smallest_reps . 
         insert ( std::make_pair ( morseset_size, std::make_pair ( pi, i ) ) );
       // UNIMPLEMENTED FEATURE: make number of smallest reps held configurable
       if ( incc_record . smallest_reps . size () > 16 ) {
-        incc_record . smallest_reps . erase ( incc_record . smallest_reps . rbegin () );
+        incc_record . smallest_reps . erase ( * incc_record . smallest_reps . rbegin () );
       }
     }
   }

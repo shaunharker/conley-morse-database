@@ -30,13 +30,14 @@ private:
   Database database;
   Model model;
 
-  size_t num_jobs_;
   size_t num_jobs_sent_;
   size_t num_incc_;
+  size_t current_incc_;
   std::vector<uint64_t> attempts_;
   std::vector<bool> finished_;
   size_t num_finished_;
-  clock_t time_of_last_progress_report;
+  clock_t time_of_last_checkpoint_;
+  clock_t time_of_last_progress_report_;
   bool checkpoint_timer_running_;
 
 };

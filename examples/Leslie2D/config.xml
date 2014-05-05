@@ -11,7 +11,7 @@
   </bounds>
   <subdiv>
     <depth> 6 </depth>
-    <sizes> 2 2 </sizes>
+    <sizes> 16 16 </sizes>
   </subdiv>
 </param>
 <phase>
@@ -21,9 +21,9 @@
     <upper> 320.056 224.040 </upper>
   </bounds>
   <subdiv>
-    <init> 24 </init>
-    <min> 28 </min>
-    <max> 32 </max>
+    <init> 8 </init>
+    <min> 10 </min>
+    <max> 12 </max>
     <limit> 10000 </limit>
   </subdiv>
 </phase>

@@ -28,13 +28,13 @@ private:
   chomp::ConleyIndex_t * ci_matrix;
   boost::shared_ptr<TreeGrid> phase_space;
   std::vector < Grid::GridElement > * subset;
-  GeometricMap * map;
+  ModelMap * map;
   bool * computed;
 public:
   ConleyIndexThread(  chomp::ConleyIndex_t * ci_matrix,
                       boost::shared_ptr<TreeGrid> phase_space,
                       std::vector < Grid::GridElement > * subset,
-                      GeometricMap * map,
+                      ModelMap * map,
                       bool * computed ) 
   : ci_matrix(ci_matrix), phase_space(phase_space), subset(subset), map(map), computed(computed) {}
   void operator () ( void ) {
@@ -75,16 +75,16 @@ void Conley_Index_Job ( Message * result , const Message & job ) {
   //job >> PHASE_BOUNDS;
   //job >> PHASE_PERIODIC;
   
-  std::cout << "CIJ: job_number = " << job_number << "  (" << *parameter << ", " <<  ms << ")\n";
+  std::cout << "CIJ: job_number = " << job_number << "  (" << incc << ", " <<  ms << ")\n";
 
-  std::cout << "CIJ: geo = " << geo << "\n";
+  std::cout << "CIJ: parameter = " << *parameter << "\n";
 
   // Compute Morse Graph
   MorseGraph mg;
   
   boost::shared_ptr<TreeGrid> phase_space = 
     boost::dynamic_pointer_cast<TreeGrid> ( model . phaseSpace ( parameter ) );
-  boost::shared_ptr<GeometricMap> map = model . map ( parameter );
+  boost::shared_ptr<ModelMap> map = model . map ( parameter );
 
   std::cout << "CIJ: calling Compute_Morse_Graph\n";
   

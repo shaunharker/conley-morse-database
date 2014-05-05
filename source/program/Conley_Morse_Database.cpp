@@ -32,6 +32,11 @@ BOOST_CLASS_EXPORT_IMPLEMENT(PointerGrid);
 BOOST_CLASS_EXPORT_IMPLEMENT(UniformGrid);
 BOOST_CLASS_EXPORT_IMPLEMENT(EdgeGrid);
 
+
+#include "database/structures/EuclideanParameterSpace.h"
+BOOST_CLASS_EXPORT_IMPLEMENT(EuclideanParameter);
+BOOST_CLASS_EXPORT_IMPLEMENT(EuclideanParameterSpace);
+
 int main ( int argc, char * argv [] ) {
   delegator::Start ();
 #ifdef COMPUTE_MORSE_SETS

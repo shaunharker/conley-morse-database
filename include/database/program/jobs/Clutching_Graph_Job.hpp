@@ -37,13 +37,17 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   int PHASE_SUBDIV_LIMIT;
   Model model;
   
+  std::cout << "Clutching_Graph_Job. About to read patch and phase space info.\n";
   job >> patch;
+  std::cout << "Clutching_Graph_Job. About to read phase space info.\n";
   job >> PHASE_SUBDIV_INIT;
   job >> PHASE_SUBDIV_MIN;
   job >> PHASE_SUBDIV_MAX;
   job >> PHASE_SUBDIV_LIMIT;
+  std::cout << "Clutching_Graph_Job. About to read model info.\n";
   job >> model;
- 
+  std::cout << "Clutching_Graph_Job. About to do computation.\n";
+
   // Prepare data structures
   Database database;
   boost::unordered_map < uint64_t, MorseGraph> morse_graphs;
@@ -63,15 +67,15 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
       << ", " << * parameter << "\n";
 
     // Prepare dynamical map
-    boost::shared_ptr<GeometricMap> map = model . map ( parameter );
-    if ( not map . good () ) continue;
+    boost::shared_ptr<ModelMap> map = model . map ( parameter );
+    if ( not map -> good () ) continue;
     
     // Prepare phase space
     boost::shared_ptr<PhaseGrid> phase_space = 
       boost::dynamic_pointer_cast < PhaseGrid > ( model . phaseSpace ( parameter ) );    
  
     // Check for errors
-    if ( not phase_space_grids [ vertex ] ) {
+    if ( not phase_space ) {
       std::cout << "PHASE SPACE incorrectly chosen in makefile.\n";
     }
 
@@ -101,7 +105,7 @@ void Clutching_Graph_Job ( Message * result , const Message & job ) {
   // Compute Clutching Graphs
   std::cout << "--------- 2. Compute Clutching Graphs --------- " << "\n";
   typedef std::pair < uint64_t, uint64_t > Adjacency;
-  BOOST_FOREACH ( const Adjacency & A, patch . edges ) {
+  BOOST_FOREACH ( const Adjacency & A, patch -> edges ) {
     uint64_t u = A . first;
     uint64_t v = A . second;
     // If adjacency between uncomputed Morse sets, continue.

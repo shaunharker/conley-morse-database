@@ -19,10 +19,6 @@
 #include <unistd.h>
 #include <fstream>
 
-/* Map Choice */
-#include "ModelMap.h"
-typedef ModelMap GeometricMap;
-
 #include "database/structures/RectGeo.h"
 
 class Configuration {

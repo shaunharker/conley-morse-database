@@ -33,7 +33,8 @@ private:
   Database database;
   int progress_bar_;                         // progress bar
   clock_t time_of_last_progress_report_;
-
+  clock_t time_of_last_checkpoint_;
+  bool checkpoint_timer_running_;
   boost::shared_ptr<ParameterSpace> parameter_space_;
 };
 
