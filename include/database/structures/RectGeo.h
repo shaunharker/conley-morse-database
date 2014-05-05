@@ -15,7 +15,10 @@
 #include "boost/foreach.hpp"
 
 #include "database/structures/Geo.h"
+
+#ifndef MISSING_CHOMP
 #include "chomp/Rect.h"
+#endif
 
 /***********
  * RectGeo *
@@ -29,6 +32,7 @@ public:
   std::vector < Real > lower_bounds;
   std::vector < Real > upper_bounds;
 
+#ifndef MISSING_CHOMP
   // chomp::Rect conversions
   operator chomp::Rect ( void ) const {
     chomp::Rect output;
@@ -36,10 +40,12 @@ public:
     output . upper_bounds = upper_bounds;
     return output;
   }
+
   RectGeo ( const chomp::Rect & input ) {
     lower_bounds = input . lower_bounds;
     upper_bounds = input . upper_bounds;
   }
+#endif
 
   RectGeo ( void ) {};
   RectGeo ( unsigned int size ) { lower_bounds . resize ( size );

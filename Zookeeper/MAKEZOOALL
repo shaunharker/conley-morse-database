@@ -1,0 +1,4 @@
+for file in `cat databases.txt`; do
+	echo $file
+	./MAKEZOO $file
+done

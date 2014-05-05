@@ -19,22 +19,20 @@
 #include <unistd.h>
 #include <fstream>
 
-/* Map Choice */
-#include "ModelMap.h"
-typedef ModelMap GeometricMap;
-
 #include "database/structures/RectGeo.h"
 
 class Configuration {
 public:
+  typedef RectGeo Rect;
   // Model, name and description
   std::string MODEL_NAME;
   std::string MODEL_DESC;
   
   /* Parameter Space */
   int PARAM_DIM;
-  int PARAM_SUBDIV_DEPTH;
-  RectGeo PARAM_BOUNDS;
+  std::vector<int> PARAM_SUBDIV_DEPTH;
+  std::vector<uint64_t> PARAM_SUBDIV_SIZES;
+  Rect PARAM_BOUNDS;
   std::vector<bool> PARAM_PERIODIC;
 
   /* Phase Space */
@@ -43,7 +41,7 @@ public:
   int PHASE_SUBDIV_MIN;
   int PHASE_SUBDIV_MAX;
   int PHASE_SUBDIV_LIMIT;
-  RectGeo PHASE_BOUNDS; 
+  Rect PHASE_BOUNDS; 
   std::vector<bool> PHASE_PERIODIC;
   
   // Loading
@@ -82,8 +80,45 @@ public:
     
     /* Parameter Space */
     PARAM_DIM = pt.get<int>("config.param.dim");
-    PARAM_SUBDIV_DEPTH = pt.get<int>("config.param.subdiv.depth");
+    //PARAM_SUBDIV_DEPTH = pt.get<int>("config.param.subdiv.depth");
+
+    boost::optional<std::string> param_subdiv_depth = pt.get_optional<std::string>("config.param.subdiv.depth");
+    if ( param_subdiv_depth ) {
+      std::stringstream param_subdiv_depth_ss ( *param_subdiv_depth );
+      int depth;
+      while ( param_subdiv_depth_ss >> depth ) PARAM_SUBDIV_DEPTH . push_back ( depth );
+      if ( PARAM_SUBDIV_DEPTH . size () == 1 && PARAM_DIM > 1 ) {
+        PARAM_SUBDIV_DEPTH . resize ( PARAM_DIM, PARAM_SUBDIV_DEPTH [ 0 ] );
+      }
+      if ( PARAM_SUBDIV_DEPTH . size () != PARAM_DIM ) {
+        std::cout << "Configuration Error. Invalid number of inputs in config.param.subdiv.depth field\n";
+        throw 1;
+      }
+    }
     
+    boost::optional<std::string> param_sizes = pt.get_optional<std::string>("config.param.subdiv.sizes");
+    if ( param_sizes ) {
+      std::stringstream param_sizes_ss ( * param_sizes );
+      uint64_t width;
+      while ( param_sizes_ss >> width ) PARAM_SUBDIV_SIZES . push_back ( width );
+      if ( PARAM_SUBDIV_SIZES . size () == 1 && PARAM_DIM > 1 ) {
+        PARAM_SUBDIV_SIZES . resize ( PARAM_DIM, PARAM_SUBDIV_SIZES [ 0 ] );
+      }
+      if ( PARAM_SUBDIV_SIZES . size () != PARAM_DIM ) {
+        std::cout << "Configuration Error. Invalid number of inputs in config.param.subdiv.sizes field\n";
+        throw 1;
+      }
+    } else {
+      if ( PARAM_SUBDIV_DEPTH . empty () ) {
+        std::cout << "Configuration Error. There are is neither a config.param.subdiv.sizes field nor a config.param.subdiv.depth field\n";
+        throw 1;
+      }
+      PARAM_SUBDIV_SIZES . resize ( PARAM_DIM );
+      for ( int d = 0; d < PARAM_DIM; ++ d ) {
+        PARAM_SUBDIV_SIZES [ d ] = 1 << PARAM_SUBDIV_DEPTH [ d ];
+      }
+    }
+ 
     PARAM_BOUNDS . lower_bounds . resize ( PARAM_DIM );
     PARAM_BOUNDS . upper_bounds . resize ( PARAM_DIM );
     std::string param_lower_bounds = pt.get<std::string>("config.param.bounds.lower");
@@ -152,6 +187,8 @@ public:
     /* Parameter Space */
     ar & PARAM_DIM;
     ar & PARAM_SUBDIV_DEPTH;
+    ar & PARAM_SUBDIV_SIZES;
+    ar & PARAM_PERIODIC;
     ar & PARAM_BOUNDS;
     
     /* Phase Space */
@@ -165,19 +202,5 @@ public:
   }
   
 };
-
-
-/* Parameter Space */
-//int PARAM_DIMENSION; //2
-//int PARAM_SUBDIVISIONS; //6
-/* Phase Space */
-//int SPACE_DIMENSION;// 2
-//int MIN_PHASE_SUBDIVISIONS;// 12
-//int MAX_PHASE_SUBDIVISIONS;// 15
-//int COMPLEXITY_LIMIT;// 10000
-//const Real param_lower_bounds [PARAM_DIMENSION] = { 8.0, 3.0 }; // 8 3
-//const Real param_upper_bounds [PARAM_DIMENSION] = { 37.0, 50.0 }; // 37 50
-//const Real space_lower_bounds [SPACE_DIMENSION] = { 0.0, 0.0 };
-//const Real space_upper_bounds [SPACE_DIMENSION] = { 320.056, 224.040 };
 
 #endif

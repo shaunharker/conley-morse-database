@@ -66,7 +66,8 @@ public:
 
   // Constructor
   template < class GridPtr >
-  MorseDecomposition ( GridPtr grid, int depth ) : grid_ ( grid ), spurious_(false), depth_(depth) {
+  MorseDecomposition ( GridPtr grid, int depth ) 
+  : grid_ ( grid ), spurious_(false), depth_(depth) {
     if ( grid_ . get () == NULL ) {std::cout << "Error Compute_Morse_Graph.hpp line 65\n"; abort (); }
 #ifdef MEMORYBOOKKEEPING
     max_grid_external_memory += grid -> memory ();
@@ -88,6 +89,11 @@ public:
   /// MorseDecomposition::depth
   /// tell how deep in hierarchical decomposition we are
   size_t depth ( void ) const { return depth_; }
+
+  /// MorseDecomposition::decomposition
+  const std::vector< boost::shared_ptr<Grid> > & decomposition ( void ) const {
+    return decomposition_;
+  }
 
   /// MorseDecomposition::children
   /// accessor method to return vector of MorseDecomposition * pointing to hierarchical children.
@@ -118,34 +124,25 @@ public:
   /// Fill these into "decomposition_"
   /// Fill children_ with an equal sized vector of pointers to new MorseDecomposition objects seeded with those sets.
   /// Put reachability information obtained in "reachability_"
-  template < class Map >
-  const std::vector < MorseDecomposition * > & decompose ( const Map & f ) {
-    // Subdivide self
-    grid_ -> subdivide (); // better here i guess
-    //std::cout << "Perform Morse Decomposition\n"; // Perform Morse Decomposition
-    computeMorseSetsAndReachability <Map> ( &decomposition_, &reachability_, * (grid_ . get ()), f );
-    //std::cout << "Create Hierarchy Structure\n";// Create Hierarchy Structure with Subdivided Grids for Morse Sets
+  template < class Map > void 
+  decompose ( const Map & f ) {
+    //std::cout << "decompose at depth " << depth () << "\n";
+    computeMorseSetsAndReachability <Map> ( &decomposition_, &reachability_, * (grid_ . get ()), f );    
+    //std::cout << "  found " << decomposition_ . size () << " components\n";
+  }
+
+  const std::vector < MorseDecomposition * > & 
+  spawn ( void ) {
+    //std::cout << "spawn at depth " << depth () << "\n";
     for ( size_t i = 0; i < decomposition_ . size (); ++ i ) {      
-      //decomposition_ [ i ] -> subdivide ();
-      children_ . push_back ( new MorseDecomposition ( decomposition_ [ i ], depth() + 1 ) );
+      children_ . push_back ( new MorseDecomposition ( decomposition_ [ i ] -> clone (), 
+                                                       depth() + 1 ) );
     }
-    return children_;
-  }
+    //std::cout << "  spawned " << children_ . size () << " children\n";
 
-  template < class Map >
-  const std::vector < MorseDecomposition * > & decomposeODE ( const std::vector<Map> & maps ) {
-    grid_ -> subdivide (); // better here i guess
-    //std::cout << "Perform Morse Decomposition\n"; // Perform Morse Decomposition
-    computeMorseSets <Map> ( &decomposition_, &reachability_, grid_, maps );
-    //std::cout << "Create Hierarchy Structure\n";// Create Hierarchy Structure with Subdivided Grids for Morse Sets
-    for ( size_t i = 0; i < decomposition_ . size (); ++ i ) {
-      //decomposition_ [ i ] -> subdivide ();
-      children_ . push_back ( new MorseDecomposition ( decomposition_ [ i ], depth() + 1 ) );
-    }
     return children_;
-  }
+  } 
 
-  
 private:
   // Member Data
   boost::shared_ptr<Grid> grid_;
@@ -163,6 +160,14 @@ public:
   }
 };
 
+// The MorseDecomposition Tree
+//  The level of subdivision of the root is whatever the initial level is, which we call 0.
+//  The level of subdivision of an internal node in the tree is equal to its depth
+//  The level of subdivision of a leaf node in the tree is the same as the level of
+//      subdivision of its parent.
+//  The children of a node correspond to its Morse Sets (although they may be subdivided).
+//  Algorithmically, this means we call decompose whenever the depth <= the number of
+//  subdivisions we want.
 // ConstructMorseDecomposition
 template < class Map >
 void
@@ -173,30 +178,47 @@ ConstructMorseDecomposition (MorseDecomposition * root,
                              const unsigned int Limit ) {
   size_t nodes_processed = 0;
   // We use a priority queue in order to do the more difficult computations first.
-  std::priority_queue < MorseDecomposition *, std::vector<MorseDecomposition *>, MorseDecompCompare > pq;
+  std::priority_queue < MorseDecomposition *, 
+                        std::vector<MorseDecomposition *>, 
+                        MorseDecompCompare > pq;
   pq . push ( root );
   while ( not pq . empty () ) {
     ++ nodes_processed;
-    if ( nodes_processed % 1000 == 0 ) std::cout << nodes_processed << " nodes have been encountered on Morse Decomposition Hierarchy.\n";
+    if ( nodes_processed % 1000 == 0 ) { 
+      std::cout << nodes_processed 
+        << " nodes have been encountered on Morse Decomposition Hierarchy.\n";
+    }
     MorseDecomposition * work_node = pq . top ();
     pq . pop ();
-#ifdef ODE_METHOD
-    if ( work_node -> size () < 8 ) continue; // DEBUG
-#endif
-#ifndef ODE_METHOD
-    std::vector < MorseDecomposition * > children = work_node -> decompose ( f );
-#else
-    std::vector < MorseDecomposition * > children = work_node -> decomposeODE ( f );
-#endif
-    if ( children . empty () ) {
-      // Mark as spurious
+    //std::cout << "Depth " << work_node -> depth () << ", node " << work_node 
+    //          << ", size = " << work_node -> size () << "\n";
+
+    // Do not decompose if past Min depth and over the Limit size.
+    if ( ( work_node -> depth () > Min ) 
+         && ( work_node -> size () > Limit ) ) {
+      //std::cout << "Halting search due to Limit.\n";
+      continue;
+    }
+
+    work_node -> decompose ( f );
+
+    // Check for spuriousness
+    if ( work_node -> decomposition ()  . empty () ) {
+      //std::cout << "Empty decomposition for " << work_node << ", marking as spurious.\n";
       work_node -> spurious () = true;
     }
-    BOOST_FOREACH ( MorseDecomposition * child, children ) {
-      if ( child -> depth () == Max ) continue;
-      if ( child -> depth () >= Min && child -> size () >= Limit ) continue;
-      pq . push ( child );
-    }
+
+    // Hierarchical Step
+    if ( (work_node -> depth () < Max) ) {
+      std::vector < MorseDecomposition * > children = work_node -> spawn ();
+      BOOST_FOREACH ( MorseDecomposition * child, children ) {
+        child -> grid () -> subdivide ();
+        pq . push ( child );
+      }
+    } 
+    //else {
+      //std::cout << "Halting search due to Max.\n";
+    //}
   }
 }
 
@@ -219,8 +241,8 @@ void ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
     MorseDecomposition * MD = eulertourstack . top () . first;
     unsigned int childnum = eulertourstack . top () . second;
     eulertourstack . pop ();
-    unsigned int N = MD -> children () . size ();
-    if ( childnum < N ) {
+    unsigned int NC = MD -> children () . size ();
+    if ( childnum < NC ) {
         eulertourstack . push ( std::make_pair ( MD, childnum + 1 ) );
         eulertourstack . push ( std::make_pair ( MD -> children () [ childnum ], 0 ) );
     } else {
@@ -228,55 +250,75 @@ void ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
       // Check for Spuriousness
       // If it has children that are all marked spurious, then it is spurious.
       // If it does not have children, it is spurious if and only if it is already marked spurious
-      if ( N > 0 ) {
+      if ( NC > 0 ) {
         MD -> spurious () = true; // by default; we may however switch it back to false
-        for ( unsigned int i = 0; i < N; ++ i ) {
+        for ( unsigned int i = 0; i < NC; ++ i ) {
           if ( not MD -> children () [ i ] -> spurious () ) MD -> spurious () = false;
         }
       }
-      if ( MD -> spurious () ) continue;
-      if ( MD -> depth () > Min ) continue;
-      grids . push_back ( MD -> grid () );
+      temp [ MD ] = std::vector < Vertex > ();
 
-      // Amalgamate reachability information
+      if ( MD -> depth () > Min ) continue; 
+      grids . push_back ( MD -> grid () );
+      if ( MD -> spurious () ) { 
+        //std::cout << "Spurious Rule 1 invoked on MD = " << MD << "\n";
+        continue;
+      }
+      // Case 1. Min Depth Case
+      // Morse Graph Vertex Creation Step 
+      // (and special case for reachability)
+      if ( MD -> depth () == Min ) {
+        //std::cout << "Node " << MD << "\n";
+        boost::unordered_map < int, Vertex > non_spurious_decomposition;
+        unsigned int ND = MD -> decomposition () . size ();
+        for ( int i = 0 ; i < ND; ++ i ) {
+          //std::cout << "Child " << i << " out of " << ND << "\n";
+          if ( (NC == ND) && MD -> children () [ i ] -> spurious () ) { 
+            //std::cout << "Spurious Rule 2 invoked, skipping child " << i << ".\n";
+            continue;
+          }
+          Vertex v = MG -> AddVertex ();
+          //std::cout << "Adding vertex " << v << " for child " << i << "\n";
+          MG -> grid ( v ) = MD -> decomposition () [ i ];
+          temp [ MD ] . push_back ( v );
+          non_spurious_decomposition [ i ] = v;
+        }
 #ifndef NO_REACHABILITY
-      for ( unsigned int i = 0; i < N; ++ i ) {
-        // "reaches" will tell us which children of MD are reachable from the ith child of MD
-        const std::vector < unsigned int > & reaches = MD -> reachability () [ i ];
-        //std::cout << "reaching info: " << reaches . size () << "\n";
-        // We loop through the MorseGraph vertices corresponding to the ith child
-        // and the jth child, and record the reachability.
-        BOOST_FOREACH ( unsigned int j, reaches ) {
-          if ( i == j ) continue;
-          BOOST_FOREACH ( Vertex u,
-                         temp [ MD -> children () [ i ] ] ) {
-            BOOST_FOREACH ( Vertex v,
-                           temp [ MD -> children () [ j ] ] ) {
-              //std::cout << "Adding edge (" << u << ", " << v << ")\n";
-              MG -> AddEdge ( u, v );
+        typedef std::pair<int, Vertex> intVertexPair;
+        BOOST_FOREACH ( const intVertexPair & ivp, non_spurious_decomposition ) {
+          int i = ivp . first;
+          Vertex u = ivp . second;
+          const std::vector < unsigned int > & reaches = MD -> reachability () [ i ];
+          BOOST_FOREACH ( unsigned int j, reaches ) {
+            if ( i == j ) continue;
+            if ( non_spurious_decomposition . count ( j ) == 0 ) continue;
+            Vertex v = non_spurious_decomposition [ j ];
+            MG -> AddEdge ( u, v );
+            //std::cout << "(A) Adding edge " << u << " " << v << "\n";
+          }
+        }
+#endif
+      } 
+      // Case 2. Less than Min Depth Case
+      // temp [MD] creation step
+      if ( MD -> depth () < Min ) {
+      // Intermediate MD node reachability step
+#ifndef NO_REACHABILITY
+        for ( unsigned int i = 0; i < NC; ++ i ) {
+          const std::vector < unsigned int > & reaches = MD -> reachability () [ i ];
+          BOOST_FOREACH ( unsigned int j, reaches ) {
+           if ( i == j ) continue;
+           BOOST_FOREACH ( Vertex u, temp [ MD -> children () [ i ] ] ) {
+              BOOST_FOREACH ( Vertex v, temp [ MD -> children () [ j ] ] ) {
+                MG -> AddEdge ( u, v );
+                //std::cout << "(B) Adding edge " << u << " " << v << "\n";
+              }
             }
           }
         }
-      }
 #endif
-      // Aggregate temp data
-      temp [ MD ] = std::vector < Vertex > ();
-      if ( (MD -> depth () == Min) && (MD -> spurious () == false) ) {
-        if ( MD -> grid () . get () == NULL ) {
-          std::cout << "Error at ComputeMorseGraph.hpp line 268\n";
-          abort ();
-        }
-        Vertex v = MG -> AddVertex ();
-        MG -> grid ( v ) = MD -> grid ();
-        //std::cout << " .CMG. vertex " << v << " has a grid of type " << typeid( * MG -> grid ( v ) ).name() << "\n";
-
-        if ( MG -> grid ( v ) . get () == NULL ) {
-          std::cout << "Error at ComputeMorseGraph.hpp line 274\n";
-          abort ();
-        }
-        temp [ MD ] . push_back ( v );
-      } else if ( N > 0 ) {
-        for ( unsigned int i = 0; i < N; ++ i ) {
+        // Create temp for intermediate
+        for ( unsigned int i = 0; i < NC; ++ i ) {
           temp [ MD ] . insert (temp [ MD ] . begin (),
                                 temp [ MD -> children () [ i ] ] . begin (),
                                 temp [ MD -> children () [ i ] ] . end ());
@@ -285,13 +327,8 @@ void ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
       }
     } 
   }
-//#ifdef USE_SUCCINCT
   join ( master_grid, grids . begin (), grids . end () );
   MG -> phaseSpace () = master_grid;
-  //std::cout << "IMPLEMENTATION INCOMPLETE: JOIN NOT IMPLEMENTED.\n";
-  //boost::shared_ptr<CompressedGrid> joinup ( Grid::join ( grids . begin (), grids . end () ) );
-  //master_grid -> assign ( * joinup );
-//#endif
 }
 
 
@@ -317,10 +354,10 @@ void Compute_Morse_Graph (MorseGraph * MG,
   // Produce Morse Set Decomposition Hierarchy
   //std::cout << "COMPUTE MORSE GRAPH\n";
   //std::cout << "Initializing root MorseDecomposition\n";
-  std::cout << "phase_space -> size () == " << phase_space -> size () << "\n";
+  //std::cout << "phase_space -> size () == " << phase_space -> size () << "\n";
 
   boost::shared_ptr<Grid> root_space ( (Grid *) (phase_space -> clone ()) );
-  std::cout << "root_space -> size () == " << root_space -> size () << "\n";
+  //std::cout << "root_space -> size () == " << root_space -> size () << "\n";
   MorseDecomposition * root = new MorseDecomposition ( root_space, 0 );
   //std::cout << "Calling ConstructMorseDecomposition\n";
   ConstructMorseDecomposition<Map> (root,
@@ -337,7 +374,7 @@ void Compute_Morse_Graph (MorseGraph * MG,
 
   std::cout << "Total Grid Memory (can be external) = " << max_grid_external_memory << "\n";
   std::cout << "Max Memory For Single Grid (must be internal)= " << max_grid_internal_memory << "\n";
-  std::cout << "Max SCC Random Acces memory use (must be internal)= " << max_scc_memory_internal << "\n";
+  std::cout << "Max SCC Random Access memory use (must be internal)= " << max_scc_memory_internal << "\n";
   std::cout << "Max SCC stack memory use (can be external memory) = " << max_scc_memory_external << "\n";
   std::cout << " ---- SUMMARY ---- \n";
   std::cout << "Internal Memory Requirement = " << max_grid_internal_memory + max_scc_memory_internal << "\n";
@@ -346,5 +383,19 @@ void Compute_Morse_Graph (MorseGraph * MG,
 #endif
   //std::cout << "Returning from COMPUTE MORSE GRAPH\n";
 }
+
+#endif
+
+#if 0
+  template < class Map >
+  const std::vector < MorseDecomposition * > & decomposeODE ( const std::vector<Map> & maps ) {
+    //std::cout << "Perform Morse Decomposition\n"; // Perform Morse Decomposition
+    computeMorseSets <Map> ( &decomposition_, &reachability_, grid_, maps );
+    //std::cout << "Create Hierarchy Structure\n";// Create Hierarchy Structure with Subdivided Grids for Morse Sets
+    for ( size_t i = 0; i < decomposition_ . size (); ++ i ) {
+      children_ . push_back ( new MorseDecomposition ( decomposition_ [ i ] . clone (), depth() + 1 ) );
+    }
+    return children_;
+  }
 
 #endif

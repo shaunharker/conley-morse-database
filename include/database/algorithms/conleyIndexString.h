@@ -41,8 +41,12 @@ public:
   }
 };
 
-std::vector<std::string> conleyIndexString ( const chomp::ConleyIndex_t & ci, int time_out = 180 ) {
+inline std::vector<std::string> 
+conleyIndexString ( const chomp::ConleyIndex_t & ci, 
+                    int * errorcode = NULL,
+                    int time_out = 600 ) {
   using namespace chomp;
+  if ( errorcode != NULL ) * errorcode = 0;
   std::cout << "conley index string\n";
   std::vector<std::string> result;
   if ( ci . undefined () ) { 
@@ -74,6 +78,7 @@ std::vector<std::string> conleyIndexString ( const chomp::ConleyIndex_t & ci, in
     }
     if ( not computed ) {
       result . push_back ( std::string ( "Problem computing SNF.\n") );
+      if ( errorcode != NULL ) * errorcode = 1;
       continue;
     }
     // end threading

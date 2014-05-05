@@ -7,6 +7,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <cmath>
 
 #include <boost/foreach.hpp>
 #include <boost/iterator/counting_iterator.hpp>
@@ -60,8 +61,9 @@ public:
   void importCharts ( const char * inputfile );
   
   void add_chart ( const int & id, const RectGeo & rect);
+  void add_chart ( const int & id, const int & dimension, const RectGeo & rect);
 
-  void list_charts ( void ) {
+  void list_charts ( void ) const {
     boost::unordered_map < size_type, Chart >::const_iterator it;
     std::cout << "\nList of charts :\n";
     for ( it=charts_.begin(); it!=charts_.end(); ++it ) {
@@ -70,6 +72,9 @@ public:
       std::cout << "number of GridElements = " << it -> second -> size ( ) << "\n";
     }  
   }
+
+  uint64_t numCharts ( void ) const;
+
   virtual uint64_t memory ( void ) const {
     uint64_t result = 0;
     BOOST_FOREACH ( const IdChartPair & chartpair, charts () ) {
@@ -122,7 +127,7 @@ inline void Atlas::subdivide ( void ) {
   boost::unordered_map < size_type, Chart >::iterator it;
   for ( it=charts_.begin(); it!=charts_.end(); ++it ) {
     //std::cout << "DEBUG Atlas::subdivide SUBDIVIDING A CHART\n";
-    it -> second -> subdivide ( );
+    it -> second -> subdivide ( );  
   }  
   update_csum_ ( );
   //std::cout << "Atlas::subdivide -- size () == " << size () << "\n";
@@ -150,7 +155,7 @@ inline std::vector<Grid::GridElement> Atlas::subset ( const Grid & other ) const
   const Atlas & otherAtlas = dynamic_cast<const Atlas &> (other);
   std::vector<Grid::GridElement> result;
   boost::unordered_map < size_type, Chart >::const_iterator it;
-  for ( it=charts_.begin(); it!=charts_.end(); ++it ) {
+  for ( it=charts_.begin(); it!=charts_.end(); ++it ) { 
     std::vector<Grid::GridElement> chart_subset = 
       it -> second -> subset ( * otherAtlas . charts_ . find ( it -> first ) -> second );
     BOOST_FOREACH ( Grid::GridElement ge, chart_subset ) {
@@ -176,8 +181,10 @@ Atlas::cover ( const Geo & geo ) const {
   // index of the chart : geometric_region . first
   // Rect to be covered : geometric_region . second
   // cover the Rect in the given chart
-  std::vector < GridElement > listge = 
-    charts_ . find ( geometric_region . id() ) -> second -> cover ( geometric_region . rect() );
+  size_type chart_id_of_geo = geometric_region . id ();
+  const Chart & chart_of_geo = charts_ . find ( chart_id_of_geo ) -> second;
+  if ( chart_of_geo -> size () == 0 ) return result;
+  std::vector < GridElement > listge = chart_of_geo -> cover ( geometric_region . rect() );
   // // shift the gridelement from chart to atlas and insert it to ii
   BOOST_FOREACH ( Grid::GridElement chart_ge, listge ) {
     GridElement newge = Chart_to_Atlas_GridElement_ ( chart_ge , geometric_region . id() );
@@ -194,6 +201,16 @@ inline void Atlas::add_chart ( const int & id, const RectGeo & rect ) {
   update_csum_ ( );
 }
 
+inline void Atlas::add_chart ( const int & id, const int & dimension, const RectGeo & rect ) {
+  charts_ [ id ] = boost::shared_ptr<TreeGrid> ( new PointerGrid );
+  charts_ [ id ] -> initialize ( rect );
+  charts_ [ id ] -> dimension  ( ) = dimension;
+  update_csum_ ( );
+}
+
+inline uint64_t Atlas::numCharts ( void ) const {
+  return charts_ . size ();
+}
 
 inline void Atlas::importCharts ( const char * inputfile ) {
   using boost::property_tree::ptree;
@@ -229,18 +246,22 @@ inline void Atlas::importCharts ( const char * inputfile ) {
   }
 }
 
+inline
 std::pair<Atlas::ChartIterator, Atlas::ChartIterator> Atlas::charts ( void ) const {
   return std::make_pair ( charts_ . begin (), charts_ . end () );
 }
 
+inline
 Atlas::Chart & Atlas::chart ( size_type chart_id ) {
   return charts_ [ chart_id ];
 }
 
+inline
 const Atlas::Chart & Atlas::chart ( size_type chart_id ) const {
   return charts_ . find ( chart_id ) -> second;
 }
 
+inline
 void Atlas::clear ( void ) {
   charts_ . clear ();
   update_csum_ ();

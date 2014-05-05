@@ -8,27 +8,38 @@
 #include <vector>
 #include "database/structures/Grid.h"
 
+#include "Model.h"
+
 /* * * * * * * * * * * * * * */
 /* ConleyProcess declaration */
 /* * * * * * * * * * * * * * */
 class ConleyProcess : public Coordinator_Worker_Process {
 public:
+  void command_line ( int argc, char * argv [] );
   void initialize ( void );
   int  prepare ( Message & job );
   void work ( Message & result, const Message & job ) const;
   void accept ( const Message &result );
   void finalize ( void ); 
+
+  void checkpoint ( void );
+  void progressReport ( void );
 private:
-  size_t num_jobs_;
-  size_t num_jobs_sent_;
-  std::vector < std::pair < uint64_t, std::pair < Grid::GridElement, uint64_t > > > conley_work_items;
+
   Configuration config;
   Database database;
+  Model model;
 
-  std::set<uint64_t> progress_detail;
-  int progress_bar;                         // progress bar
-  clock_t time_of_last_checkpoint;
-  clock_t time_of_last_progress;
+  size_t num_jobs_sent_;
+  size_t num_incc_;
+  size_t current_incc_;
+  std::vector<uint64_t> attempts_;
+  std::vector<bool> finished_;
+  size_t num_finished_;
+  clock_t time_of_last_checkpoint_;
+  clock_t time_of_last_progress_report_;
+  bool checkpoint_timer_running_;
+
 };
 
 #endif

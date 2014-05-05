@@ -394,8 +394,6 @@ void SmithPivot (SparseMatrix<R> * U,
   }
   //END DEBUG
 
-  R pivot_value = D -> read ( pivot_index ); 
-  
   //DEBUG
   if ( D -> read (i, j) == R ( 0 ) ) {
     std::cout << "Pivot cannot be zero!\n";
@@ -403,15 +401,15 @@ void SmithPivot (SparseMatrix<R> * U,
   }
   //END DEBUG
   
-  R old_pivot_value ( 0 );
   #ifdef SNF_DEBUG
+  R pivot_value = D -> read ( pivot_index ); 
   std::cout << " **** SMITH PIVOT (" << i << ", " <<
    j << ") value = " << pivot_value << " **** \n";
   print_matrix ( * D );
   #endif
   // We assume pivot_value != 0, so this while loop will run at least once:
-  while ( pivot_value != old_pivot_value ) {
-    old_pivot_value = pivot_value;
+  while ( D -> row_size ( i ) > 1 ||
+          D -> column_size ( j ) > 1 ) { 
     
     //sane_matrix ( *D );
     
@@ -436,8 +434,6 @@ void SmithPivot (SparseMatrix<R> * U,
     print_matrix ( *D );
     #endif
 
-    pivot_value = D -> read ( pivot_index ); 
-    // if pivot_value has not changed, then no new work has been produced.
   }
   #ifdef SNF_DEBUG
   std::cout << " **** SMITH PIVOT COMPLETE **** \n";

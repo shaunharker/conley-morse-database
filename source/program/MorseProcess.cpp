@@ -7,18 +7,28 @@
 #include <ctime>
 #include <cmath>
 
-#include "boost/foreach.hpp"
+#include <vector>
 
+#include "boost/unordered_set.hpp"
+#include "boost/unordered_map.hpp"
+#include "boost/foreach.hpp"
+#include "boost/shared_ptr.hpp"
+#include "boost/thread.hpp"
+#include "boost/chrono/chrono_io.hpp"
+
+#include "database/structures/Database.h"
 #include "database/program/Configuration.h"
 #include "database/program/MorseProcess.h"
 #include "database/program/jobs/Clutching_Graph_Job.h"
 #include "database/structures/UnionFind.hpp"
 #include "database/structures/Database.h"
 
-#ifdef HAVE_SUCCINCT
+#ifdef USE_SDSL
 #include "database/structures/SuccinctGrid.h"
 #endif
 #include "database/structures/PointerGrid.h"
+#include "database/structures/UniformGrid.h"
+#include "database/structures/EdgeGrid.h"
 
 #include "chomp/Rect.h"
 #include "chomp/Complex.h"
@@ -26,146 +36,55 @@
 
 #include "ModelMap.h"
 
-/* In Conley_Morse_Database.cpp
-#include <boost/serialization/export.hpp>
-#ifdef HAVE_SUCCINCT
-BOOST_CLASS_EXPORT_IMPLEMENT(SuccinctGrid);
-#endif
-BOOST_CLASS_EXPORT_IMPLEMENT(PointerGrid);
-*/
+void MorseProcess::command_line ( int argcin, char * argvin [] ) {
+  argc = argcin;
+  argv = argvin;
+  model . initialize ( argc, argv );
+}
 
 /* * * * * * * * * * * * */
 /* initialize definition */
 /* * * * * * * * * * * * */
 void MorseProcess::initialize ( void ) {
-  using namespace chomp;
+  // Load configuration
   std::cout << "Attempting to load configuration...\n";
   config . loadFromFile ( argv[1] );
   std::cout << "Loaded configuration.\n";
   
-  time_of_last_checkpoint = clock ();
-  time_of_last_progress = clock ();
-  progress_bar = 0;
+  // Checkpoint/Progress variable initialization
+  time_of_last_progress_report_ = clock ();
+  progress_bar_ = 0;
+  num_jobs_ = 0;
   num_jobs_sent_ = 0;
-  
-  // EDGEMETHOD AND SKELETON METHOD REPEAT CODE
-#if defined EDGEMETHOD || defined SKELETONMETHOD
-  // Get width, length, height, etc... of parameter space.
-  std::vector<uint32_t> dimension_sizes ( config.PARAM_DIM,
-                                         1 << config.PARAM_SUBDIV_DEPTH);
-  // Count total number of "boxes" (volume) of parameter space.
-  uint32_t total = 1;
-  for ( int d = 0; d < config.PARAM_DIM; ++ d ) {
-    total *= dimension_sizes [ d ];
-  }
-  // Initialize a complex to represent parameter space.
-  param_complex . initialize ( dimension_sizes );
-  // We have to add all the cubes. This is a little silly,
-  // that there isn't a member function to do this yet.
-  std::vector<uint32_t> cube ( config.PARAM_DIM, 0 );
-  for ( long x = 0; x < total; ++ x ) {
-    param_complex . addFullCube ( cube );
-    bool carry = true;
-    for ( unsigned int d = 0; d < cube . size (); ++ d ) {
-      if ( not carry ) break;
-      if ( ++ cube [ d ] == dimension_sizes [ d ] ) {
-        cube [ d ] = 0;
-        carry = true;
-      } else {
-        carry = false;
-      }
-    }
-  }
-  // Now we set the bounds and finalize the complex (so it is indexed).
-  param_complex . bounds () = config.PARAM_BOUNDS;
-  param_complex . finalize ();
-  
-#ifdef EDGEMETHOD
-  int dim = 0;
-#endif
-#ifdef SKELETONMETHOD
-  int dim = 1;
-#endif
-  for ( Index i = 0; i < param_complex . size ( dim ); ++ i ) {
-    jobs_ . push_back ( std::make_pair ( i, dim ) );
-  }
-  num_jobs_ = jobs_ . size ();
-#endif
+  checkpoint_timer_running_ = false;
 
-#ifdef PATCHMETHOD
-  
-  // We cover the parameter space with patch_width^d patches.
-  // In order to accommodate periodicity, we let the patches overhang from the outer bounds slightly.
-  int patch_width = 4; // try to use patch_width^d boxes per patch (plus or minus 1)
-  
-  // CONSTUCT THE PARAMETER GRID
-  // Initialize parameter space bounds
-  parameter_grid = boost::shared_ptr<Grid> ( new PARAMETER_GRID );
-  parameter_grid -> initialize ( config.PARAM_BOUNDS, config.PARAM_PERIODIC );   /// Parameter space grid
-  
-  // Subdivide parameter space toplex
-  long num_across = 1;
-  for (int i = 0; i < config.PARAM_SUBDIV_DEPTH; ++i) {
-    num_across *= 2;
-    for ( int d = 0; d < config.PARAM_DIM; ++ d ) {
-      parameter_grid -> subdivide (); // subdivide every top cell
-    }
+  // Construct Parameter Space
+  boost::shared_ptr<Grid> parameter_grid ( new PARAMETER_GRID );
+  parameter_space_ = boost::shared_ptr<ParameterSpace> ( new EuclideanParameterSpace );
+  boost::dynamic_pointer_cast<EuclideanParameterSpace> (parameter_space_) 
+    -> initialize ( config, parameter_grid );
+  database . insert ( parameter_space_ );
+
+  //std::cout << "MorseProcess num_jobs_ = " << num_jobs_ << "\n";
+
+  // Count number of patches
+  size_t num_calc = 0;
+  while ( 1 ) {
+    boost::shared_ptr<ParameterPatch> p = parameter_space_ -> patch ();
+    if ( p -> empty () ) break;
+    ++ num_jobs_;
+    //std::cout << "MorseProcess num_jobs_ = " << num_jobs_ << "\n";
+
+    num_calc += p -> vertices . size ();
   }
   
-  int patches_across = 1 + num_across / patch_width; // distance between center of patches in box-units
-  // EXAMPLE: num_across = 64, patch_width = 4 ---> patches_across = 9 
-  std::cout << "patches_across = " << patches_across << "\n";
-  // Create the patches.
-  std::vector < chomp::Rect > patches;
-  // Loop through D-tuples
-  std::vector < int > coordinates ( config.PARAM_DIM, 0);
-  bool finished = false;
-  while ( not finished ) {
-    chomp::Rect patch ( config.PARAM_DIM );
-    for ( int d = 0; d < config.PARAM_DIM; ++ d ) {
-      // tol shouldn't be necessary if cover is rigorous
-      double tol = (config.PARAM_BOUNDS . upper_bounds [ d ] - config.PARAM_BOUNDS . lower_bounds [ d ]) / (double) (1000 * num_across);
-      patch . lower_bounds [ d ] = config.PARAM_BOUNDS . lower_bounds [ d ] + ( (double) coordinates[d] ) *
-      (config.PARAM_BOUNDS . upper_bounds [ d ] - config.PARAM_BOUNDS . lower_bounds [ d ]) / (double)patches_across - tol;
-      patch . upper_bounds [ d ] = config.PARAM_BOUNDS . lower_bounds [ d ] + ((double)(1 + coordinates[d])) *
-      (config.PARAM_BOUNDS . upper_bounds [ d ] - config.PARAM_BOUNDS . lower_bounds [ d ]) / (double)patches_across + tol;
-      
-      if ( not config.PARAM_PERIODIC [ d ] ) {
-        if ( patch . lower_bounds [ d ] < config.PARAM_BOUNDS . lower_bounds [ d ] ) patch . lower_bounds [ d ] = config.PARAM_BOUNDS . lower_bounds [ d ];
-        if ( patch . upper_bounds [ d ] > config.PARAM_BOUNDS . upper_bounds [ d ] ) patch . upper_bounds [ d ] = config.PARAM_BOUNDS . upper_bounds [ d ];
-      }
-    }
-    patches . push_back ( patch );
-    // ODOMETER STEP
-    finished = true;
-    for ( int d = 0; d < config.PARAM_DIM; ++ d ) {
-      ++ coordinates [ d ];
-      if ( coordinates [ d ] == patches_across ) {
-        coordinates [ d ] = 0;
-      } else {
-        finished = false;
-        break;
-      }
-    }
-  }
-  
-  size_t debug_size = 0;
-  std::cout << "Created " << patches . size () << " patches.\n";
-  BOOST_FOREACH ( const chomp::Rect & patch, patches ) {
-    // Cover the geometric region with top cells
-    GridSubset patch_subset;
-    std::insert_iterator < GridSubset > ii ( patch_subset, patch_subset . begin () );
-    parameter_grid -> cover ( ii, patch );
-    // Add "patch_subset" to the growing vector of patches
-    PS_patches . push_back (patch_subset);
-    debug_size += patch_subset . size ();
-  } /* for */
-  num_jobs_ = PS_patches . size ();
-  database . insert ( parameter_grid );
-#endif
-  std::cout << "MorseProcess Constructed, there are " << num_jobs_ << " jobs.\n";
-  std::cout << "Number of parameter box calculations = " << debug_size << ".\n";
-  //char c; std::cin >> c;
+  // Output to the user about the upcoming database calculation
+  std::cout << "MorseProcess initialized. \n";
+  std::cout << "  There are " << parameter_space_ -> size () << " parameters.\n";
+  std::cout << "  There are " << num_jobs_ << " jobs.\n";
+  std::cout << "  Within those jobs, there are " << num_calc << " parameter box calculations to be done.\n";
+  std::cout << "  On average, a single parameter box calculation will be done " << 
+    (double) num_calc  / (double) parameter_space_ -> size ()  << " times.\n";
 }
 
 /* * * * * * * * * * * */
@@ -173,114 +92,33 @@ void MorseProcess::initialize ( void ) {
 /* * * * * * * * * * * */
 int MorseProcess::prepare ( Message & job ) {
   using namespace chomp;
-  /// All jobs have been sent
-  /// Still waiting for some jobs to finish
-  if (num_jobs_sent_ == num_jobs_) return 1;
-
-  /// There are jobs to be processed
-  // Prepare a new job and send it to process
-
-  /// Job number (job id) of job to be sent
-  size_t job_number = num_jobs_sent_;
   
+  if (num_jobs_sent_ == num_jobs_) return 1; // if all jobs sent
+
+  if ( not checkpoint_timer_running_ ) {
+    job << (uint64_t) 0; // Checkpoint timer job
+    checkpoint_timer_running_ = true;
+    return 0;
+  } else {
+    job << (uint64_t) 1; // Conley Job
+  }
+
+  // Job number (job id) of job to be sent
+  size_t job_number = num_jobs_sent_;
   std::cout << "MorseProcess::prepare: Preparing job " << job_number << "\n";
   
-  /// Variables needed for job.
-  // Cell Name data (translate back into top-cell names from index number)
-  std::vector < size_t > box_names;
-  // Geometric Description Data
-  std::vector < Rect > box_geometries;
-  /// Adjacency information vector
-  std::vector < std::pair < size_t, size_t > > box_adjacencies;
-#ifdef EDGEMETHOD
-  std::pair < Index, int > cell = jobs_ [ job_number ];
-  Chain cbd = param_complex . coboundary ( cell . first, cell . second ); //cell.second==0
-  BOOST_FOREACH ( const Term & t, cbd () ) {
-    box_geometries . push_back ( param_complex . geometry ( t . index (), cell . second + 1 ) );
-    Index edge_name = param_complex . size ( cell . second ) + t . index ();
-    box_names . push_back ( edge_name );
-  }
-  for ( unsigned int i = 0; i < box_names . size (); ++ i ) {
-    for ( unsigned int j = i + 1; j < box_names . size (); ++ j ) {
-      box_adjacencies . push_back ( std::make_pair ( box_names [ i ], box_names [ j ] ) );
-    }
-  }
-#endif
-  
-#ifdef SKELETONMETHOD
-  std::pair < Index, int > cell = jobs_ [ job_number ];
-  box_geometries . push_back ( param_complex . geometry ( cell . first, cell . second ) );
-  Index job_cell_name =  param_complex . size ( cell . second - 1 ) + cell . first;
-  box_names . push_back ( job_cell_name );
-  Chain bd = param_complex . boundary ( cell . first, cell . second );
-  BOOST_FOREACH ( const Term & t, bd () ) {
-    box_geometries . push_back ( param_complex . geometry ( t . index (), cell . second - 1 ) );
-    Index sub_cell_name = param_complex . size ( cell . second - 2 ) + t . index ();
-    box_names . push_back ( sub_cell_name );
-    box_adjacencies . push_back ( std::make_pair ( job_cell_name, sub_cell_name ) );
-  }
-#endif
-  
-#ifdef PATCHMETHOD
-  
-  //size_t local_clutchings_ordered = 0;
-  static size_t number_of_clutching_jobs_ordered = 0;
-  GridSubset patch_subset = PS_patches [job_number];
-
-
-  /// Find adjacency information for cells in the patch
-  BOOST_FOREACH ( Grid::GridElement grid_element_in_patch, patch_subset ) {
-    // Find geometry of patch cell
-    Rect GD = parameter_grid -> geometry ( grid_element_in_patch );
-
-#ifdef CHECKIFMAPISGOOD
-    ModelMap map ( GD );
-    if ( not map . good () ) continue;
-#endif
-    // Store the name of the patch cell
-    box_names . push_back ( grid_element_in_patch );
-    // Store the geometric description of the patch cell
-    box_geometries . push_back ( GD );
-    // Find the cells in toplex which intersect patch cell
-    // DEBUG -- (check toplex::cover)
-    double tol = 1e-8;
-    for ( int d = 0; d < parameter_grid -> dimension (); ++ d ) {
-      GD . lower_bounds [ d ] -= tol;
-      GD . upper_bounds [ d ] += tol;
-    }
-    // END DEBUG
-    GridSubset GD_Cover;
-    std::insert_iterator < GridSubset > ii ( GD_Cover, GD_Cover . begin () );
-    parameter_grid -> cover ( ii, GD );
-    // Store the cells in the patch which intersect the patch cell as adjacency pairs
-    BOOST_FOREACH (  Grid::GridElement grid_element_in_cover, GD_Cover ) {
-#ifdef CHECKIFMAPISGOOD
-      Rect adjGD = parameter_grid -> geometry ( grid_element_in_cover );
-      ModelMap adjmap ( adjGD );
-      if ( not adjmap . good () ) continue;
-#endif
-      if (( patch_subset . count (grid_element_in_cover) != 0 ) && grid_element_in_patch < grid_element_in_cover ) {
-        box_adjacencies . push_back ( std::make_pair ( grid_element_in_patch, grid_element_in_cover ) );
-        ++ number_of_clutching_jobs_ordered;
-      }
-    }
-  }
-#endif
-  //std::cout << "# of clutchings ordered locally:" << local_clutchings_ordered << "\n";
-  std::cout << "# of clutchings ordered so far: " << number_of_clutching_jobs_ordered << "\n";
-  //std::cout << "Coordinator::Prepare: Sent job " << num_jobs_sent_ << "\n";
+  // Obtain patch 
+  boost::shared_ptr<ParameterPatch> patch = parameter_space_ -> patch ();
   
   // prepare the message with the job to be sent
   job << job_number;
-  job << box_names;
-  job << box_geometries;
-  job << box_adjacencies;
+  job << patch;
   job << config.PHASE_SUBDIV_INIT;
   job << config.PHASE_SUBDIV_MIN;
   job << config.PHASE_SUBDIV_MAX;
   job << config.PHASE_SUBDIV_LIMIT;
-  job << config.PHASE_BOUNDS;
-  job << config.PHASE_PERIODIC;
+  job << model;
+
   /// Increment the jobs_sent counter
   ++num_jobs_sent_;
   
@@ -288,49 +126,96 @@ int MorseProcess::prepare ( Message & job ) {
   return 0;
 }
  
+struct ClutchingJobWorkThread {
+  Message * result;
+  const Message * job;
+  bool * computed;
+
+  ClutchingJobWorkThread
+            ( Message * result, 
+              const Message * job,
+              bool * computed ) 
+  : result(result), job(job), computed(computed) {}
+
+  void operator () ( void ) {
+    try {
+      Clutching_Graph_Job < PHASE_GRID > ( result , *job );
+      *computed = true;
+    } catch ( ... /* boost::thread_interrupted& */) {
+      *computed = false;
+    }
+  }
+};
 /* * * * * * * * * */
 /* work definition */
 /* * * * * * * * * */
 void MorseProcess::work ( Message & result, const Message & job ) const {
-  using namespace chomp;
-	Clutching_Graph_Job < PHASE_GRID > ( &result , job );
-  //result << (size_t)0;
-  //result << Database ();
+  // Read Job type
+  uint64_t job_type;
+  job >> job_type;
+  switch ( job_type ) {
+  case 0:
+    // Checkpoint timer job
+    std::cout << "MorseProcess::work. Checkpoint timer job detected.\n";
+    boost::this_thread::sleep( boost::posix_time::seconds(60) );
+    result << (uint64_t) 0;
+    break;
+  case 1:
+    std::cout << "MorseProcess::work. Normal Job detected.\n";
+    result << (uint64_t) 1;
+    // Read Job Number
+    size_t job_number;
+    job >> job_number;
+    result << job_number;
+    // Perform work
+    bool computed;
+    ClutchingJobWorkThread cj ( &result, &job, &computed );
+    boost::thread t(cj);
+    if ( not t . try_join_for ( boost::chrono::seconds( 3600 ) ) ) {
+      t.interrupt();
+      t.join();
+    }
+    if ( not computed ) {
+      result << Database ();
+    }
+    break;
+  }
+  std::cout << "MorseProcess::work. Job complete.\n";
 }
 
 /* * * * * * * * * * */
 /* accept definition */
 /* * * * * * * * * * */
 void MorseProcess::accept(const Message &result) {
-  using namespace chomp;
+  clock_t current_time = clock ();
   /// Read the results from the result message
-  size_t job_number;
-  Database job_database;
-  result >> job_number;
-  result >> job_database;
-  // Merge the results
-  database . merge ( job_database );
-  std::cout << "MorseProcess::read: Received result " 
-            << job_number << "\n";
-  ++ progress_bar;
-  
-  clock_t time = clock ();
-  if ( (float)(time - time_of_last_checkpoint ) / (float)CLOCKS_PER_SEC > 3600.0f ) {
-    // saves a checkpoint.
-    // (note: checkpointing is same as finalize, but repeated)
-    std::ofstream progress_file ( "progress.txt" );
-    progress_file << "Morse Process Progress: " << progress_bar << " / " << num_jobs_ << "\n";
-    progress_file . close ();
-    std::string filestring ( argv[1] );
-    std::string appendstring ( "/database.raw" );
-    database . save ( (filestring + appendstring) . c_str () );
-    time_of_last_checkpoint = clock ();
+  uint64_t result_type;
+  result >> result_type;
+  if ( result_type == 0 ) {
+    // Checkpoint Timer finished.
+    checkpoint_timer_running_ = false;
+    // Save a checkpoint
+    if ( (float)(current_time - time_of_last_checkpoint_ ) 
+      / (float)CLOCKS_PER_SEC > 3600.0f ) {
+      checkpoint ();
+      progressReport ();
+    }
+  } else {
+    // Accepting result of normal job.
+    // Read the results from the result message
+    size_t job_number;
+    Database job_database;
+    result >> job_number;
+    result >> job_database;
+    // Merge the results
+    database . merge ( job_database );
+    ++ progress_bar_;
+    std::cout << "MorseProcess::read: Received result " 
+      << job_number << "\n";
   }
-  if ( (float)(time - time_of_last_progress ) / (float)CLOCKS_PER_SEC > 1.0f ) {
-    std::ofstream progress_file ( "progress.txt" );
-    progress_file << "Morse Process Progress: " << progress_bar << " / " << num_jobs_ << "\n";
-    progress_file . close ();
-    time_of_last_progress = time;
+
+  if ( (float)(current_time - time_of_last_progress_report_ ) / (float)CLOCKS_PER_SEC > 1.0f ) {
+    progressReport ();
   }
 }
 
@@ -338,17 +223,20 @@ void MorseProcess::accept(const Message &result) {
 /* finalize definition */
 /* * * * * * * * * * * */
 void MorseProcess::finalize ( void ) {
-  using namespace chomp;
-  std::cout << "MorseProcess::finalize ()\n";
-  
-  std::ofstream progress_file ( "progress.txt" );
-  progress_file << "Morse Process Progress: " << progress_bar << " / " << num_jobs_ << "\n";
-  progress_file . close ();
+  std::cout << "MorseProcess::finalize \n";
+  checkpoint ();
+}
 
-  {
+void MorseProcess::checkpoint ( void ) {
   std::string filestring ( argv[1] );
   std::string appendstring ( "/database.raw" );
   database . save ( (filestring + appendstring) . c_str () );
-  }
- 
+  time_of_last_checkpoint_ = clock();
+}
+
+void MorseProcess::progressReport ( void ) {
+  std::ofstream progress_file ( "progress.txt" );
+  progress_file << "Morse Process Progress: " << progress_bar_ << " / " << num_jobs_ << "\n";
+  progress_file . close ();
+  time_of_last_progress_report_ = clock();
 }
