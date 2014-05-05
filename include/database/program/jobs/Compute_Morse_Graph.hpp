@@ -233,15 +233,15 @@ void ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
   typedef MorseGraph::Vertex Vertex;
   // "temp" will store which MorseGraph vertices are hierarchically under a given decomposition node
   std::map < MorseDecomposition *, std::vector<Vertex> > temp;
-  std::stack < std::pair < MorseDecomposition *, unsigned int > > eulertourstack;
+  std::stack < std::pair < MorseDecomposition *, size_t > > eulertourstack;
   // eulertourstack: an item (md, childnum) means "this is node md, explore child childnum if it exists,
   // otherwise do an analysis"
   eulertourstack . push ( std::make_pair( root, 0 ) );
   while (  not eulertourstack . empty () ) {
     MorseDecomposition * MD = eulertourstack . top () . first;
-    unsigned int childnum = eulertourstack . top () . second;
+    size_t childnum = eulertourstack . top () . second;
     eulertourstack . pop ();
-    unsigned int NC = MD -> children () . size ();
+    size_t NC = MD -> children () . size ();
     if ( childnum < NC ) {
         eulertourstack . push ( std::make_pair ( MD, childnum + 1 ) );
         eulertourstack . push ( std::make_pair ( MD -> children () [ childnum ], 0 ) );
@@ -252,7 +252,7 @@ void ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
       // If it does not have children, it is spurious if and only if it is already marked spurious
       if ( NC > 0 ) {
         MD -> spurious () = true; // by default; we may however switch it back to false
-        for ( unsigned int i = 0; i < NC; ++ i ) {
+        for ( size_t i = 0; i < NC; ++ i ) {
           if ( not MD -> children () [ i ] -> spurious () ) MD -> spurious () = false;
         }
       }
@@ -270,8 +270,8 @@ void ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
       if ( MD -> depth () == Min ) {
         //std::cout << "Node " << MD << "\n";
         boost::unordered_map < int, Vertex > non_spurious_decomposition;
-        unsigned int ND = MD -> decomposition () . size ();
-        for ( int i = 0 ; i < ND; ++ i ) {
+        size_t ND = MD -> decomposition () . size ();
+        for ( size_t i = 0 ; i < ND; ++ i ) {
           //std::cout << "Child " << i << " out of " << ND << "\n";
           if ( (NC == ND) && MD -> children () [ i ] -> spurious () ) { 
             //std::cout << "Spurious Rule 2 invoked, skipping child " << i << ".\n";
