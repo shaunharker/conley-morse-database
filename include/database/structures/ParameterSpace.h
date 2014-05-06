@@ -146,29 +146,40 @@ private:
 
 inline boost::shared_ptr<ParameterPatch> 
 ParameterSpace::patch ( void ) const {
+	// DEBUG
+	//std::cout << "ParameterSpace::patch being called.\n";
+	//std::cout << " Internal state: vertex_ = " << vertex_ << " edge_ = " << default_patch_method_edge_ << "\n";
 	boost::shared_ptr<ParameterPatch> result ( new ParameterPatch );
-	if ( default_patch_method_edge_ == 0 ) {
-		if ( default_patch_method_vertex_ == size () ) { 
-			default_patch_method_vertex_ = 0;
-			return result;
-		} else {
-			default_patch_method_neighbors_ = adjacencies ( default_patch_method_vertex_ );
+	while ( 1 ) {
+		if ( default_patch_method_edge_ == 0 ) {
+			if ( default_patch_method_vertex_ == size () ) { 
+				default_patch_method_vertex_ = 0;
+				return result;
+			} else {
+				//std::cout << "Computing adjacencies.\n";
+				default_patch_method_neighbors_ = adjacencies ( default_patch_method_vertex_ );
+				//std::cout << "There were " << default_patch_method_neighbors_ . size () << " adjacencies.\n";
+			}
 		}
-	}
-	ParameterIndex u = default_patch_method_vertex_;
-	ParameterIndex v = default_patch_method_neighbors_ [ default_patch_method_edge_ ];
-	// Perform check to prevent symmetric duplicates
-	if ( u < v ) {
-		result -> vertices . push_back ( u );
-		result -> vertices . push_back ( v );
-		result -> edges . push_back ( std::make_pair ( u, v ) );
-		result -> parameter [ u ] = parameter ( u );
-		result -> parameter [ v ] = parameter ( v );
-	}
-	++ default_patch_method_edge_;
-	if ( default_patch_method_edge_ == default_patch_method_neighbors_ . size () ) {
-		default_patch_method_edge_ = 0;
-		++ default_patch_method_vertex_;
+		ParameterIndex u = default_patch_method_vertex_;
+		ParameterIndex v = default_patch_method_neighbors_ [ default_patch_method_edge_ ];
+
+		++ default_patch_method_edge_;
+		if ( default_patch_method_edge_ == default_patch_method_neighbors_ . size () ) {
+			default_patch_method_edge_ = 0;
+			++ default_patch_method_vertex_;
+		}
+
+		// Perform check to prevent symmetric duplicates
+		if ( u < v ) {
+			result -> vertices . push_back ( u );
+			result -> vertices . push_back ( v );
+			result -> edges . push_back ( std::make_pair ( u, v ) );
+			result -> parameter [ u ] = parameter ( u );
+			result -> parameter [ v ] = parameter ( v );
+			break;
+		} 
+
 	}
 	return result;
 }
