@@ -162,6 +162,8 @@ ParameterSpace::patch ( void ) const {
 		result -> vertices . push_back ( u );
 		result -> vertices . push_back ( v );
 		result -> edges . push_back ( std::make_pair ( u, v ) );
+		result -> parameter [ u ] = parameter ( u );
+		result -> parameter [ v ] = parameter ( v );
 	}
 	++ default_patch_method_edge_;
 	if ( default_patch_method_edge_ == default_patch_method_neighbors_ . size () ) {
