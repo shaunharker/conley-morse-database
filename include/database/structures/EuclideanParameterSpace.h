@@ -223,6 +223,9 @@ EuclideanParameterSpace::patch ( void ) const {
       ( result -> parameter [ u ] ) -> geo;
     RectGeo v_geo = * boost::dynamic_pointer_cast<EuclideanParameter> 
       ( result -> parameter [ v ] ) -> geo;
+    // DEBUG
+    std::cout << "Examining candidate patch " << u_geo << " -- " << v_geo << "\n";
+    // END DEBUG
     int codimension = 0;
     for ( int d = 0; d < dimension_; ++ d ) {
       if ( ( u_geo . lower_bounds [ d ] == v_geo . upper_bounds [ d ] )
@@ -230,6 +233,9 @@ EuclideanParameterSpace::patch ( void ) const {
         ++ codimension;
       }
     }
+    // DEBUG
+    std::cout << " Calculated the intersection codimension of " << codimension << "\n";
+    // END DEBUG
     if ( codimension == 1 ) break;
   }
   return result;
