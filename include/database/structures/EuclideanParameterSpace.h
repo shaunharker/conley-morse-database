@@ -219,9 +219,9 @@ EuclideanParameterSpace::patch ( void ) const {
     if ( result -> vertices . empty () ) break;
     uint64_t u = result -> vertices [ 0 ];
     uint64_t v = result -> vertices [ 1 ];
-    RectGeo u_geo = * booost::dynamic_pointer_cast<EuclideanParameter> 
+    RectGeo u_geo = * boost::dynamic_pointer_cast<EuclideanParameter> 
       ( result -> parameter [ u ] ) -> geo;
-    RectGeo v_geo = * booost::dynamic_pointer_cast<EuclideanParameter> 
+    RectGeo v_geo = * boost::dynamic_pointer_cast<EuclideanParameter> 
       ( result -> parameter [ v ] ) -> geo;
     int codimension = 0;
     for ( int d = 0; d < dimension_; ++ d ) {
