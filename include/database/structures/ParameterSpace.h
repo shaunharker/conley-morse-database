@@ -79,7 +79,8 @@ public:
 	typedef boost::counting_iterator < ParameterIndex > iterator;
 	typedef iterator const_iterator;
 	// Constructor/Deconstructor
-	ParameterSpace ( void ) {}
+	ParameterSpace ( void ) : default_patch_method_vertex_(0), default_patch_method_edge_(0)
+	 {}
 	virtual ~ParameterSpace ( void ) {}
 
 	/// initialize
