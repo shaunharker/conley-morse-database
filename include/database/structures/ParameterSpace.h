@@ -150,7 +150,7 @@ ParameterSpace::patch ( void ) const {
 	std::cout << "ParameterSpace::patch being called.\n";
 	boost::shared_ptr<ParameterPatch> result ( new ParameterPatch );
 	while ( 1 ) {
-		std::cout << " Internal state: vertex_ = " << vertex_ << " edge_ = " << default_patch_method_edge_ << "\n";
+		std::cout << " Internal state: vertex_ = " << default_patch_method_vertex_ << " edge_ = " << default_patch_method_edge_ << "\n";
 
 		if ( default_patch_method_edge_ == 0 ) {
 			if ( default_patch_method_vertex_ == size () ) { 
