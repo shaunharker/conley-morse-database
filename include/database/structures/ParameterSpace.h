@@ -147,20 +147,14 @@ private:
 
 inline boost::shared_ptr<ParameterPatch> 
 ParameterSpace::patch ( void ) const {
-	// DEBUG
-	std::cout << "ParameterSpace::patch being called.\n";
 	boost::shared_ptr<ParameterPatch> result ( new ParameterPatch );
 	while ( 1 ) {
-		std::cout << " Internal state: vertex_ = " << default_patch_method_vertex_ << " edge_ = " << default_patch_method_edge_ << "\n";
-
 		if ( default_patch_method_edge_ == 0 ) {
 			if ( default_patch_method_vertex_ == size () ) { 
 				default_patch_method_vertex_ = 0;
 				return result;
 			} else {
-				std::cout << "Computing adjacencies.\n";
 				default_patch_method_neighbors_ = adjacencies ( default_patch_method_vertex_ );
-				std::cout << "There were " << default_patch_method_neighbors_ . size () << " adjacencies.\n";
 			}
 		}
 		ParameterIndex u = default_patch_method_vertex_;

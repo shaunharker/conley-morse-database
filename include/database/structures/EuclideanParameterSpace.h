@@ -213,12 +213,8 @@ inline boost::shared_ptr<ParameterPatch>
 EuclideanParameterSpace::patch ( void ) const {
 
 #ifdef EDGEPATCHMETHOD
-  // DEBUG
-  std::cout << "EDGEPATCHMETHOD\n";
-  // END DEBUG
   boost::shared_ptr<ParameterPatch> result;
   while ( 1 ) {
-    std::cout << "Calling parent patch method.\n";
     result = ParameterSpace::patch ();
     if ( result -> vertices . empty () ) break;
     uint64_t u = result -> vertices [ 0 ];
@@ -227,9 +223,6 @@ EuclideanParameterSpace::patch ( void ) const {
       ( result -> parameter [ u ] ) -> geo;
     RectGeo v_geo = * boost::dynamic_pointer_cast<EuclideanParameter> 
       ( result -> parameter [ v ] ) -> geo;
-    // DEBUG
-    std::cout << "Examining candidate patch " << u_geo << " -- " << v_geo << "\n";
-    // END DEBUG
     int codimension = 0;
     for ( int d = 0; d < dimension_; ++ d ) {
       if ( ( u_geo . lower_bounds [ d ] == v_geo . upper_bounds [ d ] )
@@ -237,9 +230,6 @@ EuclideanParameterSpace::patch ( void ) const {
         ++ codimension;
       }
     }
-    // DEBUG
-    std::cout << " Calculated the intersection codimension of " << codimension << "\n";
-    // END DEBUG
     if ( codimension == 1 ) break;
   }
   return result;
