@@ -211,6 +211,29 @@ EuclideanParameterSpace::search ( boost::shared_ptr<Parameter> parameter ) const
 
 inline boost::shared_ptr<ParameterPatch> 
 EuclideanParameterSpace::patch ( void ) const {
+
+#ifdef EDGEPATCHMETHOD
+  boost::shared_ptr<ParameterPatch> result;
+  while ( 1 ) {
+    result = ParameterSpace::patch ();
+    if ( result -> vertices . empty () ) break;
+    uint64_t u = result -> vertices [ 0 ];
+    uint64_t v = result -> vertices [ 1 ];
+    RectGeo u_geo = * boost::dynamic_pointer_cast<EuclideanParameter> 
+      ( result -> parameter [ u ] ) -> geo;
+    RectGeo v_geo = * boost::dynamic_pointer_cast<EuclideanParameter> 
+      ( result -> parameter [ v ] ) -> geo;
+    int codimension = 0;
+    for ( int d = 0; d < dimension_; ++ d ) {
+      if ( ( u_geo . lower_bounds [ d ] == v_geo . upper_bounds [ d ] )
+      || ( u_geo . upper_bounds [ d ] == v_geo . lower_bounds [ d ] ) ) {
+        ++ codimension;
+      }
+    }
+    if ( codimension == 1 ) break;
+  }
+  return result;
+#else
   //std::cout << "EuclideanParameterSpace::patch dimension_ = " << dimension_ << "\n";
 
   boost::shared_ptr<ParameterPatch> result ( new ParameterPatch );
@@ -282,6 +305,7 @@ EuclideanParameterSpace::patch ( void ) const {
   }
 
   return result;
+#endif
 }
 
 #endif
