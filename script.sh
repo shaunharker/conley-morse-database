@@ -1,5 +1,9 @@
 #!/bin/bash
-#PBS -l nodes=15:ppn=8
+#Active comments for SGE
+#$ -V
+#$ -cwd
+#$ -j y
+#$ -S /bin/bash
+#$ -pe orte 896
 
-cd $PBS_O_WORKDIR
-mpiexec  ./Conley_Morse_Database $ENV_MODELDIR
+/opt/openmpi/bin/mpiexec --mca mpi_preconnect_all 1 -np $NSLOTS -x LD_LIBRARY_PATH ./Conley_Morse_Database $ENV_MODELDIR
