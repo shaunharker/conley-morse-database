@@ -1,0 +1,59 @@
+
+<network>
+
+<numberofnodes> 3 </numberofnodes>
+
+<listofnodes>
+
+	<node>
+		<!-- label of the node -->
+		<id> 0 </id>
+		<!-- number of in-edges -->
+		<numinedges> 2 </numinedges>
+		<!-- list of nodes connected to it (in-edges) -->
+		<inedgefrom> 2 0 </inedgefrom>
+		<!-- for each in-edge, down-regulation (0) or up-regulation (1) -->
+		<regulations> 0 1 </regulations>
+		<!-- number of thresholds -->
+		<numthresholds> 3 </numthresholds>
+		<!-- logic : multiplication (m), additive (a)  -->
+		<logic> </logic>
+
+	</node>
+
+	<node>
+		<!-- label of the node -->
+		<id> 1 </id>
+		<!-- number of in-edges -->
+		<numinedges> 1 </numinedges>
+		<!-- list of nodes connected to it (in-edges) -->
+		<inedgefrom> 0 </inedgefrom>
+		<!-- for each in-edge, down-regulation (0) or up-regulation (1) -->
+		<regulations> 1 </regulations>
+		<!-- number of thresholds -->
+		<numthresholds> 2 </numthresholds>
+		<!-- logic : multiplication (m), additive (a)  -->
+		<logic> </logic>
+	</node>
+
+	<node>
+		<!-- label of the node -->
+		<id> 2 </id>
+		<!-- number of in-edges -->
+		<numinedges> 1 </numinedges>
+		<!-- list of nodes connected to it (in-edges) -->
+		<inedgefrom> 1 </inedgefrom>
+		<!-- for each in-edge, down-regulation (0) or up-regulation (1) -->
+		<regulations> 1 </regulations>
+		<!-- number of thresholds -->
+		<numthresholds> 1 </numthresholds>
+		<!-- logic : multiplication (m), additive (a)  -->
+		<logic> </logic>
+	</node>
+
+</listofnodes>
+
+
+
+
+</network>
