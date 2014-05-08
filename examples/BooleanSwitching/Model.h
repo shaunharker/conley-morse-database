@@ -67,8 +67,8 @@ Model::initialize ( int argc, char * argv [] ) {
   boost::dynamic_pointer_cast<BooleanSwitchingParameterSpace> 
     ( parameter_space_ ) -> initialize ( argc, argv );
   // Initialize phase space
-  phase_space_dimension_ = parametergraph . network ( ) . threshold_count . size ( ); // FIX
   domains_ . assign  ( parametergraph . network ( ) . threshold_count );
+  phase_space_dimension_ = domains_ . limits () . size ();
   // Loop through domains and create walls and interior point.
   size_t num_walls = 0;
   BOOST_FOREACH ( const std::vector<size_t> & domain, domains ) {
@@ -105,15 +105,15 @@ Model::map ( boost::shared_ptr<Parameter> p) {
   boost::shared_ptr < ModelMap > atlasmap ( new ModelMap );
   // Loop through domains and add wall maps
   BOOST_FOREACH ( const std::vector<size_t> & domain, domains_ ) {
-    std::vector < std::pair < CFace, CFace > > listofmaps = 
+    typedef std::pair<CFace, CFace> CFacePair;
+    std::vector < CFacePair > listofmaps = 
       BooleanPairFacesMaps ( domain,
-                             p.closestFace(domain), 
+                             p -> closestFace(domain), 
                              lut_,
                              domains_ . limits () );
-    typedef std::pair<CFace, CFace> WallPair;
-    BOOST_FOREACH ( const WallPair & wall_pair, listofmaps ) {
-      Wall wall1 ( wall_pair . first, domain );
-      Wall wall2 ( wall_pair . second, domain );
+    BOOST_FOREACH ( const CFacePair & cface_pair, listofmaps ) {
+      Wall wall1 ( cface_pair . first, domain );
+      Wall wall2 ( cface_pair . second, domain );
       int id1 = walls_ [ wall1 ];
       int id2 = walls_ [ wall2 ];
       BooleanChartMap map ( wall1 . rect (), wall2 . rect () );
