@@ -6,6 +6,7 @@
 #include "database/structures/MorseGraph.h"
 #include "database/program/Configuration.h"
 #include "database/maps/AtlasMap.h"
+#include "ConstructBooleanMaps.h"
 #include "BooleanMap.h"
 #include "MultiDimensionalIndices.h"
 #include "LookUpTable.h"
