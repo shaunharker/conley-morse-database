@@ -67,8 +67,8 @@ Model::initialize ( int argc, char * argv [] ) {
   boost::dynamic_pointer_cast<BooleanSwitchingParameterSpace> 
     ( parameter_space_ ) -> initialize ( argc, argv );
   // Initialize phase space
-  domains_ . assign  ( parametergraph . network ( ) . threshold_count );
-  phase_space_dimension_ = domains_ . limits () . size ();
+  domains_ . assign  ( parameter_space_ -> domainLimits () );
+  phase_space_dimension_ = parameter_space_ -> dimension ();
   // Loop through domains and create walls and interior point.
   size_t num_walls = 0;
   BOOST_FOREACH ( const std::vector<size_t> & domain, domains ) {
@@ -108,7 +108,7 @@ Model::map ( boost::shared_ptr<Parameter> p) {
     typedef std::pair<CFace, CFace> CFacePair;
     std::vector < CFacePair > listofmaps = 
       BooleanPairFacesMaps ( domain,
-                             p -> closestFace(domain), 
+                             parameter_space -> closestFace ( p, domain ), 
                              lut_,
                              domains_ . limits () );
     BOOST_FOREACH ( const CFacePair & cface_pair, listofmaps ) {

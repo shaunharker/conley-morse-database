@@ -95,9 +95,18 @@ public:
 	///   closest face is output in the following form:
 	///   There are d entries in an std::vector<int>
 	///     0 means lower bound, 1 means between, 2 means upper bound
-	std::vector<int> closestFace ( boost::shared_ptr<BooleanSwitchingParameter> parameter, 
+	std::vector<int> closestFace ( boost::shared_ptr<Parameter> parameter, 
 																 const std::vector<size_t> & domain ) const;
+	/// domainLimits
+	///    Return a vector containing the number of thresholds plus one in each dimension
+	///    This gives us the number of bins in each dimension, which is needed
+	///    for multidimensional iteration through the "domains" (i.e. regions between
+	///    thresholds)
+	std::vector<size_t> domainLimits ( void ) const;
 
+	/// dimension
+	///    Return dimension
+	int dimension ( void ) const;
 private:
 
 	/// dimension_
@@ -196,10 +205,13 @@ BooleanSwitchingParameterSpace::search ( boost::shared_ptr<Parameter> parameter 
 	return result;
 }
 
+
 inline std::vector<int> 
 BooleanSwitchingParameterSpace::closestFace 
-				( boost::shared_ptr<BooleanSwitchingParameter> parameter, 
+				( boost::shared_ptr<Parameter> p, 
 					const std::vector<size_t> & domain ) const {
+	boost::shared_ptr<BooleanSwitchingParameter> parameter =
+	  boost::dynamic_pointer_cast<BooleanSwitchingParameter> ( p ); 
 	std::vector<int> result ( dimension_ );
 	if ( dimension_ != domain . size () ) { 
 		std::cout << "error. BooleanSwitchingParameter::closestFace. Inappropriate input domain size.\n";
@@ -239,6 +251,21 @@ BooleanSwitchingParameterSpace::closestFace
 	}
 
 	return result;
+}
+
+inline std::vector<size_t> 
+BooleanSwitchingParameterSpace::domainLimits ( void ) const {
+	std::vector<size_t> result ( dimension_ );
+  BOOST_FOREACH ( const BooleanSwitching::NodeData & data, network_ . node_data_ ) {
+  	int d = data . index - 1;
+  	result [ data . index - 1 ] = data . out_order . size () + 1;
+	}
+	return result;
+}
+
+inline int
+BooleanSwitchingParameterSpace::dimension ( void ) const {
+	return dimension_;
 }
 
 #endif
