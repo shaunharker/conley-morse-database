@@ -52,10 +52,10 @@ public:
 	friend std::size_t hash_value ( Wall const & chart ) {
   	std::size_t seed = 0;
   	
-  	const std::vector < double > & lbounds = rect.lower_bounds;
-  	const std::vector < double > & ubounds = rect.upper_bounds;
+  	const std::vector < double > & lbounds = chart.rect().lower_bounds;
+  	const std::vector < double > & ubounds = chart.rect().upper_bounds;
 
-  	for ( unsigned int i=0; i<coords.size(); ++i ) {
+  	for ( unsigned int i=0; i < chart.rect().dimension(); ++i ) {
   		boost::hash_combine ( seed, lbounds[i] );
   		boost::hash_combine ( seed, ubounds[i] );
   	}
@@ -92,7 +92,6 @@ private:
 
 inline Wall::Wall ( const CFace & face, 
 										const Domain & domain ) {
-	id = myid;
 	// dimension of the phase space
 	int dimension = domain. size();
 

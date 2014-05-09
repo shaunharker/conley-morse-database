@@ -18,7 +18,7 @@ typedef int CFace;
 
 // Coordinates of the subdomain 
 // x_i in 0...m_i with m_i : # thresholds in the i-th direction
-typedef std::vector < int > Domain;
+typedef std::vector < size_t > Domain;
 
 // Coding for the semi-axis (positive or negative)
 // used for the closest axis information
@@ -27,7 +27,8 @@ typedef std::vector < int > Domain;
 typedef int Axis;
 
 // return the dimension of the face
-int faceDimension ( const Face & face ) {
+inline int 
+faceDimension ( const Face & face ) {
 	int counter = 0;
 	for ( Face::const_iterator it=face.begin(); it!=face.end(); ++it ) {
 		if ( *it == 1 ) { ++counter; }

@@ -10,7 +10,7 @@
 #include "database/program/MorseProcess.h"
 #endif
 #ifdef COMPUTE_CONTINUATION
-#include "ModelMap.h"
+#include "Model.h"
 #include "database/structures/Database.h"
 #endif
 #ifdef COMPUTE_CONLEY_INDEX

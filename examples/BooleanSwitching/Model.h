@@ -1,19 +1,29 @@
 #ifndef CMDB_MODEL_H
 #define CMDB_MODEL_H
 
+#include <vector>
+#include <utility>
+
+#include "boost/unordered_map.hpp"
 #include "boost/shared_ptr.hpp"
-#include "database/ParameterSpace.h"
+#include "boost/foreach.hpp"
+
+#include "database/structures/RectGeo.h"
+#include "database/structures/ParameterSpace.h"
+#include "database/structures/Grid.h"
 #include "database/structures/MorseGraph.h"
 #include "database/program/Configuration.h"
 #include "database/maps/AtlasMap.h"
+#include "database/maps/Map.h"
+
+#include "BooleanSwitchingClasses.h"
 #include "ConstructBooleanMaps.h"
 #include "BooleanMap.h"
 #include "MultiDimensionalIndices.h"
 #include "LookUpTable.h"
-#include "BooleanSwitchingClasses.h"
 #include "Wall.h"
+#include "BooleanSwitchingParameterSpace.h"
 
-typedef AtlasMap<BooleanChartMap> ModelMap;
 
 class Model {
 public:
@@ -24,17 +34,16 @@ public:
 
   /// parameterSpace
   ///   return a shared ptr to the parameter space
-  boost::shared_ptr < ParameterSpace > parameterSpace ( void );
+  boost::shared_ptr < ParameterSpace > parameterSpace ( void ) const;
   
   /// phaseSpace
-  ///   return a shared ptr to the phase space corresponding to
-  ///   parameter p
-  boost::shared_ptr < Grid > phaseSpace ( boost::shared_ptr<Parameter> p );
+  ///   return a shared ptr to the phase space
+  boost::shared_ptr < Grid > phaseSpace ( void ) const;
 
   /// map
   ///   return a shared ptr to a map function object corresponding to 
   ///   parameter p
-  boost::shared_ptr < ModelMap > map ( boost::shared_ptr<Parameter> p );
+  boost::shared_ptr < const Map > map ( boost::shared_ptr<Parameter> p ) const;
 
   /// annotate
   ///   Given a MorseGraph, provide annotations.
@@ -42,7 +51,7 @@ public:
 
 private:
   Configuration config_;
-  boost::shared_ptr < ParameterSpace > parameter_space_;
+  boost::shared_ptr < BooleanSwitchingParameterSpace > parameter_space_;
   int phase_space_dimension_;
   MultiDimensionalIndices domains_;
   boost::unordered_map<Wall, size_t> walls_;
@@ -59,19 +68,17 @@ public:
 inline void 
 Model::initialize ( int argc, char * argv [] ) { 
   config_ . loadFromFile ( argv[1] );
-  // Construct Lookup Table
-  lut_ = constructLookUpTable ( dimension );
   // Initialize parameter space
-  parameter_space_ = boost::shared_ptr<ParameterSpace> 
-    ( new BooleanSwitchingParameterSpace );
-  boost::dynamic_pointer_cast<BooleanSwitchingParameterSpace> 
-    ( parameter_space_ ) -> initialize ( argc, argv );
+  parameter_space_ . reset ( new BooleanSwitchingParameterSpace );
+  parameter_space_  -> initialize ( argc, argv );
   // Initialize phase space
   domains_ . assign  ( parameter_space_ -> domainLimits () );
   phase_space_dimension_ = parameter_space_ -> dimension ();
+  // Construct Lookup Table
+  lut_ = constructLookUpTable ( phase_space_dimension_ );
   // Loop through domains and create walls and interior point.
   size_t num_walls = 0;
-  BOOST_FOREACH ( const std::vector<size_t> & domain, domains ) {
+  BOOST_FOREACH ( const std::vector<size_t> & domain, domains_ ) {
     for ( CFace cface = -phase_space_dimension_; 
           cface <= phase_space_dimension_; ++ cface ) {
       Wall wall ( cface, domain );
@@ -83,12 +90,12 @@ Model::initialize ( int argc, char * argv [] ) {
 }
 
 inline boost::shared_ptr < ParameterSpace > 
-Model::parameterSpace ( void ) {
-  return parameter_space_;
+Model::parameterSpace ( void ) const {
+  return boost::dynamic_pointer_cast<ParameterSpace> ( parameter_space_ );
 }
 
 inline boost::shared_ptr < Grid > 
-Model::phaseSpace ( boost::shared_ptr<Parameter> p ) {
+Model::phaseSpace ( void ) const {
   boost::shared_ptr < Atlas > space ( new Atlas );
   typedef std::pair<Wall, size_t> WallIndexPair;
   BOOST_FOREACH ( const WallIndexPair & wall_index_pair, walls_ ) {
@@ -100,22 +107,23 @@ Model::phaseSpace ( boost::shared_ptr<Parameter> p ) {
   return boost::dynamic_pointer_cast<Grid> ( space );
 }
 
-inline boost::shared_ptr < ModelMap > 
-Model::map ( boost::shared_ptr<Parameter> p) { 
+inline boost::shared_ptr < const Map > 
+Model::map ( boost::shared_ptr<Parameter> p) const { 
+  typedef AtlasMap<BooleanChartMap> ModelMap;
   boost::shared_ptr < ModelMap > atlasmap ( new ModelMap );
   // Loop through domains and add wall maps
   BOOST_FOREACH ( const std::vector<size_t> & domain, domains_ ) {
     typedef std::pair<CFace, CFace> CFacePair;
     std::vector < CFacePair > listofmaps = 
       BooleanPairFacesMaps ( domain,
-                             parameter_space -> closestFace ( p, domain ), 
+                             parameter_space_ -> closestFace ( p, domain ), 
                              lut_,
                              domains_ . limits () );
     BOOST_FOREACH ( const CFacePair & cface_pair, listofmaps ) {
       Wall wall1 ( cface_pair . first, domain );
       Wall wall2 ( cface_pair . second, domain );
-      int id1 = walls_ [ wall1 ];
-      int id2 = walls_ [ wall2 ];
+      int id1 = walls_ . find ( wall1 ) -> second;
+      int id2 = walls_ . find ( wall2 ) -> second;
       BooleanChartMap map ( wall1 . rect (), wall2 . rect () );
       atlasmap -> addMap ( id1, id2, map );
     }

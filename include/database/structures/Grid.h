@@ -15,6 +15,8 @@
 #include "boost/serialization/serialization.hpp"
 #include "boost/serialization/vector.hpp"
 #include "database/structures/Geo.h"
+#include "database/structures/UnionGeo.h"
+#include "database/structures/IntersectionGeo.h"
 
 // Declaration
 class Grid {
@@ -40,15 +42,17 @@ public:
   size_type size ( void ) const;
   
   // Additional Features
-
   boost::shared_ptr<Geo> geometry ( const const_iterator & it ) const { return geometry ( *it ); }
-  // Cover a union (given as a vector)
+  
+  // Cover (for dispatch)
+  std::vector<Grid::GridElement> cover ( boost::shared_ptr<Geo> geo ) const;
+
   template < class T >
-  inline std::vector<Grid::GridElement> cover ( const std::vector < T > & V ) const;
+  std::vector<Grid::GridElement> unionCover ( const std::vector < T > & V ) const;
   
   // Cover an intersection (given as a pair)
-  template < class S, class T >
-  std::vector<Grid::GridElement> cover ( const std::pair < S, T > & V ) const;
+  template < class T >
+  std::vector<Grid::GridElement> intersectionCover ( const std::vector < T > & V  ) const;
   
   // Return memory usage of this data structure
   virtual uint64_t memory ( void ) const = 0;
@@ -102,9 +106,25 @@ inline Grid::size_type Grid::size ( void ) const {
 } /* Grid::size */
 
 
+// Dispatching version of cover
+inline std::vector<Grid::GridElement> 
+Grid::cover ( boost::shared_ptr<Geo> geo ) const {
+
+  boost::shared_ptr<UnionGeo> union_geo 
+    = boost::dynamic_pointer_cast<UnionGeo> ( geo );
+  if ( union_geo ) return unionCover ( union_geo -> elements );
+
+  boost::shared_ptr<IntersectionGeo> intersect_geo 
+    = boost::dynamic_pointer_cast<IntersectionGeo> ( geo );
+  if ( intersect_geo ) return intersectionCover ( intersect_geo -> elements );
+
+  return cover ( * geo );
+}
+
 // UNION version of cover
 template < class T >
-inline std::vector<Grid::GridElement> Grid::cover ( const std::vector < T > & V ) const {
+inline std::vector<Grid::GridElement> 
+Grid::unionCover ( const std::vector < T > & V ) const {
   std::vector<Grid::GridElement> result;
   boost::unordered_set<Grid::GridElement> result_set;
   BOOST_FOREACH ( const T & geo, V ) {
@@ -116,26 +136,26 @@ inline std::vector<Grid::GridElement> Grid::cover ( const std::vector < T > & V 
 }
 
 // INTERSECTION (pair) for cover
-template < class S, class T >
-inline std::vector<Grid::GridElement> Grid::cover ( const std::pair < S, T > & V ) const {
-  // Cover V . first, store in "firstcover"
-  std::vector<Grid::GridElement> firstcover_vec = cover ( V . first );
-  boost::unordered_set < GridElement > firstcover (firstcover_vec . begin (),
-                                                   firstcover_vec . end () );
-  // Cover V . second, store in "secondcover"
-  std::vector<Grid::GridElement> secondcover_vec = cover ( V . second );
-  boost::unordered_set < GridElement > secondcover (secondcover_vec . begin (),
-                                                    secondcover_vec . end () );
+template < class T >
+inline std::vector<Grid::GridElement> 
+Grid::intersectionCover ( const std::vector < T > & V ) const {
+  boost::unordered_set<Grid::GridElement> result_set;
+  bool first = true;
+  BOOST_FOREACH ( const T & geo, V ) {
+    std::vector<Grid::GridElement> cover_vec = cover ( geo );
+    boost::unordered_set<Grid::GridElement> 
+      cover_set ( cover_vec . begin (), cover_vec . end () );
 
-  // Without loss, let firstcover be no smaller than secondcover.
-  if ( firstcover . size () < secondcover. size () ) std::swap ( firstcover, secondcover );
-  // Compute intersection by checking if each element in smaller cover is in larger cover
-  std::vector<Grid::GridElement> result;
-  BOOST_FOREACH ( const GridElement & ge, secondcover ) {
-    if ( firstcover . count ( ge ) ) {
-      result . push_back ( ge );
+    if ( first ) {
+      std::swap ( result_set, cover_set );
+    } else {
+      BOOST_FOREACH ( Grid::GridElement ge, result_set ) {
+        if ( cover_set . count ( ge ) == 0 ) result_set . erase ( ge );
+      }
     }
+    first = false;
   }
+  std::vector<Grid::GridElement> result ( result_set . begin (), result_set . end () );
   return result;
 }
 

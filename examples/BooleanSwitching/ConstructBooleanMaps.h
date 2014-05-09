@@ -6,6 +6,7 @@
 
 #include "BooleanSwitchingClasses.h"
 #include "LookUpTable.h"
+#include "Reflection.h"
 
 //==============//
 // DECLARATIONS //
@@ -20,7 +21,7 @@ std::vector < std::pair < CFace, CFace > >
 BooleanPairFacesMaps ( const Domain & domain,
 											 const Face & closestface, 
 											 const LUT & lut,
-											 const std::vector<int> & thresholds_count );
+											 const std::vector<size_t> & number_of_bins );
 
 //=============//
 // DEFINITIONS //
@@ -30,7 +31,7 @@ inline std::vector < std::pair < CFace, CFace > >
 BooleanPairFacesMaps ( const Domain & domain,
 											 const Face & closestface, 
 											 const LUT & lut,
-											 const std::vector<int> & thresholds_count ) {
+											 const std::vector<size_t> & number_of_bins ) {
 
 	int dim = domain. size();
 
@@ -70,7 +71,7 @@ BooleanPairFacesMaps ( const Domain & domain,
 				if ( ( (*it).first == -(i+1) ) || ( (*it).second == -(i+1) ) ) {
 					good = false;
 				}
-			} else if ( domain[i] == thresholds_count[i] ) { 
+			} else if ( domain[i] == number_of_bins[i] ) { 
 				if ( ( (*it).first == (i+1) ) || ( (*it).second == (i+1) ) ) {
 					good = false;
 				}

@@ -22,7 +22,7 @@ public:
   /// phaseSpace
   /// return a shared ptr to the phase space corresponding to
   /// parameter p
-  boost::shared_ptr < Grid > phaseSpace ( boost::shared_ptr<Parameter> p );
+  boost::shared_ptr < Grid > phaseSpace ( void );
 
   /// map
   ///   return a shared ptr to a map function object corresponding to 

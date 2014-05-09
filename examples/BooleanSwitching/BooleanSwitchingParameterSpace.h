@@ -12,6 +12,9 @@
 #include <stack>
 #include <fstream>
 
+#include "database/structures/ParameterSpace.h"
+#include "database/structures/AbstractParameterSpace.h"
+
 #include "Network.h"
 #include "FactorGraph.h"
 
@@ -25,18 +28,17 @@ public:
 	/// virtual deconstructor
 	~BooleanSwitchingParameter ( void ) {}
 	/// constructor
-	BooleanSwitchingParameter ( int dimension_ ) : dimension_(dimension_) {
-		monotonic_function_ . resize ( dimension_, 0 );
+	BooleanSwitchingParameter ( int dimension ) {
+		monotonic_function_ . resize ( dimension, 0 );
 	}
 
 	/// operator ==
 	///   check equality
 	bool operator == ( const BooleanSwitchingParameter & rhs ) const {
-		if ( dimension_ != rhs . dimension_ ) return false;
 		if ( rhs . monotonic_function_ . size () != monotonic_function_ . size () ) {
 			return false;
 		}
-		for ( int d = 0; d < dimension_; ++ d ) {
+		for ( int d = 0; d < monotonic_function_ . size (); ++ d ) {
 			if ( monotonic_function_ [ d ] != rhs . monotonic_function_ [ d ] ) return false;
 		}
 		return true;
@@ -46,7 +48,7 @@ public:
 	///   hash_value for class BooleanSwitchingParameter
 	friend std::size_t hash_value ( const BooleanSwitchingParameter & p ) {
     std::size_t seed = 0;
-		for ( int d = 0; d < dimension_; ++ d ) {
+		for ( int d = 0; d < p . monotonic_function_ . size (); ++ d ) {
 			boost::hash_combine(seed, p.monotonic_function_[d] );
 		}
     return seed;
@@ -56,10 +58,20 @@ public:
   void serialize(Archive & ar, const unsigned int version ) {
   	ar & monotonic_function_;
   }
+private:
+  virtual void print ( std::ostream & stream ) const {
+  	stream << "BSPARAM(";
+  	for ( int d = 0; d < monotonic_function_ . size (); ++ d ) {
+  		if ( d != 0 ) stream << ", ";
+			stream << monotonic_function_[d];
+		}
+  	stream << ")";
+  }
+
 };
 
 /// class BooleanSwitchingParameterSpace
-class BooleanSwitchingParameterSpace : public ParameterSpace {
+class BooleanSwitchingParameterSpace : public AbstractParameterSpace {
 public:
 	// typedef
 	typedef uint64_t ParameterIndex;
@@ -153,7 +165,7 @@ BooleanSwitchingParameterSpace::initialize ( int argc, char * argv [] ) {
 
 }
 
-inline std::vector<ParameterIndex> 
+inline std::vector<BooleanSwitchingParameterSpace::ParameterIndex> 
 BooleanSwitchingParameterSpace::adjacencies ( ParameterIndex v ) const {
 	std::vector<ParameterIndex> result;
 	boost::shared_ptr<BooleanSwitchingParameter> p = 
@@ -186,7 +198,7 @@ BooleanSwitchingParameterSpace::parameter ( ParameterIndex v ) const {
 		p ( new BooleanSwitchingParameter(dimension_) );
 	for ( int d = 0; d < dimension_; ++ d ) {
 		size_t factor_size = factors_ [ d ] . size ();
-		p . monotonic_function_ [ d ] = v % factor_size;
+		p -> monotonic_function_ [ d ] = v % factor_size;
 		v /= factor_size;
 	}
 	return boost::dynamic_pointer_cast<Parameter> ( p );
@@ -194,7 +206,7 @@ BooleanSwitchingParameterSpace::parameter ( ParameterIndex v ) const {
 	
 inline uint64_t 
 BooleanSwitchingParameterSpace::search ( boost::shared_ptr<Parameter> parameter ) const {
-	const Parameter & p = 
+	const BooleanSwitchingParameter & p = 
 		* boost::dynamic_pointer_cast<BooleanSwitchingParameter> ( parameter );
 	uint64_t result = 0;
 	uint64_t multiplier = 1;
@@ -257,7 +269,6 @@ inline std::vector<size_t>
 BooleanSwitchingParameterSpace::domainLimits ( void ) const {
 	std::vector<size_t> result ( dimension_ );
   BOOST_FOREACH ( const BooleanSwitching::NodeData & data, network_ . node_data_ ) {
-  	int d = data . index - 1;
   	result [ data . index - 1 ] = data . out_order . size () + 1;
 	}
 	return result;

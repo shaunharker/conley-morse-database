@@ -34,7 +34,8 @@ CFace convertBack ( const int & dim,
 // the first part of the composition. < ith >
 // the second part is to put the 1's at the beginning of the 
 // face code sequence. defined by "pair" < ith, jth >
-Reflections reflectionComposition ( const Face & input ) {
+inline Reflections 
+reflectionComposition ( const Face & input ) {
 	Reflections reflections;
 	//
 	int dimension = faceDimension ( input ); // Dimension of the face
@@ -71,8 +72,9 @@ Reflections reflectionComposition ( const Face & input ) {
 }
 
 
-Face convertBack ( const Face & face, 
-									 const Reflections & reflections ) { 
+inline Face 
+convertBack ( const Face & face, 
+							const Reflections & reflections ) { 
 	Face output;
 	output = face;
 	for ( int i=reflections.size()-1; i>=0; --i ) {
@@ -95,9 +97,10 @@ Face convertBack ( const Face & face,
 	return output;
 }
 
-CFace convertBack ( const int & dim,
-										const CFace & cface, 
-									  const Reflections & reflections ) {
+inline CFace 
+convertBack ( const int & dim,
+						  const CFace & cface, 
+							const Reflections & reflections ) {
 	// convert cface into a face
 	Face face;
 	face . assign ( dim, 1 );

@@ -38,6 +38,8 @@ BOOST_CLASS_EXPORT_KEY(EuclideanParameter);
 class EuclideanParameterSpace : public ParameterSpace {
 public:
 
+  virtual ~EuclideanParameterSpace ( void ) {}
+
 	/// initialize
 	///    Create the ParameterSpace given the configuration specified
   virtual void initialize ( const Configuration & config );

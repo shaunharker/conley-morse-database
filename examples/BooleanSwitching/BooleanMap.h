@@ -3,6 +3,8 @@
 
 #include "database/structures/RectGeo.h"
 
+// RectMap
+
 class BooleanChartMap {
 public:
   BooleanChartMap ( void ) { }  
@@ -13,8 +15,6 @@ public:
   RectGeo operator () ( const RectGeo & geo ) const {
     return chart2_;
   }
-
-  bool good ( void ) const { return true; }
 
 private:
   RectGeo chart1_, chart2_;

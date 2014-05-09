@@ -28,13 +28,16 @@ typedef boost::unordered_map < Face, std::vector < std::pair < CFace, CFace > > 
 LUT constructLookUpTable ( int n );
 
 // check if we have a map face1 -> face2
-bool isValidMap ( const int & dim, const CFace & face1, const CFace & face2 );
+bool isValidMap ( const int & dim, 
+	                const CFace & face1, 
+	                const CFace & face2 );
 
 //--------------//
 // DEFINITIONS	// 
 //--------------//
  
-LUT constructLookUpTable ( int n ) {
+inline LUT 
+constructLookUpTable ( int n ) {
 	//
 	LUT lookuptable;
 	//
@@ -90,7 +93,10 @@ LUT constructLookUpTable ( int n ) {
 	return lookuptable;
 }
 
-bool isValidMap ( const int & dim, const CFace & face1, const CFace & face2 ) {
+inline bool 
+isValidMap ( const int & dim, 
+	           const CFace & face1, 
+	           const CFace & face2 ) {
 // IMPLEMENT NOTES CONDITION 
 // Here by construction face2 is adjacent to the k-face used for the LUT key
 

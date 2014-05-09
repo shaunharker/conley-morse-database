@@ -83,10 +83,6 @@ public:
 	 {}
 	virtual ~ParameterSpace ( void ) {}
 
-	/// initialize
-	///    Create the ParameterSpace given the configuration specified
-	virtual void initialize ( const Configuration & config ) = 0;
-
 	/// adjacencies
 	///    Return a vector of adjacent vertices.
 	virtual std::vector<ParameterIndex> adjacencies ( ParameterIndex v ) const = 0;

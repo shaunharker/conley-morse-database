@@ -1,15 +1,21 @@
 #ifndef ATLASMAP_H
 #define ATLASMAP_H
 
+#include <vector>
+#include <utility>
+#include "boost/unordered_map.hpp"
+
 #include <boost/shared_ptr.hpp>
 #include <boost/foreach.hpp>
 
 #include "database/structures/Atlas.h"
 #include "database/structures/Geo.h"
+#include "database/maps/Map.h"
+#include "database/structures/UnionGeo.h"
 
 
 template < class ChartMap >
-class AtlasMap {
+class AtlasMap : public Map {
 
 public:
 
@@ -29,26 +35,28 @@ public:
 		}
 	}
 
-  std::vector < AtlasGeo > operator ( ) ( const AtlasGeo & geo ) const {
-  	std::vector < AtlasGeo > result;
-  	// retrieve the maps needed
-    if ( maps_ . find ( geo . id() ) != maps_ . end() ) { 
-  	std::vector < std::pair < size_type, ChartMap > > mymaps = maps_ . find ( geo . id() ) -> second;
-
-  	// apply the different maps 
-  	for ( typename std::vector < std::pair < size_type, ChartMap > >::iterator it=mymaps.begin(); it!=mymaps.end(); ++it ) {
-  		result . push_back ( it -> second ( geo ) );  	
-  	}
+  boost::shared_ptr<Geo> operator () ( const AtlasGeo & geo ) const {
+    boost::shared_ptr<UnionGeo> result;
+    size_t domain_id = geo . id ();
+    const RectGeo & rect = geo . rect ();
+    // Apply the different maps 
+    if ( maps_ . count ( domain_id ) != 0 ) { 
+      const std::vector < std::pair < size_type, ChartMap > > & mymaps = 
+        maps_ . find ( domain_id ) -> second;
+      typedef std::pair<size_type, ChartMap> sizeTypeChartPair;
+      BOOST_FOREACH ( const sizeTypeChartPair & pair, mymaps ) {
+        boost::shared_ptr<Geo> image_geo 
+          ( new AtlasGeo ( pair . first, pair . second ( rect ) ) );
+        result -> insert ( image_geo );
+      }
     }
-	return result;
+    return result;
   }
 
-  std::vector < AtlasGeo > operator ( ) ( boost::shared_ptr < Geo > geo_ptr ) const {
+  boost::shared_ptr<Geo> operator () ( boost::shared_ptr < Geo > geo_ptr ) const {
     const AtlasGeo & geo = * boost::dynamic_pointer_cast < AtlasGeo > ( geo_ptr );
     return operator ( ) ( geo );
   }
-
-  bool good ( void ) const { return true; }
 
 private:
   boost::unordered_map < size_type, std::vector < std::pair < size_type, ChartMap > > > maps_;  
@@ -64,16 +72,15 @@ void AtlasMap<ChartMap>::addMap ( const size_type & chartid1,
   //
   typename boost::unordered_map < size_type, std::vector < std::pair < size_type, ChartMap > > >::iterator it;
   //
-  std::vector < std::pair < size_type, ChartMap > > vect;
   it = maps_ . find ( chartid1 );
   if ( it == maps_ . end() ) {
+    std::vector < std::pair < size_type, ChartMap > > vect;
     vect . push_back ( pair );
     std::pair < size_type, std::vector < std::pair < size_type, ChartMap > > > newpair ( chartid1, vect );
     maps_ . insert ( newpair );
   } else { 
-    vect = it -> second;
+    std::vector < std::pair < size_type, ChartMap > > & vect = it -> second;
     vect . push_back ( pair );
-    it -> second = vect;
   }
 
 }

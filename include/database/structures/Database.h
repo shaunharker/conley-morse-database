@@ -21,6 +21,7 @@
 #include <boost/serialization/nvp.hpp>
 
 #include "database/structures/ParameterSpace.h"
+#include "database/structures/AbstractParameterSpace.h"
 
 #include "database/structures/Grid.h"
 #include "database/structures/SuccinctGrid.h"
@@ -648,6 +649,17 @@ inline void Database::merge ( const Database & other ) {
 
 // record insertion
 inline void Database::insert ( boost::shared_ptr<ParameterSpace> parameter_space ) {
+  // Note: the first part here is to try to make sure that what is serialized
+  // in the case of derived classes of AbstractParameterSpaces is just
+  // an AbstractParameterSpace rather than the derived class, which will
+  // probably be unregistered in the Database-Explorer. It may be worth checking
+  // whether the "reset to a new copy" approach taken here is necessary
+  boost::shared_ptr<AbstractParameterSpace> abstract 
+    = boost::dynamic_pointer_cast<AbstractParameterSpace> ( parameter_space );
+  if ( abstract ) {
+    abstract -> computeAdjacencyLists ();
+    parameter_space . reset ( new AbstractParameterSpace ( *abstract ) );
+  }
   parameter_space_ = parameter_space;
 }
 

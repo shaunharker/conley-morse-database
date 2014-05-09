@@ -19,41 +19,43 @@
 #include "database/program/ComputeGraph.h"
 #endif
 
-template < class Map >
+/// class MapGraph
+///    This class is used to created an object suitable for graph algorithms
+///    given a grid and a map object. By default "adjacencies" is computed on demand
+///    in order to avoid storing the adjacency lists.
 class MapGraph {
 public:
   // Typedefs
   typedef Grid::size_type size_type;
   typedef Grid::GridElement Vertex;
-  
-  // Public Methods
-  
+    
   // Constructor. Requires Grid and Map.
-  MapGraph ( const Grid & t, 
-             const Map & f );
+  MapGraph ( boost::shared_ptr<const Grid> grid, 
+             boost::shared_ptr<const Map> f );
   
-  // Return vector of Vertices which are out-edge adjacencies of input v
+  /// adjacencies
+  ///   Return vector of Vertices which are out-edge adjacencies of input v
   std::vector<Vertex> adjacencies ( const Vertex & v ) const;
   
-  // Return number of vertices
+  /// num_vertices
+  ///   Return number of vertices
   size_type num_vertices ( void ) const;
 
 private:
   // Private methods
   std::vector<size_type> compute_adjacencies ( const size_type & v ) const;
   // Private data
-  const Grid & grid_;
-  const Map & f_;
+  boost::shared_ptr<const Grid> grid_;
+  boost::shared_ptr<const Map> f_;
   // Variables used if graph is stored in memory. (See CMDB_STORE_GRAPH define)
   bool stored_graph;
-  std::vector<std::vector<Vertex> > adjacency_storage_;
+  std::vector<std::vector<Vertex> > adjacency_lists_;
 };
 
 // Repeated code in constructors is bad practice -- should fix that below
-template < class Map >
-MapGraph<Map>::
-MapGraph ( const Grid & grid,
-           const Map & f ) : 
+inline 
+MapGraph::MapGraph ( boost::shared_ptr<const Grid> grid,
+           boost::shared_ptr<const Map> f ) : 
 grid_ ( grid ),
 f_ ( f ),
 stored_graph ( false ) {
@@ -77,7 +79,7 @@ stored_graph ( false ) {
   
   std::cout << "Saving grid to file.\n";
   // Save the grid and a list of required evaluations to disk
-  grid_ . save ("grid.txt");
+  grid_ -> save ("grid.txt");
   evals . save ( "mapevals.txt" );
   
   // Call a program to compute the adjacency information
@@ -87,32 +89,28 @@ stored_graph ( false ) {
 
   // Load and store the adjacency information
   evals . load ( "mapevals.txt" );
-  adjacency_storage_ . resize ( num_vertices () );
+  adjacency_lists_ . resize ( num_vertices () );
   for ( size_type source = 0; source < num_vertices (); ++ source ) {
     Vertex domain_cell = lookup ( source );    
-    index ( &adjacency_storage_ [ source ], evals . val ( domain_cell ) );
+    index ( &adjacency_lists_ [ source ], evals . val ( domain_cell ) );
   }
   std::cout << "Map stored.\n";
 #endif
 }
 
-template < class Map >
-std::vector<typename MapGraph<Map>::Vertex>
-MapGraph<Map>::
-adjacencies ( const size_type & source ) const {
+inline std::vector<MapGraph::Vertex>
+MapGraph::adjacencies ( const size_type & source ) const {
   if ( stored_graph )
-    return adjacency_storage_ [ source ];
+    return adjacency_lists_ [ source ];
   else
     return compute_adjacencies ( source );
 }
 
-template < class Map >
-std::vector<typename MapGraph<Map>::Vertex>
-MapGraph<Map>::
-compute_adjacencies ( const Vertex & source ) const {
+inline std::vector<MapGraph::Vertex>
+MapGraph::compute_adjacencies ( const Vertex & source ) const {
   //std::cout << "compute_adjacencies.\n";
   std::vector < Vertex > target = 
-    grid_ . cover ( f_ ( grid_ . geometry ( source ) ) ); // here is the work
+    grid_ -> cover ( * (*f_) ( grid_ -> geometry ( source ) ) ); // here is the work
 #if 0 
 #warning experimental code in mapgraph 
   double threshold_ = .05;
@@ -140,10 +138,9 @@ compute_adjacencies ( const Vertex & source ) const {
 }
 
 
-template < class Map >
-typename MapGraph<Map>::size_type
-MapGraph<Map>::num_vertices ( void ) const {
-  return grid_ . size ();
+inline MapGraph::size_type
+MapGraph::num_vertices ( void ) const {
+  return grid_ -> size ();
 }
 
 #endif

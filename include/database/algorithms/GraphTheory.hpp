@@ -29,13 +29,13 @@ uint64_t max_graph_memory = 0;
 
 
 /* computeMorseSetsAndReachability */
-template < class Map >
-void computeMorseSetsAndReachability (std::vector< boost::shared_ptr<Grid> > * output,
-                                      std::vector<std::vector<unsigned int> > * reach,
-                                      const Grid & G,
-                                      const Map & f ) {
+inline void 
+computeMorseSetsAndReachability (std::vector< boost::shared_ptr<Grid> > * output,
+                                 std::vector<std::vector<unsigned int> > * reach,
+                                 boost::shared_ptr<const Grid> G,
+                                 boost::shared_ptr<const Map> f ) {
   //std::cout << "Create Graph\n";// Create Graph
-  MapGraph < Map > mapgraph ( G, f );
+  MapGraph mapgraph ( G, f );
 
   /* Produce Strong Components and Reachability */
   std::vector < std::deque < Grid::GridElement > > components;
@@ -57,39 +57,38 @@ void computeMorseSetsAndReachability (std::vector< boost::shared_ptr<Grid> > * o
   //std::cout << "Create Output Grids\n";
   output -> clear ();
   BOOST_FOREACH ( const std::deque<Grid::GridElement> & component, components ) {
-    boost::shared_ptr < Grid > component_grid ( G . subgrid ( component ) );
+    boost::shared_ptr < Grid > component_grid ( G -> subgrid ( component ) );
     output -> push_back ( component_grid );
   }
 }
 
-/* computeMorseSetsAndReachability */
-template < class Map >
+#if 0
 void computeMorseSets (std::vector< boost::shared_ptr<Grid> > * output,
                        std::vector<std::vector<unsigned int> > * reach,
-                       const boost::shared_ptr<Grid> & G,
-                       const std::vector<Map> & maps ) {
+                       boost::shared_ptr<const Grid> G,
+                       const std::vector<boost::shared_ptr<const ODEMap> > & maps ) {
   
   std::cout << "computeMorseSets\n";
-  std::vector< boost::shared_ptr<Grid> > grids;
+  std::vector< boost::shared_ptr<const Grid> > grids;
   
   grids . push_back ( G );
   
   bool give_up = false;
   
-  BOOST_FOREACH ( const Map & f, maps ) {
-    f . exception () = false;
+  BOOST_FOREACH ( boost::shared_ptr<const ODEMap> f, maps ) {
+    f -> exception () = false;
     std::cout << "Applying a map with timestep " << f . step << "\n";
     std::vector< boost::shared_ptr<Grid> > newgrids;
     
     //std::cout << "Create Graph\n";// Create Graph
-    BOOST_FOREACH ( const boost::shared_ptr<Grid> & grid, grids ) {
+    BOOST_FOREACH ( const boost::shared_ptr<const Grid> & grid, grids ) {
       //std::cout << "Analyzing a grid. " << grid . get () << "\n";
       //std::cout << " grid size = " << grid -> size () << "\n";
       //for ( Grid::iterator it = grid -> begin (); it != grid -> end (); ++ it ) {
       //  std::cout << grid -> geometry ( it ) << "\n";
       //}
       //std::cout << "list out done.\n";
-      MapGraph < Map > mapgraph ( *grid , f );
+      MapGraph mapgraph ( grid , f );
       
       /* Produce Strong Components and Reachability */
       std::vector < std::deque < Grid::GridElement > > components;
@@ -135,6 +134,7 @@ void computeMorseSets (std::vector< boost::shared_ptr<Grid> > * output,
   }
 #endif
 }
+#endif
 
 /*******************
  *   GRAPH THEORY  *

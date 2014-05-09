@@ -127,7 +127,7 @@ inline RectGeo operator + ( const RectGeo & lhs, const RectGeo & rhs ) {
 inline std::ostream & operator << ( std::ostream & output_stream, const RectGeo & print_me );
 
   // We cast to float, assuming that == testing is for hashing
-  inline bool operator==(RectGeo x, RectGeo y) {
+  inline bool operator==(RectGeo const& x, RectGeo const& y) {
     for ( size_t d = 0; d < x . dimension (); ++ d ) {
       if ( (float) x . lower_bounds [ d ] != (float) y . lower_bounds [ d ] ) return false;
       if ( (float) x . upper_bounds [ d ] != (float) y . upper_bounds [ d ] ) return false;

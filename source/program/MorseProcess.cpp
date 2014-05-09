@@ -9,32 +9,16 @@
 
 #include <vector>
 
-#include "boost/unordered_set.hpp"
-#include "boost/unordered_map.hpp"
-#include "boost/foreach.hpp"
 #include "boost/shared_ptr.hpp"
 #include "boost/thread.hpp"
 #include "boost/chrono/chrono_io.hpp"
 
-#include "database/structures/Database.h"
 #include "database/program/Configuration.h"
 #include "database/program/MorseProcess.h"
 #include "database/program/jobs/Clutching_Graph_Job.h"
-#include "database/structures/UnionFind.hpp"
 #include "database/structures/Database.h"
 
-#ifdef USE_SDSL
-#include "database/structures/SuccinctGrid.h"
-#endif
-#include "database/structures/PointerGrid.h"
-#include "database/structures/UniformGrid.h"
-#include "database/structures/EdgeGrid.h"
-
-#include "chomp/Rect.h"
-#include "chomp/Complex.h"
-#include "chomp/Chain.h"
-
-#include "ModelMap.h"
+#include "Model.h"
 
 void MorseProcess::command_line ( int argcin, char * argvin [] ) {
   argc = argcin;
@@ -59,10 +43,8 @@ void MorseProcess::initialize ( void ) {
   checkpoint_timer_running_ = false;
 
   // Construct Parameter Space
-  boost::shared_ptr<Grid> parameter_grid ( new PARAMETER_GRID );
-  parameter_space_ = boost::shared_ptr<ParameterSpace> ( new EuclideanParameterSpace );
-  boost::dynamic_pointer_cast<EuclideanParameterSpace> (parameter_space_) 
-    -> initialize ( config, parameter_grid );
+  boost::shared_ptr<ParameterSpace> parameter_space_ 
+    = model . parameterSpace ();
   database . insert ( parameter_space_ );
 
   //std::cout << "MorseProcess num_jobs_ = " << num_jobs_ << "\n";
@@ -117,7 +99,6 @@ int MorseProcess::prepare ( Message & job ) {
   job << config.PHASE_SUBDIV_MIN;
   job << config.PHASE_SUBDIV_MAX;
   job << config.PHASE_SUBDIV_LIMIT;
-  job << model;
 
   /// Increment the jobs_sent counter
   ++num_jobs_sent_;
@@ -130,16 +111,17 @@ struct ClutchingJobWorkThread {
   Message * result;
   const Message * job;
   bool * computed;
-
+  const Model * model;
   ClutchingJobWorkThread
             ( Message * result, 
               const Message * job,
-              bool * computed ) 
-  : result(result), job(job), computed(computed) {}
+              bool * computed,
+              const Model * model ) 
+  : result(result), job(job), computed(computed), model(model) {}
 
   void operator () ( void ) {
     try {
-      Clutching_Graph_Job < PHASE_GRID > ( result , *job );
+      Clutching_Graph_Job ( result , *job, *model );
       *computed = true;
     } catch ( ... /* boost::thread_interrupted& */) {
       *computed = false;
@@ -169,7 +151,7 @@ void MorseProcess::work ( Message & result, const Message & job ) const {
     result << job_number;
     // Perform work
     bool computed;
-    ClutchingJobWorkThread cj ( &result, &job, &computed );
+    ClutchingJobWorkThread cj ( &result, &job, &computed, &model );
     boost::thread t(cj);
     if ( not t . try_join_for ( boost::chrono::seconds( 3600 ) ) ) {
       t.interrupt();

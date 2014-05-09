@@ -10,11 +10,14 @@ class ConnectedSmartGraph {
 public:
   // gives indexing
   boost::unordered_map<T, int> preorder;
-  // array of monotonic functions
+  // array of vertices
   std::vector<T> vertices;
-
   // optional
   std::vector<std::vector< int > > adjacencies_;
+
+  size_t size ( void ) const {
+    return vertices . size ();
+  }
 
   void construct ( const T & start ) {
     vertices . push_back ( start );
@@ -84,11 +87,6 @@ public:
   int n; // number of in edges  -- domain is {0,1,...,2^n-1}
   int m; // number of out edges -- codomain is {0,1,...,m}
 
-  /// data_
-  ///    data_ is an array storing the value of
-  ///    a map from {0,1,...2^n-1} -> {0,1,...m}
-  std::vector< int > data_;  // mapping
-
   /// logic_
   ///    An expression of the form (a+b+c)(d+e)f(g+h)
   ///    would be encoded as vector of ints 3,2,1,2 (the number of summands in each
@@ -98,6 +96,13 @@ public:
   ///    in such a way that the last entry of logic_ corresponds to the least
   ///    significant bit of data_'s domain.
   std::vector< int> logic_; // logic
+  
+  /// data_
+  ///    data_ is an array storing the value of
+  ///    a map from {0,1,...2^n-1} -> {0,1,...m}
+  std::vector< int > data_;  // mapping
+
+
   // constructors
   MonotonicMap ( void ) {}
   MonotonicMap ( int n, int m ) : n(n), m(m) {
