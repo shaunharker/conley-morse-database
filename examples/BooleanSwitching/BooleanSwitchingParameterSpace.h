@@ -143,7 +143,7 @@ inline void
 BooleanSwitchingParameterSpace::initialize ( int argc, char * argv [] ) {
 	// Load the network file
 	std::string filestring ( argv[1] );
-	std::string appendstring ( "/network.txt" );
+	std::string appendstring ( argv[2] );
 	std::string loadstring = filestring + appendstring;
 	network_ = BooleanSwitching::loadNetwork ( loadstring.c_str() );
 	// Get dimension

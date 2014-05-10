@@ -1,0 +1,4 @@
+X : (X+Y2)(~Z) : Z X Y1
+Y1 : X : Y2
+Y2: Y1 : X
+Z : X : X
