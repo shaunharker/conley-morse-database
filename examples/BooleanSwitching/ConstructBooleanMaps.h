@@ -47,7 +47,7 @@ BooleanPairFacesMaps ( const Domain & domain,
 	}
 	
 	// DEBUG BEGIN
-	if ( dim <= dimface ) {
+	if ( dim < dimface ) {
 		std::stringstream ss;
 		ss << "BooleanPairFacesMaps. dim = " << dim << " and dimface = " << dimface << "\n";
 		throw std::logic_error ( ss . str () );
