@@ -2,6 +2,12 @@
  *  Conley_Morse_Database.cpp
  */
 
+#define MAIN_CPP_FILE
+#include "boost/serialization/export.hpp"
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include "Model.h"
+
 #include <ctime>
 #include <fstream>
 #define CMG_VERBOSE
@@ -36,6 +42,7 @@ BOOST_CLASS_EXPORT_IMPLEMENT(EdgeGrid);
 #include "database/structures/EuclideanParameterSpace.h"
 BOOST_CLASS_EXPORT_IMPLEMENT(EuclideanParameter);
 BOOST_CLASS_EXPORT_IMPLEMENT(EuclideanParameterSpace);
+BOOST_CLASS_EXPORT_IMPLEMENT(AbstractParameterSpace);
 
 int main ( int argc, char * argv [] ) {
   delegator::Start ();

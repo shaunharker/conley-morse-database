@@ -26,9 +26,9 @@ public:
     std::stack<T> dfs_stack;
     dfs_stack . push ( start );
 
-    size_t count = 0;
+    //size_t count = 0;
     while ( not dfs_stack . empty () ) {
-      std::cout << ++ count << "   and stack size is " << dfs_stack . size () << "\n";
+      //std::cout << ++ count << "   and stack size is " << dfs_stack . size () << "\n";
       T vertex = dfs_stack . top ();
       dfs_stack . pop ();
       std::vector<boost::shared_ptr<T> > neighbors = vertex . neighbors ();
@@ -41,8 +41,10 @@ public:
       }
     }
 
-    std::cout << "Number of unique monotonic maps = " << vertices . size () << "\n";
-
+    compute_adjacencies ();
+    
+    //std::cout << "FactorGraph. Number of vertices = " << vertices . size () << "\n";
+    //std::cout << " Starting vertex was " << start << "\n";
   }
 
   void compute_adjacencies ( void ) {
@@ -248,7 +250,10 @@ public:
       }
     } 
     std::cout << "BooleanSwitching Node realizability condition unknown.\n";
-    throw std::logic_error ( "Incomplete algorithm\n");
+    std::cout << "Logic size = " << logic_ . size () << "\n";
+    for ( int i = 0; i < logic_ . size (); ++ i ) std::cout << logic_[i] << " ";
+    std::cout << "\n";
+    throw std::logic_error ( "MonotonicMap:: realizability algorithm cannot handle current situation\n");
     return false;
   }
 
@@ -263,14 +268,14 @@ public:
     for ( int i = 0; i < N; ++ i ) {
       if ( copy[i] > 0 ) {
         -- copy[i];
-        boost::shared_ptr<MonotonicMap> new_map ( new MonotonicMap ( n, m, copy, logic_ ) );
+        boost::shared_ptr<MonotonicMap> new_map ( new MonotonicMap ( n, m, logic_, copy ) );
         if ( new_map -> monotonic () && new_map -> realizable () ) 
           results . push_back ( new_map );
         ++ copy[i];
       }
       if ( copy[i] < m ) {
         ++ copy[i];
-        boost::shared_ptr<MonotonicMap> new_map ( new MonotonicMap ( n, m, copy, logic_ ) );
+        boost::shared_ptr<MonotonicMap> new_map ( new MonotonicMap ( n, m, logic_, copy ) );
         if ( new_map -> monotonic () && new_map -> realizable () ) 
           results . push_back ( new_map );
         -- copy[i];
@@ -298,7 +303,19 @@ public:
     }
     return seed;
   }
+
+  friend std::ostream & operator << ( std::ostream & stream, 
+                                      const MonotonicMap & print_me ) {
+    stream << "MM:(In,Out)=(" << print_me . n << ", " << print_me . m << "),Logic=(";
+    for ( int i = 0; i < print_me . logic_ . size (); ++ i ) { 
+      if ( i != 0 ) stream << ",";
+      std::cout << print_me . logic_[i];
+    }
+    stream << ")";
+    return stream;
+  }
 };
+
 
 // Specialization of ConnectedSmartGraph to MonotonicMap smart vertices
 typedef ConnectedSmartGraph<MonotonicMap> FactorGraph;

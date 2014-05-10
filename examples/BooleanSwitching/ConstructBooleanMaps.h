@@ -3,6 +3,8 @@
 
 #include <vector>
 #include <utility>
+#include <exception>
+#include <sstream>
 
 #include "BooleanSwitchingClasses.h"
 #include "LookUpTable.h"
@@ -35,12 +37,6 @@ BooleanPairFacesMaps ( const Domain & domain,
 
 	int dim = domain. size();
 
-	// returns the set of reflections to go from the closest face 
-	// to the corresponding face used for the key in the look-up table
-	Reflections reflections=reflectionComposition(closestface);
-
-	Reflections::const_iterator itR;
-
 	// build the corresponding key for the look up table
 	// Face with coding : 1...10...0 with k 1's for "k-dimensional face"
 	Face facekey;
@@ -50,16 +46,39 @@ BooleanPairFacesMaps ( const Domain & domain,
 		facekey[i]=1;
 	}
 	
+	// DEBUG BEGIN
+	if ( dim <= dimface ) {
+		std::stringstream ss;
+		ss << "BooleanPairFacesMaps. dim = " << dim << " and dimface = " << dimface << "\n";
+		throw std::logic_error ( ss . str () );
+	}
+	if ( lut . find ( facekey ) == lut . end () ) {
+		std::stringstream ss;
+		ss << "BooleanPairFacesMaps. LUT does not have facekey. dim = " << dim << "\n";
+		throw std::logic_error ( ss . str () );
+	}
+	// DEBUG END
+
 	// find the list of maps from the look-up table
 	std::vector < std::pair < CFace, CFace > > listpair = lut.find(facekey)->second;
 
-	// Transform back the codimension 1 face in listpair;
 	std::vector < std::pair < CFace, CFace > >::iterator it;
+
+// DEBUG BEGIN
+#if 1
+// DEBUG END
+	// returns the set of reflections to go from the closest face 
+	// to the corresponding face used for the key in the look-up table
+	Reflections reflections=reflectionComposition(closestface);
+
+	// Transform back the codimension 1 face in listpair;
 	for ( it=listpair.begin(); it!=listpair.end(); ++it ) {
 		(*it).first = convertBack ( dim, (*it).first, reflections );
 		(*it).second = convertBack ( dim, (*it).second, reflections );
 	}
-
+// DEBUG BEGIN
+#endif
+// DEBUG END
 	std::vector < std::pair < CFace, CFace > > output;
 
 	// from the list of pairs, 

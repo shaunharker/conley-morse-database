@@ -17,6 +17,7 @@ void Clutching_Graph_Job ( Message * result,
 /////////////////
 
 #include <boost/foreach.hpp>
+#include <exception>
 #include <algorithm>
 #include <stack>
 #include <vector>
@@ -68,7 +69,7 @@ Clutching_Graph_Job ( Message * result,
 
   // Compute Morse Graphs
   size_t num_parameters = patch -> vertices . size ();
-  std::cout << "CLUTCHING JOB " << "with " << num_parameters << " parameter boxes BEGINNING.\n";
+  std::cout << "Clutching_Graph_Job. Starting analysis of " << num_parameters << " parameter boxes.\n";
   std::cout << "--------- 1. Compute Morse Graphs --------- " << "\n";
 
   size_t count = 0;
@@ -77,16 +78,23 @@ Clutching_Graph_Job ( Message * result,
     boost::shared_ptr<Parameter> parameter = patch -> parameter [ vertex ];
     
     // Debug output
-    std::cout << " Processing parameter box " << ++count << "/" << num_parameters 
-      << ", " << * parameter << "\n";
+    std::cout << "Clutching_Graph_Job. Processing parameter " << *parameter 
+              << ", which is " << ++count << "/" << num_parameters << ".\n "; 
 
     // Prepare dynamical map
     boost::shared_ptr<const Map> map = model . map ( parameter );
-    if ( not map ) continue;
-    
+    if ( not map ) {
+      std::cout << "Clutching_Graph_Job. No map associated with parameter " <<
+        *parameter << "; continuing.\n";
+      continue;
+    }
     // Prepare phase space
     boost::shared_ptr<Grid> phase_space = model . phaseSpace ();    
- 
+    if ( not phase_space ) {
+      throw std::logic_error ( "Clutching_Graph_Job. model.phaseSpace() failed" 
+                               " to return a valid pointer.\n");
+    }
+
     // Perform Morse Graph computation
     Compute_Morse_Graph 
     ( & morse_graphs [ vertex ],
@@ -97,16 +105,23 @@ Clutching_Graph_Job ( Message * result,
       PHASE_SUBDIV_MAX, 
       PHASE_SUBDIV_LIMIT );
 
+    std::cout << "Clutching_Graph_Job. Successfully computed " 
+      << "Morse Graph for parameter " << *parameter << ".\n";
+
     // Check for warnings
     if ( morse_graphs [ vertex ] . NumVertices () == 0 )  { 
-      std::cerr << "WARNING. Vertex # " << vertex << ", parameter = " 
+      std::cerr << "Clutching_Graph_Job. WARNING. Vertex # " << vertex << ", parameter = " 
       << *parameter << " yielded no morse sets.\n"; 
     }
 
     // Annotate the morse graph
+    std::cout << "Clutching_Graph_Job. Annotating " 
+      << "Morse Graph for parameter " << *parameter << ".\n";
     model . annotate ( & morse_graphs [ vertex ] );
 
     // Insert Morse graph into database
+    std::cout << "Clutching_Graph_Job. Inserting " 
+      << "Morse Graph for parameter " << *parameter << " into local database.\n";
     database . insert ( vertex, morse_graphs [ vertex ] );
   }
   

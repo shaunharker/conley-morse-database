@@ -6,6 +6,7 @@
 #include <fstream>
 #include <boost/tokenizer.hpp>
 #include <string>
+#include <sstream>
 #include <vector>
 #include <exception>
 #include "boost/unordered_map.hpp"
@@ -66,7 +67,7 @@ operator << ( std::ostream & stream,
 inline int 
 parseNodeName ( const std::string & field, 
                 boost::unordered_map<std::string, int> & nodes_ ) {
-  //std::cout << "NODE: " << field << "\n";
+  //std::cout << "NODE: " << field << "\n"; // DEBUG
   typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
   boost::char_separator<char> sep(" ", "~");
   tokenizer tokens(field, sep);
@@ -94,7 +95,7 @@ parseNodeName ( const std::string & field,
 inline std::vector<int> 
 parseSum( const std::string & field,
           boost::unordered_map<std::string, int> & nodes_ ) {
-  //std::cout << "SUM: " << field << "\n";
+  //std::cout << "SUM: " << field << "\n"; // DEBUG
   std::vector<int> result;
   typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
   boost::char_separator<char> sep("+ ");
@@ -108,7 +109,7 @@ parseSum( const std::string & field,
 inline std::vector< std::vector<int> > 
 parseProductOfSums( const std::string & field,
                     boost::unordered_map<std::string, int> & nodes_ ) {
-  //std::cout << "POS: " << field << "\n";
+  //std::cout << "POS: " << field << "\n"; // DEBUG
   std::vector< std::vector<int> > result;
   typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
   boost::char_separator<char> sep("()");
@@ -123,7 +124,7 @@ parseProductOfSums( const std::string & field,
 inline std::vector< int > 
 parseOutOrder( const std::string & field,
                boost::unordered_map<std::string, int> & nodes_ ) {
-  //std::cout << "OUT: " << field << "\n";
+  //std::cout << "OUT: " << field << "\n"; // DEBUG
   std::vector<int> result;
   typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
   boost::char_separator<char> sep(", ");
@@ -137,7 +138,7 @@ parseOutOrder( const std::string & field,
 inline NodeData 
 parseLine ( const std::string & line,
             boost::unordered_map<std::string, int> & nodes_ ) {
-  //std::cout << "LINE: " << line << "\n";
+  //std::cout << "LINE: " << line << "\n"; // DEBUG
   NodeData result;
   typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
   boost::char_separator<char> sep(":->");
@@ -157,18 +158,23 @@ inline Network
 loadNetwork ( const char * filename ) {
   Network result;
   std::ifstream infile ( filename );
+  if ( not infile . good () ) {
+    throw std::logic_error ( "Problem loading network file.\n");
+  }
   std::string line;
   while ( std::getline ( infile, line ) ) {
     try {
       NodeData data = parseLine ( line, result . nodes_ );
       result . node_data_ . push_back ( data );
     } catch ( std::logic_error & except ) {
-      std::cout << "Failure parsing network file " << filename << "\n";
-      std::cout << "Trouble parsing: " << except . what () << "\n";
-      abort ();
+      std::stringstream ss;
+      ss << "Failure parsing network file " << filename << "\n";
+      ss << "Trouble parsing: " << except . what () << "\n";
+      throw std::logic_error ( ss . str () );
     }
   }
   infile . close ();
+  std::cout << "Network.h loadNetwork. " << result << "\n"; // DEBUG
   return result;
 }
 

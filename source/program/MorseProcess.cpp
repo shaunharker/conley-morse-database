@@ -6,7 +6,7 @@
 #include <fstream>
 #include <ctime>
 #include <cmath>
-
+#include <exception>
 #include <vector>
 
 #include "boost/shared_ptr.hpp"
@@ -31,11 +31,12 @@ void MorseProcess::command_line ( int argcin, char * argvin [] ) {
 /* * * * * * * * * * * * */
 void MorseProcess::initialize ( void ) {
   // Load configuration
-  std::cout << "Attempting to load configuration...\n";
+  std::cout << "MorseProcess::initialize. Attempting to load configuration.\n";
   config . loadFromFile ( argv[1] );
-  std::cout << "Loaded configuration.\n";
+  std::cout << "MorseProcess::initialize. Loaded configuration.\n";
   
   // Checkpoint/Progress variable initialization
+  time_of_last_checkpoint_ = clock();
   time_of_last_progress_report_ = clock ();
   progress_bar_ = 0;
   num_jobs_ = 0;
@@ -43,20 +44,24 @@ void MorseProcess::initialize ( void ) {
   checkpoint_timer_running_ = false;
 
   // Construct Parameter Space
-  boost::shared_ptr<ParameterSpace> parameter_space_ 
-    = model . parameterSpace ();
+  std::cout << "MorseProcess::initialize. Obtaining parameter space.\n";
+  parameter_space_ = model . parameterSpace ();
+  if ( not parameter_space_ ) {
+    throw std::logic_error ( "Unable to obtain parameter space from model.\n");
+  }
+  std::cout << "MorseProcess::initialize. Serializing parameter space.\n";
   database . insert ( parameter_space_ );
 
-  //std::cout << "MorseProcess num_jobs_ = " << num_jobs_ << "\n";
-
   // Count number of patches
+  std::cout << "MorseProcess::initialize. Iterating through patches.\n";
   size_t num_calc = 0;
   while ( 1 ) {
     boost::shared_ptr<ParameterPatch> p = parameter_space_ -> patch ();
+    if ( not p ) {
+      throw std::logic_error("Error. MorseProcess::initialize. Unable to obtain patch from parameter space.\n");
+    }
     if ( p -> empty () ) break;
     ++ num_jobs_;
-    //std::cout << "MorseProcess num_jobs_ = " << num_jobs_ << "\n";
-
     num_calc += p -> vertices . size ();
   }
   
@@ -123,6 +128,8 @@ struct ClutchingJobWorkThread {
     try {
       Clutching_Graph_Job ( result , *job, *model );
       *computed = true;
+    } catch ( std::logic_error& e ) {
+      throw e;
     } catch ( ... /* boost::thread_interrupted& */) {
       *computed = false;
     }
@@ -210,6 +217,7 @@ void MorseProcess::finalize ( void ) {
 }
 
 void MorseProcess::checkpoint ( void ) {
+  std::cout << "MorseProcess::checkpoint\n";
   std::string filestring ( argv[1] );
   std::string appendstring ( "/database.raw" );
   database . save ( (filestring + appendstring) . c_str () );
@@ -217,6 +225,7 @@ void MorseProcess::checkpoint ( void ) {
 }
 
 void MorseProcess::progressReport ( void ) {
+  std::cout << "MorseProcess::progressReport. " << progress_bar_ << " / " << num_jobs_ << "\n";
   std::ofstream progress_file ( "progress.txt" );
   progress_file << "Morse Process Progress: " << progress_bar_ << " / " << num_jobs_ << "\n";
   progress_file . close ();

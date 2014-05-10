@@ -36,7 +36,7 @@ public:
 	}
 
   boost::shared_ptr<Geo> operator () ( const AtlasGeo & geo ) const {
-    boost::shared_ptr<UnionGeo> result;
+    boost::shared_ptr<UnionGeo> result ( new UnionGeo );
     size_t domain_id = geo . id ();
     const RectGeo & rect = geo . rect ();
     // Apply the different maps 

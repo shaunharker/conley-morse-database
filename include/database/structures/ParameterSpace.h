@@ -143,18 +143,28 @@ private:
 
 inline boost::shared_ptr<ParameterPatch> 
 ParameterSpace::patch ( void ) const {
+  //std::cout << "ParameterSpace::patch.\n"; // DEBUG
 	boost::shared_ptr<ParameterPatch> result ( new ParameterPatch );
 	while ( 1 ) {
 		if ( default_patch_method_edge_ == 0 ) {
 			if ( default_patch_method_vertex_ == size () ) { 
 				default_patch_method_vertex_ = 0;
+        //std::cout << "ParameterSpace::patch. Returning empty patch.\n"; // DEBUG
 				return result;
 			} else {
 				default_patch_method_neighbors_ = adjacencies ( default_patch_method_vertex_ );
 			}
 		}
 		ParameterIndex u = default_patch_method_vertex_;
-		ParameterIndex v = default_patch_method_neighbors_ [ default_patch_method_edge_ ];
+    if ( default_patch_method_neighbors_ . size () == 0 ) {
+      std::cout << "ParameterSpace::patch. Returning isolated parameter patch.\n"; // DEBUG
+      result -> vertices . push_back ( u );
+      result -> parameter [ u ] = parameter ( u );
+      ++ default_patch_method_vertex_;
+      return result;
+    }
+    
+    ParameterIndex v = default_patch_method_neighbors_ [ default_patch_method_edge_ ];
 
 		++ default_patch_method_edge_;
 		if ( default_patch_method_edge_ == default_patch_method_neighbors_ . size () ) {
@@ -173,6 +183,7 @@ ParameterSpace::patch ( void ) const {
 		} 
 
 	}
+  //std::cout << "ParameterSpace::patch. Returning patch.\n"; //DEBUG
 	return result;
 }
 

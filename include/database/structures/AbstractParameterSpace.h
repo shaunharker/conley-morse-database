@@ -55,7 +55,8 @@ private:
   friend class boost::serialization::access;
   template<class Archive>
   void serialize(Archive & ar, const unsigned int version) {
-  	ar & boost::serialization::base_object<Parameter>(*this);
+  	ar & boost::serialization::base_object<ParameterSpace>(*this);
+  	ar & size_;
   	ar & adjacency_lists_;
   }
   

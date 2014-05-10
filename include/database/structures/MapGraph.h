@@ -3,6 +3,7 @@
 #ifndef CMDP_MAPGRAPH_H
 #define CMDP_MAPGRAPH_H
 
+#include <exception>
 #include <vector>
 #include <iterator>
 #include <iostream>
@@ -52,14 +53,15 @@ private:
   std::vector<std::vector<Vertex> > adjacency_lists_;
 };
 
-// Repeated code in constructors is bad practice -- should fix that below
 inline 
 MapGraph::MapGraph ( boost::shared_ptr<const Grid> grid,
            boost::shared_ptr<const Map> f ) : 
 grid_ ( grid ),
 f_ ( f ),
 stored_graph ( false ) {
-  
+  if ( not f_ ) {
+    throw std::logic_error ( "MapGraph::MapGraph. Unable to construct with uninitialized Map f\n");
+  }
 #ifdef CMDB_STORE_GRAPH
   
   // Determine whether it is efficient to use an MPI job to store the graph
@@ -108,9 +110,8 @@ MapGraph::adjacencies ( const size_type & source ) const {
 
 inline std::vector<MapGraph::Vertex>
 MapGraph::compute_adjacencies ( const Vertex & source ) const {
-  //std::cout << "compute_adjacencies.\n";
   std::vector < Vertex > target = 
-    grid_ -> cover ( * (*f_) ( grid_ -> geometry ( source ) ) ); // here is the work
+    grid_ -> cover ( (*f_) ( grid_ -> geometry ( source ) ) ); // here is the work
 #if 0 
 #warning experimental code in mapgraph 
   double threshold_ = .05;

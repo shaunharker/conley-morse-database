@@ -39,6 +39,7 @@ void ConleyProcess::command_line ( int argcin, char * argvin [] ) {
 /* * * * * * * * * * * * */
 void ConleyProcess::initialize ( void ) {
   using namespace chomp;
+  time_of_last_checkpoint_ = clock ();
   time_of_last_progress_report_ = clock ();
 
   // LOAD DATABASE

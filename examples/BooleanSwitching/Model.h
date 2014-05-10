@@ -3,6 +3,8 @@
 
 #include <vector>
 #include <utility>
+#include <exception>
+#include <sstream>
 
 #include "boost/unordered_map.hpp"
 #include "boost/shared_ptr.hpp"
@@ -69,14 +71,18 @@ inline void
 Model::initialize ( int argc, char * argv [] ) { 
   config_ . loadFromFile ( argv[1] );
   // Initialize parameter space
+  std::cout << "Model::initialize. Initialize parameter space.\n";
   parameter_space_ . reset ( new BooleanSwitchingParameterSpace );
   parameter_space_  -> initialize ( argc, argv );
   // Initialize phase space
+  std::cout << "Model::initialize. Initialize phase space.\n";
   domains_ . assign  ( parameter_space_ -> domainLimits () );
   phase_space_dimension_ = parameter_space_ -> dimension ();
   // Construct Lookup Table
+  std::cout << "Model::initialize. Construct Lookup Table.\n";
   lut_ = constructLookUpTable ( phase_space_dimension_ );
   // Loop through domains and create walls and interior point.
+  std::cout << "Model::initialize. Build walls.\n";
   size_t num_walls = 0;
   BOOST_FOREACH ( const std::vector<size_t> & domain, domains_ ) {
     for ( CFace cface = -phase_space_dimension_; 
@@ -87,6 +93,7 @@ Model::initialize ( int argc, char * argv [] ) {
       }
     }
   }   
+  std::cout << "Model::initialize. Initialization complete.\n";
 }
 
 inline boost::shared_ptr < ParameterSpace > 

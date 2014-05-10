@@ -2,6 +2,8 @@
 #define BOOLEANSWITCHINGPARAMETERSPACE_H
 
 #include <iostream>
+#include <sstream>
+#include <string>
 #include <boost/shared_ptr.hpp>
 #include <boost/foreach.hpp>
 #include <boost/unordered_map.hpp>
@@ -28,6 +30,7 @@ public:
 	/// virtual deconstructor
 	~BooleanSwitchingParameter ( void ) {}
 	/// constructor
+  BooleanSwitchingParameter ( void ) {}
 	BooleanSwitchingParameter ( int dimension ) {
 		monotonic_function_ . resize ( dimension, 0 );
 	}
@@ -56,6 +59,7 @@ public:
   friend class boost::serialization::access;
   template<class Archive>
   void serialize(Archive & ar, const unsigned int version ) {
+    ar & boost::serialization::base_object<Parameter>(*this);
   	ar & monotonic_function_;
   }
 private:
@@ -69,6 +73,12 @@ private:
   }
 
 };
+
+BOOST_CLASS_EXPORT_KEY(BooleanSwitchingParameter);
+
+#ifdef MAIN_CPP_FILE
+BOOST_CLASS_EXPORT_IMPLEMENT(BooleanSwitchingParameter);
+#endif
 
 /// class BooleanSwitchingParameterSpace
 class BooleanSwitchingParameterSpace : public AbstractParameterSpace {
@@ -141,13 +151,20 @@ private:
 
 inline void 
 BooleanSwitchingParameterSpace::initialize ( int argc, char * argv [] ) {
+  std::cout << "BooleanSwitchingParameterSpace::initialize\n";
 	// Load the network file
 	std::string filestring ( argv[1] );
 	std::string appendstring ( argv[2] );
 	std::string loadstring = filestring + appendstring;
+
+  std::cout << "BooleanSwitchingParameterSpace::initialize." << 
+    " Loading network file " << loadstring << "\n";
 	network_ = BooleanSwitching::loadNetwork ( loadstring.c_str() );
 	// Get dimension
   dimension_ = network_ . nodes_ . size ();
+  std::cout << "BooleanSwitchingParameterSpace::initialize." << 
+    "dimension_ = " << dimension_ << "\n"; // DEBUG
+
   // Loop through nodes and create FactorGraphs
   factors_ . resize ( dimension_ );
   BOOST_FOREACH ( const BooleanSwitching::NodeData & data, network_ . node_data_ ) {
@@ -161,6 +178,8 @@ BooleanSwitchingParameterSpace::initialize ( int argc, char * argv [] ) {
 		}
   	int m = data . out_order . size ();
   	factors_ [ d ] . construct ( MonotonicMap ( n, m, logic ) );
+    std::cout << "BooleanSwitchingParameterSpace::initialize." << 
+      "factors_[" << d << "].size() = " << factors_[d].size() << "\n"; // DEBUG
   }
 
 }
@@ -170,6 +189,20 @@ BooleanSwitchingParameterSpace::adjacencies ( ParameterIndex v ) const {
 	std::vector<ParameterIndex> result;
 	boost::shared_ptr<BooleanSwitchingParameter> p = 
 		boost::dynamic_pointer_cast<BooleanSwitchingParameter> ( parameter ( v ) );
+  if ( not p ) {
+    std::stringstream ss;
+    ss << "BooleanSwitchingParameterSpace::adjacencies. ";
+    ss << "Invalid ParameterIndex v = " << v << "\n";
+    throw std::domain_error ( ss . str () );
+  }
+  
+  // DEBUG BEGIN
+  //if ( factors_ . size () != dimension_ ) {
+  //  std::cout << "Bug.\n";
+  //  throw std::logic_error ( "BooleanSwitchingParameterSpace::adjacencies. Dimension/Factor mismatch.\n");
+  //}
+  // DEBUG END
+
 	// Loop through coordinates and change monotonic functions by one
 	uint64_t multiplier = 1;
 	for ( int d = 0; d < dimension_; ++ d ) {
