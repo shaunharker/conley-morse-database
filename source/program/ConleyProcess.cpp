@@ -95,13 +95,15 @@ int ConleyProcess::prepare ( Message & job ) {
   std::cout << " ConleyProcess::prepare\n";
   std::cout << " num_jobs_sent_ = " << num_jobs_sent_ << "\n";
   
+  if ( current_incc_ == num_incc_ ) current_incc_ = 0;
+
   while ( finished_ [ current_incc_ ] ) {
     ++ current_incc_;
     if ( current_incc_ == num_incc_ ) current_incc_ = 0;
   }
 
   size_t attempt = attempts_ [ current_incc_ ] ++;
-  uint64_t incc = current_incc_;
+  uint64_t incc = current_incc_ ++;
   uint64_t pi;
   uint64_t ms;
 

@@ -2,6 +2,9 @@
 #define CMDB_EUCLIDEANPARAMETERSPACE
 
 #include "database/structures/Grid.h"
+#include "database/structures/TreeGrid.h"
+#include "database/structures/UniformGrid.h"
+#include "database/structures/EdgeGrid.h"
 #include "database/structures/ParameterSpace.h"
 #include "database/structures/RectGeo.h"
 
