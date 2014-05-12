@@ -327,7 +327,7 @@ void computeStrongComponents (std::vector<std::deque<typename OutEdgeGraph::size
             committed [ u ] = true;
             // new top sort
             // If user wants topological sort, give it to them.
-            if ( topological_sort != NULL ) topological_sort -> push_front ( u );
+            if ( topological_sort != NULL ) topological_sort -> push_back( u );
             if ( SCC_root != NULL ) (*SCC_root) [ u ] = v;
           }
           /* Send the SCC to output if contains at least one edge */

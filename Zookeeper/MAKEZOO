@@ -1,4 +1,4 @@
-./makeDatabaseZoo/main $1/database.cmdb
+./makeDatabaseZoo/main $1/database.mdb
 mkdir graphs
 for file in *.gv; do
 	mv $file graphs

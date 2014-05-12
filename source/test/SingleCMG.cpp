@@ -206,7 +206,11 @@ int main ( int argc, char * argv [] )
     parameter_box_new = parameter_box;
   }
 
-  ModelMap map ( parameter_box_new );
+  boost::shared_ptr<Parameter> parameter 
+    ( new EuclideanParameter 
+        ( boost::shared_ptr<RectGeo> ( new RectGeo ( parameter_box_new ) ) ) );
+  std::cout << "Chosen parameter = " << *parameter << "\n";
+  ModelMap map ( parameter );
   /*****************************************************************/
   
   /* INITIALIZE THE PHASE SPACE SUBDIVISION PARAMETERS FROM CONFIG FILE */

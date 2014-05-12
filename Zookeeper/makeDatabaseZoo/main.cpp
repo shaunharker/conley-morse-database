@@ -1,4 +1,10 @@
 // listConleyIndices.cpp
+
+#define MAIN_CPP_FILE
+#include "boost/serialization/export.hpp"
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -23,6 +29,10 @@ BOOST_CLASS_EXPORT_IMPLEMENT(EdgeGrid);
 #include "database/structures/EuclideanParameterSpace.h"
 BOOST_CLASS_EXPORT_IMPLEMENT(EuclideanParameter);
 BOOST_CLASS_EXPORT_IMPLEMENT(EuclideanParameterSpace);
+#include "database/structures/AbstractParameterSpace.h"
+BOOST_CLASS_EXPORT_IMPLEMENT(AbstractParameterSpace);
+
+#define NOCONLEYINDEX
 
 std::string conleyStringForZoo ( const Database & database, const CI_Data & ci ) {
     // data
@@ -114,10 +124,15 @@ std::string dotFile ( const Database & database, uint64_t mgcc, uint64_t order_i
   	inccp_record . mgccp_index = mgccp_index;
   	uint64_t inccp_index = database.inccpIndex ( inccp_record );
   	uint64_t incc_index = database.inccp_to_incc () [ inccp_index ];
+#ifndef NOCONLEYINDEX
   	uint64_t conley = database . incc_conley () [ incc_index ];
   	const CI_Data & ci = database . ciData () [ conley ];
     ss << i << " [label=\""<< incc_index << "\" href=\"javascript:void(click_node_on_graph('" <<  conleyStringForZoo ( database, ci ) << "'," << order_index << ")\
 )\"]\n";
+#else 
+    ss << i << " [label=\""<< incc_index << "\" href=\"javascript:void(click_node_on_graph('Unknown Conley Index'," << order_index << ")\
+)\"]\n";
+#endif 
   }  
  	
  	ss << "LEGEND [label=\"MGCC " << mgcc << "\\n " << 100.0*frequency << "% \" shape=\"rectangle\"]\n";
@@ -153,9 +168,13 @@ DAG makeDAG ( const Database & database, uint64_t mgcc ) {
   	inccp_record . mgccp_index = mgccp_index;
   	uint64_t inccp_index = database.inccpIndex ( inccp_record );
   	uint64_t incc_index = database.inccp_to_incc () [ inccp_index ];
+#ifndef NOCONLEYINDEX
   	uint64_t conley = database . incc_conley () [ incc_index ];
   	const CI_Data & ci = database . ciData () [ conley ];
     result . labels_ [ i ] = conleyStringForZoo ( database, ci );
+#else 
+    result . labels_ [ i ] = std::string ( "Unknown Conley Index" );
+#endif
   }  
  	// Edges 
   typedef std::pair<int, int> Edge;
@@ -372,7 +391,6 @@ void RAWHasseDebug ( const Database & database ) {
 }
 
 int main ( int argc, char * argv [] ) {
-  SuccinctGrid sg;
   
 	// Load database
   Database database; 
@@ -384,10 +402,12 @@ int main ( int argc, char * argv [] ) {
   //database . makeAttractorsMinimal ();
   //database . performTransitiveReductions ();
   // Display CI Zoo
+#ifndef NOCONLEYINDEX
   std::string ci_zoo_string = CI_Zoo ( database );
   std::ofstream outfile ( "CI.html" );
   outfile << "<!DOCTYPE html><html><body>" << ci_zoo_string << "</body></html>\n";
   outfile . close ();
+#endif
   CMG_Zoo ( database );
   MGCC_Zoo ( database );
   Hasse_Zoo ( database );
