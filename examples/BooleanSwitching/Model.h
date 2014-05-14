@@ -126,6 +126,7 @@ Model::map ( boost::shared_ptr<Parameter> p) const {
                              parameter_space_ -> closestFace ( p, domain ), 
                              lut_,
                              domains_ . limits () );
+    //  BooleanSwitchingMaps ( parameter_space_ -> closestFace ( p, domain ) );
     BOOST_FOREACH ( const CFacePair & cface_pair, listofmaps ) {
       Wall wall1 ( cface_pair . first, domain );
       Wall wall2 ( cface_pair . second, domain );

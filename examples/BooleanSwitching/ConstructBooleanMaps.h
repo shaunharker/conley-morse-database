@@ -25,6 +25,53 @@ BooleanPairFacesMaps ( const Domain & domain,
 											 const LUT & lut,
 											 const std::vector<size_t> & number_of_bins );
 
+
+std::vector < std::pair < CFace, CFace > >
+BooleanSwitchingMaps ( const Face & closestface );
+
+inline std::vector < std::pair < CFace, CFace > >
+BooleanSwitchingMaps ( const Face & closestface ) {
+
+/*
+	std::cout << "BooleanSwitchingMaps. closestface = ";
+	for ( int d = 0; d < closestface . size (); ++ d ) {
+		if ( d != 0 ) std::cout << ", ";
+		std::cout << closestface [ d ];
+	}
+	std::cout << "\n";
+*/
+	std::vector < std::pair < CFace, CFace > > result;
+	std::vector < CFace > cold;
+	std::vector < CFace > hot;
+	for ( int d = 0; d < closestface . size (); ++ d ) {
+		int axis = d + 1;
+		switch ( closestface [ d ] ) {
+			case 0:
+				hot . push_back ( - axis );
+				cold . push_back ( axis );
+				break;
+			case 1:
+				cold . push_back ( -axis );
+				cold . push_back ( axis );
+				break;
+			case 2:
+				cold . push_back ( -axis );
+				hot . push_back ( axis );
+				break; 
+		}
+	}
+	if ( hot . empty () ) {
+		cold . push_back ( CFace ( 0 ) );
+		hot . push_back ( CFace ( 0 ) );
+	}
+	BOOST_FOREACH ( CFace c, cold ) {
+		BOOST_FOREACH ( CFace h, hot ) {
+			result . push_back ( std::make_pair ( c, h ) );
+		}
+	}
+	return result;
+}
+
 //=============//
 // DEFINITIONS //
 //=============//
@@ -73,11 +120,56 @@ BooleanPairFacesMaps ( const Domain & domain,
 
 	// Transform back the codimension 1 face in listpair;
 	for ( it=listpair.begin(); it!=listpair.end(); ++it ) {
+		//DEBUG BEGIN
+		bool equal_before = (it -> first == it -> second);
+		CFace a = it -> first;
+		CFace b = it -> second;
+		//DEBUG END
 		(*it).first = convertBack ( dim, (*it).first, reflections );
 		(*it).second = convertBack ( dim, (*it).second, reflections );
+		//DEBUG BEGIN
+		bool equal_after = (it -> first == it -> second);
+		if ( equal_before != equal_after ) {
+			std::cout << a << " : " << b << " --> " << it->first << " : " << it->second << "\n";
+			throw std::logic_error ( "Unequal faces reflected into equal ones.\n");
+		}
+		//DEBUG END
 	}
 // DEBUG BEGIN
 #endif
+// DEBUG END
+
+// DEBUG BEGIN
+
+typedef std::pair<CFace, CFace> CFacePair;
+std::vector < CFacePair > debug_listpair = 
+	BooleanSwitchingMaps ( closestface );
+boost::unordered_set< CFacePair > 
+	arnaud_listpair (listpair.begin(), listpair.end() );
+boost::unordered_set< CFacePair > 
+	shaun_listpair (debug_listpair.begin (), debug_listpair.end() );
+bool failflag = false;
+BOOST_FOREACH ( CFacePair p, arnaud_listpair ) {
+	if ( shaun_listpair . count ( p ) == 0 ) {
+		std::cout << " arnaud_listpair contains (" << p.first << ", " << p.second << ") but shaun_listpair does not.\n";
+		failflag = true;
+	}
+}
+BOOST_FOREACH ( CFacePair p, shaun_listpair ) {
+	if ( shaun_listpair . count ( p ) == 0 ) {
+		std::cout << " shaun_listpair contains (" << p.first << ", " << p.second << ") but arnaud_listpair does not.\n";
+		failflag = true;
+	}
+}
+if ( failflag ) {
+	std::cout << "closestface Input: \n";
+		for ( int d = 0; d < closestface . size (); ++ d ) {
+			if ( d != 0 ) std::cout << ", ";
+			std::cout << closestface [ d ];
+		}
+		std::cout << "\n";
+	throw std::logic_error ( "Two methods for chart pairs return different results.\n");
+}
 // DEBUG END
 	std::vector < std::pair < CFace, CFace > > output;
 

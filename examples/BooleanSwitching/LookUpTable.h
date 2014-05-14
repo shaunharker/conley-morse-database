@@ -42,20 +42,22 @@ constructLookUpTable ( int n ) {
 	LUT lookuptable;
 	//
 	// Special case (Fixed Point)
-	Face specialfacekey;
-	specialfacekey . assign ( n, 0 );
-	for ( unsigned int i=0; i<n; ++i ) { 
-		specialfacekey [ i ] = 1;
-	} 
+
+	Face specialfacekey ( n, 1 );
+	//Face specialfacekey;
+	//specialfacekey . assign ( n, 0 );
+	//for ( unsigned int i=0; i<n; ++i ) { 
+	//	specialfacekey [ i ] = 1;
+	//} 
 	CFace fixedpoint;
 	fixedpoint = 0;
 	std::vector < std::pair < CFace, CFace > > speciallistmaps;
 	// construct the list of maps F1 -> FixedPoint
 	for ( int f1=-n; f1<=n; ++f1 ) {
-		// skip f1 = 0
-		if ( f1 != 0 ) {
+		// skip f1 = 0         // SRH: changed because I think it stopped fixed points from mapping to self
+		//if ( f1 != 0 ) {     // SRH: changed because I think it stopped fixed points from mapping to self
 			speciallistmaps . push_back ( std::pair < CFace, CFace > (f1,fixedpoint) );	
-		}
+		//}                    // SRH: changed because I think it stopped fixed points from mapping to self
 	}
 	lookuptable [ specialfacekey ] = speciallistmaps;
 

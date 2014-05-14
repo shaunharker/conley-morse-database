@@ -23,6 +23,13 @@ public:
 	boost::shared_ptr<RectGeo> geo;
   EuclideanParameter ( void ) {}
 	EuclideanParameter ( boost::shared_ptr<RectGeo> geo ) : geo(geo) {}
+  EuclideanParameter ( RectGeo * geo_ptr ) {
+    geo . reset ( geo_ptr );
+  }
+  EuclideanParameter ( RectGeo geo_obj ) {
+    geo . reset ( new RectGeo ( geo_obj ) );
+  }
+
 private:
 	// Serialization
   friend class boost::serialization::access;
@@ -80,6 +87,9 @@ public:
 	///    and the edge between them.
 	virtual boost::shared_ptr<ParameterPatch> patch ( void ) const;
 
+  /// dimension
+  ///    Return dimension of parameter space
+  int dimension ( void ) const;
 
 private:
 	boost::shared_ptr<Grid> parameter_grid_;
@@ -312,6 +322,12 @@ EuclideanParameterSpace::patch ( void ) const {
 
   return result;
 #endif
+}
+
+
+inline int 
+EuclideanParameterSpace::dimension ( void ) const {
+  return dimension_;
 }
 
 #endif

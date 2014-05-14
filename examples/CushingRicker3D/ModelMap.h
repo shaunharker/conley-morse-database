@@ -1,15 +1,10 @@
-/* 
+//  CushingRicker3D Map
 
-Generic Map File 
-
-This file is fully commented and can serve as a basis for more complicated map.
-For illustration, we implement the Leslie Map.
-
-*/
 
 #ifndef MODELMAP_H
 #define MODELMAP_H
 
+#include "database/maps/Map.h"
 #include "database/structures/RectGeo.h"
 #include "boost/shared_ptr.hpp"
 
@@ -32,8 +27,7 @@ using namespace capd;
 #endif
 
 
-struct ModelMap {
-  typedef RectGeo Rect;
+struct ModelMap : public Map {
 #ifdef USE_CAPD
 typedef capd::intervals::Interval<double> interval;
 #endif  
@@ -45,19 +39,24 @@ typedef capd::intervals::Interval<double> interval;
   std::vector < interval > parameter;
 
   // constructor
-  ModelMap ( const Rect & rectangle ) {
-    parameter . resize ( rectangle . dimension ( ) );
+  ModelMap ( boost::shared_ptr<Parameter> parameter ) {
+    const RectGeo & rectangle = 
+      * boost::dynamic_pointer_cast<EuclideanParameter> ( parameter ) -> geo;
+    parameter . resize ( rectangle . dimension () );
     for ( unsigned int i=0; i<rectangle.dimension(); ++i ) 
-      parameter [ i ] = interval (rectangle . lower_bounds [ i ], rectangle . upper_bounds [ i ]);
+      parameter [ i ] = interval (rectangle . lower_bounds [ i ], 
+                                  rectangle . upper_bounds [ i ]);
     return;
   }
 
-  RectGeo operator () ( const boost::shared_ptr<Geo> & geo ) const {   
-    return operator () ( * boost::dynamic_pointer_cast<RectGeo> ( geo ) );
+  boost::shared_ptr<Geo> 
+  operator () ( boost::shared_ptr<Geo> geo ) const {   
+    return boost::shared_ptr<Geo> ( new RectGeo ( 
+        operator () ( * boost::dynamic_pointer_cast<RectGeo> ( geo ) ) ) );
   }
 
-  Rect operator () 
-    ( const Rect & rectangle ) const {    
+  RectGeo operator () 
+    ( const RectGeo & rectangle ) const {    
 
     std::vector < interval > x; 
     std::vector < interval > y;
@@ -65,7 +64,7 @@ typedef capd::intervals::Interval<double> interval;
     x . resize ( rectangle . dimension ( ) );
     y . resize ( rectangle . dimension ( ) );
 
-    Rect return_value ( rectangle . dimension ( ) );
+    RectGeo return_value ( rectangle . dimension ( ) );
     
     for ( unsigned int i=0; i<rectangle.dimension(); ++i ) 
       x [ i ] = interval (rectangle . lower_bounds [ i ], rectangle . upper_bounds [ i ]);
@@ -111,10 +110,6 @@ typedef capd::intervals::Interval<double> interval;
 #endif  
     return return_value;
   } 
-  bool good ( void ) const {
-    return true;
-  }
-  
 };
 
 #endif

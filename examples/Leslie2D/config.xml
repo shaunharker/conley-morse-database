@@ -21,9 +21,9 @@
     <upper> 320.056 224.040 </upper>
   </bounds>
   <subdiv>
-    <init> 8 </init>
-    <min> 10 </min>
-    <max> 12 </max>
+    <init> 0 </init>
+    <min> 24 </min>
+    <max> 30 </max>
     <limit> 10000 </limit>
   </subdiv>
 </phase>
