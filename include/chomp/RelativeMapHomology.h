@@ -63,6 +63,17 @@ RelativeMapHomology (RelativeMapHomology_t * output,
   PRINT "RMH: Codomain size = " << full_codomain . size () << "\n";
   PRINT "RMH: Dimension of domain = " << D << "\n";
   
+  PRINT "RMH: (X, A) size = (" << domain_pair.pair().size() << ", " 
+        << domain_pair . relative () . size () << ")\n";
+  PRINT "RMH: (Y, B) size = (" << codomain_pair.pair().size() << ", " 
+        << codomain_pair . relative () . size () << ")\n";
+
+  PRINT "RMH: (X, A) top size = (" << domain_pair.pair().size(D) << ", " 
+        << domain_pair . relative () . size (D) << ")\n";
+  PRINT "RMH: (Y, B) top size = (" << codomain_pair.pair().size(D) << ", " 
+        << codomain_pair . relative () . size (D) << ")\n";
+
+
   /// Generate "domain_GridElements_X" and "domain_GridElements_A" tables
   /// These are for determining which top cells are involved in
   /// constructing a fiber (and which are relative)
@@ -70,7 +81,6 @@ RelativeMapHomology (RelativeMapHomology_t * output,
   domain_GridElements_X ( D + 1 );
   std::vector < std::vector < boost::unordered_set < Index > > > 
   domain_GridElements_A ( D + 1 );
-  
   
   
   PRINT "Computing domain grid elements \n";
@@ -256,17 +266,19 @@ RelativeMapHomology (RelativeMapHomology_t * output,
         FiberComplex fiber ( X_nbs, A_nbs, full_domain, full_codomain, F );
         //std::cout << "CHECKPOINT Y\n";
 
+
+        if ( fiber . size () == 0 ) {
+          std::cout << "UNEXPECTED: CANT LIFT CHAIN DUE TO EMPTY FIBER.\n";
+          acyclic_map = false;
+          break;
+        }
+
 #ifndef CONLEY_INDEX_NO_ACYCLIC_CHECKS
         if ( not fiber . acyclic () ) {
           acyclic_map = false;
           break;
         }
 #endif
-        if ( fiber . size () == 0 ) {
-          std::cout << "UNEXPECTED: CANT LIFT CHAIN DUE TO EMPTY FIBER.\n";
-          acyclic_map = false;
-          break;
-        }
         ++ number_of_analyzed_fibers; // run statistics
         explored_graph_complex += fiber . size (); // run statistics
 

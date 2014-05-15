@@ -2,6 +2,7 @@
 #define CMDB_JOIN_H
 
 #include <boost/shared_ptr.hpp>
+#include <exception>
 #include "database/structures/TreeGrid.h"
 #include "database/structures/Atlas.h"
 
@@ -28,8 +29,8 @@ struct joinImpl {
 			   boost::dynamic_pointer_cast<Atlas> ( output ) ) {
 			return joinImpl<Atlas,InputIterator>::act ( ptr, start, stop );
 		}
-		std::cout << "Error: joinImpl specialization not written for this Grid class.\n";
-		abort ();
+		throw std::logic_error ( "Error: joinImpl specialization not "
+			                       " written for this Grid class.\n" );
 	} 
 };
 
@@ -80,13 +81,13 @@ struct joinImpl < Atlas, InputIterator > {
 				boost::shared_ptr<Atlas> it_ptr = 
 					boost::dynamic_pointer_cast<Atlas> ( *it );
 				if ( not it_ptr ) {
-					std::cout << "Atlas::join error: not looping through a container of boost::shared_ptr<Atlas>\n";
-					abort ();
+					throw std::logic_error ( "Atlas::join error: not looping through a container "
+			                       			 " of boost::shared_ptr<Atlas>.\n" );
 				}
 				charts . push_back ( it_ptr -> chart ( chart_id ) );
 				if ( not boost::dynamic_pointer_cast<TreeGrid> ( it_ptr -> chart ( chart_id ) ) ) {
-					std::cout << "Atlas::join error: just pushed back a nonconformant chart\n";
-					abort ();
+					throw std::logic_error ( "Atlas::join error: just pushed back"
+			                       			 " a nonconformant chart.\n" );
 				}
 			}
 			//std::cout << "Atlas join about to reset\n";

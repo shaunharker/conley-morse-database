@@ -12,6 +12,7 @@ using namespace cimg_library;
 #include <map>
 #include <stack>
 #include <vector>
+#include <exception>
 #include "boost/foreach.hpp"
 #include "boost/shared_ptr.hpp"
 
@@ -68,7 +69,9 @@ public:
   template < class GridPtr >
   MorseDecomposition ( GridPtr grid, int depth ) 
   : grid_ ( grid ), spurious_(false), depth_(depth) {
-    if ( grid_ . get () == NULL ) {std::cout << "Error Compute_Morse_Graph.hpp line 65\n"; abort (); }
+    if ( grid_ . get () == NULL ) {
+      throw std::logic_error ( "Bad Initialization of MorseDecomposition Object\n" );  
+    }
 #ifdef MEMORYBOOKKEEPING
     max_grid_external_memory += grid -> memory ();
     max_grid_internal_memory = std::max( max_grid_internal_memory, grid -> memory () );
@@ -240,6 +243,8 @@ ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
   // eulertourstack: an item (md, childnum) means "this is node md, explore child childnum if it exists,
   // otherwise do an analysis"
   eulertourstack . push ( std::make_pair( root, 0 ) );
+  // The following loop performs an Euler tour and does an operation on each postordering.
+  // It is thus a guarantee that the operation has been performed on all descendants in the 
   while (  not eulertourstack . empty () ) {
     MorseDecomposition * MD = eulertourstack . top () . first;
     size_t childnum = eulertourstack . top () . second;
@@ -249,7 +254,8 @@ ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
         eulertourstack . push ( std::make_pair ( MD, childnum + 1 ) );
         eulertourstack . push ( std::make_pair ( MD -> children () [ childnum ], 0 ) );
     } else {
-      // Exhausted children already.
+      // Post-ordering operation
+
       // Check for Spuriousness
       // If it has children that are all marked spurious, then it is spurious.
       // If it does not have children, it is spurious if and only if it is already marked spurious
@@ -261,12 +267,27 @@ ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
       }
       temp [ MD ] = std::vector < Vertex > ();
 
+      // CHANGES BEGIN
+
+      // If spurious, then change grid to join of all descendants and previous self
+      if ( MD -> spurious () && NC > 0) {
+        // We alter MD -> grid () so that it is the join of all descendant grids
+        std::vector<boost::shared_ptr<Grid> > grid_family;
+        grid_family . push_back ( MD -> grid () );
+        for ( size_t i = 0 ; i < NC; ++ i ) {
+          grid_family . push_back ( MD -> children () [ i ] -> grid () );
+        }
+        join ( MD -> grid (), grid_family . begin(), grid_family . end () );
+      }
+
       if ( MD -> depth () > Min ) continue; 
       grids . push_back ( MD -> grid () );
-      if ( MD -> spurious () ) { 
-        //std::cout << "Spurious Rule 1 invoked on MD = " << MD << "\n";
-        continue;
-      }
+      if ( MD -> spurious () ) continue;
+      
+
+
+      // CHANGES END
+
       // Case 1. Min Depth Case
       // Morse Graph Vertex Creation Step 
       // (and special case for reachability)
@@ -278,6 +299,7 @@ ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
           //std::cout << "Child " << i << " out of " << ND << "\n";
           if ( (NC == ND) && MD -> children () [ i ] -> spurious () ) { 
             //std::cout << "Spurious Rule 2 invoked, skipping child " << i << ".\n";
+            grids . push_back ( MD -> children () [ i ] -> grid () ); // CAUSES BUG?!
             continue;
           }
           Vertex v = MG -> AddVertex ();

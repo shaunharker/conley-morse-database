@@ -206,16 +206,32 @@ inline void FiberComplex::project ( Chain * output,
   }
   
   inline bool FiberComplex::acyclic ( void ) /* const */ {
+     //std::cout << "Fiber dimension = " << dimension () << " Fiber size = " << size () << "\n";
+
     Generators_t gen = MorseGenerators ( *this );
     //std::cout << "acyclic:\n";
     //std::cout << gen . size () << " and " << dimension () << "\n";
     assert ( (int) gen . size () == dimension () + 1 );
-    if ( gen . size () == 0 ) return false;
-    if ( gen [ 0 ] . size () != 1 ) return false;
+    bool result = true;
+    if ( gen . size () == 0 ) result = false;
+    if ( gen [ 0 ] . size () != 1 ) result = false;
     for ( int d = 1; d <= dimension (); ++ d ) {
-      if ( gen [ d ] . size () > 0 ) return false;
+      if ( gen [ d ] . size () > 0 ) result = false;
     }
-    return true;
+    // DEBUG BEGIN
+    /*
+    if ( not result ) {
+      std::cout << "FiberComplex::acyclic. gen.size=" << 
+        gen . size () << " and dim=" << dimension () << "\n";
+      for ( int d = 0; d <= dimension (); ++ d ) {
+        std::cout << gen [ d ] . size () << " ";
+      }
+      std::cout << "\n";
+      std::cout << "Fiber size = " << size () << "\n";
+    }
+    */
+    // DEBUG END
+    return result;
   }
   
   inline bool FiberComplex::acyclic_or_trivial ( void ) /* const */ {

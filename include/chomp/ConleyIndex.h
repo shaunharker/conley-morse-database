@@ -68,8 +68,10 @@ ConleyIndex ( ConleyIndex_t * output,
   typedef std::map < Cell, Subset > Combinatorial_Map;
   
   int depth = grid . getDepth ( S );
+  
   //std::cout << "Conley Index. S . size () " << S . size () << "\n";
   //std::cout << "Conley Index. getDepth(S) returned " << depth << "\n";
+  
   clock_t start, start0, stop;
   //std::cout << "Conley Index. Preparing computation...\n";
   start0 = start = clock ();
@@ -99,6 +101,10 @@ ConleyIndex ( ConleyIndex_t * output,
     }
   } /* boost_foreach */ 
   
+  // BEGIN DEBUG
+  //std::cout << "Conley Index. getDepth(A) returned " << grid . getDepth ( A ) << "\n";
+  // END DEBUG
+
   /* Compute G for domain cells in A */
 #if 0
   // note: we restrict the ranges to A 

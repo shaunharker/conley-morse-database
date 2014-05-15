@@ -838,11 +838,11 @@ inline void TreeGrid::GridElementToCubes ( std::vector<std::vector < uint32_t > 
   int GridElement_depth = p . size (); // == getDepth ( ge );
   //std::cout << "  gedepth = " << GridElement_depth << ", from " << p . size () << "\n";
   if ( GridElement_depth > depth ) GridElement_depth = depth; //effectively truncates the prefix
-  
+  int p_end = p . size ();
   for ( int d = 0; d < GridElement_depth; ++ d ) {
     if ( dim == D ) dim = 0;
     cube [ dim ] <<= 1;
-    cube [ dim ] |= (uint32_t) p [ GridElement_depth - d - 1 ];
+    cube [ dim ] |= (uint32_t) p [ p_end - d - 1 ];
     ++ dim;
   }
   // make the cubes
