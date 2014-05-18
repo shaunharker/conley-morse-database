@@ -1177,6 +1177,7 @@ inline void Database::postprocess ( void ) {
   clutch_records_ . clear ();
 }
 
+
 inline void Database::makeAttractorsMinimal ( void ) {
   // Loop through all INCCs
   //   Check Conley Index and see if it is an attractor
@@ -1206,8 +1207,8 @@ inline void Database::makeAttractorsMinimal ( void ) {
         const INCCP_Record & inccp_record = INCCP_Records () [ inccp ];
         uint64_t mgccp = inccp_record . mgccp_index;
         uint64_t cs = inccp_record . cs_index;
-        const MGCCP_Record & mgccp_record = MGCCP_records_ [ mgccp ];
-        MorseGraphRecord & mgr = morsegraph_data_ [ mgccp_record . morsegraph_index ];
+        MGCCP_Record & mgccp_record = MGCCP_records_ [ mgccp ];
+        MorseGraphRecord mgr = morsegraph_data_ [ mgccp_record . morsegraph_index ];
         DAG_Data dag_data = dagData () [ mgr . dag_index ];
         const CS_Data & cs_data = csData () [ cs ];
         DAG_Data new_dag;
@@ -1216,6 +1217,7 @@ inline void Database::makeAttractorsMinimal ( void ) {
         BOOST_FOREACH( int v, cs_data . vertices ) convex_set_vertices . insert ( v );
         //std::cout << "CSV size = " << convex_set_vertices . size () << "\n";
         if ( convex_set_vertices . size () == 0 ) continue;
+
         //std::cout << "CS:";
         //BOOST_FOREACH( int v, cs_data . vertices ) std::cout << v << " ";
         //std::cout << "\n";
@@ -1230,13 +1232,16 @@ inline void Database::makeAttractorsMinimal ( void ) {
                (convex_set_vertices . count ( edge . second ) != 0)  ) {
             //std::cout << "Pushing edge " << edge.first << ", " << edge.second << "\n";
             new_dag . partial_order . push_back ( edge );
-          }
+          } 
         }
+
         // register the new dag
         uint64_t new_dag_index = insert ( new_dag ); 
         //std::cout << "Old dag index = " << old_dag_index << "\n";
         //std::cout << "New dag index = " << new_dag_index << "\n";
         mgr . dag_index = new_dag_index;
+        uint64_t new_mgr_index = insert ( mgr );
+        mgccp_record . morsegraph_index = new_mgr_index;
       }
     }
   }

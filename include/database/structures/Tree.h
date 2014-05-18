@@ -105,6 +105,8 @@ inline Tree::size_type Tree::depth ( iterator it ) const {
  */
 template < class InputIterator >
 CompressedTree * Tree::join ( InputIterator start, InputIterator stop ) {
+  typedef typename InputIterator::value_type TreePtr;
+
   CompressedTree * result = new CompressedTree;
   std::vector<bool> & balanced_parentheses = result -> balanced_parentheses;
   std::vector<bool> & valid_tree_nodes = result -> valid_tree_nodes;
@@ -137,54 +139,64 @@ CompressedTree * Tree::join ( InputIterator start, InputIterator stop ) {
   // State 1: Try to go right. If can't, set success to false and rise. Otherwise success is true and try to go left on next iteration.
   // State 2: Rise. If rising from the right, rise again on next iteration. Otherwise try to go right on the next iteration.
   std::vector < iterator > iterators;
+  std::vector < TreePtr > trees;
+  // As we traverse through the join of trees, we maintain a data structure
+  // which tells us the maximum depth a tree has a node on the current path to root
+  std::vector< boost::unordered_set < uint64_t > > trees_by_depth ( 1 );
+
   for ( InputIterator it = start; it != stop; ++ it ) {
     if ( (*it) -> size () == 0 ) continue;
+    trees_by_depth [ 0 ] . insert ( trees . size () );
+    trees . push_back ( *it );
     iterators . push_back ( (*it) -> begin () );
   }
-  size_t N = iterators . size ();
-  std::vector < size_t > iterator_depth ( N );
-  size_t depth = 0;
+
+  int64_t depth = 0;
   int state = 0;  
   while ( 1 ) {
     if ( (depth == 0) && ( state == 2 ) ) break;
     //std::cout << "Position 0. depth = " << depth << " and state = " << state << "\n";
     bool success = false;
-    size_t i = 0;
-    for ( InputIterator it = start; it != stop; ++ it ) {
-      if ( (*it) -> size () == 0 ) continue;
+    boost::unordered_set < uint64_t > current_trees = trees_by_depth [ depth ];
+    BOOST_FOREACH ( uint64_t i, current_trees ) {
+      const Tree & tree = * trees [ i ];
       //std::cout << "Position 1. i = " << i << ", depth = " << depth << " and state = " << state << "\n";
-      // If node is halted, continue
-      if ( iterator_depth[i] == depth ) {
-        iterator end = ( *it ) -> end ();
-        switch ( state ) {
-          case 0:
-          {
-            iterator left = ( *it ) -> left ( iterators[i] );
-            if ( left == end ) break;
-            iterators[i] = left;
-            ++ iterator_depth[i];
-            success = true;
-            break;
-          }
-          case 1:
-          {
-            iterator right = ( *it ) -> right ( iterators[i] );
-            if ( right == end ) break;
-            iterators[i] = right;
-            ++ iterator_depth[i];
-            success = true;
-            break;
-          }
-          case 2:
-          {
-            if ( ( *it ) -> isright ( iterators[i] ) ) success = true;
-            iterators[i] = ( *it ) -> parent ( iterators[i] );
-            -- iterator_depth[i];
-            break;
-          }
+      iterator end = tree . end ();
+      int64_t newdepth = depth;
+      switch ( state ) {
+        case 0: // Try to go left
+        {
+          iterator left = tree . left ( iterators[i] );
+          if ( left == end ) break;
+          iterators[i] = left;
+          newdepth = depth + 1;
+          success = true;
+          break;
+        }
+        case 1: // Try to go right
+        {
+          iterator right = tree . right ( iterators[i] );
+          if ( right == end ) break;
+          iterators[i] = right;
+          newdepth = depth + 1;
+          success = true;
+          break;
+        }
+        case 2: // Rise
+        {
+          if ( tree . isright ( iterators[i] ) ) success = true;
+          iterators[i] = tree . parent ( iterators[i] );
+          newdepth = depth - 1;
+          break;
         }
       }
-    ++ i;
+      if ( newdepth != depth ) {
+        trees_by_depth [ depth ] . erase ( i );
+        if ( newdepth == (int64_t) trees_by_depth . size () ) { 
+          trees_by_depth . push_back ( boost::unordered_set < uint64_t > () );
+        }
+        trees_by_depth [ newdepth ] . insert ( i );
+      }
     }
     
     //std::cout << "Position 3. depth = " << depth << " and state = " << state << "\n";
