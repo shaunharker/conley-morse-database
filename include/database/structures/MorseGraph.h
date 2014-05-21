@@ -3,6 +3,7 @@
 #ifndef _CMDP_MORSE_GRAPH_
 #define _CMDP_MORSE_GRAPH_
 
+#include <fstream>
 #include <utility>
 
 #include <boost/iterator/counting_iterator.hpp>

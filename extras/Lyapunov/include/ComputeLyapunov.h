@@ -266,11 +266,11 @@ ComputeLyapunov ( boost::shared_ptr<TreeGrid> grid,
 			// end debug
 		}
 		
-    std::cout << "Showing Lyapunov Summand \n";
-		draw2Dimage ( lyapunov, grid );
+    //std::cout << "Showing Lyapunov Summand \n";
+		//draw2Dimage ( lyapunov, grid );
 
-		std::cout << "Previous averaged Lyapunov.\n";
-		draw2Dimage ( global_lyapunov, grid );
+		//std::cout << "Previous averaged Lyapunov.\n";
+		//draw2Dimage ( global_lyapunov, grid );
 
 		for ( int i = 0; i < N; ++ i ) {
 			global_lyapunov [ i ] += weight * lyapunov [ i ];
@@ -289,7 +289,7 @@ ComputeLyapunov ( boost::shared_ptr<TreeGrid> grid,
   	//}
 	}
 	std::cout << "Finalized Lyapunov.\n";
-	draw2Dimage ( global_lyapunov, grid );
+	//draw2Dimage ( global_lyapunov, grid );
   return global_lyapunov;
 }
 

@@ -5,6 +5,7 @@
 #ifndef CHOMP_SMITHNORMALFORM_H
 #define CHOMP_SMITHNORMALFORM_H
 
+#include <fstream>
 #include <cstdlib>
 #include <stdint.h>
 
