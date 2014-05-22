@@ -37,6 +37,7 @@ int main ( int argc, char * argv [] ) {
   uint64_t N = cmg . phaseSpace () -> size ();
   // N is also the number of values in lyapunov.txt
 
+  std::cout << "There are " << N << " grid elements.\n";
   boost::unordered_map < Point, uint64_t > points;
   std::vector< Point > point_by_index;
   uint64_t num_points = 0;
@@ -64,8 +65,9 @@ int main ( int argc, char * argv [] ) {
 
   uint64_t M = points . size ();
 
+  std::cout << "There are " << M << " distinct points (i.e. vertices of grid elements).\n";
   // OUTPUT PREAMBLE
-  vtk_file << "#vtk Datafile version 3.0\n";
+  vtk_file << "# vtk Datafile version 3.0\n";
   vtk_file << "vtk output\n";
   vtk_file << "ASCII\n";
   vtk_file << "DATASET UNSTRUCTURED_GRID\n";
