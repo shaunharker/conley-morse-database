@@ -67,7 +67,7 @@ int main ( int argc, char * argv [] ) {
 
   std::cout << "There are " << M << " distinct points (i.e. vertices of grid elements).\n";
   // OUTPUT PREAMBLE
-  vtk_file << "# vtk Datafile version 3.0\n";
+  vtk_file << "# vtk DataFile Version 3.0\n";
   vtk_file << "vtk output\n";
   vtk_file << "ASCII\n";
   vtk_file << "DATASET UNSTRUCTURED_GRID\n";
