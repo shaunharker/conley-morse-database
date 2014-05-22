@@ -267,8 +267,6 @@ ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
       }
       temp [ MD ] = std::vector < Vertex > ();
 
-      // CHANGES BEGIN
-
       // If spurious, then change grid to join of all descendants and previous self
       if ( MD -> spurious () && NC > 0) {
         // We alter MD -> grid () so that it is the join of all descendant grids
@@ -284,10 +282,6 @@ ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
       grids . push_back ( MD -> grid () );
       if ( MD -> spurious () ) continue;
       
-
-
-      // CHANGES END
-
       // Case 1. Min Depth Case
       // Morse Graph Vertex Creation Step 
       // (and special case for reachability)
@@ -299,7 +293,7 @@ ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
           //std::cout << "Child " << i << " out of " << ND << "\n";
           if ( (NC == ND) && MD -> children () [ i ] -> spurious () ) { 
             //std::cout << "Spurious Rule 2 invoked, skipping child " << i << ".\n";
-            grids . push_back ( MD -> children () [ i ] -> grid () ); // CAUSES BUG?!
+            grids . push_back ( MD -> children () [ i ] -> grid () ); 
             continue;
           }
           Vertex v = MG -> AddVertex ();
