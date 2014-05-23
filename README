@@ -6,26 +6,25 @@ DATABASE SOFTWARE:
 Brief instructions on using the database software:
   A) Change directory to conley-morse-database
   B) TYPE: make clean
-  C) TYPE: make SingleCMG
-  D) TYPE: ./SingleCMG 20 20
+  C) TYPE: make SingleCMG MODELDIR=./examples/Leslie2D
+  D) TYPE: cd ./examples/Leslie2D
+           ./SingleCMG ./ 20 20
      Output should start streaming down the screen
      Pretty quickly the program should terminate
      and some output files ought to be produced.
-     You can tinker with this example by editing
-     ./source/test/SingleCMG.cpp
-  E) TYPE: ./CMDB ./data/leslie12/
+  E) TYPE: ./CMDB ./examples/Leslie2D/
      It should compile "Conley_Morse_Database"
      If you are on a cluster with PBS, it will attempt
       to submit a job with qsub.
-     Otherwise, it will complain that it doesn't know the
+     Otherwise, it may complain that it doesn't know the
       command qsub. Proceed to:
-  F) TYPE: mpiexec -np 5 ./Conley_Morse_Database ./data/leslie12/
+  F) TYPE: mpiexec -np 5 ./Conley_Morse_Database ./examples/Leslie2D/
      It should start computing. The file "progress.txt" should be
      periodically refreshed to indicate progress.
      Likely you'll want to do this on a cluster, however.
 
 To compute on different models, produce a different data directory, with
-config.xml and ModelMap.h files following the example of the "leslie12"
+config.xml and ModelMap.h files following the example of the "Leslie2D"
 example. Beware of errors in these files, however!
 
 Please e-mail Shaun Harker sharker81@gmail.com

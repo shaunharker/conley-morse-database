@@ -309,18 +309,18 @@ inline boost::shared_ptr<Geo> TreeGrid::geometryOfTreeNode ( Tree::iterator it )
     rect . upper_bounds [ division_dimension ] /= Real ( 2 );
     it = parent;
   } /* while */
-  for ( int dimension_index = 0; dimension_index < dimension(); ++ dimension_index ) {
-    //std::cout << "dimension_index =  " << dimension_index << " out of " << dimension_ << "\n";
+  for ( int d = 0; d < dimension(); ++ d ) {
+    //std::cout << "d =  " << d << " out of " << dimension_ << "\n";
     //std::cout << "rect . lower_bounds . size () == " << rect . lower_bounds . size () << "\n";
     //std::cout << "bounds_ . lower_bounds . size () == " << bounds_ . lower_bounds . size () << "\n";
 
     /* Produce convex combinations */
-    rect . lower_bounds [ dimension_index ] = rect . lower_bounds [ dimension_index ] * bounds_ . upper_bounds [ dimension_index ] +
-    ( Real ( 1 ) - rect . lower_bounds [ dimension_index ] ) * bounds_ . lower_bounds [ dimension_index ];
-    rect . upper_bounds [ dimension_index ] = rect . upper_bounds [ dimension_index ] * bounds_ . lower_bounds [ dimension_index ] +
-    ( Real ( 1 ) - rect . upper_bounds [ dimension_index ] ) * bounds_ . upper_bounds [ dimension_index ];
+    rect . lower_bounds [ d ] = rect . lower_bounds [ d ] * bounds_ . upper_bounds [ d ] +
+    ( Real ( 1 ) - rect . lower_bounds [ d ] ) * bounds_ . lower_bounds [ d ];
+    rect . upper_bounds [ d ] = rect . upper_bounds [ d ] * bounds_ . lower_bounds [ d ] +
+    ( Real ( 1 ) - rect . upper_bounds [ d ] ) * bounds_ . upper_bounds [ d ];
     //DEBUG
-    if ( rect . lower_bounds [ dimension_index ] > rect . lower_bounds [ dimension_index ] ) {
+    if ( rect . lower_bounds [ d ] > rect . lower_bounds [ d ] ) {
       std::cout << "Grid::geometry ERROR: constructed invalid region.\n";
       exit(1);
     }
@@ -360,18 +360,18 @@ inline boost::shared_ptr<Geo> TreeGrid::geometry ( GridElement ge ) const {
     rect . upper_bounds [ division_dimension ] /= Real ( 2 );
     it = parent;
   } /* while */
-  for ( int dimension_index = 0; dimension_index < dimension(); ++ dimension_index ) {
-    //std::cout << "dimension_index =  " << dimension_index << " out of " << dimension_ << "\n";
+  for ( int d = 0; d < dimension(); ++ d ) {
+    //std::cout << "d =  " << d << " out of " << dimension_ << "\n";
     //std::cout << "rect . lower_bounds . size () == " << rect . lower_bounds . size () << "\n";
     //std::cout << "bounds_ . lower_bounds . size () == " << bounds_ . lower_bounds . size () << "\n";
 
     /* Produce convex combinations */
-    rect . lower_bounds [ dimension_index ] = rect . lower_bounds [ dimension_index ] * bounds_ . upper_bounds [ dimension_index ] +
-    ( Real ( 1 ) - rect . lower_bounds [ dimension_index ] ) * bounds_ . lower_bounds [ dimension_index ];
-    rect . upper_bounds [ dimension_index ] = rect . upper_bounds [ dimension_index ] * bounds_ . lower_bounds [ dimension_index ] +
-    ( Real ( 1 ) - rect . upper_bounds [ dimension_index ] ) * bounds_ . upper_bounds [ dimension_index ];
+    rect . lower_bounds [ d ] = rect . lower_bounds [ d ] * bounds_ . upper_bounds [ d ] +
+    ( Real ( 1 ) - rect . lower_bounds [ d ] ) * bounds_ . lower_bounds [ d ];
+    rect . upper_bounds [ d ] = rect . upper_bounds [ d ] * bounds_ . lower_bounds [ d ] +
+    ( Real ( 1 ) - rect . upper_bounds [ d ] ) * bounds_ . upper_bounds [ d ];
     //DEBUG
-    if ( rect . lower_bounds [ dimension_index ] > rect . lower_bounds [ dimension_index ] ) {
+    if ( rect . lower_bounds [ d ] > rect . lower_bounds [ d ] ) {
       std::cout << "Grid::geometry ERROR: constructed invalid region.\n";
       exit(1);
     }
@@ -404,7 +404,17 @@ TreeGrid::cover ( const Geo & geo ) const {
 
 inline std::vector<Grid::GridElement>
 TreeGrid::coverAccept ( const RectGeo & visitor ) const  {
-  
+  // A note on rigorous numerics:
+  // We convert to phase space coordinates into integers for speed. 
+  // To do this we convert to a [0,1] double range, and then to {0,1,2,...,2^60}
+  // Due to floating point error, we need to allow for some room in either 
+  // direction. To this end we add and subtract 2^10 to the integer coordinates.
+  // This assumes that the phase space is not too skinny in any direction,
+  // so that we have at least 50 bits of precision in the transformed
+  // range. If the phase space is too skinny, then subtraction of nearby
+  // numbers could give us less precision, and this method would
+  // fail to be rigorous. Checking this condition has not yet been implemented.
+
   // DEBUG
   if ( size () == 0 ) {
     std::cout << "Warning, calling cover in an empty TreeGrid\n";
@@ -478,48 +488,51 @@ TreeGrid::coverAccept ( const RectGeo & visitor ) const  {
     //std::cout << "Trying to cover " << GR << "\n";
     // Step 1. Convert input to standard coordinates.
     RectGeo region ( dimension_ );
-    static std::vector<uint64_t> LB ( dimension_);
-    static std::vector<uint64_t> UB ( dimension_);
-#define INTPHASEWIDTH (((uint64_t)1) << 60)
+    static std::vector<int64_t> LB ( dimension_);
+    static std::vector<int64_t> UB ( dimension_);
+#define INTPHASEWIDTH (((int64_t)1) << 60)
+#define TRUNCATIONERROR (((int64_t)1) << 10 )
     static Real bignum ( INTPHASEWIDTH );
     bool out_of_bounds = false;
-    for ( int dimension_index = 0; dimension_index < dimension_; ++ dimension_index ) {
-      region . lower_bounds [ dimension_index ] =
-      (GR . lower_bounds [ dimension_index ] - bounds_ . lower_bounds [ dimension_index ]) /
-      (bounds_ . upper_bounds [ dimension_index ] - bounds_ . lower_bounds [ dimension_index ]);
-      region . upper_bounds [ dimension_index ] =
-      (GR . upper_bounds [ dimension_index ] - bounds_ . lower_bounds [ dimension_index ]) /
-      (bounds_ . upper_bounds [ dimension_index ] - bounds_ . lower_bounds [ dimension_index ]);
-      
-      if (region . upper_bounds [ dimension_index ] < Real ( 0 ) ||
-          region . lower_bounds [ dimension_index ] > Real ( 1 ) )  {
+    for ( int d = 0; d < dimension_; ++ d ) {
+      // Convert lower bounds to standard coordinates (i.e. [0,1] range)
+      region . lower_bounds [ d ] =
+        (GR . lower_bounds [ d ] - bounds_ . lower_bounds [ d ]) /
+        (bounds_ . upper_bounds [ d ] - bounds_ . lower_bounds [ d ]);
+      // Convert upper bounds to standard coordinates (i.e. [0,1] range)
+      region . upper_bounds [ d ] =
+        (GR . upper_bounds [ d ] - bounds_ . lower_bounds [ d ]) /
+        (bounds_ . upper_bounds [ d ] - bounds_ . lower_bounds [ d ]);
+      // Check if completely out of bounds
+      if (region . upper_bounds [ d ] < Real ( 0 ) ||
+          region . lower_bounds [ d ] > Real ( 1 ) )  {
         out_of_bounds = true;
         break;
       }
-      //std::cout << "dim " << dimension_index << ": [" << region . lower_bounds [ dimension_index ] << ", " << region . upper_bounds [ dimension_index ] << "]\n";
-      if ( region . lower_bounds [ dimension_index ] < Real ( 0 ) )
-        region . lower_bounds [ dimension_index ] = Real ( 0 );
-      if ( region . lower_bounds [ dimension_index ] > Real ( 1 ) )
-        region . lower_bounds [ dimension_index ] = Real ( 1 );
-      LB [ dimension_index ] = (uint64_t) ( bignum * region . lower_bounds [ dimension_index ] );
-      if ( region . upper_bounds [ dimension_index ] < Real ( 0 ) )
-        region . upper_bounds [ dimension_index ] = Real ( 0 );
-      if ( region . upper_bounds [ dimension_index ] > Real ( 1 ) )
-        region . upper_bounds [ dimension_index ] = Real ( 1 );
-      UB [ dimension_index ] = (uint64_t) ( bignum * region . upper_bounds [ dimension_index ] );
+      //std::cout << "dim " << d << ": [" << region . lower_bounds [ d ] << ", " << region . upper_bounds [ d ] << "]\n";
+      if ( region . lower_bounds [ d ] < Real ( 0 ) ) 
+        region . lower_bounds [ d ] = Real ( 0 );
+      if ( region . lower_bounds [ d ] > Real ( 1 ) )
+        region . lower_bounds [ d ] = Real ( 1 );
+      if ( region . upper_bounds [ d ] < Real ( 0 ) )
+        region . upper_bounds [ d ] = Real ( 0 );
+      if ( region . upper_bounds [ d ] > Real ( 1 ) )
+        region . upper_bounds [ d ] = Real ( 1 );
+
+      // Convert to integer coordinates
+      LB [ d ] = (uint64_t) ( bignum * region . lower_bounds [ d ] ) - TRUNCATIONERROR;
+      UB [ d ] = (uint64_t) ( bignum * region . upper_bounds [ d ] ) + TRUNCATIONERROR;
+      if ( LB [ d ] < 0 ) LB [ d ] = 0;
+      if ( UB [ d ] > INTPHASEWIDTH ) LB [ d ] = INTPHASEWIDTH;
     }
     if ( out_of_bounds ) continue;
     // Step 2. Perform DFS on the Grid tree, recursing whenever we have intersection,
     //         (or adding leaf to output when we have leaf intersection)
-    static std::vector<uint64_t> NLB ( dimension_);
-    static std::vector<uint64_t> NUB ( dimension_);
-    for ( int dimension_index = 0; dimension_index < dimension_; ++ dimension_index ) {
-      //if ( LB [ dimension_index ] < (1 << 20) ) LB [ dimension_index ] = 0;
-      //if ( LB [ dimension_index ] >= (1 << 20) ) LB [ dimension_index ] -= (1 << 20);
-      //if ( UB [ dimension_index ] < (INTPHASEWIDTH - (1 << 20)) ) UB [ dimension_index ] += (1 << 20);
-      //if ( UB [ dimension_index ] >= (INTPHASEWIDTH - (1 << 20)) ) UB [ dimension_index ] = INTPHASEWIDTH;
-      NLB [ dimension_index ] = 0;
-      NUB [ dimension_index ] = INTPHASEWIDTH;
+    static std::vector<int64_t> NLB ( dimension_);
+    static std::vector<int64_t> NUB ( dimension_);
+    for ( int d = 0; d < dimension_; ++ d ) {
+      NLB [ d ] = 0;
+      NUB [ d ] = INTPHASEWIDTH;
     }
     //std::cout << "C\n";
     
@@ -654,6 +667,9 @@ TreeGrid::coverAccept ( const RectGeo & visitor ) const  {
 
 inline std::vector<Grid::GridElement>
 TreeGrid::coverAccept ( const PrismGeo & visitor ) const {
+  // TODO. Integrate some of the changes made for RectGeo coverAccept
+  //        (in particular consider the rigorous numerics aspects)
+
   const PrismGeo & prism = visitor;
   //using namespace chomp;
   std::vector<Grid::GridElement> results;
@@ -675,9 +691,9 @@ TreeGrid::coverAccept ( const PrismGeo & visitor ) const {
   //         (or adding leaf to output when we have leaf intersection)
   static std::vector<uint64_t> NLB ( dimension_);
   static std::vector<uint64_t> NUB ( dimension_);
-  for ( int dimension_index = 0; dimension_index < dimension_; ++ dimension_index ) {
-    NLB [ dimension_index ] = 0;
-    NUB [ dimension_index ] = INTPHASEWIDTH;
+  for ( int d = 0; d < dimension_; ++ d ) {
+    NLB [ d ] = 0;
+    NUB [ d ] = INTPHASEWIDTH;
   }
   //std::cout << "Cover\n";
   
