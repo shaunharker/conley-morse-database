@@ -432,7 +432,7 @@ TreeGrid::coverAccept ( const RectGeo & visitor ) const  {
   //tree () . debug ();
   // Deal with periodicity
   
-  boost::unordered_set < GridElement > redundancy_check;
+  //boost::unordered_set < GridElement > redundancy_check;
   
   std::vector < double > width ( dimension_ );
   for ( int d = 0; d < dimension_; ++ d ) {
@@ -440,40 +440,51 @@ TreeGrid::coverAccept ( const RectGeo & visitor ) const  {
   }
   
   std::stack < RectGeo > work_stack;
-  RectGeo R = geometric_region;
+
+  // TODO: Make this computation happen once and for all
+  bool periodic_flag = false;
   for ( int d = 0; d < dimension_; ++ d ) {
-    if ( periodic_ [ d ] == false ) continue;
-    if ( R . upper_bounds [ d ] > bounds_ . upper_bounds [ d ] ) {
-      R . lower_bounds [ d ] -= width [ d ];
-      R . upper_bounds [ d ] -= width [ d ];
-    }
-    if ( R . upper_bounds [d] - R . lower_bounds [ d ] > width [ d ] )
-      R . upper_bounds [ d ] = R . lower_bounds [ d ] + width [ d ];
+    if ( periodic_ [ d ] == true ) periodic_flag = true;
   }
-  
-  long periodic_long = 0;
-  for ( int d = 0; d < dimension_; ++ d ) {
-    if ( periodic_ [ d ] ) periodic_long += (1 << d );
-  }
-  
-  // loop through all 2^l periodic images, avoiding repeats
-  std::set < long > periodic_images;
-  long hypercube = 2 << dimension_;
-  for ( long k = 0; k < hypercube; ++ k ) {
-    if ( periodic_images . count ( k & periodic_long ) ) continue;
-    periodic_images . insert ( k & periodic_long );
-    RectGeo r = R;
+
+  if ( periodic_flag ) {
+    RectGeo R = geometric_region;
     for ( int d = 0; d < dimension_; ++ d ) {
       if ( periodic_ [ d ] == false ) continue;
-      if ( k & ( 1 << d ) ) {
-        r . lower_bounds [ d ] += width [ d ];
-        r . upper_bounds [ d ] += width [ d ];
+      if ( R . upper_bounds [ d ] > bounds_ . upper_bounds [ d ] ) {
+        R . lower_bounds [ d ] -= width [ d ];
+        R . upper_bounds [ d ] -= width [ d ];
       }
+      if ( R . upper_bounds [d] - R . lower_bounds [ d ] > width [ d ] )
+        R . upper_bounds [ d ] = R . lower_bounds [ d ] + width [ d ];
     }
-    work_stack . push ( r );
-    //std::cout << "Pushed " << r << "\n";
+    
+    long periodic_long = 0;
+    for ( int d = 0; d < dimension_; ++ d ) {
+      if ( periodic_ [ d ] ) periodic_long += (1 << d );
+    }
+    
+    // loop through all 2^l periodic images, avoiding repeats
+    std::set < long > periodic_images;
+    long hypercube = 2 << dimension_;
+    for ( long k = 0; k < hypercube; ++ k ) {
+      if ( periodic_images . count ( k & periodic_long ) ) continue;
+      periodic_images . insert ( k & periodic_long );
+      RectGeo r = R;
+      for ( int d = 0; d < dimension_; ++ d ) {
+        if ( periodic_ [ d ] == false ) continue;
+        if ( k & ( 1 << d ) ) {
+          r . lower_bounds [ d ] += width [ d ];
+          r . upper_bounds [ d ] += width [ d ];
+        }
+      }
+      work_stack . push ( r );
+      //std::cout << "Pushed " << r << "\n";
+    }
+  } else {
+    work_stack . push ( geometric_region );
   }
-  
+
   //std::cout << "ready to cover pushed things\n";
   /* Use a stack, not a queue, and do depth first search.
    The advantage of this is that we can maintain the geometry during our Euler Tour.
@@ -520,10 +531,10 @@ TreeGrid::coverAccept ( const RectGeo & visitor ) const  {
         region . upper_bounds [ d ] = Real ( 1 );
 
       // Convert to integer coordinates
-      LB [ d ] = (uint64_t) ( bignum * region . lower_bounds [ d ] ) - TRUNCATIONERROR;
-      UB [ d ] = (uint64_t) ( bignum * region . upper_bounds [ d ] ) + TRUNCATIONERROR;
+      LB [ d ] = (int64_t) ( bignum * region . lower_bounds [ d ] ) - TRUNCATIONERROR;
+      UB [ d ] = (int64_t) ( bignum * region . upper_bounds [ d ] ) + TRUNCATIONERROR;
       if ( LB [ d ] < 0 ) LB [ d ] = 0;
-      if ( UB [ d ] > INTPHASEWIDTH ) LB [ d ] = INTPHASEWIDTH;
+      if ( UB [ d ] > INTPHASEWIDTH ) UB [ d ] = INTPHASEWIDTH;
     }
     if ( out_of_bounds ) continue;
     // Step 2. Perform DFS on the Grid tree, recursing whenever we have intersection,
@@ -551,13 +562,17 @@ TreeGrid::coverAccept ( const RectGeo & visitor ) const  {
     
     char state = 0;
     int depth = -1;
-    //std::cout << "D\n";
-    //std::cout << "end = " << * tree () . end ();
+
+    std::stack<Tree::iterator> parent;
+    std::stack<std::pair<Tree::iterator, Tree::iterator> > children;
+    parent . push ( end );
+
     while ( 1 ) {
       //std::cout << "Entering Loop, state = " << (int) state << "\n";
       //std::cout << " N = " << *N << "\n";
       if ( state == 0 ) {
         ++ depth;
+
         //std::cout << "State " << (int)state << "\n";
         //std::cout << "Depth = " << depth << " \n";
         //std::cout << " N = " << *N << "\n";
@@ -572,16 +587,19 @@ TreeGrid::coverAccept ( const RectGeo & visitor ) const  {
         
         if ( intersect_flag ) {
           //std::cout << "Detected intersection.\n";
+          // Determine children
+          children . push ( std::make_pair ( tree () . left ( N ), 
+                                             tree () . right ( N ) ) );
           // Check if its a leaf.
-          if ( tree () . left ( N ) == end ) { 
-            if ( tree () . right ( N ) == end ) {
+          if ( children . top () . first == end ) { 
+            if ( children . top () . second == end ) {
               // Here's what we are looking for.
               GridElement ge = * TreeToGrid ( N );
-              if ( redundancy_check . count ( ge ) == 0 ) {
+              //if ( redundancy_check . count ( ge ) == 0 ) {
                 results . push_back ( ge ); // OUTPUT
                 //std::cout << "output " << ge << "\n";
-                redundancy_check . insert ( ge );
-              }
+                //redundancy_check . insert ( ge );
+              //}
               //std::cout << "cover -- " << ge << "\n";
               // Issue the order to rise.
               //std::cout << "Issue rise.\n";
@@ -598,6 +616,7 @@ TreeGrid::coverAccept ( const RectGeo & visitor ) const  {
           }
         } else {
           // No intersection, issue order to rise.
+          children . push ( std::make_pair ( 0, 0 ) ); // dummy to be popped
           //std::cout << "No intersection. \n";
           //std::cout << "Issue Rise.\n";
           state = 3;
@@ -612,7 +631,8 @@ TreeGrid::coverAccept ( const RectGeo & visitor ) const  {
         //std::cout << "Descend left.\n";
         int div_dim = depth % dimension ();
         NUB[div_dim] -= ( (NUB[div_dim]-NLB[div_dim]) >> 1 );
-        N = tree () . left ( N ) ;
+        parent . push ( N );
+        N = children . top () . first; //tree () . left ( N ) ;
         state = 0;
         continue;
       } // state 1
@@ -625,7 +645,8 @@ TreeGrid::coverAccept ( const RectGeo & visitor ) const  {
         //std::cout << "Descend right.\n";
         int div_dim = depth % dimension ();
         NLB[div_dim] += ( (NUB[div_dim]-NLB[div_dim]) >> 1 );
-        N = tree () . right ( N ) ;
+        parent . push ( N );
+        N = children . top () . second; //tree () . right ( N ) ;
         state = 0;
         continue;
       } // state 2
@@ -636,18 +657,21 @@ TreeGrid::coverAccept ( const RectGeo & visitor ) const  {
         //std::cout << "Depth = " << depth << " \n";
         //std::cout << " N = " << *N << "\n";
         //std::cout << "Rise.\n";
-        Tree::iterator P = tree () . parent ( N );
+        Tree::iterator P = parent . top (); //tree () . parent ( N );
+        parent . pop ();
+        children . pop ();
         // Can't rise if root.
         if ( P == end ) break; // algorithm complete
+
         -- depth;
         int div_dim = depth % dimension ();
-        if ( tree () . left ( P )  == N ) {
+        if ( children . top () . first == N ) { //tree () . left ( P )  == N ) {
           // This is a left child.
           //std::cout << "We are rising from left.\n";
           NUB[div_dim] += NUB[div_dim]-NLB[div_dim];
           // If we rise from the left child, we order parent to go right.
           // Unless there is no right child.
-          if ( tree () . right ( P ) == end ) state = 3;
+          if ( children . top () . second == end ) state = 3; //tree () . right ( P ) == end ) state = 3;
           else state = 2;
         } else {
           // This is the right child.
@@ -662,6 +686,18 @@ TreeGrid::coverAccept ( const RectGeo & visitor ) const  {
     } // while loop
   }
   //std::cout << "Returning from cover.\n";
+
+  if ( periodic_flag ) {
+    // Remove duplicates if necessary. (This is possible only
+    // with periodicity)
+    std::vector<Grid::GridElement> sorted_results;
+    std::swap ( sorted_results, results );
+    std::sort ( sorted_results . begin (), 
+                sorted_results . end () );
+    std::unique_copy ( sorted_results . begin (), 
+                       sorted_results . end (),
+                       std::back_inserter(results) );
+  }
   return results;
 } // cover
 
@@ -684,7 +720,7 @@ TreeGrid::coverAccept ( const PrismGeo & visitor ) const {
    convert the input to these standard coordinates, which we put into integers. */
   
   // Step 1. Convert input to standard coordinates.
-  
+#undef INTPHASEWIDTH
 #define INTPHASEWIDTH (((uint64_t)1) << 60)
   
   // Step 2. Perform DFS on the Grid tree, recursing whenever we have intersection,
