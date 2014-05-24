@@ -60,22 +60,22 @@ public:
    * 
    * @param i
    * @return the rank of the bit sequence at a given position. 
-   * Here the rank is defined as the number of 1's on [0,i]  
+   * Here the rank is defined as the number of 1's on [0,i-1]  
    */
-  // by default rank_ . rank ( i ) will return # 1's on [0,i-1]
-  // so we modify it to return # 1's on [0,i]
 
   size_type rank ( size_type i ) const {
-    return rank_ . rank ( i + 1 );
+    return rank_ . rank ( i );
   }
 
   /**
    * 
    * @param i
    * @return the position of the i-th 1 in the bit sequence
+   * We let indexing start at 0, i.e. select(0) gives the position
+   * of the first 1 in the bit sequence.
    */
   size_type select ( size_type i ) const {
-    return select_ . select ( i );
+    return select_ . select ( i + 1 );
   }
 
   /**

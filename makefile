@@ -8,10 +8,6 @@ COMPUTE_CONLEY_INDEX := yes
 # Optional Libraries: CAPD Library, SDSL Library
 USE_CAPD := no
 USE_SDSL := yes
-# Parameter grid options: EdgeGrid UniformGrid PointerGrid SuccinctGrid
-PARAMETER_GRID := UniformGrid
-# Phase grid options: PointerGrid SuccinctGrid
-PHASE_GRID := PointerGrid
 # Monotonic subdivision property: set to yes
 # if map satisfied F(A) < F(B) whenever A < B
 # and better partial orders can be obtained
@@ -24,8 +20,6 @@ USE_BOOST_INTERVAL := yes
 endif 
 #
 include makefile.config
-CXXFLAGS += -DPARAMETER_GRID=$(PARAMETER_GRID) 
-CXXFLAGS += -DPHASE_GRID=$(PHASE_GRID)
 
 ifeq ($(USE_SDSL),yes)
 	CXXFLAGS += -DUSE_SDSL

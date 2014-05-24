@@ -42,19 +42,13 @@
 /* Subdivision Settings  */
 /*************************/
 
-//#undef GRIDCHOICE
-#undef PHASE_GRID
 #include <boost/serialization/export.hpp>
-
-#ifdef USE_SUCCINCT
-#define PHASE_GRID SuccinctGrid
+#ifdef USE_SDSL
 #include "database/structures/SuccinctGrid.h"
 BOOST_CLASS_EXPORT_IMPLEMENT(SuccinctGrid);
-#else
-#define PHASE_GRID PointerGrid
+#endif
 #include "database/structures/PointerGrid.h"
 BOOST_CLASS_EXPORT_IMPLEMENT(PointerGrid);
-#endif
 
 
 /*************************/
@@ -84,7 +78,7 @@ void computeMorseGraph ( MorseGraph & morsegraph,
                         const int SINGLECMG_COMPLEXITY_LIMIT,
                         const char * outputfile ) {
 #ifdef CMG_VERBOSE
-  std::cout << "computeMorseGraph.\n";
+  std::cout << "SingleCMG: computeMorseGraph.\n";
 #endif
   boost::shared_ptr < Grid > phase_space = morsegraph . phaseSpace ();
   Compute_Morse_Graph ( & morsegraph,
@@ -106,7 +100,7 @@ void computeConleyMorseGraph ( MorseGraph & morsegraph,
                               boost::shared_ptr<const Map> map,
                               const char * outputfile,
                               const char * inputfile ) {
-  std::cout << "computeConleyMorseGraph.\n";
+  std::cout << "SingleCMG: computeConleyMorseGraph.\n";
   if ( inputfile != NULL ) {
     morsegraph . load ( inputfile );
   }

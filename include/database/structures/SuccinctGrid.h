@@ -110,14 +110,14 @@ inline SuccinctGrid::~SuccinctGrid ( void ) {
 
 inline Grid::iterator SuccinctGrid::TreeToGrid ( Tree::iterator it_tree ) const {
   if ( tree_ . isleaf ( it_tree ) ) {
-    return leaves_rs_ . rank ( *it_tree ) - 1;
+    return leaves_rs_ . rank ( *it_tree );
   } else {
     return size_;
   }
 }
 
 inline Tree::iterator SuccinctGrid::GridToTree ( iterator it ) const {
-  return leaves_rs_ . select ( *it + 1 );
+  return leaves_rs_ . select ( *it );
 }
 
 inline const SuccinctTree & SuccinctGrid::tree ( void ) const {
