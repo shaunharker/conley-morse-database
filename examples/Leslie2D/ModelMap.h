@@ -35,6 +35,7 @@ struct ModelMap : public Map {
   RectGeo operator () 
     ( const RectGeo & rectangle ) const {    
     /* Read input */
+    //std::cout << "ModelMap::operator(). rectangle = " << rectangle << "\n";
     interval x0 = interval (rectangle . lower_bounds [ 0 ], 
                             rectangle . upper_bounds [ 0 ]);
     interval x1 = interval (rectangle . lower_bounds [ 1 ], 

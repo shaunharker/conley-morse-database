@@ -38,25 +38,35 @@ public:
   virtual iterator right ( iterator it ) const = 0;
   
   // Query methods
-  virtual bool isleft ( iterator it ) const = 0;
-  virtual bool isright ( iterator it ) const = 0;
-  virtual bool isleaf ( iterator it ) const = 0;
+  virtual bool isLeft ( iterator it ) const = 0;
+  virtual bool isRight ( iterator it ) const = 0;
+  virtual bool isLeaf ( iterator it ) const = 0;
   size_type depth ( iterator it ) const;
  
   // Builder Methods
-  virtual void subdivide ( void ) = 0;
-  //virtual void adjoin ( const Tree & other ) = 0;
-  virtual Tree * subtree ( const std::deque < Tree::iterator > & leaves ) const = 0;
-  virtual void assign ( const CompressedTree & compressed ) = 0;
+  //virtual void subdivide ( void ) = 0;
+  virtual CompressedTree * subtree ( const std::deque < Tree::iterator > & leaves ) const;
+  virtual void assign ( boost::shared_ptr<const CompressedTree> compressed ) = 0;
 
+
+/** Tree::join
+ *     InputIterator should be passed as begin() and end() of a container
+ *     of pointers to Trees. (Either raw pointers or smart pointers will work.)
+ *     The result is the CompressedTree object of the join of all trees.
+ *     The join is defined to be the smallest binary tree for which each of the 
+ *     input trees is a subtree. 
+ *     There is some complexity here due to the valid_sequence complication.
+ *     Since CompressedTree represents a binary tree via the "leaf_sequence" of
+ *     a full binary tree and a valid_sequence over the leaves, what we need to do
+ *     is create the full binary tree that is the join of the "joinands", and
+ *     each leaf will be valid if it is valid for at least one of the joinands.
+ */
   template < class InputIterator >
   static CompressedTree * join ( InputIterator start, InputIterator stop );
   
   // Test and Debug
   virtual uint64_t memory ( void ) const = 0;
-  virtual void debug ( void ) const = 0;
   
-
 protected:
   uint64_t size_;
   
@@ -96,35 +106,117 @@ inline Tree::size_type Tree::depth ( iterator it ) const {
   return result;
 }
 
-/** Tree::join
- *     InputIterator should be passed as begin() and end() of a container
- *     of pointers to Trees. (Either raw pointers or smart pointers will work.)
- *     The result is the balanced parantheses list of the join of all trees.
- *     The join is defined to be the smallest binary tree for which each of the 
- *     input trees is a subtree.
- */
-template < class InputIterator >
-CompressedTree * Tree::join ( InputIterator start, InputIterator stop ) {
-  typedef typename InputIterator::value_type TreePtr;
+
+inline CompressedTree * 
+Tree::subtree ( const std::deque < iterator > & leaves ) const {
+
+  const bool LEAF = false;
+  const bool NOT_A_LEAF = true;
+  const bool NOT_VALID = false;
+  const bool VALID = true;
 
   CompressedTree * result = new CompressedTree;
-  std::vector<bool> & balanced_parentheses = result -> balanced_parentheses;
-  std::vector<bool> & valid_tree_nodes = result -> valid_tree_nodes;
+  CompressedTree & new_tree = * result;
+  std::vector < bool > & new_leaf_sequence
+    = new_tree . leaf_sequence;
+  std::vector < bool > & new_valid_sequence
+    = new_tree . valid_sequence;
+
+  if ( leaves . empty () ) {
+    new_leaf_sequence . push_back ( LEAF );
+    new_valid_sequence . push_back ( NOT_VALID );
+    return result;
+  }
+  
+  // Mark the subtree
+  std::vector < bool > visited ( size (), false );
+  visited [ 0 ] = true;
+  BOOST_FOREACH ( iterator leaf, leaves ) {
+    iterator it = leaf;
+    while ( visited [ * it ] == false ) {
+      visited [ * it ] = true;
+      it = parent ( it );
+    }
+  }
+ 
+  // Now walk through visited nodes and write leaf_sequence and valid_sequence 
+  // Possible optimization of following not yet implemented:
+  //  We could avoid calling "left" and "right" fewer times on the second visit
+  //  by encoding whether the children exist in the "visit" variable on the work stack
+
+
+  iterator end_it = end ();
+  std::stack < std::pair<iterator, int> > work_stack;
+  work_stack . push ( std::make_pair(begin (), 0 ) );
+  while ( not work_stack . empty () ) {
+    iterator it = work_stack . top () . first;
+    int visit = work_stack . top () . second;
+    work_stack . pop ();
+    
+    iterator left_it = left ( it );
+    bool left_branch;
+    if ( left_it == end_it ) left_branch = false;
+    else left_branch = visited [ * left_it ];
+    
+    iterator right_it = right ( it );
+    bool right_branch;
+    if ( right_it == end_it ) right_branch = false;
+    else right_branch = visited [ * right_it ];
+    
+    if ( visit == 0 ) {
+      if ( left_branch || right_branch ) {
+        new_leaf_sequence . push_back ( NOT_A_LEAF );
+        work_stack . push ( std::make_pair ( it, 1 ) );
+      } else {
+        new_leaf_sequence . push_back ( LEAF );
+        new_valid_sequence . push_back ( VALID );
+      }
+      if ( left_branch ) {
+        work_stack . push ( std::make_pair ( left_it, 0 ) );
+        continue;
+      } else {
+        if ( right_branch ) {
+          new_leaf_sequence . push_back ( LEAF );
+          new_valid_sequence . push_back ( NOT_VALID );
+        }
+      }
+    }
+    if ( visit == 1 ) {
+      if ( right_branch ) {
+          work_stack . push ( std::make_pair ( right_it, 0 ) );
+      } else {
+        if ( left_branch ) {
+          new_leaf_sequence . push_back ( LEAF );
+          new_valid_sequence . push_back ( NOT_VALID );
+        }
+      }
+    }
+  }
+  return result;
+}
+
+template < class InputIterator >
+CompressedTree * Tree::join ( InputIterator start, InputIterator stop ) {
+  typedef Tree * TreePtr;
+  typedef boost::shared_ptr<CompressedTree> CompressedTreePtr;
+
+  CompressedTree * result = new CompressedTree;
+  std::vector<bool> & leaf_sequence = result -> leaf_sequence;
+  std::vector<bool> & valid_sequence = result -> valid_sequence;
   
   bool trivial_case = true; // All trees are empty.
   for ( InputIterator it = start; it != stop; ++ it ) {
-    if ( (*it) -> size () != 0 ) trivial_case = false;
+    if ( it -> second -> leafCount () != 0 ) trivial_case = false;
   }
   if ( trivial_case ) {
-    balanced_parentheses.push_back ( true  );
-    valid_tree_nodes.push_back ( false );
-    balanced_parentheses.push_back ( false );
+    leaf_sequence . push_back ( false );
+    valid_sequence . push_back ( false );
     return result;
   }
   //std::cout << "(1";
 
-  balanced_parentheses.push_back ( true );
-  valid_tree_nodes.push_back ( true );
+  leaf_sequence . push_back ( true );
+  valid_sequence . push_back ( true );
   typedef Tree::iterator iterator;
   
   // How this works:
@@ -143,14 +235,29 @@ CompressedTree * Tree::join ( InputIterator start, InputIterator stop ) {
   // As we traverse through the join of trees, we maintain a data structure
   // which tells us the maximum depth a tree has a node on the current path to root
   std::vector< boost::unordered_set < uint64_t > > trees_by_depth ( 1 );
+  std::vector< CompressedTreePtr > compressed_trees;
+  std::vector< int64_t > leaf_seq_positions;
+  std::vector< int64_t > valid_seq_positions;
+  std::stack<uint64_t> path_to_root;
+
+  uint64_t current = 0;
 
   for ( InputIterator it = start; it != stop; ++ it ) {
-    if ( (*it) -> size () == 0 ) continue;
+    std::pair<TreePtr,CompressedTreePtr> tree_compressed_pair = *it;
+
+    if ( tree_compressed_pair . second -> leafCount () == 0 ) continue;
     trees_by_depth [ 0 ] . insert ( trees . size () );
-    trees . push_back ( *it );
-    iterators . push_back ( (*it) -> begin () );
+    trees . push_back ( tree_compressed_pair . first );
+    iterators . push_back ( tree_compressed_pair . first -> begin () );
+    compressed_trees . push_back ( tree_compressed_pair . second );
+    leaf_seq_positions . push_back ( 0 );
+    valid_seq_positions . push_back ( -1 );
   }
 
+  const bool LEAF = false;
+  const bool NOT_A_LEAF = true;
+  const bool VALID = true;
+  const bool NOT_VALID = false;
   int64_t depth = 0;
   int state = 0;  
   while ( 1 ) {
@@ -168,6 +275,7 @@ CompressedTree * Tree::join ( InputIterator start, InputIterator stop ) {
         {
           iterator left = tree . left ( iterators[i] );
           if ( left == end ) break;
+          ++ leaf_seq_positions [ i ];
           iterators[i] = left;
           newdepth = depth + 1;
           success = true;
@@ -176,7 +284,14 @@ CompressedTree * Tree::join ( InputIterator start, InputIterator stop ) {
         case 1: // Try to go right
         {
           iterator right = tree . right ( iterators[i] );
-          if ( right == end ) break;
+          if ( right == end ) { 
+            if ( compressed_trees [ i ] -> 
+                leaf_sequence [ leaf_seq_positions [ i ] ] == LEAF ) {
+              ++ valid_seq_positions [ i ];
+            }
+            break;
+          }
+          ++ leaf_seq_positions [ i ];
           iterators[i] = right;
           newdepth = depth + 1;
           success = true;
@@ -184,7 +299,7 @@ CompressedTree * Tree::join ( InputIterator start, InputIterator stop ) {
         }
         case 2: // Rise
         {
-          if ( tree . isright ( iterators[i] ) ) success = true;
+          if ( tree . isRight ( iterators[i] ) ) success = true;
           iterators[i] = tree . parent ( iterators[i] );
           newdepth = depth - 1;
           break;
@@ -199,14 +314,13 @@ CompressedTree * Tree::join ( InputIterator start, InputIterator stop ) {
       }
     }
     
-    //std::cout << "Position 3. depth = " << depth << " and state = " << state << "\n";
-    //std::cout << ( success ? "success" : "failure" );
     switch ( state ) {
       case 0: // Tried to go left
         if ( success ) {
-          balanced_parentheses . push_back ( true );
-          valid_tree_nodes . push_back ( true );
-          //std::cout << "(1";
+          path_to_root . push ( current );
+          current = leaf_sequence . size ();
+          leaf_sequence . push_back ( NOT_A_LEAF ); // Start as not leaf (can change later)
+          //valid_sequence . push_back ( true );
           // Success. Try to go left again.
           state = 0;
           ++ depth;
@@ -217,28 +331,42 @@ CompressedTree * Tree::join ( InputIterator start, InputIterator stop ) {
         break;
       case 1: // Tried to go right
         if ( success ) {
+          path_to_root . push ( current );
           // Check if left branch exists
-          if ( balanced_parentheses . back () ) {
+          if ( current == leaf_sequence . size () - 1 ) {
             // It doesn't. Make a fake leaf as placeholder.
-            valid_tree_nodes . push_back ( false );
-            balanced_parentheses . push_back ( true );
-            balanced_parentheses . push_back ( false );
-            //std::cout << "(0)";
-          }
-          balanced_parentheses . push_back ( true );
-          valid_tree_nodes . push_back ( true );
-          //std::cout << "(1";
-          // Sucess. Try to go left now.
+            leaf_sequence . push_back ( LEAF );
+            valid_sequence . push_back ( NOT_VALID );
+          } 
+          current = leaf_sequence . size ();
+          leaf_sequence . push_back ( NOT_A_LEAF );
+          //valid_sequence . push_back ( true );
+          // Success. Try to go left now.
           state = 0;
           ++ depth;
         } else {
           // Check if left branch exists
-          if ( not balanced_parentheses . back () ) {
+          if ( current != leaf_sequence . size () - 1 ) {
             // It does. So make a fake leaf as placeholder for missing right.
-            balanced_parentheses . push_back ( true );
-            balanced_parentheses . push_back ( false );
-            valid_tree_nodes . push_back ( false ); // right node not valid
-            //std::cout << "(0)";
+            leaf_sequence . push_back ( LEAF );
+            valid_sequence . push_back ( NOT_VALID );
+          } else {
+            // This is a leaf.
+            // We must determine if it is valid.
+            // Recharacterize it as a leaf
+            leaf_sequence . back () = LEAF;
+            // Advance one through valid_sequence of all current trees
+            // and OR the results. (the leaf is valid if it is valid in
+            // at least one of the joinands )
+            bool is_valid = NOT_VALID;
+            BOOST_FOREACH ( uint64_t i, current_trees ) {
+              if ( compressed_trees [ i ] -> 
+                   valid_sequence [ valid_seq_positions [ i ] ] ) {
+                is_valid = VALID;
+                break;
+              }
+            }
+            valid_sequence . push_back ( is_valid );
           }
           // Failure. Rise.
           state = 2;
@@ -246,7 +374,8 @@ CompressedTree * Tree::join ( InputIterator start, InputIterator stop ) {
         break;
       case 2: // Rose
         -- depth;
-        balanced_parentheses . push_back ( false );
+        current = path_to_root . top ();
+        path_to_root . pop ();
         //std::cout << ")";
         if ( success ) {
           // Rose from right, continue to rise
@@ -256,14 +385,8 @@ CompressedTree * Tree::join ( InputIterator start, InputIterator stop ) {
           state = 1;
         }
         break;
-    }
-    
+    } 
   }
-  balanced_parentheses.push_back ( false );
-  //std::cout << ")\n\n";
-  //std::cout << balanced_parentheses . size () << "\n";
-  //std::cout << valid_tree_nodes . size () << "\n";
-
   return result;
 }
 

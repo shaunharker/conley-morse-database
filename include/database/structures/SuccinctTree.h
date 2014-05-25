@@ -1,385 +1,331 @@
 #ifndef CMDB_SUCCINCTTREE_H
 #define CMDB_SUCCINCTTREE_H
-
-#include <vector>
-#include <deque>
-
-#include "database/structures/Tree.h"
-#include "database/structures/SDSLFullBinaryTree.h"
-#include "database/structures/RankSelect.h"
-
-
+//#define SDSL_DEBUG_BP
+/// @file SuccinctTree.h
+/// @author Arnaud Goullet, Shaun Harker
+/// @description This file defines class SuccinctTree which 
+/// provides an implementation of a full binary tree using SDSL.
+#include <exception>
+#include "boost/foreach.hpp"
+#include "boost/shared_ptr.hpp"
+#include "boost/iterator/counting_iterator.hpp"
+#include "boost/archive/text_oarchive.hpp"
+#include "boost/archive/text_iarchive.hpp"
 #include "boost/serialization/serialization.hpp"
 #include "boost/serialization/vector.hpp"
-#include "boost/serialization/export.hpp"
+#include "boost/serialization/version.hpp"
+#include "boost/serialization/split_member.hpp"
+#include "sdsl/bp_support.hpp"
+#include "sdsl/rank_support_v5.hpp"
+#include "sdsl/select_support_mcl.hpp"
+#include "sdsl/util.hpp"
+#include "database/structures/Tree.h"
 
-/**
- * @file
- * @author Arnaud Goullet, Shaun Harker
- * @version 1.0
- * 
- * @description
- * Implementation of a tree class using a succinct representation.
- * Any node in the tree may have at the most two children.
- * Standard operations and queries are provided. 
- */
-
+/// SuccinctTree
+///   Implements a full binary tree using SDSL
 class SuccinctTree : public Tree {
 public:
+  typedef boost::counting_iterator < uint64_t > iterator;
+  typedef iterator const_iterator;
+  typedef uint64_t value_type;
+  typedef uint64_t size_type;
 
-  // Construction and Initialization
+  /// SuccinctTree
+  ///   Default constructor. Creates root node with no children.
   SuccinctTree ( void );
-  virtual ~SuccinctTree ( void ) {}
+
+  /// assign
+  ///   Reset structure as if it had been constructed with leaf_sequence
+  virtual void assign ( boost::shared_ptr<const CompressedTree> compressed );
+
+  /// assignFromLeafSequence 
+  void assignFromLeafSequence ( const std::vector<bool> & leaf_sequence );
+
+  /// leafEnd
+  ///   Give the one-past-the-end leaf (i.e. return number of leaves)
+  uint64_t leafEnd ( void ) const;
+
+  /// TreeToLeaf
+  ///    Given a tree iterator, return a leaf iterator
+  uint64_t TreeToLeaf ( iterator it ) const;
+
+  /// LeafToTree
+  ///    Given a leaf iterator, return a tree iterator
+  iterator LeafToTree ( uint64_t leaf ) const;
+
+  /// parent
+  ///   @param it
+  ///   @return the iterator pointing to the parent node.
+  iterator parent ( iterator it ) const;
   
-  void initialize ( std::vector < bool > bp , std::vector < bool > valid );
+  /// left
+  ///   @param it
+  ///   @return the iterator pointing to the left child.
+  iterator left ( iterator it ) const;
+  
+  /// right
+  ///   @param it
+  ///   @return the iterator pointing to the right child.
+  iterator right ( iterator it ) const;
+  
+  /// isLeft
+  ///   @param it
+  ///   @return true if the iterator it is a left child.
+  bool isLeft ( iterator it ) const;
+
+  /// isRight
+  ///   @param it
+  ///   @return true if the iterator it is a right child.
+  bool isRight ( iterator it ) const;
+
+  /// isLeaf
+  ///    @param it
+  ///    @return true if the iterator it is a leaf.
+  bool isLeaf ( iterator it ) const;
  
-  // Iteration methods
-  virtual iterator parent ( iterator it ) const;
-  virtual iterator left ( iterator it ) const;
-  virtual iterator right ( iterator it ) const;
-  
-  // Query methods
-  virtual bool isleft ( iterator it ) const;
-  virtual bool isright ( iterator it ) const;
-  virtual bool isleaf ( iterator it ) const;
-  size_type depth ( iterator it ) const;
-  
-  // Builder Methods
-  virtual void subdivide ( void );
-  //virtual void adjoin ( const Tree & other );
-  virtual SuccinctTree * subtree ( const std::deque < Tree::iterator > & leaves ) const;
-  virtual void assign ( const CompressedTree & compressed );
-
-  virtual void debug ( void ) const;
-  
-  // Test and Debug
-  void export_graphviz ( const char * filename ) const;
-  void info ( void ) const;
-  void memory_usage ( void ) const;
+  /// memory 
+  ///   Return the memory usage of data structure in bytes
   uint64_t memory ( void ) const;
-  
-private:
-  // Private methods
-  SDSLFullBinaryTree::iterator ActualToFull ( iterator it ) const;
-  iterator FullToActual ( SDSLFullBinaryTree::iterator it ) const;
 
-  // Data
-  SDSLFullBinaryTree fulltree_;
-  RankSelect valid_rs_;
-  
-  // Serialization
+  /// leafSequence 
+  ///   Return a reference to the underlying bit_vector
+  const sdsl::bit_vector & leafSequence ( void ) const;
+
+private:
+  sdsl::bit_vector leaf_sequence_;
+  sdsl::bp_support_sada < > tree_;
+  sdsl::rank_support_v5 <0> rank_;
+  sdsl::select_support_mcl <0> select_;
+  uint64_t last_;
+  uint64_t leaf_count_;
   friend class boost::serialization::access;
   template<class Archive>
-  void serialize ( Archive & ar , const unsigned int version ) {
-    ar & boost::serialization::base_object<Tree>(*this);
-    ar & fulltree_;
-    ar & valid_rs_;   
-  }
-    
+  void save ( Archive & ar , const unsigned int version ) const;
+  template<class Archive>
+  void load ( Archive & ar , const unsigned int version );
+  BOOST_SERIALIZATION_SPLIT_MEMBER ( );
 };
 
+#if 0
 BOOST_CLASS_EXPORT_KEY(SuccinctTree);
+#endif
 
-inline SuccinctTree::SuccinctTree ( void ) {
-  std::vector < bool > bp;
-  std::vector < bool > valid;
-  bp . push_back ( 1 );
-  bp . push_back ( 0 );
-  valid . push_back ( 1 );
-  initialize ( bp, valid );
+inline 
+SuccinctTree::SuccinctTree ( void ) {
+  // TODO: default constructor
 }
 
-/**
- * Initialize the tree from a binary tree given by its balanced parentheses
- * representation bp and the corresponding bit sequence of which nodes
- * are valid ('1') or not ('0') (ghost node).
- * @param bp
- * @param valid
- */
-inline void SuccinctTree::initialize ( std::vector < bool > bp , std::vector < bool > valid ) {
-  SDSLFullBinaryTree fbt ( bp );
-  fulltree_ = fbt;
-  RankSelect rs ( valid );
-  valid_rs_ = rs;
-  // DEBUG BEGIN
-  //std::cout << "SuccinctTree::initialize. bp size = " << bp . size () << " valid size = " << valid . size () << "\n";
-  //std::cout << "SuccinctTree::initialize. fulltree_ . size () = " << fulltree_ . size () << "\n";
-  // DEBUG END
-  size_ = valid_rs_ . rank ( fulltree_ . size ( ) );
-  // DEBUG BEGIN
-  //std::cout << "SuccinctTree::initialize. size_ = " << size_ << "\n";
-  // DEBUG END
+inline void 
+SuccinctTree::assign ( boost::shared_ptr<const CompressedTree> compressed ) {
+  const std::vector < bool > & leaf_sequence = compressed -> leaf_sequence;
+  assignFromLeafSequence ( leaf_sequence );
 }
 
-inline SuccinctTree::iterator SuccinctTree::parent ( iterator it ) const {
-  SDSLFullBinaryTree::iterator full_it = ActualToFull ( it );
-  full_it = fulltree_ . parent ( full_it );
-  return FullToActual ( full_it );
-}
+inline void 
+SuccinctTree::assignFromLeafSequence ( const std::vector<bool> & leaf_sequence ) {
+  leaf_count_ = 1; // Count the leaf we truncate.
+  size_ = leaf_sequence . size ();
+  leaf_sequence_ . resize ( leaf_sequence . size () - 1 );
+  for ( size_t i = 0; i < leaf_sequence_ . size (); ++ i ) {
+    leaf_sequence_ [ i ] = (leaf_sequence [ i ] ? 1 : 0 );
+    if ( leaf_sequence [ i ] ) ++ leaf_count_;
+  }
+  tree_ = sdsl::bp_support_sada <> ( & leaf_sequence_ );
+  last_ = leaf_sequence_ . size ();
+  // Note: last_ is the position of the (leaf_count_-1)th leaf 
+  //       where leaf indexing begins at 0. (thus last leaf)
+  //       However we cannot access leaf_sequence_ [last_] so
+  //       we need to treat it as a special case below.
+  //       Note that last_ == size_ - 1
+  rank_ . init ( &leaf_sequence_ );
+  select_ . init ( &leaf_sequence_ );
 
-inline SuccinctTree::iterator SuccinctTree::left ( iterator it ) const {
-  SDSLFullBinaryTree::iterator full_it = ActualToFull ( it );
-  full_it = fulltree_ . left ( full_it );
-  return FullToActual ( full_it );
-}
+#if 0
+  // BEGIN DEBUG
 
-inline SuccinctTree::iterator SuccinctTree::right ( iterator it ) const {
-  SDSLFullBinaryTree::iterator full_it = ActualToFull ( it );
-  full_it = fulltree_ . right ( full_it );
-  return FullToActual ( full_it );
-}
+  for ( uint64_t i = 0; i < leaf_sequence.size (); ++ i ) {
+    std::cout << (leaf_sequence [ i ] ? "1":"0");
+  }
+  std::cout << "\n";
 
-inline bool SuccinctTree::isleft ( iterator it ) const {
-  return fulltree_ . isleft ( ActualToFull ( it ) );
-}
+  std::cout << "SuccinctTree::assignFromLeafSequence. last_ = " << last_ << "\n";
+  std::cout << "SuccinctTree::assignFromLeafSequence. size_ = " << size_ << "\n";
+  std::cout << "SuccinctTree::assignFromLeafSequence. leaf_count_ = " << leaf_count_ << "\n";
+  std::cout << "SuccinctTree::assignFromLeafSequence. leaf_sequence_ = " << leaf_sequence_ . size () << "\n";
 
-inline bool SuccinctTree::isright ( iterator it ) const {
-  return fulltree_ . isright ( ActualToFull ( it ) );
-}
+  std::cout << "SuccinctTree::assignFromLeafSequence. Beginning basic sanity test\n";
+  boost::unordered_set<uint64_t> left_children;
+  boost::unordered_set<uint64_t> right_children;
+  boost::unordered_set<uint64_t> parents;
 
-inline bool SuccinctTree::isleaf ( iterator it ) const {
-  //std::cout << "isleaf(" << *it << ") = fulltree.isleaf(" << * ActualToFull ( it ) << ") = ... \n";
-  return fulltree_ . isleaf ( ActualToFull ( it ) );
-}
+  if ( leaf_sequence [ 0 ] == 0 ) {
+    std::cout << "The root is a leaf.\n";
+  }
+  int64_t excess = 0;
+  for ( uint64_t i = 0; i < leaf_sequence_.size (); ++ i ) {
+    if ( leaf_sequence_ [ i ] == 1 ) ++ excess;
+    else -- excess;
+    //std::cout << excess << "\n";
+  }
 
-inline void SuccinctTree::subdivide ( void ) {
-
-  //std::cout << "Presubdivision:\n";
-  //debug ();
-  
-  // Method : we construct the new balance parentheses sequence
-  //            and rebuild the rank/select structures once at the end
-  // Issue : need a copy of the balance parentheses and valid sequences
-  //         since currently, we don't have access to their element
-
-  std::vector < bool > oldbp , newbp;
-  std::vector < bool > oldvalid , newvalid;
-
-  oldbp = fulltree_ . bp_sequence ();
-  oldvalid = valid_rs_ . bits_sequence ();
-
-  size_type oldsize;
-  oldsize = fulltree_ . size ();
-
-  size_type indexbp , indexvalid;
-
-  indexbp = 0;
-  indexvalid = 0;
-  while ( indexbp < 2 * oldsize - 1 ) {
-    // if we encounter a leaf
-    if ( oldbp [ indexbp ] == 1 && oldbp [ indexbp + 1 ] == 0 ) {
-      // and the leaf is valid then subdivide it
-      if ( oldvalid [ indexvalid ] ) {
-        // subdivide a leaf, add the sequence 1 10 10 0
-        newbp . push_back ( 1 );
-        newbp . push_back ( 1 );
-        newbp . push_back ( 0 );
-        newbp . push_back ( 1 );
-        newbp . push_back ( 0 );
-        newbp . push_back ( 0 );
-        newvalid . push_back ( 1 );
-        newvalid . push_back ( 1 );
-        newvalid . push_back ( 1 );
-        indexbp += 2;
-        ++ indexvalid;
-      } else { // if the leaf is not valid, keep it non valid and don't subdivide
-        newbp . push_back ( 1 );
-        newbp . push_back ( 0 );
-        newvalid . push_back ( oldvalid [ indexvalid ] );
-        indexbp += 2;
-        ++ indexvalid;
-      }
-    } else { // we do not encounter a leaf
-      newbp . push_back ( oldbp [ indexbp ] );
-      if ( oldbp [ indexbp ] ) {
-        newvalid . push_back ( oldvalid [ indexvalid ] );
-        ++ indexvalid;
-      }
-      ++ indexbp;
+  for ( uint64_t i = 0; i < leaf_sequence_.size (); ++ i ) {
+    if ( leaf_sequence_ [ i ] == 0 ) continue;
+    std::cout << "tree_.find_close(" << i << ") = " <<
+                    tree_.find_close(i) << "   ";
+    // brute force calculation.
+    int64_t brute = 0;
+    uint64_t j = i;
+    for ( ; j < leaf_sequence_.size (); ++ j) {
+      if ( leaf_sequence_ [ j ] == 1 ) ++ brute;
+      else -- brute;
+      if ( brute == 0 ) break;
     }
-  }
-  newbp . push_back ( 0 ); // To close the root node
-
-  fulltree_ = SDSLFullBinaryTree ( newbp );
-  valid_rs_ = RankSelect ( newvalid );
-  size_ = valid_rs_ . rank ( newvalid . size () );
-  //std::cout << "Postsubdivision:\n";
-  //debug ();
-}
-
-inline SuccinctTree * SuccinctTree::subtree ( const std::deque < iterator > & leaves ) const {
-
-  std::vector < bool > bp;
-  std::vector < bool > valid;
-
-  if ( leaves . empty () ) {
-    SuccinctTree * result = new SuccinctTree;
-    bp . push_back ( 1 );
-    valid . push_back ( 0 );
-    bp . push_back ( 0 );
-    result -> initialize ( bp , valid );
-    return result;
+    std::cout << "brute force: find_close(" << i << ") = " << j << "\n";
   }
 
-  
-  std::vector < bool > visited ( size (), false );
-  visited [ 0 ] = true;
-  BOOST_FOREACH ( iterator leaf, leaves ) {
-    iterator it = leaf;
-    while ( visited [ * it ] == false ) {
-      visited [ * it ] = true;
-      it = parent ( it );
+  for ( uint64_t i = 0; i < leaf_sequence_.size (); ++ i ) {
+    if ( leaf_sequence_ [ i ] == 1 ) continue;
+    std::cout << "tree_.find_open(" << i << ") = " <<
+                    tree_.find_open(i) << "\n";
+  }
+  for ( uint64_t i = 0; i < size (); ++ i ) {
+    iterator it ( i );
+    if ( left ( it ) != end () ) left_children . insert ( * left(it) );
+
+    if ( right ( it ) != end () ) {
+      if ( right_children . count ( * right(it) ) ) {
+        std::cout << *it << " -?-R-?-> " <<  * right ( it ) << "\n";
+        std::cout << "tree_.find_close(" << *it << ") = " <<
+                    tree_.find_close(*it) << "\n";
+        std::cout << "leaf_sequence_[" << *it << "] = " <<
+                    leaf_sequence_[*it] << "\n";
+        //throw std::logic_error("Found the same right child twice!\n");
+      }
+      right_children . insert ( * right(it) );
     }
-  }
- 
-  // Now walk through visited nodes and write bp and valid
-
-  
-  iterator end_it = end ();
-  std::stack < std::pair<iterator, int> > work_stack;
-  work_stack . push ( std::make_pair(begin (), 0 ) );
-  while ( not work_stack . empty () ) {
-    iterator it = work_stack . top () . first;
-    int visit = work_stack . top () . second;
-    work_stack . pop ();
+    if ( parent ( it ) != end () ) parents . insert ( * parent(it) );
     
-    iterator left_it = left ( it );
-    bool left_branch;
-    if ( left_it == end_it ) left_branch = false;
-    else left_branch = visited [ * left_it ];
-    
-    iterator right_it = right ( it );
-    bool right_branch;
-    if ( right_it == end_it ) right_branch = false;
-    else right_branch = visited [ * right_it ];
-    
-    if ( visit == 0 ) {
-      bp . push_back ( 1 );
-      valid . push_back ( 1 );
-      work_stack . push ( std::make_pair ( it, 1 ) );
+    if ( left(it) == it ) std::cout << "Left is wrong.\n";
+    if ( right(it) == it ) std::cout << "Right is wrong.\n";
+    if ( parent(it) == it ) std::cout << "Parent is wrong.\n";
 
-      if ( left_branch ) {
-        work_stack . push ( std::make_pair ( left_it, 0 ) );
-        continue;
-      } else {
-        if ( right_branch ) {
-          bp . push_back ( 1 );
-          valid . push_back ( 0 );
-          bp . push_back ( 0 );
-        }
-      }
-    }
 
-    if ( visit == 1 ) {
-      work_stack . push ( std::make_pair ( it, 2 ) );
-      if ( right_branch ) {
-          work_stack . push ( std::make_pair ( right_it, 0 ) );
-      } else {
-        if ( left_branch ) {
-          bp . push_back ( 1 );
-          valid . push_back ( 0 );
-          bp . push_back ( 0 );
-        }
-      }
+    if ( left ( it) != end() && parent(left(it)) != it ) {
+      std::logic_error ( " parent(left(it))!=it in succinct tree\n" );
     }
-    
-    if ( visit == 2 ) {
-      bp . push_back ( 0 );
+    if ( right ( it) != end() && parent(right(it)) != it ) {
+      std::logic_error ( " parent(right(it))!=it in succinct tree\n" );
+    }
+    if ( parent (it) != end() && right(parent(it))!=it && left(parent(it))!=it ) {
+      std::logic_error ( " neither of parent's children is self\n" );
+    }
+    if ( parent (it) != end() && right(parent(it))==left(parent(it)) ) {
+      std::logic_error ( " parent has identical children\n" );
     }
   }
-  
-  SuccinctTree * result = new SuccinctTree;
-  result -> initialize ( bp , valid );
-  return result;
-  
+  std::cout << "SuccinctTree::assignFromLeafSequence. Passed basic sanity test\n";
+  std::cout << "SuccinctTree::assignFromLeafSequence. left_children = " << left_children.size() << "\n";
+  std::cout << "SuccinctTree::assignFromLeafSequence. right_children = " << right_children.size() << "\n";
+  std::cout << "SuccinctTree::assignFromLeafSequence. parents = " << parents.size() << "\n";
+
+  // END DEBUG
+#endif
 }
 
-inline void SuccinctTree::assign ( const CompressedTree & compressed ) {
-  initialize ( compressed . balanced_parentheses, compressed . valid_tree_nodes );
+inline uint64_t 
+SuccinctTree::leafEnd ( void ) const {
+  return leaf_count_;
 }
 
-inline void SuccinctTree::debug ( void ) const {  
-  std::vector < bool > bp = fulltree_ . bp_sequence ( );
-  std::vector < bool > valid = valid_rs_ . bits_sequence ( );
-  
-  std::cout << "Balanced Parantheses Sequence:\n";
-  for ( size_t i = 0; i < bp . size (); ++ i ) std::cout << (bp[i]? '(' : ')');
-  std::cout << ".\n";
-  
-  std::cout << "Validity Sequence:\n";
-  size_t count = 0;
-  for ( size_t i = 0; i < valid . size (); ++ i ) {
-    std::cout << (valid[i]? 1 : 0);
-    if ( valid [ i ] ) ++ count;
+inline uint64_t 
+SuccinctTree::TreeToLeaf ( iterator it ) const {
+  uint64_t x = *it;
+  if ( x == last_ ) return leaf_count_ - 1;
+  if ( leaf_sequence_ [ x ] == 1 ) return leafEnd ();
+  return rank_ . rank ( x );
+}
+
+inline SuccinctTree::iterator 
+SuccinctTree::LeafToTree ( uint64_t leaf ) const {
+  if ( leaf == leaf_count_ - 1 ) return last_;
+  return iterator ( select_ . select ( leaf + 1 ) );
+}
+
+inline SuccinctTree::iterator 
+SuccinctTree::parent ( iterator it ) const {
+  uint64_t x = *it;
+  if ( x == 0 ) return end ();
+  if ( leaf_sequence_ [ x - 1 ] == 1 ) return iterator ( x - 1 );
+  return iterator ( tree_ . find_open ( x - 1 ) );
+}
+
+inline SuccinctTree::iterator 
+SuccinctTree::left ( iterator it ) const {
+  uint64_t x = *it;
+  if ( x == last_ || leaf_sequence_ [ x ] == 0 ) return end ();
+  return iterator ( x + 1 );
+}
+
+inline SuccinctTree::iterator 
+SuccinctTree::right ( iterator it ) const {
+  uint64_t x = *it;
+  if ( x == last_ || leaf_sequence_ [ x ] == 0 ) return end ();
+  return iterator ( tree_ . find_close ( x ) + 1 );
+}
+
+inline bool 
+SuccinctTree::isLeft ( iterator it ) const {
+  uint64_t x = *it;
+  if ( x == 0 ) return false;
+  if ( leaf_sequence_ [ x - 1 ] == 1 ) return true;
+  return false;
+}
+
+inline bool 
+SuccinctTree::isRight ( iterator it ) const {
+  uint64_t x = *it;
+  if ( x == 0 ) return false;
+  if ( leaf_sequence_ [ x - 1 ] == 1 ) return false;
+  return true;
+}
+
+inline bool 
+SuccinctTree::isLeaf ( iterator it ) const {
+  uint64_t x = *it;
+  if ( x == last_ || leaf_sequence_ [ x ] == 0 ) return true;
+  return false;
+}
+
+inline uint64_t 
+SuccinctTree::memory ( void ) const {
+  return sizeof ( SuccinctTree ) + 
+         sdsl::util::get_size_in_bytes ( leaf_sequence_ ) +
+         sdsl::util::get_size_in_bytes ( tree_ ) +
+         sdsl::util::get_size_in_bytes ( rank_ ) +
+         sdsl::util::get_size_in_bytes ( select_);
+}
+
+inline const sdsl::bit_vector & 
+SuccinctTree::leafSequence ( void ) const {
+  return leaf_sequence_;
+}
+
+template<class Archive>
+void SuccinctTree::save ( Archive & ar , const unsigned int version ) const {
+  ar & boost::serialization::base_object<Tree>(*this);
+  std::vector < bool > leaf_sequence ( size_ );
+  for ( size_t i = 0; i < leaf_sequence_ . size (); ++ i ) {
+    leaf_sequence [ i ] = leaf_sequence_ [ i ];
   }
-  std::cout << ".\n";
-  
-  std::cout << "Size of BP sequence = " << bp . size () << "\n";
-  std::cout << "Size of validity sequence = " << valid . size () << "\n";
-  std::cout << "Number of valid nodes = " << count << "\n";
+  ar & leaf_sequence;
 }
 
-
-// Private methods
-inline SDSLFullBinaryTree::iterator SuccinctTree::ActualToFull ( iterator it ) const {
-  return valid_rs_ . select ( *it );
-}
-
-inline Tree::iterator SuccinctTree::FullToActual ( SDSLFullBinaryTree::iterator it ) const {
-  if ( valid_rs_ . bits ( *it ) ) return valid_rs_ . rank ( * it );
-  else return end ( );
-}
-
-// Features
-
-/**
- * Export the Full Binary Tree to a file "filename" in the GraphViz format .
- * @param filename
- */
-inline void SuccinctTree::export_graphviz ( const char *filename ) const {
-  std::ofstream myfile;
-  myfile.open ( filename );
-  myfile << "digraph binarytree { " << std::endl;
-  if ( size_ == 1 ) {
-    myfile << "\"" << 0 << "\"->\""
-    << 0 << "\";" << "\n";
-  } else {
-    iterator it;
-    for ( it = begin ( ); it != end ( ); ++ it ) {
-      if ( *it != 0 ) {
-        if ( valid_rs_ . bits(*ActualToFull(it)) ) {
-          iterator it2;
-          it2 = parent ( it );
-          myfile << "\"" << * it2
-          << "\"->\""
-          << * it << "\";" << std::endl;
-        }
-      }
-    }
-  }
-  myfile << "}" << std::endl;
-  myfile.close ( );
-}
-
-/**
- * Display information and statistic regarding the balanced parentheses representation.
- */
-inline void SuccinctTree::info ( void ) const {
-  std::cout << "\n----------------------\n";
-  std::cout << "Tree size : " << size_ << "\n";
-  fulltree_ . display_bp ( );
-  std::cout << "Valid ";
-  valid_rs_ . info ( );
-}
-
-inline void SuccinctTree::memory_usage ( void ) const {
-  //
-  fulltree_ . memory_usage ( );
-  valid_rs_ . memory_usage ( );
-}
-
-inline uint64_t SuccinctTree::memory ( void ) const {
-  return fulltree_ . memory () + valid_rs_ . memory ();
+template<class Archive>
+void SuccinctTree::load ( Archive & ar , const unsigned int version ) {
+  ar & boost::serialization::base_object<Tree>(*this);
+  std::vector < bool > leaf_sequence;
+  ar & leaf_sequence;
+  assignFromLeafSequence ( leaf_sequence );
 }
 
 #endif

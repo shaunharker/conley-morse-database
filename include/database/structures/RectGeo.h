@@ -50,7 +50,8 @@ public:
   RectGeo ( void ) {};
   RectGeo ( unsigned int size ) { lower_bounds . resize ( size );
                                 upper_bounds . resize ( size ); }
-  unsigned int dimension ( void ) const {
+  unsigned int 
+  dimension ( void ) const {
     return lower_bounds . size ();
   }
   RectGeo ( unsigned int size, const Real & value ) 

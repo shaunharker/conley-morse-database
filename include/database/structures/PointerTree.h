@@ -10,9 +10,10 @@
 #include <vector>
 #include <deque>
 #include <stack>
+#include <utility>
 
 #include <boost/foreach.hpp>
-
+#include "boost/shared_ptr.hpp"
 #include "database/structures/Tree.h"
 #include "database/structures/CompressedTree.h"
 
@@ -64,15 +65,14 @@ public:
   virtual iterator right ( iterator it ) const;
   
   // Query methods
-  virtual bool isleft ( iterator it ) const;
-  virtual bool isright ( iterator it ) const;
-  virtual bool isleaf ( iterator it ) const;
+  virtual bool isLeft ( iterator it ) const;
+  virtual bool isRight ( iterator it ) const;
+  virtual bool isLeaf ( iterator it ) const;
   
   // Mutation Methods
-  virtual void subdivide ( void );
-  //virtual void adjoin ( const Tree & other );
-  virtual PointerTree * subtree ( const std::deque < Tree::iterator > & leaves ) const;
-  virtual void assign ( const CompressedTree & compressed );
+  //virtual void subdivide ( void );
+  //virtual PointerTree * subtree ( const std::deque < Tree::iterator > & leaves ) const;
+  virtual void assign ( boost::shared_ptr<const CompressedTree> compressed );
 
 private:
 
@@ -89,9 +89,9 @@ private:
 public:
   // Test and Debug
   virtual uint64_t memory ( void ) const {
-    return sizeof ( std::vector < PointerTreeNode * > ) +
-    sizeof ( PointerTreeNode * ) * nodes_ . size () +
-    sizeof ( PointerTreeNode ) * nodes_ . size ();
+    return sizeof ( PointerTree ) +
+           sizeof ( PointerTreeNode * ) * nodes_ . size () +
+           sizeof ( PointerTreeNode ) * nodes_ . size ();
   }
   void debug ( void ) const;
 };
@@ -134,26 +134,27 @@ inline Tree::iterator PointerTree::right ( iterator it ) const {
 }
 
 // Query methods
-inline bool PointerTree::isleft ( iterator it ) const {
+inline bool PointerTree::isLeft ( iterator it ) const {
   PointerTreeNode * node = nodes_ [ * it ];
   PointerTreeNode * parent = node -> parent_;
   if ( parent == NULL ) return false;
   return (parent -> left_ == node );
 }
 
-inline bool PointerTree::isright ( iterator it ) const {
+inline bool PointerTree::isRight ( iterator it ) const {
   PointerTreeNode * node = nodes_ [ * it ];
   PointerTreeNode * parent = node -> parent_;
   if ( parent == NULL ) return false;
   return (parent -> right_ == node );
 }
 
-inline bool PointerTree::isleaf ( iterator it ) const {
+inline bool PointerTree::isLeaf ( iterator it ) const {
   PointerTreeNode * node = nodes_ [ * it ];
   if ( ( node -> left_ == NULL ) && ( node -> right_ == NULL ) ) return true;
   return false;
 }
 
+#if 0
 
 inline void PointerTree::subdivide ( void ) {
   //std::cout << "PointerTree::subdivide\n";
@@ -176,51 +177,6 @@ inline void PointerTree::subdivide ( void ) {
   size_ = label;
   //debug ();
 }
-
-/*
-inline void PointerTree::adjoin ( const Tree & other ) {
-  // Do a tour of "other", forcing the creation of nodes in "this" to follow along
-  
-  // Strategy: stack containing pair of "other tree iterator, this tree iterator"
-  //           for corresponding points in tree
-  std::stack < std::pair<iterator, iterator> > work_stack;
-  work_stack . push ( std::make_pair ( begin (), other . begin () ) );
-  
-  // Store an iterator and its parent.
-  while ( not work_stack . empty () ) {
-    Tree::iterator other_it = work_stack . top () . first;
-    Tree::iterator this_it = work_stack . top () . second;
-    work_stack . pop ();
-    // Proceed down right branch.
-    Tree::iterator other_right_it = other . right ( other_it );
-    if ( other_right_it != other . end () ) {
-      if ( nodes_ [ *this_it ] -> right_ == NULL ) {
-        // Adjoint new node if needed
-        PointerTreeNode * node = new PointerTreeNode;
-        nodes_ [ *this_it ] -> right_ = node;
-        node -> parent_ = nodes_ [ *this_it ];
-        node -> contents_ = size_ ++;
-        nodes_ . push_back ( node );
-      }
-      work_stack . push ( std::make_pair ( other_right_it, right ( this_it ) ) );
-    }
-    // Proceed down left branch.
-    Tree::iterator other_left_it = other . left ( other_it );
-    if ( other_left_it != other . end () ) {
-      if ( nodes_ [ *this_it ] -> left_ == NULL ) {
-        // Adjoint new node if needed
-        PointerTreeNode * node = new PointerTreeNode;
-        nodes_ [ *this_it ] -> left_ = node;
-        node -> parent_ = nodes_ [ *this_it ];
-        node -> contents_ = size_ ++;
-        nodes_ . push_back ( node );
-      }
-      work_stack . push ( std::make_pair ( other_left_it, left ( this_it ) ) );
-    }
-  }
-  
-}
-*/
 
 inline PointerTree * PointerTree::subtree
 ( const std::deque < Tree::iterator > & leaves ) const {
@@ -304,62 +260,48 @@ inline PointerTree * PointerTree::subtree
   //result -> debug ();
   return result;
 }
+#endif
+inline void PointerTree::assign ( boost::shared_ptr<const CompressedTree> compressed ) {
+  const bool LEAF = false;
+  const bool NOT_A_LEAF = true;
 
-inline void PointerTree::assign ( const CompressedTree & compressed ) {
-  const std::vector<bool> & balanced_parentheses = compressed . balanced_parentheses;
-  const std::vector<bool> & valid_tree_nodes = compressed . valid_tree_nodes;
-  /*
-  std::cout << "--------DEBUG 1----------\n";
-  for ( size_t i = 0; i < balanced_parentheses . size (); ++ i )
-       std::cout << (balanced_parentheses[i]?'(':')');
-  for ( size_t i = 0; i < valid_tree_nodes . size (); ++ i )
-    std::cout << (valid_tree_nodes[i]?'1':'0');
-
-  std::cout << "-------------------------\n";
-  std::cout << balanced_parentheses . size () << "\n";
-  std::cout << valid_tree_nodes . size () << "\n";
-   */
-  // Erase existing tree.
+  const std::vector<bool> & leaf_sequence = compressed -> leaf_sequence;
+  const std::vector<bool> & valid_sequence = compressed -> valid_sequence;
+  size_t N = leaf_sequence . size ();
+  std::stack<std::pair<PointerTreeNode *, int> > path_to_root;
   for ( size_t i = 0; i < nodes_ . size (); ++ i ) delete nodes_[i];
   nodes_ . clear ();
   size_ = 0;
-  size_t N = balanced_parentheses . size ();
-  PointerTreeNode * sentinel = new PointerTreeNode;
-    
-  PointerTreeNode * node = sentinel;
-  // Consume list of parentheses.
-  size_t j = 0;  
+  PointerTreeNode * sentinel = new PointerTreeNode;  
+  path_to_root . push ( std::make_pair (sentinel, 0) );
+  int64_t last_encountered_leaf = -1;
   for ( size_t i = 0; i < N; ++ i ) {
-    if ( balanced_parentheses [ i ] ) {
-      // Go Down  std::cout << "(";
-      PointerTreeNode * child;
-      if ( valid_tree_nodes [ j ++ ] ) {
-        // Valid. std::cout << "1";
-        child = new PointerTreeNode;
-        child -> contents_ = size_ ++;
-        nodes_ . push_back ( child );
-      } else {
-        // Invalid. std::cout << "0";
-        child = sentinel;
-      }
-      if ( node -> left_ == NULL ) {
-        node -> left_ = child;
-      } else {
-        node -> right_ = child;
-      }
-      child -> parent_ = node;
-      node = child;
-    } else {
-      // Go Up std::cout << ")";
-      //std::cout << " (" << node -> contents_ << " -> " << node -> parent_ -> contents_ << ")\n";
-      if ( node -> left_ == sentinel ) node -> left_ = NULL;
-      if ( node -> right_ == sentinel ) node -> right_ = NULL;
-      node = node -> parent_;
+    while ( path_to_root . top () . second == 2 ) path_to_root . pop ();
+    PointerTreeNode * parent = path_to_root . top () . first;
+    int child_num = path_to_root . top () . second;
+    path_to_root . pop ();
+    path_to_root . push ( std::make_pair ( parent, child_num + 1 ) );
+    if ( leaf_sequence [ i ] == LEAF ) {
+      ++ last_encountered_leaf;
+      if ( not valid_sequence [ last_encountered_leaf ] ) continue;
     }
+    PointerTreeNode * node = new PointerTreeNode;
+    nodes_ . push_back ( node );
+    node -> parent_ = parent;
+    node -> contents_ = size_ ++;
+    if ( child_num == 0 ) {
+      parent -> left_ = node;
+    } else {
+      parent -> right_ = node;
+    }
+    if ( leaf_sequence [ i ] == NOT_A_LEAF ) {
+      path_to_root . push ( std::make_pair ( node, 0 ) );
+    }
+    
   }
   sentinel -> left_ -> parent_ = NULL;
   delete sentinel;
- }
+}
 
 inline void PointerTree::debug ( void ) const {
   // DEBUG:

@@ -6,14 +6,11 @@
 #include <vector>
 #include <stack>
 #include <deque>
-
-
+#include <exception>
 #include "database/structures/Grid.h"
 #include "database/structures/Tree.h"
-
 #include "database/structures/RectGeo.h"
 #include "database/structures/PrismGeo.h"
-
 // Chomp Interface
 #ifndef MISSING_CHOMP
 #include "chomp/Rect.h"
@@ -21,9 +18,7 @@
 #include "chomp/CubicalComplex.h"
 #include "chomp/BitmapSubcomplex.h"
 #endif
-
-#include "database/structures/CompressedGrid.h"
-
+#include "database/structures/CompressedTreeGrid.h"
 #include <boost/foreach.hpp>
 #include <boost/iterator/counting_iterator.hpp>
 #include <boost/unordered_set.hpp>
@@ -32,56 +27,120 @@
 
 // Declaration
 class TreeGrid : public Grid {
+protected:
+  TreeGrid ( void );
 public:
+  virtual ~TreeGrid ( void );
   typedef uint64_t GridElement;
   typedef boost::counting_iterator < GridElement > iterator;
   typedef iterator const_iterator;
   typedef uint64_t size_type;
   
-  // Virtual Methods inherited from Grid
-  virtual TreeGrid * clone ( void ) const = 0;
-  virtual void subdivide ( void ) = 0;
-  virtual TreeGrid * subgrid ( const std::deque < GridElement > & grid_elements ) const = 0;
-  virtual std::vector<GridElement> subset ( const Grid & other ) const;
-  virtual boost::shared_ptr<Geo> geometry ( GridElement ge ) const; 
-  virtual boost::shared_ptr<Geo> geometryOfTreeNode ( Tree::iterator it ) const;
- 
-  using Grid::geometry;
-  virtual std::vector<Grid::GridElement> cover ( const Geo & geo ) const;
-  std::vector<GridElement> coverAccept ( const PrismGeo & visitor ) const;
-  std::vector<GridElement> coverAccept ( const RectGeo & visitor ) const;
-  using Grid::cover;
-  // TreeGrid methods
+  /// assign
+  virtual void 
+  assign ( boost::shared_ptr<const CompressedTreeGrid> compressed );
 
-  virtual Tree::iterator GridToTree ( TreeGrid::iterator it ) const = 0;
-  virtual TreeGrid::iterator TreeToGrid ( Tree::iterator it ) const = 0;
-  virtual const Tree & tree ( void ) const = 0;
-  virtual Tree & tree ( void ) = 0;
-  virtual void rebuild ( void ) = 0;
-  void initialize ( const RectGeo & outer_bounds_of_grid );
-  void initialize ( const RectGeo & outer_bounds_of_grid , const std::vector < bool > & periodic );
-  const RectGeo & bounds ( void ) const;
-  RectGeo & bounds ( void );
-  int dimension ( void ) const;
-  int & dimension ( void );
-  const std::vector < bool > & periodicity ( void ) const;
-  std::vector < bool > & periodicity ( void );
+  /// clone
+  virtual TreeGrid * 
+  clone ( void ) const;
 
-  // Test and Debug
-  virtual uint64_t memory ( void ) const = 0;
+  /// compress
+  virtual CompressedTreeGrid * 
+  compress ( void ) const;
+
+  /// subdivide
+  virtual void 
+  subdivide ( void );
   
-  // Construction methods
+  /// subgrid
+  ///    Builds a new grid with only the specified grid elements
+  ///    (Expects no redundancies present in grid_elements)
+  virtual TreeGrid * 
+  subgrid ( const std::deque < GridElement > & grid_elements ) const;
+  
+  /// subset
+  virtual std::vector<GridElement> 
+  subset ( const Grid & other ) const;
+
+  /// join
   template < class InputIterator >
-  static CompressedGrid * join ( InputIterator start, InputIterator stop );
-  void assign ( const CompressedGrid & compressed ); // should this be virtual?
+  static CompressedTreeGrid * 
+  join ( InputIterator start, InputIterator stop );
   
-  // Constructor/Deconstructor
-  protected:
-  TreeGrid ( void );
-  public:
-  virtual ~TreeGrid ( void );
+  /// rebuild
+  virtual void 
+  rebuild ( boost::shared_ptr<const CompressedTreeGrid> compressed ) = 0;
 
-  // Interface to CHOMP
+  /// spawn
+  virtual TreeGrid * 
+  spawn ( void ) const = 0;
+
+  /// initialize
+  void 
+  initialize ( const RectGeo & outer_bounds_of_grid );
+  void 
+  initialize ( const RectGeo & outer_bounds_of_grid, 
+               const std::vector < bool > & periodic );
+
+  /// bounds   
+  const RectGeo & 
+  bounds ( void ) const;
+  RectGeo & 
+  bounds ( void );
+
+  /// dimension
+  int 
+  dimension ( void ) const;
+  int & 
+  dimension ( void );
+
+  /// periodicity
+  const std::vector < bool > & 
+  periodicity ( void ) const;
+  std::vector < bool > & 
+  periodicity ( void );
+
+  /// geometry
+  virtual boost::shared_ptr<Geo> 
+  geometry ( GridElement ge ) const; 
+  virtual boost::shared_ptr<Geo> 
+
+  /// geometryOfTreeNode
+  geometryOfTreeNode ( Tree::iterator it ) const;
+  using Grid::geometry;
+
+  /// cover
+  virtual std::vector<Grid::GridElement> 
+  cover ( const Geo & geo ) const;
+  std::vector<GridElement> 
+
+  /// coverAccept for PrismGeo
+  coverAccept ( const PrismGeo & visitor ) const;
+  std::vector<GridElement> 
+
+  /// coverAccept for RectGeo
+  coverAccept ( const RectGeo & visitor ) const;
+  using Grid::cover;
+
+  /// GridToTree
+  virtual Tree::iterator 
+  GridToTree ( TreeGrid::iterator it ) const = 0;
+
+  /// TreeToGrid
+  virtual TreeGrid::iterator 
+  TreeToGrid ( Tree::iterator it ) const = 0;
+
+  /// tree
+  virtual const Tree & 
+  tree ( void ) const = 0;
+  virtual Tree & 
+  tree ( void ) = 0;
+  
+  /// memory
+  virtual uint64_t 
+  memory ( void ) const = 0;
+
+  /// Interface to CHOMP
   size_type depth ( GridElement ge ) const;
   
   template < class Container >
@@ -100,7 +159,6 @@ public:
 #endif
   
 protected:
-  //size_type size_;
   RectGeo bounds_;
   int dimension_;
   std::vector < bool > periodic_;
@@ -114,17 +172,83 @@ private:
     ar & dimension_;
     ar & periodic_;
   }
-  
 };
 
 // DEFINITIONS
 
+inline 
+TreeGrid::TreeGrid ( void ) {
+  //std::cout << "TreeGrid::TreeGrid.\n";
+  size_ = 1;
+}
 
-/////////////////////////////////////////////////
-//               SUBSET                        //
-/////////////////////////////////////////////////
+inline 
+TreeGrid::~TreeGrid ( void ) {
+}
 
-inline std::vector<Grid::GridElement> TreeGrid::subset ( const Grid & other_in ) const {
+inline void 
+TreeGrid::assign ( boost::shared_ptr<const CompressedTreeGrid> compressed ) {
+  size_ = compressed -> size ();
+  bounds_ = compressed -> bounds ();
+  dimension_ = compressed -> dimension ();
+  periodic_ = compressed -> periodicity ();
+  //std::cout << "TreeGrid::assign. dimension_ = " << dimension_ << "\n";
+  tree () . assign ( compressed -> tree () );
+  rebuild ( compressed );
+  //std::cout << "TreeGrid::assign. size_ = " << size_ << "\n";
+}
+
+inline TreeGrid *
+TreeGrid::clone ( void ) const {
+  boost::shared_ptr<CompressedTreeGrid> 
+    compressed_treegrid ( compress () );
+  TreeGrid * result = spawn ();
+  result -> assign ( compressed_treegrid );
+  return result;
+}
+
+inline CompressedTreeGrid * 
+TreeGrid::compress ( void ) const {
+  //std::cout << "TreeGrid::compress. bounds () = " << bounds () << "\n";
+  CompressedTreeGrid * result = new CompressedTreeGrid;
+  result -> bounds () = bounds ();
+  result -> periodicity () = periodicity ();
+  std::deque < Tree::iterator > leaves;
+  BOOST_FOREACH ( GridElement ge, *this ) {
+    leaves . push_back ( GridToTree ( iterator ( ge ) ) );
+  }
+  //std::cout << "TreeGrid::compress. leaves . size () = " << leaves . size () << "\n";
+  result -> tree () . reset ( tree () . subtree ( leaves ) );
+  return result;
+}
+
+inline void 
+TreeGrid::subdivide ( void ) {
+  boost::shared_ptr<CompressedTreeGrid> 
+    compressed_treegrid ( compress () );
+  compressed_treegrid -> subdivide ();
+  assign ( compressed_treegrid );
+}
+
+
+inline TreeGrid * 
+TreeGrid::subgrid ( const std::deque < Grid::GridElement > & grid_elements ) const {
+  std::deque < Tree::iterator > leaves;
+  BOOST_FOREACH ( GridElement ge, grid_elements ) {
+    leaves . push_back ( GridToTree ( iterator ( ge ) ) );
+  }
+  boost::shared_ptr<CompressedTreeGrid> 
+    compressed_treegrid ( new CompressedTreeGrid );
+  compressed_treegrid -> bounds () = bounds ();
+  compressed_treegrid -> periodicity () = periodicity ();
+  compressed_treegrid -> tree () . reset ( tree () . subtree ( leaves ) );
+  TreeGrid * result = spawn ();
+  result -> assign ( compressed_treegrid );
+  return result;
+}
+
+inline std::vector<Grid::GridElement> 
+TreeGrid::subset ( const Grid & other_in ) const {
   const TreeGrid & other = dynamic_cast<const TreeGrid &> (other_in);
   // Walk through other . tree () and tree () simultaneously, recording grid elements
   // If "other" goes deeper than "this", we do not mind.
@@ -140,13 +264,14 @@ inline std::vector<Grid::GridElement> TreeGrid::subset ( const Grid & other_in )
     Tree::iterator this_it = work_stack . top () . first;
     Tree::iterator other_it = work_stack . top () . second;
     work_stack . pop ();
-    if ( tree () . isleaf ( this_it ) ) {
+    if ( tree () . isLeaf ( this_it ) ) { 
       // Leaf on "this"
-      result . push_back ( * TreeToGrid ( this_it ) );
+      iterator grid_it = TreeToGrid ( this_it );
+      if ( grid_it != end () ) result . push_back ( * grid_it );
       continue;
     }
     // Not leaf on "this"
-    if ( other . tree () . isleaf ( other_it ) ) {
+    if ( other . tree () . isLeaf ( other_it ) ) {
       // Leaf on "other" -- filter down and get all subtree leaves on "this"
       Tree::iterator left_this_it = tree () . left ( this_it );
       Tree::iterator right_this_it = tree () . right ( this_it );
@@ -177,110 +302,105 @@ inline std::vector<Grid::GridElement> TreeGrid::subset ( const Grid & other_in )
   return result;
 }
 
-/////////////////////////////////////////////////////////
-//               TREEGRID ROUTINES                     //
-/////////////////////////////////////////////////////////
-
-inline void TreeGrid::initialize ( const RectGeo & outer_bounds_of_grid ) {
-  bounds_ = outer_bounds_of_grid;
-  dimension_ = outer_bounds_of_grid . lower_bounds . size ();
-  periodic_ . resize ( dimension_, false );
-} /* TreeGrid::initialize */
-
-inline void TreeGrid::initialize ( const RectGeo & outer_bounds_of_toplex,
-                              const std::vector < bool > & periodic ) {
-  initialize ( outer_bounds_of_toplex );
-  periodic_ = periodic;
-}
-
-inline const RectGeo & TreeGrid::bounds ( void ) const {
-  return bounds_;
-} /* TreeGrid::bounds */
-
-inline RectGeo & TreeGrid::bounds ( void )  {
-  return bounds_;
-} /* TreeGrid::bounds */
-
-inline int TreeGrid::dimension ( void ) const {
-  return dimension_;
-} /* TreeGrid::dimension */
-
-inline int & TreeGrid::dimension ( void ) {
-  return dimension_;
-} /* TreeGrid::dimension */
-
-inline const std::vector < bool > & TreeGrid::periodicity ( void ) const {
-  return periodic_;
-} /* TreeGrid::periodicity */
-
-inline  std::vector < bool > & TreeGrid::periodicity ( void )  {
-  return periodic_;
-} /* TreeGrid::periodicity */
-
-
 template < class InputIterator >
-CompressedGrid * TreeGrid::join ( InputIterator start, InputIterator stop ) {
-  CompressedGrid * result = new CompressedGrid;
+CompressedTreeGrid * 
+TreeGrid::join ( InputIterator start, InputIterator stop ) {
+  CompressedTreeGrid * result = new CompressedTreeGrid;
+
   boost::shared_ptr<TreeGrid> start_ptr;
   for ( InputIterator it = start; it != stop; ++ it ) {
-    boost::shared_ptr<TreeGrid> ptr = boost::dynamic_pointer_cast<TreeGrid>( * it );
+    boost::shared_ptr<TreeGrid> ptr = 
+      boost::dynamic_pointer_cast<TreeGrid>( * it );
     if ( ptr -> size () == 0 ) ++ start; else break;
   }
   if ( start == stop ) return result;
   start_ptr = boost::dynamic_pointer_cast<TreeGrid>(*start);
   if ( not start_ptr ) {
-    std::cout << "TreeGrid::join error: not iterating over boost::shared_ptr<TreeGrid> container\n";
-    abort ();
+    throw std::logic_error("TreeGrid::join error: not iterating over "
+                           " boost::shared_ptr<TreeGrid> container \n");
   }
-  result -> bounds_ = start_ptr -> bounds_;
-  result -> dimension_ = start_ptr -> dimension_;
-  result -> periodic_ = start_ptr -> periodic_;
+  result -> bounds () = start_ptr -> bounds ();
+  result -> periodicity () = start_ptr -> periodicity ();
 
-  std::vector < Tree * > tree_pointers;
-  //int count = 0;
+  typedef Tree * TreePtr;
+  typedef boost::shared_ptr<CompressedTree> CompressedTreePtr;
+  std::vector< std::pair<TreePtr,CompressedTreePtr > > work_list;
+
   for ( InputIterator it = start; it != stop; ++ it ) { 
-    //std::cout << "Top. " << count++ << "\n";
-    boost::shared_ptr<TreeGrid> it_ptr = boost::dynamic_pointer_cast<TreeGrid>(*it);
+    boost::shared_ptr<TreeGrid> it_ptr = 
+      boost::dynamic_pointer_cast<TreeGrid>(*it);
     if ( not it_ptr ) {
-      std::cout << "TreeGrid::join error: not iterating over boost::shared_ptr<TreeGrid> container (B)\n";
-      abort ();
+      throw std::logic_error("TreeGrid::join error: not iterating over "
+                             "boost::shared_ptr<TreeGrid> container (B)\n");
     }
     if ( it_ptr -> size () == 0 ) continue;
-    tree_pointers . push_back ( &(it_ptr->tree()) );
+    boost::shared_ptr<CompressedTreeGrid> 
+      compressed_treegrid ( it_ptr -> compress () );
+    work_list . push_back ( std::make_pair ( &(it_ptr->tree()), 
+                            compressed_treegrid -> tree () ) );
   }
 
-  result -> tree_ . reset ( Tree::join ( tree_pointers . begin (), tree_pointers . end () ) );
-  result -> size_ = 0;
-  size_t valid_size = result -> tree_ -> valid_tree_nodes . size ();
-  for ( uint64_t i = 0; i < valid_size; ++ i )
-    if ( result -> tree_ -> valid_tree_nodes [ i ] )
-      ++ result -> size_;
-
+  result -> tree () . reset ( Tree::join ( work_list . begin (), 
+                                           work_list . end () ) );
 
   return result;
 }
 
-inline void TreeGrid::assign ( const CompressedGrid & compressed ) {
-  size_ = compressed . size_;
-  bounds_ = compressed . bounds_;
-  dimension_ = compressed . dimension_;
-  periodic_ = compressed . periodic_;
-  tree () . assign ( * compressed . tree_ );
-  rebuild ();
+inline void 
+TreeGrid::initialize ( const RectGeo & outer_bounds_of_grid ) {
+  bounds_ = outer_bounds_of_grid;
+  dimension_ = outer_bounds_of_grid . lower_bounds . size ();
+  periodic_ . resize ( dimension_, false );
+  std::cout << "TreeGrid::initialize. bounds_ = " << bounds_ << "\n";
+  std::cout << "TreeGrid::initialize. dimension_ = " << dimension_ << "\n";
+  std::cout << "TreeGrid::initialize. size_ = " << size_ << "\n";
+
 }
 
-inline TreeGrid::TreeGrid ( void ) {
-  size_ = 1;
+inline void 
+TreeGrid::initialize ( const RectGeo & outer_bounds_of_grid,
+                       const std::vector < bool > & periodic ) {
+  initialize ( outer_bounds_of_grid );
+  periodic_ = periodic;
 }
 
-inline TreeGrid::~TreeGrid ( void ) {
+inline const RectGeo & 
+TreeGrid::bounds ( void ) const {
+  return bounds_;
 }
+
+inline RectGeo & 
+TreeGrid::bounds ( void )  {
+  return bounds_;
+}
+
+inline int 
+TreeGrid::dimension ( void ) const {
+  return dimension_;
+}
+
+inline int & 
+TreeGrid::dimension ( void ) {
+  return dimension_;
+}
+
+inline const std::vector < bool > & 
+TreeGrid::periodicity ( void ) const {
+  return periodic_;
+}
+
+inline  std::vector < bool > & 
+TreeGrid::periodicity ( void )  {
+  return periodic_;
+}
+
 
 /////////////////////////////////////////////////
 //               GEOMETRY                      //
 /////////////////////////////////////////////////
 
-inline boost::shared_ptr<Geo> TreeGrid::geometryOfTreeNode ( Tree::iterator it ) const {
+inline boost::shared_ptr<Geo> 
+TreeGrid::geometryOfTreeNode ( Tree::iterator it ) const {
   //std::cout << "dimension_ = " << dimension_ << "\n";
   boost::shared_ptr<RectGeo> return_value ( new RectGeo ( dimension(), Real ( 0 ) ) );
   
@@ -329,8 +449,9 @@ inline boost::shared_ptr<Geo> TreeGrid::geometryOfTreeNode ( Tree::iterator it )
   return return_value;
 } /* TreeGrid::geometry */
 
-inline boost::shared_ptr<Geo> TreeGrid::geometry ( GridElement ge ) const {
-  //std::cout << "dimension_ = " << dimension_ << "\n";
+inline boost::shared_ptr<Geo> 
+TreeGrid::geometry ( GridElement ge ) const {
+  //std::cout << "TreeGrid::geometry. dimension_ = " << dimension_ << "\n";
   iterator cell_iterator ( ge ); 
   boost::shared_ptr<RectGeo> return_value ( new RectGeo ( dimension(), Real ( 0 ) ) );
   
@@ -338,14 +459,19 @@ inline boost::shared_ptr<Geo> TreeGrid::geometry ( GridElement ge ) const {
   if ( dimension () == 0 ) return return_value;
 
   RectGeo & rect = * return_value ; 
-  //std::cout << "Grid::geometry ( " << * cell_iterator << ")\n";
+  
+  //std::cout << "TreeGrid::geometry ( " << ge << ")\n";
+  //std::cout << "TreeGrid::geometry. bounds = " << bounds () << "\n";
+
   /* Climb the tree */
   Tree::iterator root = tree () . begin ();
   Tree::iterator it = GridToTree ( cell_iterator );
   int division_dimension = tree () . depth ( it ) % dimension ();
 
+  //std::cout << "TreeGrid::geometry. depth = " << tree () . depth ( it ) << "\n";
+
   while ( it != root ) {
-    //std::cout << "visiting " << *it << " with parent " <<  * tree().parent(it) << "\n";
+    //std::cout << "TreeGrid::geometry. Visiting " << *it << " with parent " <<  * tree().parent(it) << "\n";
     //std::cout . flush ();
     Tree::iterator parent = tree () . parent ( it );
     -- division_dimension; if ( division_dimension < 0 ) division_dimension = dimension () - 1;
@@ -397,8 +523,7 @@ TreeGrid::cover ( const Geo & geo ) const {
   } else if ( const PrismGeo * prism_geo = dynamic_cast < const PrismGeo * > ( geo_ptr ) ) {
     return coverAccept ( * prism_geo );
   } 
-  std::cout << "Bad Geo type in TreeGrid::cover\n";
-  abort ();
+  throw std::logic_error ( "Bad Geo type in TreeGrid::cover\n" );
   return std::vector<Grid::GridElement> (); // suppress warning
 }
 
@@ -558,14 +683,14 @@ TreeGrid::coverAccept ( const RectGeo & visitor ) const  {
     
     Tree::iterator root = tree () . begin ();
     Tree::iterator N = root;
-    Tree::iterator end = tree () . end ();
+    Tree::iterator tree_end = tree () . end ();
     
     char state = 0;
     int depth = -1;
 
     std::stack<Tree::iterator> parent;
     std::stack<std::pair<Tree::iterator, Tree::iterator> > children;
-    parent . push ( end );
+    parent . push ( tree_end );
 
     while ( 1 ) {
       //std::cout << "Entering Loop, state = " << (int) state << "\n";
@@ -591,16 +716,11 @@ TreeGrid::coverAccept ( const RectGeo & visitor ) const  {
           children . push ( std::make_pair ( tree () . left ( N ), 
                                              tree () . right ( N ) ) );
           // Check if its a leaf.
-          if ( children . top () . first == end ) { 
-            if ( children . top () . second == end ) {
+          if ( children . top () . first == tree_end ) { 
+            if ( children . top () . second == tree_end ) {
               // Here's what we are looking for.
-              GridElement ge = * TreeToGrid ( N );
-              //if ( redundancy_check . count ( ge ) == 0 ) {
-                results . push_back ( ge ); // OUTPUT
-                //std::cout << "output " << ge << "\n";
-                //redundancy_check . insert ( ge );
-              //}
-              //std::cout << "cover -- " << ge << "\n";
+              iterator grid_it = TreeToGrid ( N );
+              if ( grid_it != end () ) results . push_back ( * grid_it ); 
               // Issue the order to rise.
               //std::cout << "Issue rise.\n";
               state = 3;
@@ -661,7 +781,7 @@ TreeGrid::coverAccept ( const RectGeo & visitor ) const  {
         parent . pop ();
         children . pop ();
         // Can't rise if root.
-        if ( P == end ) break; // algorithm complete
+        if ( P == tree_end ) break; // algorithm complete
 
         -- depth;
         int div_dim = depth % dimension ();
@@ -671,7 +791,7 @@ TreeGrid::coverAccept ( const RectGeo & visitor ) const  {
           NUB[div_dim] += NUB[div_dim]-NLB[div_dim];
           // If we rise from the left child, we order parent to go right.
           // Unless there is no right child.
-          if ( children . top () . second == end ) state = 3; //tree () . right ( P ) == end ) state = 3;
+          if ( children . top () . second == tree_end ) state = 3; //tree () . right ( P ) == end ) state = 3;
           else state = 2;
         } else {
           // This is the right child.
@@ -743,7 +863,7 @@ TreeGrid::coverAccept ( const PrismGeo & visitor ) const {
    */
   
   Tree::iterator N = tree () . begin ();
-  Tree::iterator end = tree () . end ();
+  Tree::iterator tree_end = tree () . end ();
   char state = 0;
   int depth = -1;
   //std::cout << "Above main loop.\n";
@@ -766,11 +886,11 @@ TreeGrid::coverAccept ( const PrismGeo & visitor ) const {
       if ( prism . intersects ( G ) ) {
         //std::cout << "Detected intersection.\n";
         // Check if its a leaf.
-        if ( tree () . left ( N ) == end ) {
-          if ( tree () . right ( N ) == end ) {
+        if ( tree () . left ( N ) == tree_end ) {
+          if ( tree () . right ( N ) == tree_end ) {
             // Here's what we are looking for.
-            GridElement ge = * TreeToGrid ( N );
-            results . push_back ( ge ); // OUTPUT
+            iterator grid_it = TreeToGrid ( N );
+            if ( grid_it != end () ) results . push_back ( * grid_it ); 
             //std::cout << "cover -- " << *N << "\n";
             // Issue the order to rise.
             //std::cout << "Issue rise.\n";
@@ -819,7 +939,7 @@ TreeGrid::coverAccept ( const PrismGeo & visitor ) const {
       Tree::iterator P = tree () . parent ( N );
 
       // Can't rise if root.
-      if ( P == end ) break; // algorithm complete
+      if ( P == tree_end ) break; // algorithm complete
       -- depth;
       int div_dim = depth % dimension ();
       if ( tree () . left ( P ) == N ) {
@@ -827,7 +947,7 @@ TreeGrid::coverAccept ( const PrismGeo & visitor ) const {
         //std::cout << "We are rising from left.\n";
         NUB[div_dim] += NUB[div_dim]-NLB[div_dim];
         // If we rise from the left child, we order parent to go right.
-        if ( tree () . right ( P ) == end ) state = 3;
+        if ( tree () . right ( P ) == tree_end ) state = 3;
         else state = 2;
       } else {
         // This is the right child.
@@ -846,7 +966,8 @@ TreeGrid::coverAccept ( const PrismGeo & visitor ) const {
 ///////////////////////////////
 // INTERFACE TO CHOMP
 
-inline TreeGrid::size_type TreeGrid::depth ( GridElement ge ) const {
+inline TreeGrid::size_type 
+TreeGrid::depth ( GridElement ge ) const {
   Tree::iterator it = GridToTree ( iterator ( ge ) );
   size_type result = 0;
   while ( it != tree () . begin () ) {
@@ -857,7 +978,8 @@ inline TreeGrid::size_type TreeGrid::depth ( GridElement ge ) const {
 }
 
 template < class Container >
-Grid::size_type TreeGrid::getDepth ( const Container & cont ) const {
+Grid::size_type 
+TreeGrid::getDepth ( const Container & cont ) const {
   // TODO inefficient, intersecting tree climbs
   size_type result = 0;
   BOOST_FOREACH ( GridElement ge, cont ) {
@@ -868,7 +990,8 @@ Grid::size_type TreeGrid::getDepth ( const Container & cont ) const {
   return result;
 }
 
-inline void TreeGrid::GridElementToCubes ( std::vector<std::vector < uint32_t > > * cubes,
+inline void 
+TreeGrid::GridElementToCubes ( std::vector<std::vector < uint32_t > > * cubes,
                                              const GridElement ge, int depth ) const {
   // Obtain the prefix
   //std::cout << "GEtoCubes: " << geometry ( ge ) << "\n";
@@ -883,7 +1006,7 @@ inline void TreeGrid::GridElementToCubes ( std::vector<std::vector < uint32_t > 
   Tree::iterator it = GridToTree ( find ( ge ) );
   std::vector < unsigned char > p;
   while ( it != root ) {
-    if ( tree () . isleft ( it ) ) p . push_back ( 0 );
+    if ( tree () . isLeft ( it ) ) p . push_back ( 0 );
     else p . push_back ( 1 );
     it = tree () . parent ( it );
   }
@@ -929,10 +1052,11 @@ inline void TreeGrid::GridElementToCubes ( std::vector<std::vector < uint32_t > 
 
 #ifndef MISSING_CHOMP
 template < class Container >
-inline void TreeGrid::relativeComplex ( chomp::RelativePair * pair,
-                                    const Container & XGridElements,
-                                    const Container & AGridElements,
-                                    int depth ) const {
+inline void 
+TreeGrid::relativeComplex ( chomp::RelativePair * pair,
+                            const Container & XGridElements,
+                            const Container & AGridElements,
+                            int depth ) const {
   using namespace chomp;
   // DEBUG
   // check A \subset X

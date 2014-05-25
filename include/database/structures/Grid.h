@@ -41,72 +41,58 @@ public:
   iterator end ( void ) const;
   size_type size ( void ) const;
   
-  // Additional Features
-  boost::shared_ptr<Geo> geometry ( const const_iterator & it ) const { return geometry ( *it ); }
+  /// geometry
+  boost::shared_ptr<Geo> 
+  geometry ( const const_iterator & it ) const { return geometry ( *it ); }
   
-  // Cover (for dispatch)
-  std::vector<Grid::GridElement> cover ( boost::shared_ptr<Geo> geo ) const;
+  /// Cover (for dispatch)
+  std::vector<Grid::GridElement> 
+  cover ( boost::shared_ptr<Geo> geo ) const;
 
+  /// unionCover
   template < class T >
-  std::vector<Grid::GridElement> unionCover ( const std::vector < T > & V ) const;
+  std::vector<Grid::GridElement> 
+  unionCover ( const std::vector < T > & V ) const;
   
-  // Cover an intersection (given as a pair)
+  /// intersectionCover
   template < class T >
   std::vector<Grid::GridElement> intersectionCover ( const std::vector < T > & V  ) const;
   
-  // Return memory usage of this data structure
+  /// memory
+  ///   Return memory usage of this data structure
   virtual uint64_t memory ( void ) const = 0;
-
-  // Constructor, Deconstructor
-  protected: 
+  
+protected: 
   Grid ( void );
-  public: 
+public: 
   virtual ~Grid ( void );  
-
-// Data
 protected:
   size_type size_;
-  //chomp::Rect bounds_;
-  //int dimension_;
-  //std::vector < bool > periodic_;
-
-// Serialization
 private:
   friend class boost::serialization::access;
   template<class Archive>
   void serialize(Archive & ar, const unsigned int version) {
     ar & size_;
-    //ar & bounds_;
-    //ar & dimension_;
-    //ar & periodic_;
   }
   
 };
 
-// DEFINITIONS
-
-
-
-// Container Methods
-
 inline Grid::iterator Grid::find ( GridElement find_me ) const {
   return iterator ( find_me );
-} /* Grid::find */
+}
 
 inline Grid::iterator Grid::begin ( void ) const {
   return iterator ( 0 );
-} /* Grid::begin */
+}
 
 inline Grid::iterator Grid::end ( void ) const {
   return iterator ( size () );
-} /* Grid::end */
+}
 
 inline Grid::size_type Grid::size ( void ) const {
   return size_;
-} /* Grid::size */
+}
 
-
-// Dispatching version of cover
 inline std::vector<Grid::GridElement> 
 Grid::cover ( boost::shared_ptr<Geo> geo ) const {
 
@@ -121,7 +107,6 @@ Grid::cover ( boost::shared_ptr<Geo> geo ) const {
   return cover ( * geo );
 }
 
-// UNION version of cover
 template < class T >
 inline std::vector<Grid::GridElement> 
 Grid::unionCover ( const std::vector < T > & V ) const {
@@ -135,7 +120,6 @@ Grid::unionCover ( const std::vector < T > & V ) const {
   return result;
 }
 
-// INTERSECTION (pair) for cover
 template < class T >
 inline std::vector<Grid::GridElement> 
 Grid::intersectionCover ( const std::vector < T > & V ) const {
