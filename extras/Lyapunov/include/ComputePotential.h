@@ -9,10 +9,13 @@
 #include <vector>
 #include <limits>
 #include <exception>
+#include <algorithm>
 
 #include "AdjacencyGrid.h"
 #include "database/structures/TreeGrid.h"
 
+uint64_t dijkstra_internal_memory_use = 0;
+uint64_t dijkstra_priority_queue_memory_use = 0;
 
 inline
 void DijkstraDistance ( std::vector<double> * distance_to_set,
@@ -25,6 +28,7 @@ void DijkstraDistance ( std::vector<double> * distance_to_set,
 
 	std::vector<bool> processed ( V, false );
 	std::vector<bool> duplicate ( V, false );
+	dijkstra_internal_memory_use = (2L*V)/8L;
 
 	for ( uint64_t ge = 0; ge < set . size (); ++ ge ) {
 		if ( not set [ ge ] ) continue;
@@ -88,6 +92,8 @@ void DijkstraDistance ( std::vector<double> * distance_to_set,
 			new_pair . distance += pair . distance;
 			pq . push ( new_pair );
 		}
+		dijkstra_priority_queue_memory_use = std::max( dijkstra_priority_queue_memory_use,
+																									pq . size () * (uint64_t) sizeof ( DoubleGridPair ) );
 		// Eliminate Duplicates
 		if ( pq . size () > 2*V ) {
 			std::queue<DoubleGridPair> temp; // stack or queue more efficient here?
