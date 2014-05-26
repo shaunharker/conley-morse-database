@@ -239,6 +239,7 @@ SuccinctTree::leafEnd ( void ) const {
 
 inline uint64_t 
 SuccinctTree::TreeToLeaf ( iterator it ) const {
+  if ( it == end () ) return leafEnd ();
   uint64_t x = *it;
   if ( x == last_ ) return leaf_count_ - 1;
   if ( leaf_sequence_ [ x ] == 1 ) return leafEnd ();
@@ -247,7 +248,8 @@ SuccinctTree::TreeToLeaf ( iterator it ) const {
 
 inline SuccinctTree::iterator 
 SuccinctTree::LeafToTree ( uint64_t leaf ) const {
-  if ( leaf == leaf_count_ - 1 ) return last_;
+  if ( leaf == leafEnd () ) return end ();
+  if ( leaf == leafEnd () - 1 ) return last_;
   return iterator ( select_ . select ( leaf + 1 ) );
 }
 

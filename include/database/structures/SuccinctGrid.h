@@ -22,15 +22,6 @@
 #include "database/structures/SuccinctTree.h"
 #include "database/structures/RankSelect.h"
 
-/*! \class SuccinctGrid */
-
-// For a full tree with number of nodes > 100,000
-// the memory usage is about
-// 2.9 bits / node for the full binary tree
-// 1.29 bits / nodes for the rank select of the node validity
-// 1.18 bits / nodes for the rank select of the leaves
-// Total ~ 5.37 bits / nodes
-
 /// SuccinctGrid
 //
 // BEGIN TODO
@@ -98,21 +89,26 @@ SuccinctGrid::~SuccinctGrid ( void ) {
 
 inline Grid::iterator 
 SuccinctGrid::TreeToGrid ( Tree::iterator it_tree ) const {
+  if ( it_tree == tree () . end () ) return end ();
   return LeafToGrid ( tree () . TreeToLeaf ( it_tree ) );
 }
 
 inline Tree::iterator 
 SuccinctGrid::GridToTree ( iterator it ) const {
+  if ( it == end () ) return tree () . end ();
   return tree () . LeafToTree ( GridToLeaf ( it ) );
 }
 
 inline uint64_t
 SuccinctGrid::GridToLeaf ( Grid::iterator it ) const {
+  if ( it == end () ) return tree () . leafEnd ();
   return valid_sequence_ . select ( *it );
 }
 
 inline Grid::iterator 
 SuccinctGrid::LeafToGrid ( uint64_t leaf ) const {
+  if ( leaf == tree () . leafEnd () ) return end ();
+  if ( not valid_sequence_ . bits ( leaf ) ) return end ();
   return iterator ( valid_sequence_ . rank ( leaf ) );
 }
 

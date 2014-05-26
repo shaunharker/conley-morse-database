@@ -87,11 +87,13 @@ PointerGrid::~PointerGrid ( void ) {
 
 inline Grid::iterator 
 PointerGrid::TreeToGrid ( Tree::iterator tree_it ) const {
+  if ( tree_it == tree () . end () ) return end ();
   return grid_iterators_ [ * tree_it ];
 }
 
 inline Tree::iterator 
 PointerGrid::GridToTree ( Grid::iterator grid_it ) const {
+  if ( grid_it == end () ) return tree () . end ();
   return tree_iterators_ [ * grid_it ];
 }
 

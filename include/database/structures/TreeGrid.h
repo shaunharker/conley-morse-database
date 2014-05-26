@@ -62,6 +62,23 @@ public:
   virtual std::vector<GridElement> 
   subset ( const Grid & other ) const;
 
+  /// GridToTree
+  virtual Tree::iterator 
+  GridToTree ( TreeGrid::iterator it ) const = 0;
+
+  /// TreeToGrid
+  virtual TreeGrid::iterator 
+  TreeToGrid ( Tree::iterator it ) const = 0;
+
+  /// parent
+  Tree::iterator parent ( Tree::iterator it ) const;
+  
+  /// left
+  Tree::iterator left ( Tree::iterator it ) const;
+  
+  /// right
+  Tree::iterator right ( Tree::iterator it ) const;
+  
   /// join
   template < class InputIterator >
   static CompressedTreeGrid * 
@@ -121,14 +138,6 @@ public:
   /// coverAccept for RectGeo
   coverAccept ( const RectGeo & visitor ) const;
   using Grid::cover;
-
-  /// GridToTree
-  virtual Tree::iterator 
-  GridToTree ( TreeGrid::iterator it ) const = 0;
-
-  /// TreeToGrid
-  virtual TreeGrid::iterator 
-  TreeToGrid ( Tree::iterator it ) const = 0;
 
   /// tree
   virtual const Tree & 
@@ -254,27 +263,30 @@ TreeGrid::subset ( const Grid & other_in ) const {
   // If "other" goes deeper than "this", we do not mind.
   // If "this" goes deeper than "other", we collect all decendant leaves.
   std::vector<GridElement> result;
-  if ( other . size () == 0 ) return result;
+  if ( size() == 0 || other . size () == 0 ) return result;
   std::stack < std::pair < Tree::iterator, Tree::iterator > > work_stack;
   //std::cout << "Grid::subset 1\n";
   work_stack . push ( std::make_pair ( tree () . begin (), other . tree () . begin () ) );
   //std::cout << "Grid::subset 2\n";
 
   while ( not work_stack . empty () ) {
+    //std::cout << "Grid::subset. Top of loop.\n";
     Tree::iterator this_it = work_stack . top () . first;
     Tree::iterator other_it = work_stack . top () . second;
     work_stack . pop ();
     if ( tree () . isLeaf ( this_it ) ) { 
+      //std::cout << "Grid::subset. Detected leaf on this.\n";
       // Leaf on "this"
       iterator grid_it = TreeToGrid ( this_it );
-      if ( grid_it != end () ) result . push_back ( * grid_it );
+      result . push_back ( * grid_it );
       continue;
     }
     // Not leaf on "this"
     if ( other . tree () . isLeaf ( other_it ) ) {
+      //std::cout << "Grid::subset. Detected leaf on other.\n";
       // Leaf on "other" -- filter down and get all subtree leaves on "this"
-      Tree::iterator left_this_it = tree () . left ( this_it );
-      Tree::iterator right_this_it = tree () . right ( this_it );
+      Tree::iterator left_this_it = left ( this_it );
+      Tree::iterator right_this_it = right ( this_it );
       if ( left_this_it != tree () . end () ) {
         work_stack . push ( std::make_pair ( left_this_it, other_it ) );
       }
@@ -282,25 +294,51 @@ TreeGrid::subset ( const Grid & other_in ) const {
         work_stack . push ( std::make_pair ( right_this_it, other_it ) );
       }
     } else {
+      //std::cout << "Grid::subset. interior/interior position.\n";
       // Not leaf on "other" -- follow branches both "this" and "other" share
       // Follow left branch if it exists:
-      Tree::iterator left_this_it = tree () . left ( this_it );
-      Tree::iterator left_other_it = other . tree () . left ( other_it );
+      Tree::iterator left_this_it = left ( this_it );
+      Tree::iterator left_other_it = other . left ( other_it );
       if ( (left_this_it != tree () . end ()) && (left_other_it != other . tree () . end ()) ) {
+        //std::cout << "Grid::subset. Pushing left branch.\n";
         work_stack . push ( std::make_pair ( left_this_it, left_other_it ) );
-      }
+      } 
       // Follow right branch if it exists:
-      Tree::iterator right_this_it = tree () . right ( this_it );
-      Tree::iterator right_other_it = other . tree () . right ( other_it );
+      Tree::iterator right_this_it = right ( this_it );
+      Tree::iterator right_other_it = other . right ( other_it );
       if ( (right_this_it != tree () . end ()) && (right_other_it != other . tree () . end ()) ) {
+        //std::cout << "Grid::subset. Pushing right branch.\n";
         work_stack . push ( std::make_pair ( right_this_it, right_other_it ) );
-      }
-      
+      } 
     }
   }
   //std::cout << "Grid::subset 3\n";
   return result;
 }
+
+inline Tree::iterator 
+TreeGrid::parent ( Tree::iterator it ) const {
+  return tree () . parent ( it );
+}
+  
+inline Tree::iterator 
+TreeGrid::left ( Tree::iterator it ) const {
+  Tree::iterator result = tree () . left ( it );
+  if ( tree () . isLeaf ( result ) ) {
+    if ( TreeToGrid ( result ) == end () ) return tree () . end ();
+  }
+  return result;
+}
+  
+inline Tree::iterator 
+TreeGrid::right ( Tree::iterator it ) const {
+  Tree::iterator result = tree () . right ( it );
+  if ( tree () . isLeaf ( result ) ) {
+    if ( TreeToGrid ( result ) == end () ) return tree () . end ();
+  }
+  return result;
+}
+
 
 template < class InputIterator >
 CompressedTreeGrid * 
@@ -713,13 +751,20 @@ TreeGrid::coverAccept ( const RectGeo & visitor ) const  {
         if ( intersect_flag ) {
           //std::cout << "Detected intersection.\n";
           // Determine children
-          children . push ( std::make_pair ( tree () . left ( N ), 
-                                             tree () . right ( N ) ) );
+          
+          children . push ( std::make_pair ( left ( N ), 
+                                             right ( N ) ) );
+          
           // Check if its a leaf.
           if ( children . top () . first == tree_end ) { 
             if ( children . top () . second == tree_end ) {
               // Here's what we are looking for.
               iterator grid_it = TreeToGrid ( N );
+              // DEBUG BEGIN
+              if ( grid_it == end () ) {
+                throw std::logic_error ( "TreeGrid::coverAccept. Didn't I filter this out?\n");
+              }
+              // DEBUG END
               if ( grid_it != end () ) results . push_back ( * grid_it ); 
               // Issue the order to rise.
               //std::cout << "Issue rise.\n";
