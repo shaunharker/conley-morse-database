@@ -66,15 +66,12 @@ int main ( int argc, char * argv [] ) {
   }
 
   // Obtain phase space  
-  std::cout << "Obtaining Phase Space.\n";
   boost::shared_ptr<TreeGrid> grid = phaseSpace ( argc, argv );
 
   // Obtain model map
-  std::cout << "Obtaining dynamical map.\n";
   boost::shared_ptr<const Map> map = modelMap ( argc - 2, argv + 2 );
 
   // Compute Lyapunov function
-  std::cout << "Computing Lyanpunov function.\n";
   std::vector<double> global_lyapunov = ComputeLyapunov ( grid, map );
 
   // Save Lyapunov function

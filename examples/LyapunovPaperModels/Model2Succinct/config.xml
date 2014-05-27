@@ -1,0 +1,32 @@
+<config> <!-- Beginning of the configuration -->
+<!-- Set up the name and the description of the model -->
+<model>
+  <name> Leslie2D </name>
+  <desc> Two dimensional Leslie model </desc>
+</model>
+<!-- Set up the parameter space -->
+<param>
+  <dim> 7 </dim> <!-- Dimension of the parameter space -->
+  <bounds>
+    <lower> 5.0 5.0 0.1 0.11 0.12 0.1 0.8 </lower><!-- Lower bounds of the parameter space (order is important) -->
+    <upper> 5.0 5.0 0.1 0.11 0.12 0.1 0.8 </upper><!-- Upper bounds of the parameter space (order is important) -->
+  </bounds>
+  <subdiv>
+    <depth> 3 </depth> <!-- number of subdivisions in each direction of the parameter space -->
+  </subdiv>
+</param>
+<!-- Set up the phase space -->
+<phase>
+  <dim> 3 </dim> <!-- Dimension of the phase space -->
+  <bounds>
+    <lower> 0.0 0.0 0.0 </lower> <!-- Lower bounds of the phase space (order is important) -->
+    <upper> 20.0 20.0 20.0 </upper> <!-- Upper bounds of the phase space (order is important) -->
+  </bounds>
+  <subdiv>
+    <init> 24 </init> <!-- Initial number of subdivisions -->
+    <min> 27 </min> <!-- Minimum number of subdivisions -->
+    <max> 36 </max> <!-- Maximum number of subdivisions -->
+    <limit> 1000 </limit> <!--  -->
+  </subdiv>
+</phase>
+</config> <!-- End of the configuration -->

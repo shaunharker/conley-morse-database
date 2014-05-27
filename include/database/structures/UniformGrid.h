@@ -3,31 +3,27 @@
 
 #include <iostream>
 #include <stdint.h>
-
+#include <exception>
 #include <fstream>
 #include <sstream>
 #include <string>
 #include <cmath>
-
 #include <boost/foreach.hpp>
 #include <boost/iterator/counting_iterator.hpp>
 #include <boost/unordered_map.hpp>
 #include "boost/shared_ptr.hpp"
-
 #include "boost/serialization/serialization.hpp"
 #include "boost/serialization/vector.hpp"
 #include "boost/serialization/export.hpp"
 #include "boost/serialization/shared_ptr.hpp"
-
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
-
 #include "database/structures/Grid.h"
 #include "database/structures/Geo.h"
 #include "database/structures/RectGeo.h"
 
+/// UniformGrid
 class UniformGrid : public Grid { 
-
 public:
 	typedef uint64_t GridElement;
   typedef boost::counting_iterator < GridElement > iterator;
@@ -98,12 +94,13 @@ inline void UniformGrid::initialize ( const RectGeo & bounds,
     multipliers_ [ d ] = sizes_ [ d - 1 ] * multipliers_ [ d - 1 ];
   }
   size_ = multipliers_ [ dimension () - 1 ] * sizes_ [ dimension () - 1 ];
-  std::cout << "UniformGrid::initialize. bounds set to " << bounds_ << "\n";
+  //std::cout << "UniformGrid::initialize. bounds set to " << bounds_ << "\n";
 }
 
 inline UniformGrid * UniformGrid::clone ( void ) const {
   UniformGrid * newUniformGrid = new UniformGrid;
   // TODO -- not needed immediately
+  throw std::logic_error ("UniformGrid::clone not yet implemented.\n");
   return newUniformGrid;
 }
 
@@ -235,6 +232,5 @@ inline int
 UniformGrid::dimension ( void ) const {
   return dimension_;
 }
-
 
 #endif

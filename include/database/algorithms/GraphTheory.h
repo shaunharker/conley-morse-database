@@ -1,4 +1,5 @@
-// GraphTheory.hpp Shaun Harker 5/16/2011
+// GraphTheory.hpp Shaun Harker 
+// created 5/16/2011
 
 #ifndef CMDP_GRAPHTHEORY
 #define CMDP_GRAPHTHEORY
@@ -7,31 +8,24 @@
 #include "database/maps/Map.h"
 #include <vector>
 #include <queue>
-
 #include <boost/shared_ptr.hpp>
 
+/// computeMorseSetsAndReachability
 void computeMorseSetsAndReachability (std::vector< boost::shared_ptr<Grid> > * output,
                                       std::vector<std::vector<unsigned int> > * reach,
                                       boost::shared_ptr<const Grid> G,
                                       boost::shared_ptr<const Map> f );
 
-#if 0
+/// computeStrongComponents
+///    Modified version of Tarjan's algorithm devised by Shaun Harker
+///    Only calls for adjacency lists once each, yet only requires O(V) space.
+template < class Graph >
+void computeStrongComponents (std::vector<std::deque<typename Graph::Vertex> > * output,
+                              const Graph & G,
+         /* optional output */std::deque<typename Graph::Vertex> * topological_sort = 0,
+         /* optional output */std::deque<typename Graph::Vertex> * SCC_root = 0);
 
-/** compute_morse_sets */
-template < class MorseGraph, class Graph, class CellContainer >
-void compute_morse_sets (std::vector< CellContainer > * output,
-                         const Graph & G,
-                         /* optional output */ MorseGraph * MG = NULL);
-
-#endif
-
-/** compute_strong_components */
-template < class OutEdgeGraph >
-void computeStrongComponents (std::vector<std::deque<typename OutEdgeGraph::size_type> > * output, 
-                                const OutEdgeGraph & G, 
-          /* optional output */ std::deque<typename OutEdgeGraph::size_type> * topological_sort = NULL,
-          /* optional output */ std::deque<typename OutEdgeGraph::size_type> * SCC_root = NULL);
-/** compute_reachability */
+/// computeReachability
 template < class Graph >
 void computeReachability ( std::vector < std::vector < unsigned int > > * output, 
                            std::vector<std::deque<typename Graph::size_type> > & morse_sets, 

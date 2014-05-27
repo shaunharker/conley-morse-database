@@ -1,24 +1,17 @@
-/*
- *  Configuration.h
- */
-
-
+/// Configuration.h
 #ifndef _CMDP_CONFIGURATION_
 #define _CMDP_CONFIGURATION_
 
+#include <exception>
 #include <string>
 #include <sstream>
-
 #include <boost/serialization/serialization.hpp>
-//#include <boost/serialization/vector.hpp>
+#include <boost/serialization/vector.hpp>
 #include <boost/serialization/string.hpp>
-
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
-
 #include <unistd.h>
 #include <fstream>
-
 #include "database/structures/RectGeo.h"
 
 class Configuration {
@@ -51,12 +44,16 @@ public:
     std::string loadstring = filestring + appendstring;
     char current [ 100 ];
     std::ifstream input(loadstring.c_str());
-    
+    if ( not input . good () ) {
+      std::cout << "Problem loading configuation file.\n";
+      std::cout << "Current directory:\n" << current << "\n";
+      std::cout << "Attempted to load from file:\n " << loadstring << "\n";      
+      throw std::runtime_error ( "Unable to load configuration file.\n" );
+    }
     getcwd ( current, 100 );
-    std::cout << "Current directory:\n" << current << "\n";
-    std::cout << "Loading from file:\n " << loadstring << "\n";
+
     LoadFromStream(&input);
-    std::cout << "Success.\n";
+    //std::cout << "Success.\n";
   }
 
   void LoadFromString(const std::string& input) {

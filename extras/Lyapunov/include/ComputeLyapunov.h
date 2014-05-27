@@ -5,6 +5,7 @@
 #include <iostream>
 #include <vector>
 #include <queue>
+#include <ctime>
 
 #include "database/structures/TreeGrid.h"
 #include "database/structures/MapGraph.h"
@@ -65,7 +66,13 @@ void backward ( std::vector<bool> * output,
 inline std::vector<double>
 ComputeLyapunov ( boost::shared_ptr<TreeGrid> grid,
 									boost::shared_ptr<const Map> map ) {
+
+  std::cout << "Computing Lyapunov function.\n";
+  clock_t start_time = clock ();
+
+  std::cout << "The grid X has " << grid -> size () << " grid elements.\n";
   // Memory usage monitoring
+  uint64_t grid_memory_use = grid -> memory ();
   uint64_t scc_root_memory_use = 0;
   uint64_t components_memory_use = 0;
   uint64_t topological_sort_memory_use = 0;
@@ -80,13 +87,13 @@ ComputeLyapunov ( boost::shared_ptr<TreeGrid> grid,
   // global: uint64_t max_scc_memory_external = 0;
 
 	// Obtain directed graph (mapgraph)  
-  std::cout << "Creating directed graph.\n";
+  std::cout << "Realizing combinatorial map F on X as a directed graph G.\n";
   typedef MapGraph::Vertex Vertex;
   MapGraph mapgraph ( grid, map );
   size_t N = mapgraph . num_vertices ();
 
   // Produce Strong Components and (generalized) topological sort
-  std::cout << "Computing Strong Components.\n";
+  std::cout << "Computing Strong Components of G.\n";
   std::vector < std::deque < Grid::GridElement > > components;
   std::deque < Grid::size_type > topological_sort;
   std::deque < Grid::size_type > reversed_topological_sort;
@@ -152,11 +159,10 @@ ComputeLyapunov ( boost::shared_ptr<TreeGrid> grid,
   //}
   //draw2Dimage ( maximal_invariant_set, grid );
 	
-	std::cout << "Number of morse sets = " << components . size () << "\n";
-  std::cout << "Computing Lyapunov function.\n";
+	std::cout << "There were " << components . size () << " combinatorial Morse sets found.\n";
   // Loop through Morse Sets
   for ( int morse_set = 0; morse_set < components . size (); ++ morse_set ) {
-  	 std::cout << "Processing Morse Set " << morse_set << ".\n";
+  	 std::cout << "Now processing Morse Set M" << morse_set << ":\n";
 
 
   	std::vector<bool> attractor ( N, false );
@@ -168,7 +174,9 @@ ComputeLyapunov ( boost::shared_ptr<TreeGrid> grid,
   	// Compute Attractor
 
   	// Seed attractor with morse set.
-  	std::cout << "Computing attractor.\n";
+  	std::cout << "Computing combinatorial attractor A" << morse_set 
+              << ", the omega limit set of M" << morse_set << ".\n";
+
   	BOOST_FOREACH ( Vertex v, components [ morse_set ] ) {
   		attractor [ v ] = true;
   	}
@@ -192,8 +200,8 @@ ComputeLyapunov ( boost::shared_ptr<TreeGrid> grid,
 		// end debug
 
   	// Compute Repeller
-  	std::cout << "Computing Dual Repeller\n";
-
+    std::cout << "Computing combinatorial dual repeller R" << morse_set 
+              << ", the alpha limit set of X\\A" << morse_set << ".\n";
   	// seed Repeller with every Morse set not in attractor
   	for ( int ms = 0; ms < components . size (); ++ ms ) {
   		BOOST_FOREACH ( Vertex v, components [ ms ] ) {
@@ -224,11 +232,15 @@ ComputeLyapunov ( boost::shared_ptr<TreeGrid> grid,
         break;
       }
     }
-    if ( empty_repeller ) continue;
-
+    if ( empty_repeller ) { 
+      std::cout << "Skipping computation of a local Lyapunov function "
+                   "for this combinatorial Morse set "
+                   "because the dual repeller is empty.\n";
+      continue;
+    }
 
 		// Compute Potential
-		std::cout << "Computing Distance Potential\n";
+		std::cout << "Computing Distance Potential v via Dijkstra's algorithm.\n";
 
     double weight;
 
@@ -240,7 +252,7 @@ ComputeLyapunov ( boost::shared_ptr<TreeGrid> grid,
 
 		//draw2Dimage ( potential, grid );
 		// Update potential so it is "potential star"
-		std::cout << "Computing Distance Potential Star\n";
+		std::cout << "Computing Distance Potential Star v^*.\n";
 
   	for ( int i = N-1; i >= 0; -- i ) {
   		Vertex v = topological_sort [ i ];
@@ -270,7 +282,8 @@ ComputeLyapunov ( boost::shared_ptr<TreeGrid> grid,
     //draw2Dimage ( potential, grid );
 
 		// Compute Lyanpunov
-		std::cout << "Computing Lyapunov Summand\n";
+		std::cout << "Computing local Lyapunov function for " 
+                 "attractor/dual repeller pair " << morse_set << "\n";
 
 		 for ( int i = N-1; i >= 0; -- i ) {
 		 	Vertex v = topological_sort [ i ];
@@ -303,6 +316,7 @@ ComputeLyapunov ( boost::shared_ptr<TreeGrid> grid,
 		//std::cout << "Previous averaged Lyapunov.\n";
 		//draw2Dimage ( global_lyapunov, grid );
 
+    std::cout << "Summing local Lyapunov function into global Lyapunov function.\n";
 		for ( int i = 0; i < N; ++ i ) {
 			global_lyapunov [ i ] += weight * lyapunov [ i ];
 		}
@@ -313,20 +327,30 @@ ComputeLyapunov ( boost::shared_ptr<TreeGrid> grid,
 		//draw2Dimage ( global_lyapunov, grid );
   }
   
+  std::cout << "Local Lyapunov functions all computed. Renormalizing global Lyapunov function.\n";
   for ( int i = 0; i < N; ++ i ) {
   	global_lyapunov [ i ] /= total_weight;
   	//if ( not maximal_invariant_set [ i ] ) {
   	//	global_lyapunov [ i ] = 0.0;
   	//}
 	}
-	std::cout << "Finalized Lyapunov.\n";
+
+  std::cout << "Lyapunov function calculation complete.\n";
+  clock_t stop_time = clock ();
+
   if ( grid -> dimension () == 2 ) draw2Dimage ( global_lyapunov, grid );
 
   // generate file with memory usage statistics
   std::ofstream stats_file ( "lyapunov_memory_statistics.txt" );
-  stats_file << "Memory statistics. All figures are in bytes.\n";
-  stats_file << "max_scc_memory_internal = " << scc_root_memory_use << "\n";
-  stats_file << "max_scc_memory_external = " << scc_root_memory_use << "\n";
+  stats_file << "Lyapunov calculation resource usage statistics.\n";
+  stats_file << "The grid had " << N << " grid elements.\n";
+  stats_file << "The computation took " << ((double)(stop_time-start_time)/(double)CLOCKS_PER_SEC)
+             << " seconds.\n";
+  stats_file << "All memory figures are in bytes:\n";
+  stats_file << "grid_memory_use = " << grid_memory_use << "\n";
+  stats_file << "max_graph_memory = " << max_graph_memory << "\n";
+  stats_file << "max_scc_memory_internal = " << max_scc_memory_internal << "\n";
+  stats_file << "max_scc_memory_external = " << max_scc_memory_external << "\n";
   stats_file << "scc_root_memory_use = " << scc_root_memory_use << "\n";
   stats_file << "components_memory_use = " << components_memory_use << "\n";
   stats_file << "topological_sort_memory_use = " << topological_sort_memory_use << "\n";
@@ -335,8 +359,8 @@ ComputeLyapunov ( boost::shared_ptr<TreeGrid> grid,
   stats_file << "attractor_memory_use = " << attractor_memory_use << "\n";
   stats_file << "repeller_memory_use = " << repeller_memory_use << "\n";
   stats_file << "potential_memory_use = " << potential_memory_use << "\n";
-  stats_file << "dijkstra_internal_memory_use = " << scc_root_memory_use << "\n";
-  stats_file << "dijkstra_priority_queue_memory_use = " << scc_root_memory_use << "\n";
+  stats_file << "dijkstra_internal_memory_use = " << dijkstra_internal_memory_use << "\n";
+  stats_file << "dijkstra_priority_queue_memory_use = " << dijkstra_priority_queue_memory_use << "\n";
  
   stats_file . close ();
 

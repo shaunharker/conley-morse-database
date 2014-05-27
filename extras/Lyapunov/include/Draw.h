@@ -37,7 +37,7 @@ void draw2Dimage ( const std::vector<double> & data,
 			bounds.upper_bounds[d] = bounds.lower_bounds[d];
 	}
 
-	std::cout << " Bounds = " << bounds << "\n";
+	//std::cout << " Bounds = " << bounds << "\n";
 	Picture pic ( 4096, 4096, 
 		bounds . lower_bounds [ 0 ],
 		bounds . upper_bounds [ 0 ],
@@ -62,7 +62,7 @@ void draw2Dimage ( const std::vector<double> & data,
 			false /* no transparency */);
   }
  	pic . saveAsPNG ( "lyapunov.png" );
-  pic.bitmap.display("Lyapunov Function");       
+  //pic.bitmap.display("Lyapunov Function");       
   
 }
 

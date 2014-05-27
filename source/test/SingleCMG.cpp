@@ -81,6 +81,7 @@ void computeMorseGraph ( MorseGraph & morsegraph,
   std::cout << "SingleCMG: computeMorseGraph.\n";
 #endif
   boost::shared_ptr < Grid > phase_space = morsegraph . phaseSpace ();
+  clock_t start_time = clock ();
   Compute_Morse_Graph ( & morsegraph,
                        phase_space,
                        map,
@@ -88,9 +89,21 @@ void computeMorseGraph ( MorseGraph & morsegraph,
                        SINGLECMG_MIN_PHASE_SUBDIVISIONS,
                        SINGLECMG_MAX_PHASE_SUBDIVISIONS,
                        SINGLECMG_COMPLEXITY_LIMIT );
+  clock_t stop_time = clock ();
   if ( outputfile != NULL ) {
     morsegraph . save ( outputfile );
   }
+  std::ofstream stats_file ( "SingleCMG_statistics.txt" );
+  stats_file << "Morse Graph calculation resource usage statistics.\n";
+  stats_file << "The final grid has " << phase_space -> size () << " grid elements.\n";
+  stats_file << "The computation took " << ((double)(stop_time-start_time)/(double)CLOCKS_PER_SEC)
+             << " seconds.\n";
+  stats_file << "All memory figures are in bytes:\n";
+  stats_file << "grid_memory_use = " << phase_space -> memory () << "\n";
+  stats_file << "max_graph_memory = " << max_graph_memory << "\n";
+  stats_file << "max_scc_memory_internal = " << max_scc_memory_internal << "\n";
+  stats_file << "max_scc_memory_external = " << max_scc_memory_external << "\n";
+  stats_file . close ();
 }
 
 /**************************************/
