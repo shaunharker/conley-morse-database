@@ -7,7 +7,7 @@
 #include "database/maps/Map.h"
 #include "database/structures/EuclideanParameterSpace.h"
 #include "database/structures/RectGeo.h"
-#include "database/numerics/simple_interval.h"
+///#include "database/numerics/simple_interval.h"
 #include <boost/shared_ptr.hpp>
 #include <vector>
 

@@ -23,8 +23,8 @@
     <upper> 20.0 20.0 20.0 </upper> <!-- Upper bounds of the phase space (order is important) -->
   </bounds>
   <subdiv>
-    <init> 24 </init> <!-- Initial number of subdivisions -->
-    <min> 27 </min> <!-- Minimum number of subdivisions -->
+    <init> 0 </init> <!-- Initial number of subdivisions -->
+    <min> 24 </min> <!-- Minimum number of subdivisions -->
     <max> 36 </max> <!-- Maximum number of subdivisions -->
     <limit> 1000 </limit> <!--  -->
   </subdiv>
