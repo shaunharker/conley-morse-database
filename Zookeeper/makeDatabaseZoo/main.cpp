@@ -400,7 +400,7 @@ int main ( int argc, char * argv [] ) {
   //return 0;
   
   //database . makeAttractorsMinimal ();
-  //database . performTransitiveReductions ();
+  database . performTransitiveReductions ();
   // Display CI Zoo
 #ifndef NOCONLEYINDEX
   std::string ci_zoo_string = CI_Zoo ( database );

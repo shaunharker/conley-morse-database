@@ -100,7 +100,7 @@ public:
   std::vector< int> logic_; // logic
   
   /// data_
-  ///    data_ is an array storing the value of
+  ///    data_ is an array storing the values of
   ///    a map from {0,1,...2^n-1} -> {0,1,...m}
   std::vector< int > data_;  // mapping
 

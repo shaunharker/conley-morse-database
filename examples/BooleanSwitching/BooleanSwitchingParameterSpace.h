@@ -129,6 +129,11 @@ public:
 	/// dimension
 	///    Return dimension
 	int dimension ( void ) const;
+
+  /// factorGraph
+  ///    Return factor graph
+  const FactorGraph &
+  factorGraph ( int i ) const;
 private:
 
 	/// dimension_
@@ -281,11 +286,17 @@ BooleanSwitchingParameterSpace::closestFace
 	BOOST_FOREACH ( const BooleanSwitching::NodeData & data, 
                   network_ . node_data_ ) {
   	int critical_value = domain [ data . index - 1 ];
+    //std::cout << "closestFace. variable = " << data . index - 1 << "\n";
+    //std::cout << "closestFace.   critical_val = " << critical_value << "\n";
+
   	int count = 0;
   	BOOST_FOREACH ( int out_node, data . out_order ) {
   		state [ std::make_pair ( data . index, out_node ) ] = 
-  			( count ++ > critical_value );
+  			( count ++ < critical_value );
+      //std::cout << "closestFace.   state (" << data.index<<", "<<out_node<<") = " <<
+      //             (int) state [ std::make_pair ( data . index, out_node ) ] << "\n";
   	}
+
   }
 
   // Loop through each node of network
@@ -339,6 +350,11 @@ BooleanSwitchingParameterSpace::domainLimits ( void ) const {
 inline int
 BooleanSwitchingParameterSpace::dimension ( void ) const {
 	return dimension_;
+}
+
+inline const FactorGraph &
+BooleanSwitchingParameterSpace::factorGraph ( int i ) const {
+  return factors_ [ i ];
 }
 
 #endif
