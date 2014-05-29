@@ -89,25 +89,23 @@ SuccinctGrid::~SuccinctGrid ( void ) {
 
 inline Grid::iterator 
 SuccinctGrid::TreeToGrid ( Tree::iterator it_tree ) const {
-  if ( it_tree == tree () . end () ) return end ();
-  return LeafToGrid ( tree () . TreeToLeaf ( it_tree ) );
+  uint64_t leaf = tree () . TreeToLeaf ( it_tree );
+  if ( leaf == tree () . leafEnd () ) return end ();
+  return LeafToGrid ( leaf );
 }
 
 inline Tree::iterator 
 SuccinctGrid::GridToTree ( iterator it ) const {
-  if ( it == end () ) return tree () . end ();
   return tree () . LeafToTree ( GridToLeaf ( it ) );
 }
 
 inline uint64_t
 SuccinctGrid::GridToLeaf ( Grid::iterator it ) const {
-  if ( it == end () ) return tree () . leafEnd ();
   return valid_sequence_ . select ( *it );
 }
 
 inline Grid::iterator 
 SuccinctGrid::LeafToGrid ( uint64_t leaf ) const {
-  if ( leaf == tree () . leafEnd () ) return end ();
   if ( not valid_sequence_ . bits ( leaf ) ) return end ();
   return iterator ( valid_sequence_ . rank ( leaf ) );
 }

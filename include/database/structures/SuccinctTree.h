@@ -96,7 +96,6 @@ private:
   sdsl::bp_support_sada < > tree_;
   sdsl::rank_support_v5 <0> rank_;
   sdsl::select_support_mcl <0> select_;
-  uint64_t last_;
   uint64_t leaf_count_;
   friend class boost::serialization::access;
   template<class Archive>
@@ -123,20 +122,15 @@ SuccinctTree::assign ( boost::shared_ptr<const CompressedTree> compressed ) {
 
 inline void 
 SuccinctTree::assignFromLeafSequence ( const std::vector<bool> & leaf_sequence ) {
-  leaf_count_ = 1; // Count the leaf we truncate.
+  leaf_count_ = 0; 
   size_ = leaf_sequence . size ();
-  leaf_sequence_ . resize ( leaf_sequence . size () - 1 );
-  for ( size_t i = 0; i < leaf_sequence_ . size (); ++ i ) {
-    leaf_sequence_ [ i ] = (leaf_sequence [ i ] ? 1 : 0 );
-    if ( leaf_sequence [ i ] ) ++ leaf_count_;
+  leaf_sequence_ . resize ( leaf_sequence . size () + 1 );
+  leaf_sequence_ [ 0 ] = 1;
+  for ( size_t i = 0; i < leaf_sequence . size (); ++ i ) {
+    leaf_sequence_ [ i + 1 ] = (leaf_sequence [ i ] ? 1 : 0 );
+    if ( not leaf_sequence [ i ] ) ++ leaf_count_;
   }
   tree_ = sdsl::bp_support_sada <> ( & leaf_sequence_ );
-  last_ = leaf_sequence_ . size ();
-  // Note: last_ is the position of the (leaf_count_-1)th leaf 
-  //       where leaf indexing begins at 0. (thus last leaf)
-  //       However we cannot access leaf_sequence_ [last_] so
-  //       we need to treat it as a special case below.
-  //       Note that last_ == size_ - 1
   rank_ . init ( &leaf_sequence_ );
   select_ . init ( &leaf_sequence_ );
 
@@ -239,47 +233,48 @@ SuccinctTree::leafEnd ( void ) const {
 
 inline uint64_t 
 SuccinctTree::TreeToLeaf ( iterator it ) const {
-  if ( it == end () ) return leafEnd ();
-  uint64_t x = *it;
-  if ( x == last_ ) return leaf_count_ - 1;
+  uint64_t x = *it + 1;
   if ( leaf_sequence_ [ x ] == 1 ) return leafEnd ();
   return rank_ . rank ( x );
 }
 
 inline SuccinctTree::iterator 
 SuccinctTree::LeafToTree ( uint64_t leaf ) const {
-  if ( leaf == leafEnd () ) return end ();
-  if ( leaf == leafEnd () - 1 ) return last_;
-  return iterator ( select_ . select ( leaf + 1 ) );
+  //std::cout << "SuccinctTree::LeafToTree  " << leaf << ", " << size_ << " " << leaf_count_ << "\n";
+  //for ( size_t i = 0; i < leaf_sequence_ . size (); ++ i ) {
+  //  std::cout << (leaf_sequence_ [ i ] ? "1" : "0");
+  //}
+  //std::cout << "\n";
+  return iterator ( select_ . select ( leaf + 1 ) - 1 );
 }
 
 inline SuccinctTree::iterator 
 SuccinctTree::parent ( iterator it ) const {
   uint64_t x = *it;
   if ( x == 0 ) return end ();
-  if ( leaf_sequence_ [ x - 1 ] == 1 ) return iterator ( x - 1 );
-  return iterator ( tree_ . find_open ( x - 1 ) );
+  if ( leaf_sequence_ [ x ] == 1 ) return iterator ( x - 1 );
+  return iterator ( tree_ . find_open ( x ) - 1 );
 }
 
 inline SuccinctTree::iterator 
 SuccinctTree::left ( iterator it ) const {
-  uint64_t x = *it;
-  if ( x == last_ || leaf_sequence_ [ x ] == 0 ) return end ();
-  return iterator ( x + 1 );
+  uint64_t x = *it + 1;
+  if ( leaf_sequence_ [ x ] == 0 ) return end ();
+  return iterator ( x );
 }
 
 inline SuccinctTree::iterator 
 SuccinctTree::right ( iterator it ) const {
-  uint64_t x = *it;
-  if ( x == last_ || leaf_sequence_ [ x ] == 0 ) return end ();
-  return iterator ( tree_ . find_close ( x ) + 1 );
+  uint64_t x = *it + 1;
+  if ( leaf_sequence_ [ x ] == 0 ) return end ();
+  return iterator ( tree_ . find_close ( x ) );
 }
 
 inline bool 
 SuccinctTree::isLeft ( iterator it ) const {
   uint64_t x = *it;
   if ( x == 0 ) return false;
-  if ( leaf_sequence_ [ x - 1 ] == 1 ) return true;
+  if ( leaf_sequence_ [ x ] == 1 ) return true;
   return false;
 }
 
@@ -287,14 +282,14 @@ inline bool
 SuccinctTree::isRight ( iterator it ) const {
   uint64_t x = *it;
   if ( x == 0 ) return false;
-  if ( leaf_sequence_ [ x - 1 ] == 1 ) return false;
+  if ( leaf_sequence_ [ x ] == 1 ) return false;
   return true;
 }
 
 inline bool 
 SuccinctTree::isLeaf ( iterator it ) const {
-  uint64_t x = *it;
-  if ( x == last_ || leaf_sequence_ [ x ] == 0 ) return true;
+  uint64_t x = *it + 1;
+  if ( leaf_sequence_ [ x ] == 0 ) return true;
   return false;
 }
 
@@ -316,8 +311,8 @@ template<class Archive>
 void SuccinctTree::save ( Archive & ar , const unsigned int version ) const {
   ar & boost::serialization::base_object<Tree>(*this);
   std::vector < bool > leaf_sequence ( size_ );
-  for ( size_t i = 0; i < leaf_sequence_ . size (); ++ i ) {
-    leaf_sequence [ i ] = leaf_sequence_ [ i ];
+  for ( size_t i = 1; i < leaf_sequence_ . size (); ++ i ) {
+    leaf_sequence [ i - 1 ] = leaf_sequence_ [ i ];
   }
   ar & leaf_sequence;
 }

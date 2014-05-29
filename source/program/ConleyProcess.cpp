@@ -82,24 +82,28 @@ int ConleyProcess::prepare ( Message & job ) {
   }
 
   std::cout << " ConleyProcess::prepare\n";
+  std::cout << " num_incc_ = " << num_incc_ << "\n";
   std::cout << " num_jobs_sent_ = " << num_jobs_sent_ << "\n";
   
   if ( current_incc_ == num_incc_ ) current_incc_ = 0;
 
-  while ( finished_ [ current_incc_ ++ ] ) {
+  while ( finished_ [ current_incc_ ] ) {
     ++ current_incc_;
     if ( current_incc_ == num_incc_ ) current_incc_ = 0;
   }
 
   size_t attempt = attempts_ [ current_incc_ ] ++;
-  uint64_t incc = current_incc_ ++;
+  uint64_t incc = current_incc_;
   uint64_t pi;
   uint64_t ms;
+
+  std::cout << "ConleyProcess. Isolating Neighborhood Continuation Class = " << incc << ".\n";
 
   const INCC_Record & incc_record = database . INCC_Records () [ incc ];
   
   if ( attempt < incc_record . smallest_reps . size () ) {
     // Find a small representative
+    std::cout << "ConleyProcess. Finding a small representative.\n";
     std::set<std::pair<uint64_t, std::pair<uint64_t, uint64_t> > >::iterator it;
     it = incc_record . smallest_reps . begin ();
     std::advance ( it, attempt );
@@ -108,19 +112,33 @@ int ConleyProcess::prepare ( Message & job ) {
     ms = pair . second;
   } else {
     // Find a random representative
+    std::cout << "ConleyProcess. Finding a random representative.\n";
     uint64_t incc_size = database . incc_sizes () [ incc ];
+    std::cout << "(debug) incc_size = " << incc_size << "\n";
     bool chose_representative = false;
     while ( not chose_representative ) {
+      std::cout << "There are " << incc_record . inccp_indices . size () << " candidates\n";
       BOOST_FOREACH ( uint64_t inccp, incc_record . inccp_indices ) {
+        std::cout << "Considering candidate number " << inccp << "\n";
         const INCCP_Record & inccp_record = 
          database . INCCP_Records () [ inccp ];
         uint64_t cs = inccp_record . cs_index;
-        if ( database . csData () [ cs ] . vertices . size () != 1 ) continue;
+        if ( database . csData () [ cs ] . vertices . size () != 1 ) { 
+          std::cout << "ConleyProcess. Rejecting candidate " << inccp <<
+                       " since isolating neighborhood is not a single Morse set " <<
+                       " in this region.\n";
+          continue;
+        }
         const MGCCP_Record & mgccp_record = 
          database . MGCCP_Records () [ inccp_record . mgccp_index ];
         uint64_t mgccp_size = mgccp_record . parameter_indices . size ();
-        if ( rand () % incc_size >= mgccp_size ) continue;
-        
+        std::cout << "(debug) mgccp_size = " << mgccp_size << "\n";
+        if ( rand () % incc_size >= mgccp_size ) { 
+          std::cout << "ConleyProcess. Rejecting candidate " << inccp <<
+                       " via rand () \% incc_size >= mgccp_size with incc_size = " 
+                        << incc_size << " and mgccp_size = " << mgccp_size << ".\n";
+          continue;
+        } 
         pi = mgccp_record . parameter_indices [ rand () % mgccp_size ];
         ms =  database . csData () [ cs ] . vertices [ 0 ];
         chose_representative = true;
@@ -162,7 +180,7 @@ void ConleyProcess::work ( Message & result,
     case 0:
       // Checkpoint timer job
       std::cout << "ConleyProcess::work. Checkpoint timer job detected.\n";
-      boost::this_thread::sleep( boost::posix_time::seconds(60) );
+      boost::this_thread::sleep( boost::posix_time::seconds(15) );
       result << (uint64_t) 0;
       break;
     case 1:

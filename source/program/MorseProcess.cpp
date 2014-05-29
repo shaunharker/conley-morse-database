@@ -146,7 +146,7 @@ void MorseProcess::work ( Message & result, const Message & job ) const {
   case 0:
     // Checkpoint timer job
     std::cout << "MorseProcess::work. Checkpoint timer job detected.\n";
-    boost::this_thread::sleep( boost::posix_time::seconds(60) );
+    boost::this_thread::sleep( boost::posix_time::seconds(15) );
     result << (uint64_t) 0;
     break;
   case 1:

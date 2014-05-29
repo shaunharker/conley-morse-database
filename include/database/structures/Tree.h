@@ -123,8 +123,8 @@ Tree::subtree ( const std::deque < iterator > & leaves ) const {
     = new_tree . valid_sequence;
 
   if ( leaves . empty () ) {
-    new_leaf_sequence . push_back ( LEAF );
-    new_valid_sequence . push_back ( NOT_VALID );
+    result -> leaf_sequence . push_back ( false );
+    result -> valid_sequence . push_back ( false ); 
     return result;
   }
   
@@ -239,7 +239,7 @@ CompressedTree * Tree::join ( InputIterator start, InputIterator stop ) {
   }
   if ( trivial_case ) {
     leaf_sequence . push_back ( false );
-    valid_sequence . push_back ( false );
+    valid_sequence . push_back ( false ); 
     return result;
   }
   //std::cout << "(1";

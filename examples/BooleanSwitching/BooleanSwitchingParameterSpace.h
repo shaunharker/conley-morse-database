@@ -259,12 +259,27 @@ BooleanSwitchingParameterSpace::closestFace
 	  boost::dynamic_pointer_cast<BooleanSwitchingParameter> ( p ); 
 	std::vector<int> result ( dimension_ );
 	if ( dimension_ != domain . size () ) { 
-		std::cout << "error. BooleanSwitchingParameter::closestFace. Inappropriate input domain size.\n";
-		throw std::logic_error ( "BooleanSwitchingParameter::closestFace. Inappropriate input domain size.\n");
+		std::cout << "error. BooleanSwitchingParameter::closestFace. "
+                 "Inappropriate input domain size.\n";
+		throw std::logic_error ( "BooleanSwitchingParameter::closestFace. "
+                             "Inappropriate input domain size.\n");
 	}
 
+  // Determination of out-states.
+  //    Loop through each node of network.
+  //    For each node, examine the out-edges in the order they are listed
+  //    Depending on the "critical_value", which is the domain bin
+  //    of the associated phase space variable, we determine whether this
+  //    output should be "on" or "off". We store this data in the 
+  //    "state" data structure, which maps (source,target) to "off,on"
+  //  Notes:  The indexing of nodes starts at 1, whereas the indexing
+  //          of dimension starts at 0. This requires a translation
+  //          from network indexing to dimension indexing, which is
+  //          just to subtract 1.
+  //          We store the "state" via network indexing.
 	boost::unordered_map < std::pair<int, int>, bool > state;
-	BOOST_FOREACH ( const BooleanSwitching::NodeData & data, network_ . node_data_ ) {
+	BOOST_FOREACH ( const BooleanSwitching::NodeData & data, 
+                  network_ . node_data_ ) {
   	int critical_value = domain [ data . index - 1 ];
   	int count = 0;
   	BOOST_FOREACH ( int out_node, data . out_order ) {
@@ -272,12 +287,26 @@ BooleanSwitchingParameterSpace::closestFace
   			( count ++ > critical_value );
   	}
   }
-  BOOST_FOREACH ( const BooleanSwitching::NodeData & data, network_ . node_data_ ) {
+
+  // Loop through each node of network
+  //  Loop through each in-edge (i.e. each factor of logic, 
+  //                                  each summand of factor)
+  //     Access state corresponding to in-edge.
+  //     If this is a down-regulator, flip the state
+  //     Append the state as the last bit of a growing code-word
+  //  End
+  //  Determine monotonic function for node
+  //  Call the monotonic function with the code look-up
+  //  Write the result component
+  // End
+  BOOST_FOREACH ( const BooleanSwitching::NodeData & data, 
+                  network_ . node_data_ ) {
   	uint64_t code = 0;
   	BOOST_FOREACH ( const std::vector<int> & factor, data . logic ) {
   		BOOST_FOREACH ( int in_node, factor ) {
   			code <<= 1;
-  			bool bit = state [ std::make_pair ( std::abs(in_node), data . index ) ];
+  			bool bit = state [ std::make_pair ( std::abs(in_node), 
+                                            data . index ) ];
   			if ( in_node < 0 ) bit = not bit; // Take into account down-regulation
   			if ( bit ) ++ code;
   		}

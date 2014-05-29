@@ -70,6 +70,18 @@ public:
   virtual TreeGrid::iterator 
   TreeToGrid ( Tree::iterator it ) const = 0;
 
+  /// tree
+  virtual const Tree & 
+  tree ( void ) const = 0;
+  virtual Tree & 
+  tree ( void ) = 0;
+  
+  /// treeBegin
+  Tree::iterator treeBegin ( void ) const;
+
+  /// treeEnd
+  Tree::iterator treeEnd ( void ) const;
+
   /// parent
   Tree::iterator parent ( Tree::iterator it ) const;
   
@@ -79,6 +91,9 @@ public:
   /// right
   Tree::iterator right ( Tree::iterator it ) const;
   
+  /// isGrid
+  bool isGrid ( Tree::iterator it ) const;
+
   /// join
   template < class InputIterator >
   static CompressedTreeGrid * 
@@ -139,12 +154,6 @@ public:
   coverAccept ( const RectGeo & visitor ) const;
   using Grid::cover;
 
-  /// tree
-  virtual const Tree & 
-  tree ( void ) const = 0;
-  virtual Tree & 
-  tree ( void ) = 0;
-  
   /// memory
   virtual uint64_t 
   memory ( void ) const = 0;
@@ -264,6 +273,7 @@ TreeGrid::subset ( const Grid & other_in ) const {
   // If "this" goes deeper than "other", we collect all decendant leaves.
   std::vector<GridElement> result;
   if ( size() == 0 || other . size () == 0 ) return result;
+  
   std::stack < std::pair < Tree::iterator, Tree::iterator > > work_stack;
   //std::cout << "Grid::subset 1\n";
   work_stack . push ( std::make_pair ( tree () . begin (), other . tree () . begin () ) );
@@ -287,10 +297,10 @@ TreeGrid::subset ( const Grid & other_in ) const {
       // Leaf on "other" -- filter down and get all subtree leaves on "this"
       Tree::iterator left_this_it = left ( this_it );
       Tree::iterator right_this_it = right ( this_it );
-      if ( left_this_it != tree () . end () ) {
+      if ( left_this_it != treeEnd () ) {
         work_stack . push ( std::make_pair ( left_this_it, other_it ) );
       }
-      if ( right_this_it != tree () . end () ) {
+      if ( right_this_it != treeEnd () ) {
         work_stack . push ( std::make_pair ( right_this_it, other_it ) );
       }
     } else {
@@ -299,14 +309,14 @@ TreeGrid::subset ( const Grid & other_in ) const {
       // Follow left branch if it exists:
       Tree::iterator left_this_it = left ( this_it );
       Tree::iterator left_other_it = other . left ( other_it );
-      if ( (left_this_it != tree () . end ()) && (left_other_it != other . tree () . end ()) ) {
+      if ( (left_this_it != treeEnd ()) && (left_other_it != other . treeEnd ()) ) {
         //std::cout << "Grid::subset. Pushing left branch.\n";
         work_stack . push ( std::make_pair ( left_this_it, left_other_it ) );
       } 
       // Follow right branch if it exists:
       Tree::iterator right_this_it = right ( this_it );
       Tree::iterator right_other_it = other . right ( other_it );
-      if ( (right_this_it != tree () . end ()) && (right_other_it != other . tree () . end ()) ) {
+      if ( (right_this_it != treeEnd ()) && (right_other_it != other . treeEnd ()) ) {
         //std::cout << "Grid::subset. Pushing right branch.\n";
         work_stack . push ( std::make_pair ( right_this_it, right_other_it ) );
       } 
@@ -317,6 +327,16 @@ TreeGrid::subset ( const Grid & other_in ) const {
 }
 
 inline Tree::iterator 
+TreeGrid::treeBegin ( void ) const {
+  return tree () . begin ();
+}
+
+inline Tree::iterator 
+TreeGrid::treeEnd ( void ) const {
+  return tree () . end ();
+}
+
+inline Tree::iterator 
 TreeGrid::parent ( Tree::iterator it ) const {
   return tree () . parent ( it );
 }
@@ -324,8 +344,9 @@ TreeGrid::parent ( Tree::iterator it ) const {
 inline Tree::iterator 
 TreeGrid::left ( Tree::iterator it ) const {
   Tree::iterator result = tree () . left ( it );
+  if ( result == treeEnd () ) return result;
   if ( tree () . isLeaf ( result ) ) {
-    if ( TreeToGrid ( result ) == end () ) return tree () . end ();
+    if ( TreeToGrid ( result ) == end () ) return treeEnd ();
   }
   return result;
 }
@@ -333,10 +354,20 @@ TreeGrid::left ( Tree::iterator it ) const {
 inline Tree::iterator 
 TreeGrid::right ( Tree::iterator it ) const {
   Tree::iterator result = tree () . right ( it );
+  if ( result == treeEnd () ) return result;
   if ( tree () . isLeaf ( result ) ) {
-    if ( TreeToGrid ( result ) == end () ) return tree () . end ();
+    if ( TreeToGrid ( result ) == end () ) return treeEnd ();
   }
   return result;
+}
+
+inline bool 
+TreeGrid::isGrid ( Tree::iterator it ) const {
+  if ( tree () . isLeaf ( it ) ) {
+    if ( TreeToGrid ( it ) == end () ) return false;
+    return true;
+  }
+  return false;
 }
 
 
@@ -351,7 +382,12 @@ TreeGrid::join ( InputIterator start, InputIterator stop ) {
       boost::dynamic_pointer_cast<TreeGrid>( * it );
     if ( ptr -> size () == 0 ) ++ start; else break;
   }
-  if ( start == stop ) return result;
+  if ( start == stop ) { 
+    // Return an empty tree.
+    result -> tree () -> leaf_sequence . push_back ( false );
+    result -> tree () -> valid_sequence . push_back ( false );    
+    return result;
+  }
   start_ptr = boost::dynamic_pointer_cast<TreeGrid>(*start);
   if ( not start_ptr ) {
     throw std::logic_error("TreeGrid::join error: not iterating over "
@@ -389,9 +425,9 @@ TreeGrid::initialize ( const RectGeo & outer_bounds_of_grid ) {
   bounds_ = outer_bounds_of_grid;
   dimension_ = outer_bounds_of_grid . lower_bounds . size ();
   periodic_ . resize ( dimension_, false );
-  std::cout << "TreeGrid::initialize. bounds_ = " << bounds_ << "\n";
-  std::cout << "TreeGrid::initialize. dimension_ = " << dimension_ << "\n";
-  std::cout << "TreeGrid::initialize. size_ = " << size_ << "\n";
+  //std::cout << "TreeGrid::initialize. bounds_ = " << bounds_ << "\n";
+  //std::cout << "TreeGrid::initialize. dimension_ = " << dimension_ << "\n";
+  //std::cout << "TreeGrid::initialize. size_ = " << size_ << "\n";
 
 }
 
@@ -721,7 +757,7 @@ TreeGrid::coverAccept ( const RectGeo & visitor ) const  {
     
     Tree::iterator root = tree () . begin ();
     Tree::iterator N = root;
-    Tree::iterator tree_end = tree () . end ();
+    Tree::iterator tree_end = treeEnd ();
     
     char state = 0;
     int depth = -1;
@@ -908,7 +944,7 @@ TreeGrid::coverAccept ( const PrismGeo & visitor ) const {
    */
   
   Tree::iterator N = tree () . begin ();
-  Tree::iterator tree_end = tree () . end ();
+  Tree::iterator tree_end = treeEnd ();
   char state = 0;
   int depth = -1;
   //std::cout << "Above main loop.\n";

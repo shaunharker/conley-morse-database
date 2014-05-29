@@ -33,12 +33,14 @@ inline void Clutching( BG_Data * result,
   size_t N2 = graph2 . NumVertices ();
   
   // Dynamic dispatch.
-  std::vector < std::vector < const Tree * > > graph1_trees;
-  std::vector < std::vector < const Tree * > > graph2_trees;
+  std::vector < std::vector < boost::shared_ptr<const TreeGrid> > > 
+    graph1_trees, graph2_trees;
   size_t num_charts = 1;
   if ( boost::dynamic_pointer_cast<const Atlas> ( graph1 . phaseSpace () ) ) {
-  	const Atlas & atlas1 = * boost::dynamic_pointer_cast<const Atlas> ( graph1 . phaseSpace () );
-  	const Atlas & atlas2 = * boost::dynamic_pointer_cast<const Atlas> ( graph2 . phaseSpace () );
+  	const Atlas & atlas1 = * boost::dynamic_pointer_cast<const Atlas> 
+      ( graph1 . phaseSpace () );
+  	const Atlas & atlas2 = * boost::dynamic_pointer_cast<const Atlas> 
+      ( graph2 . phaseSpace () );
 
   	// Determine number of charts.
   	size_t num_charts1 = atlas1 . numCharts ();
@@ -47,36 +49,40 @@ inline void Clutching( BG_Data * result,
   		return; // No clutching due to being incompatible.
   	}
   	num_charts = num_charts1;
-  	graph1_trees . resize ( num_charts, std::vector<const Tree *> ( N1 ) );
-  	graph2_trees . resize ( num_charts, std::vector<const Tree *> ( N2 ) );
+  	graph1_trees . resize ( num_charts, 
+      std::vector < boost::shared_ptr<const TreeGrid> > ( N1 ) );
+  	graph2_trees . resize ( num_charts, 
+      std::vector < boost::shared_ptr<const TreeGrid> > ( N2 ) );
 
   	// Loop through vertices and charts
   	for ( size_t i = 0; i < N1; ++ i ) {
-  		const Atlas & atlas = * boost::dynamic_pointer_cast<const Atlas> ( graph1 . grid ( i ) );
+  		const Atlas & atlas = * boost::dynamic_pointer_cast<const Atlas> 
+        ( graph1 . grid ( i ) );
       size_t count = 0;
   		for ( Atlas::ChartIteratorPair it_pair = atlas . charts ();
   				  it_pair . first != it_pair . second;
   				  ++ it_pair . first ) {
   			Atlas::Chart chart = it_pair . first -> second;
         if ( chart -> size () > 0 ) {
-  			 graph1_trees[count][i] = &(chart -> tree ());
+  			 graph1_trees[count][i] = chart;
         } else {
-         graph1_trees[count][i] = NULL;
+         graph1_trees[count][i] . reset ();
         }
         ++ count;
   		}
   	}
   	for ( size_t i = 0; i < N2; ++ i ) {
-  		const Atlas & atlas = * boost::dynamic_pointer_cast<const Atlas> ( graph2 . grid ( i ) );
+  		const Atlas & atlas = * boost::dynamic_pointer_cast<const Atlas> 
+        ( graph2 . grid ( i ) );
       size_t count = 0;
   		for ( Atlas::ChartIteratorPair it_pair = atlas . charts ();
   				  it_pair . first != it_pair . second;
   				  ++ it_pair . first ) {
   			Atlas::Chart chart = it_pair . first -> second;
         if ( chart -> size () > 0 ) {
-         graph2_trees[count][i] = &(chart -> tree ());
+         graph2_trees[count][i] = chart;
         } else {
-         graph2_trees[count][i] = NULL;
+         graph2_trees[count][i] . reset ();
         }
         ++ count;
   		}
@@ -84,16 +90,18 @@ inline void Clutching( BG_Data * result,
   }
 
   if ( boost::dynamic_pointer_cast<const TreeGrid> ( graph1 . phaseSpace () ) ) {
-  	graph1_trees . resize ( num_charts, std::vector<const Tree *> ( N1 ) );
-  	graph2_trees . resize ( num_charts, std::vector<const Tree *> ( N2 ) );
+  	graph1_trees . resize ( num_charts, 
+      std::vector < boost::shared_ptr<const TreeGrid> > ( N1 ) );
+  	graph2_trees . resize ( num_charts, 
+      std::vector < boost::shared_ptr<const TreeGrid> > ( N2 ) );
 // Loop through vertices and charts
   	for ( size_t i = 0; i < N1; ++ i ) {
-  		const TreeGrid & grid = * boost::dynamic_pointer_cast<const TreeGrid> ( graph1 . grid ( i ) );
-  		graph1_trees[0][i] = &(grid . tree ());
+  		graph1_trees[0][i] = boost::dynamic_pointer_cast<const TreeGrid> 
+        ( graph1 . grid ( i ) );
   	}
   	for ( size_t i = 0; i < N2; ++ i ) {
-  		const TreeGrid & grid = * boost::dynamic_pointer_cast<const TreeGrid> ( graph2 . grid ( i ) );
-  		graph2_trees[0][i] = &(grid . tree ());
+  		graph2_trees[0][i] = boost::dynamic_pointer_cast<const TreeGrid> 
+        ( graph2 . grid ( i ) );
   	}
   }
 
@@ -101,14 +109,17 @@ inline void Clutching( BG_Data * result,
   // For each chart, make a collection of tree references
   // Modify the algorithm to use the references rather than -> grid ( i) . tree ()
   for ( size_t chart_id = 0; chart_id < num_charts; ++ chart_id ) {
-  	const std::vector< const Tree * > & trees1 = graph1_trees [ chart_id ];
-  	const std::vector< const Tree * > & trees2 = graph2_trees [ chart_id ];
+  	const std::vector< boost::shared_ptr<const TreeGrid> > & trees1 
+      = graph1_trees [ chart_id ];
+  	const std::vector< boost::shared_ptr<const TreeGrid> > & trees2 
+      = graph2_trees [ chart_id ];
 
   	typedef Tree::iterator iterator;
 
   // How this works:
-  // We want to advance through the trees simultaneously, but they aren't all the same tree
-  // If we explore a subtree in some trees that does not exist in others, we remain halted on the others
+  // We want to advance through the trees simultaneously, but they 
+  // aren't all the same tree. If we explore a subtree in some trees 
+  // that does not exist in others, we remain halted on the others
   // until the subtree finishes.
   //
   // initialize iterators
@@ -120,9 +131,9 @@ inline void Clutching( BG_Data * result,
   	std::vector < iterator > iters1 ( N1 );
   	std::vector < iterator > iters2 ( N2 );
   	for ( size_t i = 0; i < N1; ++ i ) 
-      if ( trees1[i] != NULL ) iters1[i] = trees1[i] -> begin ();
+      if ( trees1[i] ) iters1[i] = trees1[i] -> treeBegin ();
   	for ( size_t i = 0; i < N2; ++ i ) 
-      if ( trees2[i] != NULL ) iters2[i] = trees2[i] -> begin ();
+      if ( trees2[i] ) iters2[i] = trees2[i] -> treeBegin ();
   	std::vector < size_t > depth1 ( N1, 0 );
   	std::vector < size_t > depth2 ( N2, 0 );
   	size_t depth = 0;
@@ -137,11 +148,11 @@ inline void Clutching( BG_Data * result,
   			Vertex set1 = N1;
   			Vertex set2 = N2;
   			for ( size_t i = 0; i < N1; ++ i ) {
-          if ( trees1 [ i ] == NULL ) continue;
+          if ( not trees1 [ i ] ) continue;
       //std::cout << "Position 1. i = " << i << ", depth = " << depth << " and state = " << state << "\n";
       // If node is halted, continue
   				if ( depth1[i] == depth ) {
-  					iterator end = trees1[i] -> end ();
+  					iterator end = trees1[i] -> treeEnd ();
   					switch ( state ) {
   						case 0:
   						{
@@ -163,25 +174,26 @@ inline void Clutching( BG_Data * result,
   						}
   						case 2:
   						{
-  							if ( trees1 [ i ] -> isright ( iters1 [ i ] ) ) success = true;
+  							if ( trees1 [ i ] -> tree () . isRight ( iters1 [ i ] ) ) 
+                    success = true;
   							iters1[i] = trees1 [ i ] -> parent ( iters1 [ i ] );
   							-- depth1[i];
   							break;
   						}
   					}
   				}
-  				if ( trees1 [ i ] -> isleaf ( iters1 [ i ] ) ) {
+  				if ( trees1 [ i ] -> isGrid ( iters1 [ i ] ) ) {
   					if ( set1 != (Vertex)N1 ) std::cout << "Warning, morse sets are not disjoint.\n";
   					set1 = (Vertex)i;
   				}
 
   			}
   			for ( size_t i = 0; i < N2; ++ i ) {
-          if ( trees2 [ i ] == NULL ) continue;
+          if ( not trees2 [ i ] ) continue;
       //std::cout << "Position 2. i = " << i << ", depth = " << depth << " and state = " << state << "\n";
       // If node is halted, continue
   				if ( depth2[i] == depth ) {
-  					iterator end = trees2 [ i ] -> end ();
+  					iterator end = trees2 [ i ] -> treeEnd ();
   					switch ( state ) {
   						case 0:
   						{
@@ -203,14 +215,15 @@ inline void Clutching( BG_Data * result,
   						}
   						case 2:
   						{
-  							if ( trees2 [ i ] -> isright ( iters2 [ i ] ) ) success = true;
+  							if ( trees2 [ i ] -> tree () . isRight ( iters2 [ i ] ) ) 
+                    success = true;
   							iters2[i] = trees2 [ i ] -> parent ( iters2 [ i ] );
   							-- depth2[i];
   							break;
   						}
   					}
   				}
-  				if ( trees2 [ i ] -> isleaf ( iters2 [ i ] ) ) {
+  				if ( trees2 [ i ] -> isGrid ( iters2 [ i ] ) ) {
   					if ( set2 != (Vertex)N2 ) std::cout << "Warning, morse sets are not disjoint.\n";
   					set2 = (Vertex)i;
   				}

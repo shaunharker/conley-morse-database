@@ -14,7 +14,7 @@
 #include <cstdlib>
 #include <exception>
 
-#define PHASE_GRID SuccinctGrid
+#define PHASE_GRID PointerGrid
 #define PARAMETER_GRID UniformGrid
 
 class Model {
