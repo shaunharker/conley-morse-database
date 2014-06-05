@@ -43,6 +43,7 @@ public:
     std::string appendstring ( "/config.xml" );
     std::string loadstring = filestring + appendstring;
     char current [ 100 ];
+    getcwd ( current, 100 );
     std::ifstream input(loadstring.c_str());
     if ( not input . good () ) {
       std::cout << "Problem loading configuation file.\n";
@@ -50,7 +51,6 @@ public:
       std::cout << "Attempted to load from file:\n " << loadstring << "\n";      
       throw std::runtime_error ( "Unable to load configuration file.\n" );
     }
-    getcwd ( current, 100 );
 
     LoadFromStream(&input);
     //std::cout << "Success.\n";

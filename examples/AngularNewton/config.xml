@@ -10,7 +10,7 @@
     <upper> 1.0 3.14159265358979323846264338327950288 1.0 1.0</upper>
   </bounds>
   <subdiv>
-    <depth> 6 </depth>
+    <depth> 5 </depth>
   </subdiv>
   <periodic> 0 1 0 0 </periodic>
 </param>
