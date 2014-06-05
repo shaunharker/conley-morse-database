@@ -46,7 +46,7 @@ public:
     getcwd ( current, 100 );
     std::ifstream input(loadstring.c_str());
     if ( not input . good () ) {
-      std::cout << "Problem loading configuation file.\n";
+      std::cout << "Problem loading configuration file.\n";
       std::cout << "Current directory:\n" << current << "\n";
       std::cout << "Attempted to load from file:\n " << loadstring << "\n";      
       throw std::runtime_error ( "Unable to load configuration file.\n" );
