@@ -17,13 +17,13 @@
 <phase>
   <dim> 2 </dim>
   <bounds>
-    <lower> 0.0 0.0 </lower>
+    <lower> -1.0 -1.0 </lower>
     <upper> 74.0 52.0 </upper>
   </bounds>
   <subdiv>
     <init> 0 </init>
-    <min> 6 </min>
-    <max> 6 </max>
+    <min> 24 </min>
+    <max> 30 </max>
     <limit> 10000 </limit>
   </subdiv>
 </phase>

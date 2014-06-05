@@ -1,36 +1,39 @@
-// listConleyIndices.cpp
+// zookeeper.cpp
 
-#define MAIN_CPP_FILE
-#include "boost/serialization/export.hpp"
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
+#define NOCONLEYINDEX
+#include <boost/serialization/export.hpp>
+#include "database/structures/Database.h"
+#include "database/structures/Grid.h"
+#include "database/structures/PointerGrid.h"
+#include "database/structures/SuccinctGrid.h"
+#include "database/structures/UniformGrid.h"
+#include "database/structures/EdgeGrid.h"
+#include "database/structures/ParameterSpace.h"
+#include "database/structures/EuclideanParameterSpace.h"
+#include "database/structures/AbstractParameterSpace.h"
+BOOST_CLASS_EXPORT_IMPLEMENT(PointerGrid);
+BOOST_CLASS_EXPORT_IMPLEMENT(SuccinctGrid);
+BOOST_CLASS_EXPORT_IMPLEMENT(UniformGrid);
+BOOST_CLASS_EXPORT_IMPLEMENT(EdgeGrid);
+BOOST_CLASS_EXPORT_IMPLEMENT(EuclideanParameter);
+BOOST_CLASS_EXPORT_IMPLEMENT(EuclideanParameterSpace);
+BOOST_CLASS_EXPORT_IMPLEMENT(AbstractParameterSpace);
+
 
 #include <iostream>
 #include <fstream>
 #include <sstream>
-
-#define HAVE_SUCCINCT
-#define PARAMETER_GRID PointerGrid
-
-#include "database/structures/SuccinctGrid.h"
-#include "database/structures/PointerGrid.h"
-#include "database/structures/UniformGrid.h"
-#include "database/structures/EdgeGrid.h"
-
-#include "database/structures/Database.h"
+#include <string>
+#include <vector>
+#include <utility>
+#include <algorithm>
+#include "boost/foreach.hpp"
+#include "boost/shared_ptr.hpp"
+#include "boost/unordered_set.hpp"
+#include "boost/unordered_map.hpp"
+#include "../examples/BooleanSwitching/BooleanSwitchingParameterSpace.h"
 
 #include "GI.h"
-#include <boost/serialization/export.hpp>
-BOOST_CLASS_EXPORT_IMPLEMENT(SuccinctGrid);
-BOOST_CLASS_EXPORT_IMPLEMENT(PointerGrid);
-BOOST_CLASS_EXPORT_IMPLEMENT(UniformGrid);
-BOOST_CLASS_EXPORT_IMPLEMENT(EdgeGrid);
-
-#include "database/structures/EuclideanParameterSpace.h"
-BOOST_CLASS_EXPORT_IMPLEMENT(EuclideanParameter);
-BOOST_CLASS_EXPORT_IMPLEMENT(EuclideanParameterSpace);
-#include "database/structures/AbstractParameterSpace.h"
-BOOST_CLASS_EXPORT_IMPLEMENT(AbstractParameterSpace);
 
 #define NOCONLEYINDEX
 
@@ -254,6 +257,7 @@ void CMG_Zoo ( const Database & database ) {
 			frequency += mgccp_record . parameter_indices . size ();
 		}
 		DAG dag = makeDAG ( database, mgcc );
+    if ( dag . num_vertices_ == 0 ) std::cout << "detected empty dag\n";
 		cmgs_and_count [ dag ] += frequency;
 		total_count += frequency;
 	}
@@ -263,8 +267,9 @@ void CMG_Zoo ( const Database & database ) {
 		data_to_sort . push_back ( std::make_pair ( v . second, v . first ) );
 	}
 
+  std::cout << "data_to_sort . size () ==  " << data_to_sort . size () << "\n";
 	std::sort ( data_to_sort . rbegin (), data_to_sort . rend () ); // sort in descending order
-
+  std::cout << "data_to_sort sorted.\n";
 	// DISPLAY CMG ZOO DATA
 	for ( uint64_t cmg_zoo_index = 0; cmg_zoo_index < data_to_sort . size (); ++ cmg_zoo_index ) {
 		long frequency = data_to_sort [ cmg_zoo_index ] . first;
@@ -330,7 +335,6 @@ void Hasse_Zoo ( const Database & database ) {
 		// algo
 		{
 
-			ss << "digraph HASSE" << zoo_index << " { \n";
   		const DAG_Data & dag = database . dagData () [ dag_index ];
 
   		// debug
@@ -357,10 +361,12 @@ void Hasse_Zoo ( const Database & database ) {
   					std::cout << e . first << " -> " << e . second << "; ";
   				}
   	  	}
-				abort ();
+        continue; //abort ();
 			}
 			// end debug
-  		  // Vertices
+
+      ss << "digraph HASSE" << zoo_index << " { \n";
+  		// Vertices
   		for ( int i = 0; i < dag . num_vertices; ++ i ) {
     		ss << i << " [label=\"" << i << "\"]\n";
   		}  
@@ -391,16 +397,17 @@ void RAWHasseDebug ( const Database & database ) {
 }
 
 int main ( int argc, char * argv [] ) {
-  
 	// Load database
   Database database; 
   database . load ( argv [ 1 ] );
 
+  std::cout << "Successfully loaded database.\n";
   //RAWHasseDebug ( database );
   //return 0;
   
   //database . makeAttractorsMinimal ();
   database . performTransitiveReductions ();
+  
   // Display CI Zoo
 #ifndef NOCONLEYINDEX
   std::string ci_zoo_string = CI_Zoo ( database );

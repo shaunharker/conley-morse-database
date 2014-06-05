@@ -54,13 +54,18 @@ public:
   dimension ( void ) const {
     return lower_bounds . size ();
   }
-  RectGeo ( unsigned int size, const Real & value ) 
+  RectGeo ( unsigned int size, 
+            const Real & value ) 
   { lower_bounds . resize ( size, value );
     upper_bounds . resize ( size, value ); }
-  RectGeo ( unsigned int size, const Real & lower_value, const Real & upper_value )
+  RectGeo ( unsigned int size, 
+            const Real & lower_value, 
+            const Real & upper_value )
   { lower_bounds . resize ( size, lower_value );
     upper_bounds . resize ( size, upper_value ); }
-  RectGeo ( unsigned int size, const std::vector<Real> & lower_values, const std::vector<Real> & upper_values )
+  RectGeo ( unsigned int size, 
+            const std::vector<Real> & lower_values, 
+            const std::vector<Real> & upper_values )
   { assert(size == lower_values.size());
     assert(size == upper_values.size());
     lower_bounds = lower_values;
@@ -77,6 +82,8 @@ public:
 
   bool intersects ( const RectGeo & other ) const;
 private: 
+  virtual void print ( std::ostream & stream ) const;
+
   friend class boost::serialization::access; 
   template<class Archive>
   void save(Archive & ar, const unsigned int version) const
@@ -95,16 +102,17 @@ private:
     upper_bounds . resize ( size );
     for ( unsigned int index = 0; index < size; ++ index ) {
       ar & lower_bounds [ index ];
-    } /* for */
+    }
     for ( unsigned int index = 0; index < size; ++ index ) {
       ar & upper_bounds [ index ];
-    } /* for */
+    }
     
   }
   BOOST_SERIALIZATION_SPLIT_MEMBER()
 };
 
-inline RectGeo operator * ( double scalar, const RectGeo & rhs ) {
+inline RectGeo 
+operator * ( double scalar, const RectGeo & rhs ) {
     RectGeo result = rhs;
     int d = rhs . dimension ();
     for ( int i = 0; i < d; ++ i ) {
@@ -114,8 +122,8 @@ inline RectGeo operator * ( double scalar, const RectGeo & rhs ) {
     return result;
   }
   
-inline RectGeo operator + ( const RectGeo & lhs, const RectGeo & rhs ) {
-    // SHOULD THROW
+inline RectGeo 
+operator + ( const RectGeo & lhs, const RectGeo & rhs ) {
     RectGeo result = lhs;
     int d = rhs . dimension ();
     for ( int i = 0; i < d; ++ i ) {
@@ -125,18 +133,18 @@ inline RectGeo operator + ( const RectGeo & lhs, const RectGeo & rhs ) {
     return result;
   }
   
-inline std::ostream & operator << ( std::ostream & output_stream, const RectGeo & print_me );
-
-  // We cast to float, assuming that == testing is for hashing
-  inline bool operator==(RectGeo const& x, RectGeo const& y) {
-    for ( size_t d = 0; d < x . dimension (); ++ d ) {
-      if ( (float) x . lower_bounds [ d ] != (float) y . lower_bounds [ d ] ) return false;
-      if ( (float) x . upper_bounds [ d ] != (float) y . upper_bounds [ d ] ) return false;
-    }
-    return true;
+// We cast to float, assuming that == testing is for hashing
+inline bool 
+operator == (RectGeo const& x, RectGeo const& y) {
+  for ( size_t d = 0; d < x . dimension (); ++ d ) {
+    if ( (float) x . lower_bounds [ d ] != (float) y . lower_bounds [ d ] ) return false;
+    if ( (float) x . upper_bounds [ d ] != (float) y . upper_bounds [ d ] ) return false;
   }
+  return true;
+}
   
-inline std::size_t hash_value(RectGeo const& x)
+inline std::size_t 
+hash_value(RectGeo const& x)
   {
     std::size_t seed = 0;
     for ( size_t d = 0; d < x . dimension (); ++ d ) {
@@ -151,7 +159,8 @@ inline std::size_t hash_value(RectGeo const& x)
 // really bad temporary solution
 #define TOL 1e-8 
 
-inline bool RectGeo::intersects ( const RectGeo & other ) const {
+inline bool 
+RectGeo::intersects ( const RectGeo & other ) const {
   for ( unsigned int dimension_index = 0; 
         dimension_index < lower_bounds . size (); 
         ++ dimension_index ) {
@@ -165,13 +174,15 @@ inline bool RectGeo::intersects ( const RectGeo & other ) const {
   return true;
 }
 
-inline std::ostream & operator << ( std::ostream & output_stream, const RectGeo & print_me ) {
-  for ( unsigned int dimension_index = 0; dimension_index < print_me . lower_bounds . size (); ++ dimension_index ) {
-    output_stream << "[" << print_me . lower_bounds [ dimension_index ] << ", " << print_me . upper_bounds [ dimension_index ] << "]";
-    if ( dimension_index < print_me . lower_bounds . size () - 1 ) output_stream << "x";
+inline void 
+RectGeo::print ( std::ostream & stream ) const {
+  for ( unsigned int d = 0; d < lower_bounds . size (); ++ d ) {
+    stream << "[" << lower_bounds [ d ] << ", " 
+           << upper_bounds [ d ] << "]";
+    if ( d < lower_bounds . size () - 1 ) stream << "x";
   }
-  return output_stream;
-} 
+}
+
 
 
 #endif

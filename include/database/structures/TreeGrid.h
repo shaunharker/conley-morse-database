@@ -889,7 +889,7 @@ TreeGrid::coverAccept ( const RectGeo & visitor ) const  {
   //std::cout << "Returning from cover.\n";
 
   if ( periodic_flag ) {
-    // Remove duplicates if necessary. (This is possible only
+    // Remove duplicates if necessary. (This is needed only
     // with periodicity)
     std::vector<Grid::GridElement> sorted_results;
     std::swap ( sorted_results, results );

@@ -77,7 +77,7 @@ void computeStrongComponents (std::vector<std::deque<typename Graph::Vertex> > *
   std::vector<bool> self_connected (N, false);
   std::vector<int64_t> preorder ( N, 0 );
   std::deque<int64_t> LOWLINK, DFS, cleanDFS;
-  std::deque<Vertex> S, SCC;
+  std::deque<Vertex> S;
   if ( SCC_root != NULL ) {
     SCC_root -> resize ( N );
   }

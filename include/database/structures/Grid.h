@@ -7,7 +7,8 @@
 #include <vector>
 #include <stack>
 #include <deque>
-
+#include <algorithm>
+#include <iterator>
 #include "boost/foreach.hpp"
 #include "boost/iterator/counting_iterator.hpp"
 #include "boost/unordered_set.hpp"
@@ -114,10 +115,23 @@ Grid::unionCover ( const std::vector < T > & V ) const {
   boost::unordered_set<Grid::GridElement> result_set;
   BOOST_FOREACH ( const T & geo, V ) {
     std::vector<Grid::GridElement> cover_vec = cover ( geo );
-    result_set . insert ( cover_vec . begin (), cover_vec . end () );
+// BS DEBUG BEGIN
+#ifdef BS_DEBUG_MODELMAP    
+    if ( cover_vec . empty () ) {
+      std::cout << *geo << "\n";
+      throw std::logic_error ( "Empty cover (boolean switching debug code)\n");
+    }
+#endif
+// BS DEBUG END
+    result . insert ( result . end (), cover_vec . begin (), cover_vec . end () );
   }
-  result . insert ( result . end (), result_set . begin (), result_set . end () );
-  return result;
+
+  std::vector<Grid::GridElement> unique_result;
+  std::sort ( result . begin (), result . end ());
+  std::unique_copy ( result . begin (), 
+                     result . end (), 
+                     std::back_inserter ( unique_result ) );
+  return unique_result;
 }
 
 template < class T >

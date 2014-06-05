@@ -295,6 +295,12 @@ SuccinctTree::isLeaf ( iterator it ) const {
 
 inline uint64_t 
 SuccinctTree::memory ( void ) const {
+  //std::cout << "SuccinctTree::memory \n";
+  //std::cout << "sdsl::util::get_size_in_bytes ( leaf_sequence_ ) = " << sdsl::util::get_size_in_bytes ( leaf_sequence_ ) << "\n";
+  //std::cout << "sdsl::util::get_size_in_bytes ( tree_ ) = " << sdsl::util::get_size_in_bytes ( tree_ ) << "\n";
+  //std::cout << "sdsl::util::get_size_in_bytes ( rank_ ) = " << sdsl::util::get_size_in_bytes ( rank_ ) << "\n";
+  //std::cout << "sdsl::util::get_size_in_bytes ( select_ ) = " << sdsl::util::get_size_in_bytes ( select_ ) << "\n";
+
   return sizeof ( SuccinctTree ) + 
          sdsl::util::get_size_in_bytes ( leaf_sequence_ ) +
          sdsl::util::get_size_in_bytes ( tree_ ) +

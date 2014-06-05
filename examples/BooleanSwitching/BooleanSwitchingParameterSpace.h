@@ -324,12 +324,17 @@ BooleanSwitchingParameterSpace::closestFace
   	}
   	// Note. Input code for node (data . index) has been established
   	int d = data . index - 1; // Index of node (minus one to start indexing at 0)
+
+    //std::cout << "Variable " << d + 1 << " received code " << code << "\n";
+
 		int monotonic_function_index = parameter -> monotonic_function_ [ d ];
 
 		const MonotonicMap & monotonic_function = 
 			factors_ [ d ] . vertices [ monotonic_function_index ];
 
 		int bin = monotonic_function . data_ [ code ];
+    //std::cout << "Consulting monotonic function " << monotonic_function_index << " for bin value.\n";
+    //std::cout << "This results in bin value " << bin << "\n";
 		if ( bin < domain [ d ] ) result [ d ] = 0;
 		else if ( bin == domain [ d ] ) result [ d ] = 1;
 		else if ( bin > domain [ d ] ) result [ d ] = 2;	

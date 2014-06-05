@@ -176,18 +176,16 @@ inline boost::shared_ptr<Geo> Atlas::geometry ( Grid::GridElement ge ) const {
 inline std::vector<Grid::GridElement>
 Atlas::cover ( const Geo & geo ) const { 
   // TODO: Make this work for a full Atlas.
-  const AtlasGeo & geometric_region = dynamic_cast<const AtlasGeo &> ( geo );
+  const AtlasGeo & atlas_geo = dynamic_cast<const AtlasGeo &> ( geo );
   std::vector<Grid::GridElement> result;
-  // index of the chart : geometric_region . first
-  // Rect to be covered : geometric_region . second
   // cover the Rect in the given chart
-  size_type chart_id_of_geo = geometric_region . id ();
+  size_type chart_id_of_geo = atlas_geo . id ();
   const Chart & chart_of_geo = charts_ . find ( chart_id_of_geo ) -> second;
   if ( chart_of_geo -> size () == 0 ) return result;
-  std::vector < GridElement > listge = chart_of_geo -> cover ( geometric_region . rect() );
+  std::vector < GridElement > listge = chart_of_geo -> cover ( atlas_geo . rect() );
   // // shift the gridelement from chart to atlas and insert it to ii
   BOOST_FOREACH ( Grid::GridElement chart_ge, listge ) {
-    GridElement newge = Chart_to_Atlas_GridElement_ ( chart_ge , geometric_region . id() );
+    GridElement newge = Chart_to_Atlas_GridElement_ ( chart_ge , atlas_geo . id() );
     //std::cout << "DEBUG Atlas::cover -- pushing " << chart_ge 
     //  << ", " << geometric_region.id() << " -- " << newge << "\n";
     result . push_back ( newge );

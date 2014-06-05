@@ -81,6 +81,11 @@ public:
   /// memory
   ///   Return the memory usage in bytes.
   uint64_t memory ( void ) const {
+    //std::cout << "RankSelect::memory. \n";
+    //std::cout << "sdsl::util::get_size_in_bytes ( bits_ ) = " << sdsl::util::get_size_in_bytes ( bits_ ) << "\n";
+    //std::cout << "sdsl::util::get_size_in_bytes ( rank_ ) = " << sdsl::util::get_size_in_bytes ( rank_ ) << "\n";
+    //std::cout << "sdsl::util::get_size_in_bytes ( select_ ) = " << sdsl::util::get_size_in_bytes ( select_ ) << "\n";
+
     return sizeof ( RankSelect ) +  
         sdsl::util::get_size_in_bytes ( bits_ ) +
         sdsl::util::get_size_in_bytes ( rank_ ) +

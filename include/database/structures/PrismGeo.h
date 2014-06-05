@@ -112,6 +112,7 @@ public:
   }
   bool intersects ( const RectGeo & R ) const;
 private:
+  virtual void print ( std::ostream & ) const;
   friend class boost::serialization::access;
   template<class Archive>
   void serialize(Archive & ar, const unsigned int version) {
@@ -197,9 +198,9 @@ inline bool PrismGeo::intersects ( const RectGeo & r ) const {
   return true;
 }
 
-inline std::ostream & operator << ( std::ostream & output_stream, const PrismGeo & print_me ) {
-  output_stream << " A = " << print_me . A << ", c = " << print_me . c << "\n";
-  return output_stream;
+inline void 
+PrismGeo::print ( std::ostream & stream ) const {
+  stream << " A = " <<  A << ", c = " << c << "\n";
 } 
 
 

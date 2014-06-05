@@ -1,0 +1,31 @@
+<config>
+<model>
+  <name>Newton Model </name>
+  <desc> Exploring the limiting angular dynamics of iterates in newton convergence. </desc>
+</model>
+<param>
+  <dim> 2 </dim>
+  <bounds>
+    <lower> -0.15 1.98 </lower>
+    <upper> -0.10 2.07 </upper>
+  </bounds>
+  <subdiv>
+    <depth> 10 </depth>
+  </subdiv>
+  <periodic> 0 0 </periodic>
+</param>
+<phase>
+  <dim> 1 </dim>
+  <bounds>
+    <lower> -3.14159265358979323846264338327950288 </lower>
+    <upper> 3.14159265358979323846264338327950288 </upper>
+  </bounds>
+  <subdiv>
+    <init> 12 </init>
+    <min> 12 </min>
+    <max> 17 </max>
+    <limit> 100 </limit>
+  </subdiv>
+  <periodic> 1 </periodic>
+</phase>
+</config>

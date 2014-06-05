@@ -556,7 +556,6 @@ public:
     ar & boost::serialization::make_nvp("INCCSIZES", incc_sizes_);
     ar & boost::serialization::make_nvp("MGCCNB", mgcc_nb_);
     ar & boost::serialization::make_nvp("INCCCONLEY",incc_conley_);
-
   }
    bool is_identity ( const MorseGraphRecord & mgr1, 
                       const MorseGraphRecord & mgr2, 
@@ -891,12 +890,12 @@ inline void Database::postprocess ( void ) {
   std::vector < int64_t > param_to_mgr ( N, -1 );
   BOOST_FOREACH ( const ParameterRecord & pr, parameter_records () ) {
     uint64_t morsegraph_index = pr . morsegraph_index;
-    const MorseGraphRecord & mgr = morsegraphData() [ morsegraph_index ];
-    if ( dagData()[ mgr . dag_index] . num_vertices == 0 ) {
-      std::cout << "Warning: Parameter Record " << pr . parameter_index 
-      << " is associated with DAG << " << mgr . dag_index << ", which has no vertices.\n";
-      continue;
-    }
+    //const MorseGraphRecord & mgr = morsegraphData () [ morsegraph_index ];
+    //const DAG_Data & dag = dagData () [ mgr . dag_index ];
+    //if ( dag . num_vertices == 0 ) {
+    //  std::cout << "Found an empty dag at parameter " << pr . parameter_index << "\n";
+    //  continue;
+    //}
     param_to_mgr [ pr . parameter_index ] = (int64_t) morsegraph_index;
   }
 

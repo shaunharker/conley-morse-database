@@ -119,23 +119,49 @@ Model::map ( boost::shared_ptr<Parameter> p) const {
   typedef AtlasMap<BooleanChartMap> ModelMap;
   boost::shared_ptr < ModelMap > atlasmap ( new ModelMap );
   // Loop through domains and add wall maps
+#ifdef BS_DEBUG_MODELMAP
+  std::ofstream outfile ("map.gv");
+  outfile << "digraph G {\n";
+  typedef std::pair<Wall, size_t> WallIndexPair;
+  BOOST_FOREACH ( const WallIndexPair & wall_index_pair, walls_ ) {
+    const Wall & wall = wall_index_pair . first;
+    int wall_id = wall_index_pair . second;
+    outfile << wall_id << "[label=\"" << wall . rect () << "\"]\n";
+  }
+  boost::unordered_set<uint64_t> mapped_in, mapped_out;
+#endif
   BOOST_FOREACH ( const std::vector<size_t> & domain, domains_ ) {
     typedef std::pair<CFace, CFace> CFacePair;
     std::vector < CFacePair > listofmaps = 
-      BooleanPairFacesMaps ( domain,
-                             parameter_space_ -> closestFace ( p, domain ), 
-                             lut_,
-                             domains_ . limits () );
-    //  BooleanSwitchingMaps ( parameter_space_ -> closestFace ( p, domain ) );
+      //BooleanPairFacesMaps ( domain,
+      //                       parameter_space_ -> closestFace ( p, domain ), 
+      //                       lut_,
+      //                       domains_ . limits () );
+      BooleanSwitchingMaps ( parameter_space_ -> closestFace ( p, domain ) );
     BOOST_FOREACH ( const CFacePair & cface_pair, listofmaps ) {
       Wall wall1 ( cface_pair . first, domain );
       Wall wall2 ( cface_pair . second, domain );
       int id1 = walls_ . find ( wall1 ) -> second;
       int id2 = walls_ . find ( wall2 ) -> second;
-      BooleanChartMap map ( wall1 . rect (), wall2 . rect () );
+      BooleanChartMap map ( wall1 . reducedRect (), 
+                            wall2 . reducedRect () );
       atlasmap -> addMap ( id1, id2, map );
+#ifdef BS_DEBUG_MODELMAP
+      mapped_out . insert ( id1 );
+      mapped_in . insert ( id2 );
+      outfile << id1 << " -> " << id2 << "\n";
+#endif
     }
   }
+#ifdef BS_DEBUG_MODELMAP
+  outfile << "}\n\n";
+  outfile . close ();
+  BOOST_FOREACH ( uint64_t in, mapped_in ) {
+    if ( mapped_out . count ( in ) == 0 ) {
+      abort ();
+    }
+  }
+#endif
   return atlasmap;
 }
 

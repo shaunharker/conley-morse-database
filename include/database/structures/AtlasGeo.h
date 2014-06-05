@@ -18,13 +18,17 @@ public:
 	size_type id ( void ) const { return id_; }
 	size_type & id ( void ) { return id_; }
 
-	void info ( void ) { 
-		std::cout << "Chart identification : " << id_ << ", with Rect : " << rect_ << "\n";
-	}
+
 
 private: 
+  virtual void print ( std::ostream & stream ) const;
 	size_type id_;
 	RectGeo rect_;
 };
+
+inline void 
+AtlasGeo::print ( std::ostream & stream  ) const { 
+	stream << "(AtlasGeo:id_=" << id_ << ", rect_ =" << rect_ << ")";
+}
 
 #endif

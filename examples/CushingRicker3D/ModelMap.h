@@ -4,6 +4,7 @@
 #ifndef MODELMAP_H
 #define MODELMAP_H
 
+#include <algorithm>
 #include "database/maps/Map.h"
 #include "database/structures/EuclideanParameterSpace.h"
 #include "database/structures/RectGeo.h"
@@ -68,17 +69,20 @@ typedef capd::intervals::Interval<double> interval;
 
     RectGeo return_value ( rectangle . dimension ( ) );
     
-    for ( unsigned int i=0; i<rectangle.dimension(); ++i ) 
-      x [ i ] = interval (rectangle . lower_bounds [ i ], rectangle . upper_bounds [ i ]);
-
+    for ( unsigned int i=0; i<rectangle.dimension(); ++i ) {
+      x [ i ] = interval ( rectangle . lower_bounds [ i ],
+                           rectangle . upper_bounds [ i ] );
+      //x [ i ] = interval (std::max(0.0, rectangle . lower_bounds [ i ]), 
+      //                    std::max(0.0, rectangle . upper_bounds [ i ]));
+    }
     /********************************************************************* 
       Define the map in terms of the phase space variables and parameters. 
     *********************************************************************/
     
     // parameters : b1, b2, c12, c13, c31, c33, rho
-    // y0 = b1 y2 exp( - (c12*y2+c13*y3) )
-    // y1 = rho y1
-    // y2 = b2 y3 exp( - (c31*y1+c33*y3) )
+    // y1 = b1 y2 exp( - (c12*y2+c13*y3) )
+    // y2 = rho y1
+    // y3 = b2 y3 exp( - (c31*y1+c33*y3) )
 
     y [ 0 ] = parameter[0] * x[1] * exp( -1.0* ( parameter[2]*x[1]+parameter[3]*x[2] ) );
 

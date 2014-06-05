@@ -306,12 +306,17 @@ public:
 
   friend std::ostream & operator << ( std::ostream & stream, 
                                       const MonotonicMap & print_me ) {
-    stream << "MM:(In,Out)=(" << print_me . n << ", " << print_me . m << "),Logic=(";
+    stream << "{(In,Out)=(" << print_me . n << ", " << print_me . m << "), Logic=(";
     for ( int i = 0; i < print_me . logic_ . size (); ++ i ) { 
       if ( i != 0 ) stream << ",";
       std::cout << print_me . logic_[i];
     }
-    stream << ")";
+    stream << "), Data=(";
+    for ( int i = 0; i < print_me . data_ . size (); ++ i ) { 
+      if ( i != 0 ) stream << ",";
+      std::cout << print_me . data_[i];
+    }
+    stream << ")}";
     return stream;
   }
 };

@@ -35,6 +35,7 @@ class Model {
   /// map
   ///   return a shared ptr to a map function object corresponding to 
   ///   parameter p
+  ///   void version: returns map corresponding to command_line parameter
   boost::shared_ptr < const Map > map ( boost::shared_ptr<Parameter> p ) const;
   boost::shared_ptr < const Map > map ( void ) const;
 
@@ -99,7 +100,9 @@ Model::map ( boost::shared_ptr<Parameter> p ) const {
     throw std::logic_error ( "No parameter for map specified. " 
                              "Check Model.h and command line parameters.\n");
   }
-  return boost::shared_ptr < Map > ( new ModelMap ( p ) );
+  boost::shared_ptr < ModelMap > result ( new ModelMap ( p ) );
+  if ( not result -> good () ) result . reset ();
+  return result;
 }
 
 inline boost::shared_ptr < const Map > 

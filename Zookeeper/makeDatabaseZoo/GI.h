@@ -64,7 +64,7 @@ public:
   mutable bool vertex_info_cached;
   DAG ( void ) { vertex_info_cached = false; }
   bool operator < ( DAG const& b) const {
-  	return true; // dummy
+  	return false; // dummy
 	}
 	const std::vector< std::pair<VertexInfo, Vertex> > & getVertexInfo ( void ) const {
 		if ( vertex_info_cached ) return vertex_info;
