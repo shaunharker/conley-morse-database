@@ -131,7 +131,7 @@ void computeStrongComponents (std::vector<std::deque<typename Graph::Vertex> > *
                 }
               } else {
                 DFS . push_back ( w + 1 );
-                if ( DFS . size () > 2L*N ) { 
+                if ( (int64_t) DFS . size () > 2L*N ) { 
                   duplicates . assign ( N, false );
                   while ( not DFS . empty () ) {
                     int64_t x = DFS . back ();

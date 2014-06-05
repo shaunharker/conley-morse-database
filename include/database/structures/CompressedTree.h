@@ -29,7 +29,7 @@ inline size_t
 CompressedTree::leafCount ( void ) const {
   size_t result = 0;
   size_t N = valid_sequence . size ();
-  for ( int i = 0; i < N; ++ i ) if ( valid_sequence [ i ] ) ++ result;
+  for ( size_t i = 0; i < N; ++ i ) if ( valid_sequence [ i ] ) ++ result;
   return result;
 }
 
