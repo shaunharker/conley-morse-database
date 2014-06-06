@@ -1,10 +1,9 @@
-./makeDatabaseZoo/main $1/database.mdb
 mkdir graphs
-for file in *.gv; do
-	mv $file graphs
-done
+cd graphs
+../makeDatabaseZoo/main $1/database.cmdb
+cd ..
 rm -rf $1/Zoo
 cp -rf template $1/Zoo
 mv -f graphs $1/Zoo
-mv -f CI.html $1/Zoo
+mv -f $1/Zoo/graphs/CI.html $1/Zoo
 $1/Zoo/COMPUTE $1

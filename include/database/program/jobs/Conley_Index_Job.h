@@ -156,7 +156,13 @@ Conley_Index_Job ( Message * result,
   }
   // end threading
 
-  int error_code = 0; // 0--success 1--SNFtimeout 2--RMHtimeout 3--bad phase space
+  // error codes. 
+  // 0  success 
+  // 1  SNFtimeout 
+  // 2  RMHtimeout 
+  // 3  bad phase space
+  // 4  undefined conley index
+  int error_code = 0; 
   if ( computed ) {
     std::cout << "CIJ: producing Conley Index polynomial strings \n";
     ci_data . conley_index = conleyIndexString ( ci_matrix, &error_code );

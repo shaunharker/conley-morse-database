@@ -1,6 +1,6 @@
 // zookeeper.cpp
 
-#define NOCONLEYINDEX
+//#define NOCONLEYINDEX
 #include <boost/serialization/export.hpp>
 #include "database/structures/Database.h"
 #include "database/structures/Grid.h"
@@ -35,9 +35,9 @@ BOOST_CLASS_EXPORT_IMPLEMENT(AbstractParameterSpace);
 
 #include "GI.h"
 
-#define NOCONLEYINDEX
 
-std::string conleyStringForZoo ( const Database & database, const CI_Data & ci ) {
+std::string conleyStringForZoo ( const Database & database, 
+                                 const CI_Data & ci ) {
     // data
   	std::string ci_string;
   	// algo
@@ -405,7 +405,9 @@ int main ( int argc, char * argv [] ) {
   //RAWHasseDebug ( database );
   //return 0;
   
-  //database . makeAttractorsMinimal ();
+#ifndef NOCONLEYINDEX
+  database . makeAttractorsMinimal ();
+#endif
   database . performTransitiveReductions ();
   
   // Display CI Zoo

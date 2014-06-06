@@ -47,14 +47,15 @@ conleyIndexString ( const chomp::ConleyIndex_t & ci,
                     int time_out = 600 ) {
   using namespace chomp;
   if ( errorcode != NULL ) * errorcode = 0;
-  std::cout << "conley index string\n";
+  std::cout << "conleyIndexString.\n";
   std::vector<std::string> result;
   if ( ci . undefined () ) { 
-    std::cout << "undefined.\n";
+    std::cout << "conleyIndexString. undefined.\n";
+    if ( errorcode != NULL ) * errorcode = 4;
     return result;
   }
   for ( unsigned int i = 0; i < ci . data () . size (); ++ i ) {
-    std::cout << "dimension is " << i << "\n";
+    std::cout << "conleyIndexString. Dimension is " << i << "\n";
     std::stringstream ss;
     PolyMatrix poly = ci . data () [ i ];
     
@@ -105,7 +106,7 @@ conleyIndexString ( const chomp::ConleyIndex_t & ci,
     }
     if ( is_trivial ) ss << "Trivial.\n";
     result . push_back ( ss . str () );
-    std::cout << "Wrote the poly " << ss . str () << "\n";
+    std::cout << "conleyIndexString. Wrote the poly " << ss . str () << "\n";
   }
   return result;
 }
