@@ -2,8 +2,8 @@
 # makefile for Conley-Morse Database project
 ############################################
 # 
-COMPUTE_MORSE_SETS := no
-COMPUTE_CONTINUATION := no
+COMPUTE_MORSE_SETS := yes
+COMPUTE_CONTINUATION := yes
 COMPUTE_CONLEY_INDEX := yes
 # Optional Libraries: CAPD Library, SDSL Library
 USE_CAPD := no

@@ -14,11 +14,12 @@ Brief instructions on using the database software:
      and some output files ought to be produced.
   E) TYPE: ./CMDB ./examples/Leslie2D/
      It should compile "Conley_Morse_Database"
-     If you are on a cluster with PBS, it will attempt
+     If you are on a cluster with PBS, it may attempt
       to submit a job with qsub.
      Otherwise, it may complain that it doesn't know the
       command qsub. Proceed to:
-  F) TYPE: mpiexec -np 5 ./Conley_Morse_Database ./examples/Leslie2D/
+  F) TYPE: cd ./examples/Leslie2D
+     TYPE: mpiexec -np 5 ./Conley_Morse_Database ./
      It should start computing. The file "progress.txt" should be
      periodically refreshed to indicate progress.
      Likely you'll want to do this on a cluster, however.
