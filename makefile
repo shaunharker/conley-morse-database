@@ -2,8 +2,8 @@
 # makefile for Conley-Morse Database project
 ############################################
 # 
-COMPUTE_MORSE_SETS := yes
-COMPUTE_CONTINUATION := yes
+COMPUTE_MORSE_SETS := no
+COMPUTE_CONTINUATION := no
 COMPUTE_CONLEY_INDEX := yes
 # Optional Libraries: CAPD Library, SDSL Library
 USE_CAPD := no
@@ -59,49 +59,28 @@ ifeq ($(COMPUTE_CONLEY_INDEX),yes)
 	CXXFLAGS += -D COMPUTE_CONLEY_INDEX
 endif
 
-ifeq ($(CHECKIFMAPISGOOD),yes)
-	CXXFLAGS += -D CHECKIFMAPISGOOD
-endif
-
 Conley_Morse_Database: $(DATABASE)
 	$(CC) $(LDFLAGS) $(DATABASE) -o $@ $(LDLIBS)
 
-COMPUTEGRAPH := ./build/program/ComputeGraph.o
-ComputeGraph: $(COMPUTEGRAPH)
-	$(CC) $(LDFLAGS) $(COMPUTEGRAPH) -o $@ $(LDLIBS)
+SingleCMG:
+	$(MAKE) -C ./extras/SingleCMG clean
+	$(MAKE) -C ./extras/SingleCMG MODELDIR=../../$(MODELDIR)
 
-GRAPHPROCESS := ./build/program/GraphProcess.o
-GraphProcess: $(GRAPHPROCESS)
-	$(CC) $(LDFLAGS) $(GRAPHPROCESS) -o $@ $(LDLIBS)
+Lyapunov:
+	$(MAKE) -C ./extras/Lyapunov clean
+	$(MAKE) -C ./extras/Lyapunov MODELDIR=../../$(MODELDIR)
 
-ATLASCMG := ./build/test/AtlasCMG.o 
-AtlasCMG: $(ATLASCMG)
-	$(CC) $(LDFLAGS) -I$(MODELDIR) $(ATLASCMG) -o $@ $(LDLIBS)
-
-SINGLECMG := ./build/test/SingleCMG.o 
-SingleCMG: $(SINGLECMG)
-	$(CC) $(LDFLAGS) -I$(MODELDIR) $(SINGLECMG) -o $@ $(LDLIBS)
-	mv SingleCMG $(MODELDIR);
-	@echo "#"; 
-	@echo "# Conley-Morse Database Code";
-	@echo "# Single computer mode with fixed parameter values";
-	@echo "# The executable file SingleCMG is the model directory:" $(MODELDIR);
-	@echo "#";
 
 # Cleanup
  .PHONY: clean
 clean:
 	find ./build -name "*.o" -delete
 	find ./build -name "*.so" -delete
-	rm -f Conley_Morse_Database
-	rm -f SingleCMG
-	rm -f AtlasCMG
+	$(MAKE) -C ./extras/SingleCMG clean
+	$(MAKE) -C ./extras/Lyapunov clean
 
 # Create build directories
 .PHONY: build-dirs
 dirs:
 	mkdir build
 	mkdir build/program
-	mkdir build/structures
-	mkdir build/test
-	mkdir build/tools

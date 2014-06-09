@@ -11,6 +11,7 @@
 #include "boost/foreach.hpp"
 
 #include <boost/thread.hpp>
+#include "boost/date_time/posix_time/posix_time.hpp"
 #include <boost/chrono/chrono_io.hpp>
 
 #include "database/structures/Database.h"
@@ -39,8 +40,10 @@ void ConleyProcess::command_line ( int argcin, char * argvin [] ) {
 /* * * * * * * * * * * * */
 void ConleyProcess::initialize ( void ) {
   using namespace chomp;
-  time_of_last_checkpoint_ = clock ();
-  time_of_last_progress_report_ = clock ();
+  time_of_last_checkpoint_ =
+    boost::posix_time::second_clock::local_time ();
+  time_of_last_progress_report_ =
+    boost::posix_time::second_clock::local_time ();
 
   // LOAD DATABASE
   num_jobs_sent_ = 0;
@@ -85,7 +88,7 @@ int ConleyProcess::prepare ( Message & job ) {
   std::cout << " num_incc_ = " << num_incc_ << "\n";
   std::cout << " num_jobs_sent_ = " << num_jobs_sent_ << "\n";
   
-  if ( current_incc_ == num_incc_ ) current_incc_ = 0;
+  if ( ++ current_incc_ == num_incc_ ) current_incc_ = 0;
 
   while ( finished_ [ current_incc_ ] ) {
     ++ current_incc_;
@@ -100,7 +103,9 @@ int ConleyProcess::prepare ( Message & job ) {
   std::cout << "ConleyProcess. Isolating Neighborhood Continuation Class = " << incc << ".\n";
 
   const INCC_Record & incc_record = database . INCC_Records () [ incc ];
-  
+  std::cout << "(debug) incc_record . smallest_reps . size ()  = " 
+            << incc_record . smallest_reps . size ()  << "\n";
+
   if ( attempt < incc_record . smallest_reps . size () ) {
     // Find a small representative
     std::cout << "ConleyProcess. Finding a small representative.\n";
@@ -197,15 +202,20 @@ void ConleyProcess::work ( Message & result,
 /* read definition */
 /* * * * * * * * * */
 void ConleyProcess::accept (const Message &result) {
-  clock_t current_time = clock ();
-  /// Read the results from the result message
+  boost::posix_time::ptime current_time =
+    boost::posix_time::second_clock::local_time (); 
+  std::cout << "ConleyProcess::accept. Time elapsed since last checkpoint = " <<
+    (current_time - time_of_last_checkpoint_) << "\n";
+  // Read the results from the result message
   uint64_t result_type;
   result >> result_type;
   if ( result_type == 0 ) {
     // Checkpoint Timer finished.
     checkpoint_timer_running_ = false;
-    if ( (float)(current_time - time_of_last_checkpoint_ ) 
-      / (float)CLOCKS_PER_SEC > 3600.0f ) {
+    
+    boost::posix_time::time_duration 
+      elapsed = current_time - time_of_last_checkpoint_;
+    if ( elapsed > boost::posix_time::seconds( 3600 ) ) {
       checkpoint ();
       progressReport ();
     }
@@ -232,10 +242,11 @@ void ConleyProcess::accept (const Message &result) {
       database . insert ( incc, job_result );
     }
     std::cout << "ConleyProcess::accept: Received result " 
-            << job_number << "\n";
+            << job_number <<  " about INCC " << incc << 
+            " with error code " << error_code << "\n";
   }
 
-  if ( (float)(current_time - time_of_last_progress_report_ ) / (float)CLOCKS_PER_SEC > 1.0f ) {
+  if ((current_time - time_of_last_progress_report_ ) > boost::posix_time::seconds( 1 ) ) {
     progressReport ();
   }
 }
@@ -252,7 +263,8 @@ void ConleyProcess::checkpoint ( void ) {
   std::string filestring ( argv[1] );
   std::string appendstring ( "/database.cmdb" );
   database . save ( (filestring + appendstring) . c_str () );
-  time_of_last_checkpoint_ = clock ();
+  time_of_last_checkpoint_ =
+    boost::posix_time::second_clock::local_time ();
 }
 
 void ConleyProcess::progressReport ( void ) {
@@ -264,5 +276,6 @@ void ConleyProcess::progressReport ( void ) {
   }
   progress_file << "\n";
   progress_file . close ();
-  time_of_last_progress_report_ = clock ();
+  time_of_last_progress_report_ =
+    boost::posix_time::second_clock::local_time ();
 }

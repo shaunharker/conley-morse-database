@@ -18,10 +18,9 @@
 
 #define CMG_VERBOSE
 #define MEMORYBOOKKEEPING
+#define COMPUTE_MORSE_SETS
+#define COMPUTE_CONLEY_INDEX
 #define DRAW_IMAGES
-//#define NO_REACHABILITY
-//#define CMDB_STORE_GRAPH
-//#define ODE_METHOD
 
 #include "Model.h"
 

@@ -762,8 +762,13 @@ inline void Database::insert ( uint64_t p1,
 }
 
 inline void Database::insert ( uint64_t incc, const CI_Data & ci ) {
+  // BEGIN TODO: Put this in a more efficient place. (Low priority.)
+  CI_Data uncomputed;
+  uncomputed . conley_index . push_back ( "Uncomputed." );
+  uint64_t uncomputed_index = insert ( uncomputed );
+  incc_conley_ . resize ( INCC_records_ . size (), uncomputed_index );
+  // END TODO.
   uint64_t ci_index = insert ( ci );
-  incc_conley_ . resize ( INCC_records_ . size () );
   incc_conley_ [ incc ] = ci_index;
 }
 

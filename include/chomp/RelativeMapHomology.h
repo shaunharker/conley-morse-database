@@ -19,7 +19,7 @@
 
 //#include "Draw.h"
 
-#define PRINT if ( 1 ) std::cout <<
+#define PRINT if ( 0 ) std::cout <<
 
 namespace chomp {
 
