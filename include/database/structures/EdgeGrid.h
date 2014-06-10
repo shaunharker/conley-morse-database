@@ -96,7 +96,7 @@ public:
 
   // Contructor/ Desctructor
   EdgeGrid ( void ) { }
-  ~EdgeGrid ( void ) { }
+  virtual ~EdgeGrid ( void ) { }
 
   // Builders
   void initialize ( const RectGeo & bounds,
@@ -260,10 +260,10 @@ EdgeGrid::cover ( const Geo & geo ) const {
   std::set<int> touching_lower;
   //std::cout << "   ";
   for ( int d = 0; d < dimension (); ++ d ) {
-    lower_coordinates [ d ] = std::ceil ( (double) width ( d ) *
+    lower_coordinates [ d ] = (int64_t) std::ceil ( (double) width ( d ) *
                               (rect.lower_bounds[d]-bounds_.lower_bounds[d])/
                               (bounds_.upper_bounds[d]-bounds_.lower_bounds[d]) - 1.0);
-    upper_coordinates [ d ] = std::floor ( (double) width ( d ) *
+    upper_coordinates [ d ] = (int64_t) std::floor ( (double) width ( d ) *
                               (rect.upper_bounds[d]-bounds_.lower_bounds[d])/
                               (bounds_.upper_bounds[d]-bounds_.lower_bounds[d]) + 1.0 );
     if ( lower_coordinates [ d ] < 0 ) { 

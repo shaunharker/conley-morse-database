@@ -6,6 +6,7 @@
 
 class Map {
 public:
+  virtual ~Map ( void ) {}
   virtual boost::shared_ptr<Geo> operator () ( boost::shared_ptr<Geo> geo ) const = 0;
 private:
 };
