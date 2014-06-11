@@ -207,6 +207,9 @@ void computeReachability ( std::vector < std::vector < unsigned int > > * output
   size_type progresspercent = 0;
 #endif
   /* Count the Morse Sets */
+  // DEBUG BEGIN
+  std::cout << "computeReachability. Checkpoint A.\n";
+  // DEBUG END
   unsigned long effort = 0;
   size_type number_of_morse_sets = morse_sets . size ();  
   if ( number_of_morse_sets == 0 ) return; // trivial case
@@ -222,6 +225,11 @@ void computeReachability ( std::vector < std::vector < unsigned int > > * output
       morse_paint [ v ] = count;
     } 
   } 
+
+  // DEBUG BEGIN
+  std::cout << "computeReachability. Checkpoint B.\n";
+  // DEBUG END
+
   // Break the Morse Sets up into Computational Groups of 64 and proceed 
   size_type groups = ( (number_of_morse_sets - 1) / 64 ) + 1;
   
@@ -246,6 +254,11 @@ void computeReachability ( std::vector < std::vector < unsigned int > > * output
     morse_code . resize ( G . num_vertices (), 0 );
     condensed_code . clear ();
     condensed_code . resize ( number_of_morse_sets + 1, 0 );
+
+      // DEBUG BEGIN
+  std::cout << "computeReachability. Checkpoint C.\n";
+  // DEBUG END
+
     // Paint the codes.
     // We do an initial sweep painting the sources onto their sets. 
     for ( size_type count = 0; count < group_size; ++ count ) {
@@ -257,6 +270,11 @@ void computeReachability ( std::vector < std::vector < unsigned int > > * output
         morse_code [ v ] = code;
       } 
     } 
+
+      // DEBUG BEGIN
+  std::cout << "computeReachability. Checkpoint D.\n";
+  // DEBUG END
+
     // Loop through topological sort.
     // Our goal is to produce "condensed_code", which we can read the info off from.
     // The intermediate information is stored in "morse_code"
@@ -269,6 +287,11 @@ void computeReachability ( std::vector < std::vector < unsigned int > > * output
         std::cout . flush ();
       }
 #endif
+
+        // DEBUG BEGIN
+  std::cout << "computeReachability. Checkpoint E.\n";
+  // DEBUG END
+
       size_type v = topological_sort [ vi ];
       std::vector < size_type > children = G . adjacencies ( v ); // previously const &
       if ( morse_paint [ v ] != number_of_morse_sets )
@@ -279,6 +302,10 @@ void computeReachability ( std::vector < std::vector < unsigned int > > * output
         condensed_code [ morse_paint [ w ] ] |= morse_code [ v ];
 
       }
+
+        // DEBUG BEGIN
+  std::cout << "computeReachability. Checkpoint F.\n";
+  // DEBUG END
     } 
 #ifdef CMG_VERBOSE
     ++ progress;
@@ -300,6 +327,9 @@ void computeReachability ( std::vector < std::vector < unsigned int > > * output
       } // for bit index
     } // for morse set
   } // for groups
+        // DEBUG BEGIN
+  std::cout << "computeReachability. Checkpoint G.\n";
+  // DEBUG END
 #ifdef CMG_VERBOSE
   std::cout << "\r100%  Reachability Analysis Complete.\n ";
 #endif
