@@ -289,7 +289,7 @@ void computeReachability ( std::vector < std::vector < unsigned int > > * output
 #endif
 
         // DEBUG BEGIN
-  std::cout << "computeReachability. Checkpoint E.\n";
+  //std::cout << "computeReachability. Checkpoint E.\n";
   // DEBUG END
 
       size_type v = topological_sort [ vi ];
@@ -304,7 +304,7 @@ void computeReachability ( std::vector < std::vector < unsigned int > > * output
       }
 
         // DEBUG BEGIN
-  std::cout << "computeReachability. Checkpoint F.\n";
+  //std::cout << "computeReachability. Checkpoint F.\n";
   // DEBUG END
     } 
 #ifdef CMG_VERBOSE
