@@ -261,9 +261,9 @@ void computeReachability ( std::vector < std::vector < unsigned int > > * output
     condensed_code . clear ();
     condensed_code . resize ( number_of_morse_sets + 1, 0 );
 
-      // DEBUG BEGIN
-  std::cout << "computeReachability. Checkpoint C.\n";
-  // DEBUG END
+    // DEBUG BEGIN
+    std::cout << "computeReachability. Checkpoint C.\n";
+    // DEBUG END
 
     // Paint the codes.
     // We do an initial sweep painting the sources onto their sets. 
@@ -289,9 +289,9 @@ void computeReachability ( std::vector < std::vector < unsigned int > > * output
       } 
     } 
 
-      // DEBUG BEGIN
-  std::cout << "computeReachability. Checkpoint D.\n";
-  // DEBUG END
+    // DEBUG BEGIN
+    std::cout << "computeReachability. Checkpoint D.\n";
+    // DEBUG END
 
     // Loop through topological sort.
     // Our goal is to produce "condensed_code", which we can read the info off from.
@@ -306,9 +306,9 @@ void computeReachability ( std::vector < std::vector < unsigned int > > * output
       }
 #endif
 
-        // DEBUG BEGIN
-  //std::cout << "computeReachability. Checkpoint E.\n";
-  // DEBUG END
+      // DEBUG BEGIN
+      //std::cout << "computeReachability. Checkpoint E.\n";
+      // DEBUG END
 
       //DEBUG BEGIN
       if ( vi >= topological_sort . size () ) {
@@ -376,9 +376,9 @@ void computeReachability ( std::vector < std::vector < unsigned int > > * output
 
       }
 
-        // DEBUG BEGIN
-  //std::cout << "computeReachability. Checkpoint F.\n";
-  // DEBUG END
+      // DEBUG BEGIN
+      //std::cout << "computeReachability. Checkpoint F.\n";
+      // DEBUG END
     } 
 #ifdef CMG_VERBOSE
     ++ progress;
@@ -409,7 +409,7 @@ void computeReachability ( std::vector < std::vector < unsigned int > > * output
           ++ effort;
           // DEBUG BEGIN
           std::cout << "computeReachability. Checkpoint G. " << effort << " " << offset << " " << i << " " << count << "\n";
-          if ( offset + i >= ouput -> size () ) {
+          if ( offset + i >= output -> size () ) {
             std::cout << "computeReachability. Out of bounds (14) \n";
             abort ();
           }
@@ -429,7 +429,7 @@ void computeReachability ( std::vector < std::vector < unsigned int > > * output
     std::cout << "computeReachability. Checkpoint J.\n";
     // DEBUG END
   } // for groups
-        // DEBUG BEGIN
+  // DEBUG BEGIN
   std::cout << "computeReachability. Checkpoint K.\n";
   // DEBUG END
 #ifdef CMG_VERBOSE
