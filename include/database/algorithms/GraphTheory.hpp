@@ -310,6 +310,10 @@ void computeReachability ( std::vector < std::vector < unsigned int > > * output
 #ifdef CMG_VERBOSE
     ++ progress;
 #endif
+    // DEBUG BEGIN
+    std::cout << "computeReachability. Checkpoint E.\n";
+    // DEBUG END
+    
     // Note: Now condensed_code is indexed by targets, 
     //       and contains the sources reaching it.    
     // Loop through Morse Sets to learn reachability information
@@ -317,18 +321,33 @@ void computeReachability ( std::vector < std::vector < unsigned int > > * output
       // Read condensed code to determine which of the group reached this morse set
       ++ effort;
       unsigned long bit = 1;
+      // DEBUG BEGIN
+      std::cout << "computeReachability. Checkpoint F.\n";
+      // DEBUG END
       for ( int i = 0; i < 64; ++ i ) {
         ++ effort;        
         if ( condensed_code [ count ] & bit ) {
           ++ effort;
+          // DEBUG BEGIN
+          std::cout << "computeReachability. Checkpoint G. " << effort << " " << offset << " " << i << " " << count << "\n";
+          // DEBUG END
           (*output)[offset + i] . push_back ( count );
+          // DEBUG BEGIN
+          std::cout << "computeReachability. Checkpoint H. " << effort << " " << offset << " " << i << " " << count << "\n";
+          // DEBUG END
         } // if
         bit <<= 1;
       } // for bit index
+      // DEBUG BEGIN
+      std::cout << "computeReachability. Checkpoint I.\n";
+      // DEBUG END
     } // for morse set
+    // DEBUG BEGIN
+    std::cout << "computeReachability. Checkpoint J.\n";
+    // DEBUG END
   } // for groups
         // DEBUG BEGIN
-  std::cout << "computeReachability. Checkpoint G.\n";
+  std::cout << "computeReachability. Checkpoint K.\n";
   // DEBUG END
 #ifdef CMG_VERBOSE
   std::cout << "\r100%  Reachability Analysis Complete.\n ";
