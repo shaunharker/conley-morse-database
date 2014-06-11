@@ -222,6 +222,12 @@ void computeReachability ( std::vector < std::vector < unsigned int > > * output
   for ( size_type count = 0; count < number_of_morse_sets; ++ count ) {
     BOOST_FOREACH ( size_type v, morse_sets [ count ] ) {
       ++ effort;
+      //DEBUG BEGIN
+      if ( v >= morse_paint . size () ) {
+        std::cout << "computeReachability. Out of bounds (1) \n";
+        abort ();
+      }   
+      //DEBUG END  
       morse_paint [ v ] = count;
     } 
   } 
@@ -264,9 +270,21 @@ void computeReachability ( std::vector < std::vector < unsigned int > > * output
     for ( size_type count = 0; count < group_size; ++ count ) {
       size_type set_number = offset + count;
       unsigned long code = ((unsigned long)1) << count;
-      ++ effort;      
+      ++ effort;   
+      //DEBUG BEGIN
+      if ( set_number >= morse_sets . size () ) {
+        std::cout << "computeReachability. Out of bounds (2) \n";
+        abort ();
+      }   
+      //DEBUG END   
       BOOST_FOREACH ( size_type v, morse_sets [ set_number ] ) {
         ++ effort;
+        //DEBUG BEGIN
+        if ( v >= morse_code . size () ) {
+          std::cout << "computeReachability. Out of bounds (3) \n";
+          abort ();
+        }   
+        //DEBUG END
         morse_code [ v ] = code;
       } 
     } 
@@ -292,12 +310,67 @@ void computeReachability ( std::vector < std::vector < unsigned int > > * output
   //std::cout << "computeReachability. Checkpoint E.\n";
   // DEBUG END
 
+      //DEBUG BEGIN
+      if ( vi >= topological_sort . size () ) {
+        std::cout << "computeReachability. Out of bounds (4) \n";
+        abort ();
+      }   
+      //DEBUG END
       size_type v = topological_sort [ vi ];
       std::vector < size_type > children = G . adjacencies ( v ); // previously const &
-      if ( morse_paint [ v ] != number_of_morse_sets )
+      //DEBUG BEGIN
+      if ( v >= morse_paint . size () ) {
+        std::cout << "computeReachability. Out of bounds (5) \n";
+        abort ();
+      }   
+      //DEBUG END
+      if ( morse_paint [ v ] != number_of_morse_sets ) {
+        //DEBUG BEGIN
+        if ( v >= morse_paint . size () ) {
+          std::cout << "computeReachability. Out of bounds (6) \n";
+          abort ();
+        }   
+        //DEBUG END
+        //DEBUG BEGIN
+        if ( v >= morse_code . size () ) {
+          std::cout << "computeReachability. Out of bounds (7) \n";
+          abort ();
+        }   
+        //DEBUG END
+        //DEBUG BEGIN
+        if ( morse_paint [ v ] >= condensed_code . size () ) {
+          std::cout << "computeReachability. Out of bounds (8) \n";
+          abort ();
+        }   
+        //DEBUG END
         morse_code [ v ] |= condensed_code [ morse_paint [ v ] ];
+      }
       BOOST_FOREACH ( size_type w, children ) {
         ++ effort;
+        //DEBUG BEGIN
+        if ( w >= morse_code . size () ) {
+          std::cout << "computeReachability. Out of bounds (9) \n";
+          abort ();
+        }   
+        //DEBUG END
+        //DEBUG BEGIN
+        if ( v >= morse_code . size () ) {
+          std::cout << "computeReachability. Out of bounds (10) \n";
+          abort ();
+        }   
+        //DEBUG END
+        //DEBUG BEGIN
+        if ( w  >= morse_paint . size () ) {
+          std::cout << "computeReachability. Out of bounds (11) \n";
+          abort ();
+        }   
+        //DEBUG END
+        //DEBUG BEGIN
+        if ( morse_paint [ w ]  >= condensed_code . size () ) {
+          std::cout << "computeReachability. Out of bounds (12) \n";
+          abort ();
+        }   
+        //DEBUG END
         morse_code [ w ] |= morse_code [ v ];
         condensed_code [ morse_paint [ w ] ] |= morse_code [ v ];
 
@@ -325,11 +398,21 @@ void computeReachability ( std::vector < std::vector < unsigned int > > * output
       std::cout << "computeReachability. Checkpoint F.\n";
       // DEBUG END
       for ( int i = 0; i < 64; ++ i ) {
-        ++ effort;        
+        ++ effort;     
+        //DEBUG BEGIN
+        if ( count >= condensed_code . size () ) {
+          std::cout << "computeReachability. Out of bounds (13) \n";
+          abort ();
+        }   
+        //DEBUG END
         if ( condensed_code [ count ] & bit ) {
           ++ effort;
           // DEBUG BEGIN
           std::cout << "computeReachability. Checkpoint G. " << effort << " " << offset << " " << i << " " << count << "\n";
+          if ( offset + i >= ouput -> size () ) {
+            std::cout << "computeReachability. Out of bounds (14) \n";
+            abort ();
+          }
           // DEBUG END
           (*output)[offset + i] . push_back ( count );
           // DEBUG BEGIN
