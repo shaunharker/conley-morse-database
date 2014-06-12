@@ -207,10 +207,7 @@ void computeReachability ( std::vector < std::vector < unsigned int > > * output
   size_type progresspercent = 0;
 #endif
   /* Count the Morse Sets */
-  // DEBUG BEGIN
-  //std::cout << "computeReachability. Checkpoint A.\n";
-  // DEBUG END
-  unsigned long effort = 0;
+  uint64_t effort = 0;
   size_type number_of_morse_sets = morse_sets . size ();  
   if ( number_of_morse_sets == 0 ) return; // trivial case
   output -> resize ( number_of_morse_sets );
@@ -221,20 +218,10 @@ void computeReachability ( std::vector < std::vector < unsigned int > > * output
   std::vector < size_type > morse_paint ( G . num_vertices (), number_of_morse_sets );
   for ( size_type count = 0; count < number_of_morse_sets; ++ count ) {
     BOOST_FOREACH ( size_type v, morse_sets [ count ] ) {
-      ++ effort;
-      //DEBUG BEGIN
-      if ( v >= morse_paint . size () ) {
-        std::cout << "computeReachability. Out of bounds (1) \n";
-        abort ();
-      }   
-      //DEBUG END  
+      ++ effort; 
       morse_paint [ v ] = count;
     } 
   } 
-
-  // DEBUG BEGIN
-  //std::cout << "computeReachability. Checkpoint B.\n";
-  // DEBUG END
 
   // Break the Morse Sets up into Computational Groups of 64 and proceed 
   size_type groups = ( (number_of_morse_sets - 1) / 64 ) + 1;
@@ -246,52 +233,32 @@ void computeReachability ( std::vector < std::vector < unsigned int > > * output
   // information about which morse sets can reach a given vertex.
   // By processing in topological order, it is possible to give morse_code
   // the correct values in a single pass.
-  std::vector < unsigned long > morse_code;
+  std::vector < uint64_t > morse_code;
   // We use a vector called condensed_code in order to store the final information
   // about which morse sets can reach a given morse set. It can be inferred from morse_code
   // during the same sweep in which we construct morse_code.
-  std::vector < unsigned long > condensed_code;
+  std::vector < uint64_t > condensed_code;
   // Loop through groups.
   for ( size_type group_number = 0; group_number < groups; ++ group_number ) {
     ++ effort;
-    size_type group_size = std::min((size_type) 64, number_of_morse_sets - 64 * group_number);
-    size_type offset = 64 * group_number;
+    size_type group_size = std::min(64L, number_of_morse_sets - 64L * group_number);
+    size_type offset = 64L * group_number;
     morse_code . clear ();
     morse_code . resize ( G . num_vertices (), 0 );
     condensed_code . clear ();
     condensed_code . resize ( number_of_morse_sets + 1, 0 );
 
-    // DEBUG BEGIN
-    //std::cout << "computeReachability. Checkpoint C.\n";
-    // DEBUG END
-
     // Paint the codes.
     // We do an initial sweep painting the sources onto their sets. 
     for ( size_type count = 0; count < group_size; ++ count ) {
       size_type set_number = offset + count;
-      unsigned long code = ((unsigned long)1) << count;
-      ++ effort;   
-      //DEBUG BEGIN
-      if ( set_number >= morse_sets . size () ) {
-        std::cout << "computeReachability. Out of bounds (2) \n";
-        abort ();
-      }   
-      //DEBUG END   
+      uint64_t code = ((uint64_t)1) << count;
+      ++ effort;    
       BOOST_FOREACH ( size_type v, morse_sets [ set_number ] ) {
         ++ effort;
-        //DEBUG BEGIN
-        if ( v >= morse_code . size () ) {
-          std::cout << "computeReachability. Out of bounds (3) \n";
-          abort ();
-        }   
-        //DEBUG END
         morse_code [ v ] = code;
       } 
     } 
-
-    // DEBUG BEGIN
-    //std::cout << "computeReachability. Checkpoint D.\n";
-    // DEBUG END
 
     // Loop through topological sort.
     // Our goal is to produce "condensed_code", which we can read the info off from.
@@ -305,133 +272,39 @@ void computeReachability ( std::vector < std::vector < unsigned int > > * output
         std::cout . flush ();
       }
 #endif
-
-      // DEBUG BEGIN
-      //std::cout << "computeReachability. Checkpoint E.\n";
-      // DEBUG END
-
-      //DEBUG BEGIN
-      if ( vi >= topological_sort . size () ) {
-        std::cout << "computeReachability. Out of bounds (4) \n";
-        abort ();
-      }   
-      //DEBUG END
       size_type v = topological_sort [ vi ];
       std::vector < size_type > children = G . adjacencies ( v ); // previously const &
-      //DEBUG BEGIN
-      if ( v >= morse_paint . size () ) {
-        std::cout << "computeReachability. Out of bounds (5) \n";
-        abort ();
-      }   
-      //DEBUG END
       if ( morse_paint [ v ] != number_of_morse_sets ) {
-        //DEBUG BEGIN
-        if ( v >= morse_paint . size () ) {
-          std::cout << "computeReachability. Out of bounds (6) \n";
-          abort ();
-        }   
-        //DEBUG END
-        //DEBUG BEGIN
-        if ( v >= morse_code . size () ) {
-          std::cout << "computeReachability. Out of bounds (7) \n";
-          abort ();
-        }   
-        //DEBUG END
-        //DEBUG BEGIN
-        if ( morse_paint [ v ] >= condensed_code . size () ) {
-          std::cout << "computeReachability. Out of bounds (8) \n";
-          abort ();
-        }   
-        //DEBUG END
         morse_code [ v ] |= condensed_code [ morse_paint [ v ] ];
       }
       BOOST_FOREACH ( size_type w, children ) {
         ++ effort;
-        //DEBUG BEGIN
-        if ( w >= morse_code . size () ) {
-          std::cout << "computeReachability. Out of bounds (9) \n";
-          abort ();
-        }   
-        //DEBUG END
-        //DEBUG BEGIN
-        if ( v >= morse_code . size () ) {
-          std::cout << "computeReachability. Out of bounds (10) \n";
-          abort ();
-        }   
-        //DEBUG END
-        //DEBUG BEGIN
-        if ( w  >= morse_paint . size () ) {
-          std::cout << "computeReachability. Out of bounds (11) \n";
-          abort ();
-        }   
-        //DEBUG END
-        //DEBUG BEGIN
-        if ( morse_paint [ w ]  >= condensed_code . size () ) {
-          std::cout << "computeReachability. Out of bounds (12) \n";
-          abort ();
-        }   
-        //DEBUG END
         morse_code [ w ] |= morse_code [ v ];
         condensed_code [ morse_paint [ w ] ] |= morse_code [ v ];
 
       }
-
-      // DEBUG BEGIN
-      //std::cout << "computeReachability. Checkpoint F.\n";
-      // DEBUG END
     } 
 #ifdef CMG_VERBOSE
     ++ progress;
 #endif
-    // DEBUG BEGIN
-    //std::cout << "computeReachability. Checkpoint E.\n";
-    // DEBUG END
-    
+
     // Note: Now condensed_code is indexed by targets, 
     //       and contains the sources reaching it.    
     // Loop through Morse Sets to learn reachability information
     for ( size_type count = 0; count < number_of_morse_sets; ++ count ) {
       // Read condensed code to determine which of the group reached this morse set
       ++ effort;
-      unsigned long bit = 1;
-      // DEBUG BEGIN
-      //std::cout << "computeReachability. Checkpoint F.\n";
-      // DEBUG END
+      uint64_t bit = 1;
       for ( int i = 0; i < 64; ++ i ) {
         ++ effort;     
-        //DEBUG BEGIN
-        if ( count >= condensed_code . size () ) {
-          std::cout << "computeReachability. Out of bounds (13) \n";
-          abort ();
-        }   
-        //DEBUG END
         if ( condensed_code [ count ] & bit ) {
           ++ effort;
-          // DEBUG BEGIN
-          //std::cout << "computeReachability. Checkpoint G. " << effort << " " << offset << " " << i << " " << count << "\n";
-          if ( offset + i >= output -> size () ) {
-            std::cout << "computeReachability. Out of bounds (14) \n";
-            abort ();
-          }
-          // DEBUG END
           (*output)[offset + i] . push_back ( count );
-          // DEBUG BEGIN
-          //std::cout << "computeReachability. Checkpoint H. " << effort << " " << offset << " " << i << " " << count << "\n";
-          // DEBUG END
         } // if
         bit <<= 1;
       } // for bit index
-      // DEBUG BEGIN
-      //std::cout << "computeReachability. Checkpoint I.\n";
-      // DEBUG END
     } // for morse set
-    // DEBUG BEGIN
-    //std::cout << "computeReachability. Checkpoint J.\n";
-    // DEBUG END
   } // for groups
-  // DEBUG BEGIN
-  //std::cout << "computeReachability. Checkpoint K.\n";
-  // DEBUG END
 #ifdef CMG_VERBOSE
   std::cout << "\r100%  Reachability Analysis Complete.\n ";
 #endif
