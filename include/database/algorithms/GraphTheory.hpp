@@ -241,7 +241,7 @@ void computeReachability ( std::vector < std::vector < unsigned int > > * output
   // Loop through groups.
   for ( size_type group_number = 0; group_number < groups; ++ group_number ) {
     ++ effort;
-    size_type group_size = std::min(64L, number_of_morse_sets - 64L * group_number);
+    size_type group_size = std::min(64UL, number_of_morse_sets - 64L * group_number);
     size_type offset = 64L * group_number;
     morse_code . clear ();
     morse_code . resize ( G . num_vertices (), 0 );
