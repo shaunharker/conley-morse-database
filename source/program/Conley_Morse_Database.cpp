@@ -40,6 +40,7 @@ BOOST_CLASS_EXPORT_IMPLEMENT(EdgeGrid);
 
 
 #include "database/structures/EuclideanParameterSpace.h"
+#include "database/structures/AbstractParameterSpace.h"
 BOOST_CLASS_EXPORT_IMPLEMENT(EuclideanParameter);
 BOOST_CLASS_EXPORT_IMPLEMENT(EuclideanParameterSpace);
 BOOST_CLASS_EXPORT_IMPLEMENT(AbstractParameterSpace);
