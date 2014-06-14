@@ -152,7 +152,6 @@ inline Generators_t SmithGenerators (const Complex & complex,
     //std::cout << " betti number = " << betti_number << ", torsion number = " << torsion_number << ", trivial number = " << trivial_number << "\n";
 		std::vector < std::pair < Chain, Ring > > & generators = return_value [ d ];		
     generators . resize ( betti_number + torsion_number );
-    typedef Index size_type;
     /* Insert the betti generators */
     unsigned int betti_index = 0;
 		for (Matrix::size_type column_number = 0; 

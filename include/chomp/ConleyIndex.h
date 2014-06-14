@@ -72,9 +72,10 @@ ConleyIndex ( ConleyIndex_t * output,
   //std::cout << "Conley Index. S . size () " << S . size () << "\n";
   //std::cout << "Conley Index. getDepth(S) returned " << depth << "\n";
   
-  clock_t start, start0, stop;
+  //clock_t start, start0, stop;
   //std::cout << "Conley Index. Preparing computation...\n";
-  start0 = start = clock ();
+  //start0 = start = clock ();
+  
   /* Construct G on S, and also X and S in hash set forms called X_cells and S_cells */
   // note: All cells in X may be obtained as images of cells in S.
   typedef boost::unordered_set<Cell> CellDictionary;
@@ -120,11 +121,11 @@ ConleyIndex ( ConleyIndex_t * output,
     
   } /* boost_foreach */  
 #endif
-  stop = clock ();
+  
+  //stop = clock ();
   //std::cout << "Conley Index computation prepared as relative map homology problem.\n";
   //std::cout << "Elapsed time = " << (float) ( stop - start ) / (float) CLOCKS_PER_SEC << "\n";
-
-  start = clock ();
+  //start = clock ();
   
   std::cout << "ConleyIndex: calling RelativeMapHomology.\n";
   int error_code = RelativeMapHomology ( &(output -> data ()), grid, X, A, grid, X, A, F, depth );
@@ -133,8 +134,8 @@ ConleyIndex ( ConleyIndex_t * output,
     output -> undefined () = true;
     return;
   }
-  stop = clock ();
   
+  //stop = clock ();  
   //std::cout << "Conley Index computed. Total time = " << (float) ( stop - start0 ) / (float) CLOCKS_PER_SEC << "\n";
   //std::cout << "Number of cells in X = " << X . size () << "\n Cells per second = " << (float) X . size () * (float) CLOCKS_PER_SEC / (float) ( stop - start0 )  << "\n";
   

@@ -187,7 +187,9 @@ RelativeMapHomology (RelativeMapHomology_t * output,
   long max_chain_memory = 0;
   long number_of_analyzed_fibers = 0;
   long explored_graph_complex = 0;
+#ifdef RMHMEASUREGRAPH
   int highest_nontrivial_dim = -1;
+#endif
   clock_t lift_time_start = clock ();
   bool acyclic_map = true;
   for ( int d = 0; d <= D; ++ d ) {
@@ -203,8 +205,9 @@ RelativeMapHomology (RelativeMapHomology_t * output,
 
     for ( int gi = 0; gi < number_of_domain_gen; ++ gi ) {
       if ( not acyclic_map ) break;
-
+#ifdef RMHMEASUREGRAPH
       highest_nontrivial_dim = d;
+#endif
       PRINT "RMH: dimension = " << d << ", generator = " << gi << "\n";
 
       long chain_memory = 0;
@@ -443,7 +446,7 @@ RelativeMapHomology (RelativeMapHomology_t * output,
   PRINT "RMH: Time Elapsed (algebra time) = " << algebra_time << "\n";
   PRINT "RMH: Time Elapsed (total) = " << total_time << "\n";
 
-  #ifdef RMHMEASUREGRAPH
+#ifdef RMHMEASUREGRAPH
   long graph_size = 0;
   long edge_graph_size = 0;
   for ( int d = 0; d <= D; ++ d ) {
@@ -482,7 +485,7 @@ RelativeMapHomology (RelativeMapHomology_t * output,
 
   std::cout << "\n";
   }
-  #endif
+#endif
   PRINT "RMH: Returning.\n";
   return 0;
 }

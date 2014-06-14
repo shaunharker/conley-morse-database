@@ -77,7 +77,6 @@ std::string conleyStringForZoo ( const std::vector<std::string> & ci_strings ) {
 
 inline void CreateDotFile ( const char * outputfile, const MorseGraph & cmg ) {
   typedef MorseGraph::Vertex V;
-  typedef MorseGraph::Edge E;
   typedef MorseGraph::VertexIterator VI;
   typedef MorseGraph::EdgeIterator EI;
   
