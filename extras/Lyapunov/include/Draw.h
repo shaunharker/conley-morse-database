@@ -152,7 +152,6 @@ void draw2DAttractorRepeller ( const std::vector<bool> & mis,
 inline
 void draw2DMorseSets ( const std::vector < std::deque < Grid::GridElement > > & components,
 									 		 boost::shared_ptr<const TreeGrid> grid ) {
-	int N = grid -> size ();
 	RectGeo bounds = grid -> bounds ();
 	RectGeo outer_bounds = grid -> bounds ();
 	for ( int d = 0; d < bounds . dimension (); ++ d ) {

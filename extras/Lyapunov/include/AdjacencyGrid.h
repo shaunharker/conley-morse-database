@@ -146,7 +146,6 @@ std::vector<uint64_t> AdjacencyGrid::adjacencies ( uint64_t v ) const {
 	// TODO: Prevent set from growing too big (switch method if gets too large)
 	boost::unordered_set<uint64_t> set_result;
 	const Tree & tree = treegrid_ -> tree ();
-	int D = treegrid_ -> dimension ();
 	
 	Tree::iterator it ( v );
 	boost::shared_ptr<Geo> geo = treegrid_ -> geometryOfTreeNode ( it );

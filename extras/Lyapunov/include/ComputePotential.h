@@ -87,7 +87,6 @@ void DijkstraDistance ( std::vector<double> * distance_to_set,
 		// END DEBUG
 		BOOST_FOREACH ( DoubleGridPair new_pair, adjacencies ) {
 			uint64_t u = new_pair . vertex;
-			double distance = new_pair . distance;
 			if ( processed [ u ] ) continue;
 			new_pair . distance += pair . distance;
 			pq . push ( new_pair );
