@@ -74,7 +74,14 @@ void ConleyProcess::initialize ( void ) {
 int ConleyProcess::prepare ( Message & job ) {
   using namespace chomp;
 
-  if ( num_finished_ == num_incc_ ) return 1; // Code 1: No more jobs.
+  std::cout << " ConleyProcess::prepare\n";
+  std::cout << " num_incc_ = " << num_incc_ << "\n";
+  std::cout << " num_finished_ = " << num_finished_ << "\n";
+  std::cout << " num_jobs_sent_ = " << num_jobs_sent_ << "\n";
+
+  if ( num_finished_ == num_incc_ ) { 
+    return 1; // Code 1: No more jobs.
+  }
 
   if ( not checkpoint_timer_running_ ) {
     job << (uint64_t) 0; // Checkpoint timer job
@@ -84,15 +91,10 @@ int ConleyProcess::prepare ( Message & job ) {
     job << (uint64_t) 1; // Conley Job
   }
 
-  std::cout << " ConleyProcess::prepare\n";
-  std::cout << " num_incc_ = " << num_incc_ << "\n";
-  std::cout << " num_jobs_sent_ = " << num_jobs_sent_ << "\n";
-  
-  if ( ++ current_incc_ == num_incc_ ) current_incc_ = 0;
-
   while ( finished_ [ current_incc_ ] ) {
-    ++ current_incc_;
-    if ( current_incc_ == num_incc_ ) current_incc_ = 0;
+    if ( ++ current_incc_ == num_incc_ ) { 
+      current_incc_ = 0;
+    }
   }
 
   size_t attempt = attempts_ [ current_incc_ ] ++;
