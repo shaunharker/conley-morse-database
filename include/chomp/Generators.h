@@ -131,9 +131,9 @@ inline Generators_t SmithGenerators (const Complex & complex,
                0, second_Uinv . number_of_columns () - 1,
                second_Uinv );
     if ( d == 0 ) {
-      Matrix::Index n = complex . size ( 0 );
+      Matrix::MatrixPosition n = complex . size ( 0 );
       C . resize ( n, n );
-      for ( Matrix::Index i = 0; i < n; ++ i ) C . write ( i, i, Ring ( 1 ) );
+      for ( Matrix::MatrixPosition i = 0; i < n; ++ i ) C . write ( i, i, Ring ( 1 ) );
     } else {
       Submatrix ( & C, 
                  0, first_Vinv . number_of_rows () - 1, 
@@ -161,7 +161,7 @@ inline Generators_t SmithGenerators (const Complex & complex,
 			Chain & generator_chain = generators [ betti_index ] . first;
       generator_chain . dimension () = d;
       ++ betti_index;
-			for (Matrix::Index entry = G . column_begin ( column_number ); 
+			for (Matrix::MatrixPosition entry = G . column_begin ( column_number ); 
            entry != G . end (); G . column_advance ( entry ) ) {
 				generator_chain += Term ( G . row ( entry ), 
                                   G . read ( entry ) );
@@ -179,7 +179,7 @@ inline Generators_t SmithGenerators (const Complex & complex,
                              second_s + torsion_index);
 			Chain & generator_chain = generators [ betti_number + torsion_index ] . first;
       generator_chain . dimension () = d;
-      for (Matrix::Index entry = second_U . column_begin ( second_s + torsion_index ); 
+      for (Matrix::MatrixPosition entry = second_U . column_begin ( second_s + torsion_index ); 
            entry != second_U . end (); second_U . column_advance ( entry ) ) {
         generator_chain += Term ( second_U . row ( entry ), 
                                   second_U . read ( entry ) );
@@ -204,7 +204,7 @@ inline Generators_t SmithGenerators (const Complex & complex,
                                      
   Generators_t return_value;
   /* Perform Single Morse Reductions to complex */
-  // TODO: make more than one. Use a tower.
+  // TODO (possibly): make more than one. Use a tower.
   MorseComplex morse_complex ( complex );
   /* Get the Homology Generators on the Morse level */
   Generators_t deep_gen = SmithGenerators ( morse_complex, cutoff_dimension );
@@ -213,37 +213,8 @@ inline Generators_t SmithGenerators (const Complex & complex,
   for (unsigned int d = 0; d < deep_gen . size (); ++ d) {
     return_value [ d ] . resize ( deep_gen [ d ] . size () );
     for (unsigned int gi = 0; gi < deep_gen [ d ] . size (); ++ gi) {
-      
-
       Chain lifted = morse_complex . lift ( deep_gen [ d ] [ gi ] . first );
       return_value [ d ] [ gi ] = std::make_pair ( lifted, deep_gen [ d ] [ gi ] . second);
-      
-#if 0
-      // DEBUG
-      {
-        Chain zerochain = simplify ( morse_complex . boundary ( deep_gen [ d ] [ gi ] . first ) );
-        if ( zerochain () . size () != 0 ) {
-          std::cout << "Generators failure (1): Not a cycle!" << zerochain << "\n";
-          exit ( 1 );
-        }
-      }
-      
-      {
-      Chain zerochain = simplify ( complex . boundary ( return_value [ d ] [ gi ] . first ) );
-      if ( zerochain () . size () != 0 ) {
-        std::cout << "Generators failure (2): Not a cycle!" << zerochain << "\n";
-        std::cout << "deepdim = " << deep_gen [ d ] [ gi ] . first . dimension () << "\n";
-        std::cout << "liftdim = " << return_value [ d ] [ gi ] . first  . dimension () << "\n";
-        std::cout << deep_gen [ d ] [ gi ] . first << "\n";
-        Chain relowered = morse_complex . lower ( return_value [ d ] [ gi ] . first );
-        std::cout << "relowered = " << relowered  << "\n";
-        
-        exit ( 1 );
-      }
-      }
-#endif
-      // END DEBUG
-      
     } /* for */
   } /* for */
   return return_value;
