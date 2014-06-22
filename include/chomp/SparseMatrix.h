@@ -1090,6 +1090,8 @@ void SparseMatrix<R>::row_operation ( const R a, const R b,
   
 }
 
+//   i -> ai+bj   [i j]  [a  c]
+//   j -> ci+dj          [b  d]
 template < class R > 
 void SparseMatrix<R>::
 column_operation (const R a, const R b,

@@ -168,7 +168,8 @@ ZigZagFormSubroutine ( Matrix * Z,
     //  (i.e. column i is all zeros except a 1 at row i+1)
 
     if ( Z -> read ( pivot_column+1, pivot_column ) != R(1) ) {
-      throw std::logic_error ( "mistaken assumption\n" );
+      throw std::logic_error ( "ZigZagFormSubroutine. Bad pivot choice. "
+                               " (unexpected; please report a bug)\n" );
     }
     //for ( MatrixPosition p = Z -> row_begin ( i+1 );
     //      p != Z -> end ();
@@ -187,7 +188,8 @@ ZigZagFormSubroutine ( Matrix * Z,
                                   R(0), R(1), 
                                   pivot_column, elim_column  );
       if ( Z -> read ( pivot_column+1, elim_column ) != 0 ) {
-        throw std::logic_error ( "stage 2 elimination failed\n" );
+        throw std::logic_error ( "ZigZagFormSubroutine. Stage 2 elimination failed"
+                                 " (unexpected; please report a bug)\n" );
       }
       //print_matrix ( *Z );
       //char c;
@@ -303,6 +305,7 @@ std::vector<PolyRing<R> >
 FrobeniusNormalForm (SparseMatrix<R> const & A ) {
   using namespace frobenius_detail;
 
+  //std::cout << "FrobeniusNormalForm\n";
   typedef chomp::SparseMatrix < chomp::PolyRing < chomp::Ring > > PolyMatrix;
   typedef chomp::PolyRing < chomp::Ring > Polynomial;
 
@@ -335,6 +338,7 @@ paper.
   //std::cout << "There were " << k << " blocks.\n";
 
   std::vector < Polynomial > C;
+
   for ( int64_t i = 0; i < k; ++ i ) {
     //std::cout << " Top of C loop. i = " << i << "\n";
     int64_t r0 = (i>0) ? blocks[i-1] : 0;
@@ -410,7 +414,7 @@ of type polynomial.
   //std::cout << "V.size() = " << V . size () << "\n";
   //std::cout << "B.size() = " << B . size () << "\n";
 
-  V[0] = B[0] ? Polynomial ( 1 ) : Polynomial ( 0 );
+  if ( k > 0 ) V[0] = B[0] ? Polynomial ( 1 ) : Polynomial ( 0 );
   for ( int64_t j = 1; j < k; ++ j ) {
     //std::cout << "Top of loop 1. j = " << j << "\n";
     V[j-1] = gcd ( V[j-1], gcd ( C[j], C[j-1] ) );
@@ -440,6 +444,7 @@ Note that some of the C[i] might be equal to 1, in which case they correspond to
 a companion block of dimension 0. */
 
   // Well I better return them then, shouldn't I? :)
+  //std::cout << "Frobenius Form Returning.\n";
   return C;
 }
 

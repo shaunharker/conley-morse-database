@@ -3,49 +3,58 @@
 
 
 #include "chomp/ConleyIndex.h"
-#include "chomp/Matrix.h"
+#include "chomp/SparseMatrix.h"
 #include "chomp/PolyRing.h"
+#include "chomp/Ring.h"
+#include "chomp/FrobeniusNormalForm.h"
 #include <boost/thread.hpp>
 #include <boost/chrono/chrono_io.hpp>
 
-typedef chomp::SparseMatrix < chomp::PolyRing < chomp::Ring > > PolyMatrix;
 
-class SNFThread {
-
-private:
-
-  PolyMatrix * U;
-  PolyMatrix * Uinv;
-  PolyMatrix * V;
-  PolyMatrix * Vinv;
-  PolyMatrix * D;
-  const PolyMatrix & A;
+class FrobeniusThread {
 public:
+  typedef chomp::PolyRing<chomp::Ring> Polynomial;
+  typedef chomp::SparseMatrix<chomp::Ring> Matrix;
   bool * result;
-  SNFThread( PolyMatrix * U,
-       PolyMatrix * Uinv,
-       PolyMatrix * V,
-       PolyMatrix * Vinv,
-       PolyMatrix * D,
-       const PolyMatrix & A, 
-       bool * result ) 
-  : U(U), Uinv(Uinv), V(V), Vinv(Vinv), D(D), A(A), result(result) {}
+  FrobeniusThread( std::vector< Polynomial > * invariant_factors,
+                   const Matrix & A, 
+                   bool * result ) 
+  : result(result), invariant_factors_(invariant_factors), A_(A)  {}
 
   void operator () ( void ) {
     try {
-      SmithNormalForm ( U, Uinv, V, Vinv, D, A );
+      *invariant_factors_ = chomp::FrobeniusNormalForm ( A_ );
       *result = true;
     } catch ( ... /* boost::thread_interrupted& */) {
       *result = false;
     }
   }
+
+private:
+  std::vector<Polynomial> * invariant_factors_;
+  const Matrix & A_;
 };
+
+std::vector<chomp::PolyRing < chomp::Ring > > 
+shiftClass ( const std::vector< chomp::PolyRing < chomp::Ring > > & invariant_factors ) {
+  using namespace chomp;
+  typedef PolyRing<Ring> Polynomial;
+  Polynomial x;
+  std::vector<Polynomial> result;
+  x . resize ( 2 );
+  x[1] = Ring ( 1 );
+  for ( int j = 0; j < invariant_factors . size (); ++ j ) {
+    Polynomial factor = invariant_factors [ j ];
+    while ( factor [ 0 ] == Ring ( 0 ) ) factor = factor / x;
+    if ( factor . degree () > 0 ) result . push_back ( factor );
+  }
+  return result;
+}
 
 inline std::vector<std::string> 
 conleyIndexString ( const chomp::ConleyIndex_t & ci, 
                     int * errorcode = NULL,
-                    int time_out = 600 ) {
-  using namespace chomp;
+                    int time_out = 3600 ) {
   if ( errorcode != NULL ) * errorcode = 0;
   std::cout << "conleyIndexString.\n";
   std::vector<std::string> result;
@@ -56,57 +65,38 @@ conleyIndexString ( const chomp::ConleyIndex_t & ci,
   }
   for ( unsigned int i = 0; i < ci . data () . size (); ++ i ) {
     std::cout << "conleyIndexString. Dimension is " << i << "\n";
-    std::stringstream ss;
-    PolyMatrix poly = ci . data () [ i ];
     
-    int N = poly . number_of_rows ();
-    PolyRing<Ring> X;
-    X . resize ( 2 );
-    X [ 1 ] = Ring ( -1 );
-    for ( int i = 0; i < N; ++ i ) {
-      poly . add ( i, i, X );
-    }
-    PolyMatrix U, Uinv, V, Vinv, D;
+    typedef chomp::PolyRing<chomp::Ring> Polynomial;
 
-    // use a thread to perform the following line:    
-    //      SmithNormalForm ( &U, &Uinv, &V, &Vinv, &D, poly );
+    // use a thread to compute Frobenius Normal Form
+    std::vector<Polynomial> invariant_factors;
     bool computed;
-    SNFThread snf ( &U, &Uinv, &V, &Vinv, &D, poly, &computed );
-    boost::thread t(snf);
+    FrobeniusThread frobenius ( &invariant_factors, ci . data () [ i ], &computed );
+    boost::thread t(frobenius);
     if ( not t . try_join_for ( boost::chrono::seconds( time_out ) ) ) {
       t.interrupt();
       t.join();
     }
     if ( not computed ) {
-      result . push_back ( std::string ( "Problem computing SNF.\n") );
+      result . push_back ( std::string ( "Problem computing Frobenius Form.\n") );
       if ( errorcode != NULL ) * errorcode = 1;
       continue;
     }
     // end threading
 
-    bool is_trivial = true;
-    PolyRing < Ring > x;
-    x . resize ( 2 );
-    x [ 1 ] = Ring ( 1 );
-    for ( int j = 0; j < D . number_of_rows (); ++ j ) {
-      PolyRing < Ring > entry = D . read ( j, j );
-      while ( ( entry . degree () >= 0 )
-             && ( entry [ 0 ] == Ring ( 0 ) )) {
-        entry = entry / x;
-      }
-      if ( entry . degree () <= 0 ) continue;
-      // make it monic
-      PolyRing<Ring> leading_unit;
-      leading_unit . resize ( 1 );
-      leading_unit [ 0 ] = entry[entry . degree ()];
-      entry = entry / leading_unit;
-      
-      is_trivial = false;
-      ss << "   " << entry << "\n";
+
+    std::vector<Polynomial> shift_class = shiftClass ( invariant_factors );
+
+    std::stringstream ss;
+    BOOST_FOREACH ( const Polynomial & poly, shift_class ) {
+      ss << poly << "\n";
     }
-    if ( is_trivial ) ss << "Trivial.\n";
+    if ( shift_class . empty () ) {
+      ss << "Trivial.\n";
+    }
+
     result . push_back ( ss . str () );
-    std::cout << "conleyIndexString. Wrote the poly " << ss . str () << "\n";
+    std::cout << "conleyIndexString. Wrote the polynomial " << ss . str () << "\n";
   }
   return result;
 }
