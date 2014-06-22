@@ -11,6 +11,7 @@
 #ifndef CHOMP_SPARSEMATRIX_H
 #define CHOMP_SPARSEMATRIX_H
 
+#include <iomanip>
 #include <cstdlib>
 #include <vector>
 #include <deque>
@@ -346,7 +347,7 @@ void print_matrix ( const Matrix & print_me ) {
   for ( size_type i = 0; i < I; ++ i ) {
     std::cout << "[";
     for ( size_type j = 0; j < J; ++ j ) {
-      std::cout << print_me . read ( i, j ) << " ";
+      std::cout << std::setw(2) << print_me . read ( i, j ) << " ";
     } /* for */
     std::cout << "]\n";
   } /* for */
