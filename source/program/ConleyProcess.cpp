@@ -91,13 +91,11 @@ int ConleyProcess::prepare ( Message & job ) {
     job << (uint64_t) 1; // Conley Job
   }
 
-  ++ current_incc_;
-  
-  while ( finished_ [ current_incc_ ] ) {
+   do {
     if ( ++ current_incc_ == num_incc_ ) { 
       current_incc_ = 0;
     }
-  }
+  } while ( finished_ [ current_incc_ ] );
 
   size_t attempt = attempts_ [ current_incc_ ] ++;
   uint64_t incc = current_incc_;
