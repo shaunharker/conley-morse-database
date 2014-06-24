@@ -61,7 +61,7 @@ void ConleyProcess::initialize ( void ) {
   finished_ . resize ( num_incc_, false );
   attempts_ . resize ( num_incc_, 0 );
   num_finished_ = 0;
-  current_incc_ = 0;
+  current_incc_ = -1;
 
   checkpoint_timer_running_ = false;
 
@@ -91,6 +91,8 @@ int ConleyProcess::prepare ( Message & job ) {
     job << (uint64_t) 1; // Conley Job
   }
 
+  ++ current_incc_;
+  
   while ( finished_ [ current_incc_ ] ) {
     if ( ++ current_incc_ == num_incc_ ) { 
       current_incc_ = 0;
