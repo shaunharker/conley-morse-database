@@ -27,7 +27,7 @@ namespace chomp {
 
 
 /********************************
- *      MATRIX COMPLEX      *
+ *      RELATIVE COMPLEX        *
  ********************************/
 class RelativeComplex : public Complex {
 public:
@@ -43,7 +43,7 @@ public:
   virtual void coboundary ( Chain * output, const Index input, int dim ) const;
 
   /**********************************
-   * SPECIFIC TO MATRIX COMPLEX *
+   * SPECIFIC TO RELATIVE COMPLEX   *
    **********************************/
 	
 private:
@@ -105,7 +105,6 @@ inline void RelativeComplex::include (Chain * output,
     }
     *output = simplify ( *output ); 
   }
-} // namespace chomp
 
 inline void RelativeComplex::project (Chain * output, 
                                       const Chain & input ) const {

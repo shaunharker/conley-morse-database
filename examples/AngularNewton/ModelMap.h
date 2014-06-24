@@ -32,9 +32,10 @@ struct ModelMap : public Map {
     //phi = interval (rectangle . lower_bounds [ 3 ], rectangle . upper_bounds [ 3 ]);
     c = interval (rectangle . lower_bounds [ 0 ], rectangle . upper_bounds [ 0 ] );
     phi = interval ( rectangle . lower_bounds [ 1 ], rectangle . upper_bounds [ 1 ] );
-    //a = interval (-1.0,-1.0 );
+    
     a = interval ( rectangle.lower_bounds[2], rectangle.upper_bounds[2]);
     b = interval ( rectangle.lower_bounds[3], rectangle.upper_bounds[3]);
+    //a = interval (-1.0,-1.0 );                                               
     //b = interval ( 1.0, 1.0 );
     return;
   }

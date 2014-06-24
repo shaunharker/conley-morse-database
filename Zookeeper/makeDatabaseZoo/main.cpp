@@ -130,11 +130,11 @@ std::string dotFile ( const Database & database, uint64_t mgcc, uint64_t order_i
 #ifndef NOCONLEYINDEX
   	uint64_t conley = database . incc_conley () [ incc_index ];
   	const CI_Data & ci = database . ciData () [ conley ];
-    ss << i << " [label=\""<< incc_index << "\" href=\"javascript:void(click_node_on_graph('" <<  conleyStringForZoo ( database, ci ) << "'," << order_index << ")\
-)\"]\n";
+    ss << i << " [label=\""<< incc_index << "\" href=\"javascript:void(click_node_on_graph('" 
+       <<  conleyStringForZoo ( database, ci ) << "'," << order_index << "))\"]\n";
 #else 
-    ss << i << " [label=\""<< incc_index << "\" href=\"javascript:void(click_node_on_graph('Unknown Conley Index'," << order_index << ")\
-)\"]\n";
+    ss << i << " [label=\""<< incc_index << "\" href=\"javascript:void(click_node_on_graph"
+               "('Unknown Conley Index'," << order_index << "))\"]\n";
 #endif 
   }  
  	

@@ -34,7 +34,7 @@ private:
   boost::shared_ptr<ParameterSpace> parameter_space_;
   size_t num_jobs_sent_;
   size_t num_incc_;
-  size_t current_incc_;
+  int64_t current_incc_;
   std::vector<uint64_t> attempts_;
   std::vector<bool> finished_;
   size_t num_finished_;
