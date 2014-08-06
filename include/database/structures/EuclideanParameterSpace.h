@@ -91,6 +91,11 @@ public:
   ///    Return dimension of parameter space
   int dimension ( void ) const;
 
+  /// grid
+  ///    Return underlying grid object
+  boost::shared_ptr<const Grid> 
+  grid ( void ) const;
+
 private:
 	boost::shared_ptr<Grid> parameter_grid_;
   RectGeo bounds_;
@@ -328,6 +333,11 @@ EuclideanParameterSpace::patch ( void ) const {
 inline int 
 EuclideanParameterSpace::dimension ( void ) const {
   return dimension_;
+}
+
+inline boost::shared_ptr<const Grid> 
+EuclideanParameterSpace::grid ( void ) const {
+  return parameter_grid_;
 }
 
 #endif

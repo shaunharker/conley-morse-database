@@ -470,6 +470,11 @@ public:
   void load ( const char * filename );
   
   const ParameterSpace & parameter_space ( void ) const { return *parameter_space_;}
+ 
+  /// parameterSpace
+  ///   Return shared pointer to parameter space
+  boost::shared_ptr<ParameterSpace> 
+  parameterSpace ( void ) const { return parameter_space_;}
 
   const std::vector < ParameterRecord > & parameter_records ( void ) const;
   const std::vector < ClutchingRecord > & clutch_records ( void ) const;

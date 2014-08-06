@@ -8,6 +8,7 @@
 #include <sstream>
 #include <string>
 #include <cmath>
+#include <utility>
 
 #include <boost/foreach.hpp>
 #include <boost/iterator/counting_iterator.hpp>

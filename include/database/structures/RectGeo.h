@@ -47,6 +47,7 @@ public:
   }
 #endif
 
+
   RectGeo ( void ) {};
   RectGeo ( unsigned int size ) { lower_bounds . resize ( size );
                                 upper_bounds . resize ( size ); }
@@ -73,6 +74,15 @@ public:
   RectGeo ( const std::vector<Real> & point ) {
     lower_bounds = point;
     upper_bounds = point;
+  }
+  
+  RectGeo centroid ( void ) {
+    RectGeo result = *this;
+    for ( int d = 0; d < lower_bounds . size (); ++ d ) {
+      result . lower_bounds [ d ] = result . upper_bounds [ d ] = 
+        (result . lower_bounds [ d ] + result . upper_bounds [ d ])/2.0;
+    }
+    return result; 
   }
   
   void init_from_point ( const std::vector<Real> & point ) {

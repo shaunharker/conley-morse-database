@@ -135,9 +135,9 @@ public:
   /// geometry
   virtual boost::shared_ptr<Geo> 
   geometry ( GridElement ge ) const; 
-  virtual boost::shared_ptr<Geo> 
 
   /// geometryOfTreeNode
+  virtual boost::shared_ptr<Geo> 
   geometryOfTreeNode ( Tree::iterator it ) const;
   using Grid::geometry;
 

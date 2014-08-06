@@ -174,7 +174,12 @@ UniformGrid::cover ( const Geo & geo ) const {
   }
 
   //std::cout << "\n";
-
+  bool empty = false;
+  for ( int d = 0; d < dimension (); ++ d ) {
+    if ( upper_coordinates[d] <= lower_coordinates[d] ) empty = true;
+  }
+  if ( empty ) return result;
+  
   std::vector<int64_t> coordinates = lower_coordinates;
   bool finished = false;
   while ( not finished ) {
