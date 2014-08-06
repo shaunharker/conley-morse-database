@@ -390,7 +390,7 @@ EdgeGrid::gridElementToAddress ( const GridElement & ge ) const {
     address += multiplier * coordinates [ d ];
     multiplier *= sizes_ [ d ];
   }
-  return std::make_pair < uint64_t, int > ( address, dim );
+  return std::make_pair ( address, dim );
 }
   
 inline Grid::GridElement 
