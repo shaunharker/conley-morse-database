@@ -302,10 +302,17 @@ SuccinctTree::memory ( void ) const {
   //std::cout << "sdsl::util::get_size_in_bytes ( select_ ) = " << sdsl::util::get_size_in_bytes ( select_ ) << "\n";
 
   return sizeof ( SuccinctTree ) + 
+#ifndef SDSL_LITE         
          sdsl::util::get_size_in_bytes ( leaf_sequence_ ) +
          sdsl::util::get_size_in_bytes ( tree_ ) +
          sdsl::util::get_size_in_bytes ( rank_ ) +
          sdsl::util::get_size_in_bytes ( select_);
+#else
+         sdsl::size_in_bytes ( leaf_sequence_ ) +
+         sdsl::size_in_bytes ( tree_ ) +
+         sdsl::size_in_bytes ( rank_ ) +
+         sdsl::size_in_bytes ( select_);         
+#endif
 }
 
 inline const sdsl::bit_vector & 
