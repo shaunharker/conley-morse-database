@@ -73,8 +73,8 @@ public:
   ///    assignment operator
   RankSelect& operator= ( const RankSelect& other ) {
     bits_ = other . bits_;
-    rank_ . init ( &bits_ );
-    select_ . init ( &bits_ );
+    rank_ . set_vector ( &bits_ );
+    select_ . set_vector ( &bits_ );
     return *this;
   }
 
@@ -112,8 +112,8 @@ private:
     bits_ . resize ( bit_sequence . size() );
     for ( size_type i = 0; i < bit_sequence.size(); ++ i ) 
       bits_ [ i ] =  bit_sequence [ i ];
-    rank_ . init ( &bits_ );
-    select_ . init ( &bits_ );
+    rank_ . set_vector ( &bits_ );
+    select_ . set_vector ( &bits_ );
   }
   BOOST_SERIALIZATION_SPLIT_MEMBER ( );
 };
