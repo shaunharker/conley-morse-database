@@ -37,8 +37,8 @@ public:
   void assign ( const std::vector < bool > & bits ) {
     bits_ . resize ( bits . size () );
     for ( size_t i = 0; i < bits . size (); ++ i ) bits_[i] = bits[i];
-    rank_ . init ( &bits_ );
-    select_ . init ( &bits_ );
+    rank_ . set_vector ( &bits_ );
+    select_ . set_vector ( &bits_ );
   }
 
   /// rank
