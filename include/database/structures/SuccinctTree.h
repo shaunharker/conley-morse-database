@@ -131,8 +131,8 @@ SuccinctTree::assignFromLeafSequence ( const std::vector<bool> & leaf_sequence )
     if ( not leaf_sequence [ i ] ) ++ leaf_count_;
   }
   tree_ = sdsl::bp_support_sada <> ( & leaf_sequence_ );
-  rank_ . init_slow ( &leaf_sequence_ );
-  select_ . init_slow ( &leaf_sequence_ );
+  rank_ = sdsl::rank_support_v5 <0> ( &leaf_sequence_ );
+  select_ =  sdsl::select_support_mcl <0> ( &leaf_sequence_ );
 
 #if 0
   // BEGIN DEBUG

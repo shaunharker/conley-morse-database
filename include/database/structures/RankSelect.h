@@ -37,8 +37,8 @@ public:
   void assign ( const std::vector < bool > & bits ) {
     bits_ . resize ( bits . size () );
     for ( size_t i = 0; i < bits . size (); ++ i ) bits_[i] = bits[i];
-    rank_ . init_slow ( &bits_ );
-    select_ . init_slow ( &bits_ );
+    rank_ = sdsl::rank_support_v5 < > ( &bits_ );
+    select_ = sdsl::select_support_mcl < > ( &bits_ );
   }
 
   /// rank
@@ -73,8 +73,8 @@ public:
   ///    assignment operator
   RankSelect& operator= ( const RankSelect& other ) {
     bits_ = other . bits_;
-    rank_ . init_slow ( &bits_ );
-    select_ . init_slow ( &bits_ );
+    rank_ = sdsl::rank_support_v5 < > ( &bits_ );
+    select_ = sdsl::select_support_mcl < > ( &bits_ );
     return *this;
   }
 
@@ -118,8 +118,8 @@ private:
     bits_ . resize ( bit_sequence . size() );
     for ( size_type i = 0; i < bit_sequence.size(); ++ i ) 
       bits_ [ i ] =  bit_sequence [ i ];
-    rank_ . init_slow ( &bits_ );
-    select_ . init_slow ( &bits_ );
+    rank_ = sdsl::rank_support_v5 < > ( &bits_ );
+    select_ = sdsl::select_support_mcl < > ( &bits_ );
   }
   BOOST_SERIALIZATION_SPLIT_MEMBER ( );
 };
