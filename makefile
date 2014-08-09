@@ -4,7 +4,7 @@
 # 
 COMPUTE_MORSE_SETS := yes
 COMPUTE_CONTINUATION := yes
-COMPUTE_CONLEY_INDEX := yes
+COMPUTE_CONLEY_INDEX := no
 # Optional Libraries: CAPD Library, SDSL Library
 USE_CAPD := no
 USE_SDSL := yes

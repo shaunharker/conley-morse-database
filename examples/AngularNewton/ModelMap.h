@@ -47,19 +47,16 @@ struct ModelMap : public Map {
   }
 
   bool good ( void ) const {
-
-    interval x = (a - b)*(interval(1.0) - c)*cos(2.0*phi) + (a + b)*(interval(1.0) + c);
-    interval y = 16.0*a*b*c;
-
-    interval check = (x*x) - y;
-
+    if ( c . lower () > 0 ) return true;
+    interval x = ( a + b * c ) * square ( cos ( phi ) );
+    interval y = ( b + a * c ) * square ( sin ( phi ) );
+    interval check = square ( x + y ) - 4.0 * a * b * c;
     double tol = 1.0e-8;
-
-    if( tol + check.upper() >= 0 && check.lower() - tol <= 0 )
-      return false;
+    if( tol + check.upper() >= 0 && 
+        check.lower() - tol <= 0 ) return false;
     return true;
-
   }
+  
   RectGeo operator () 
   ( const RectGeo & rectangle ) const {    
     //RectGeo myresult = rectangle;

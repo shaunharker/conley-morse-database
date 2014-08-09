@@ -21,7 +21,7 @@
     <upper> 74.0 52.0 </upper>
   </bounds>
   <subdiv>
-    <init> 24 </init>
+    <init> 0 </init>
     <min> 24 </min>
     <max> 30 </max>
     <limit> 10000 </limit>

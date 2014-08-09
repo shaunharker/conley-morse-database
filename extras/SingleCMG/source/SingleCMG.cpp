@@ -193,6 +193,19 @@ int main ( int argc, char * argv [] ) {
 #endif // endif for COMPUTE_MORSE_SETS
 
 
+#ifdef DRAW_IMAGES
+  /* DRAW IMAGES ***********************************************************/
+  boost::shared_ptr<TreeGrid> cmg_treegrid =
+     boost::dynamic_pointer_cast<TreeGrid> ( morsegraph . phaseSpace () );
+
+  if ( cmg_treegrid && cmg_treegrid -> dimension () == 2 ) {
+    TIC;                                                                     
+    std::cout << "Creating image file...\n";                                 
+    DrawMorseSets ( * cmg_treegrid, morsegraph );
+    TOC;                                                                     
+  }
+  /*************************************************************************/
+#endif
 
 #ifdef COMPUTE_CONLEY_INDEX
   /* COMPUTE CONLEY MORSE GRAPH ***************************************/
@@ -205,20 +218,6 @@ int main ( int argc, char * argv [] ) {
   ConleyMorseGraph & conleymorsegraph = morsegraph;
 #endif
 
-
-#ifdef DRAW_IMAGES
-  /* DRAW IMAGES ***********************************************************/
-  boost::shared_ptr<TreeGrid> cmg_treegrid =
-     boost::dynamic_pointer_cast<TreeGrid> ( conleymorsegraph . phaseSpace () );
-
-  if ( cmg_treegrid && cmg_treegrid -> dimension () == 2 ) {
-    TIC;                                                                     
-    std::cout << "Creating image file...\n";                                 
-    DrawMorseSets ( * cmg_treegrid, conleymorsegraph );
-    TOC;                                                                     
-  }
-  /*************************************************************************/
-#endif
 
   // Always output the Morse Graph
   std::cout << "Creating graphviz .dot file...\n";                         

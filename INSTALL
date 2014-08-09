@@ -1,115 +1,183 @@
 
 INSTALLATION DIRECTIONS (and some brief instructions)
 -----------------------------------------------------
-(0) Install "conley-morse-database"
-Note: If you are reading this, you likely 
-      have already done this, unless you are 
-      browsing the source on the web.
-Details:
-  A) TYPE: svn checkout http://conley-morse-database.googlecode.com/svn/trunk/ conley-morse-database
 
-(1) Install "cluster-delegator"
-Details:
-  A) Change directory to parent directory of conley-morse-databse
-  B) TYPE: svn checkout http://cluster-delegator.googlecode.com/svn/trunk/ cluster-delegator
-  
+Prerequisites:
 
-(2) Install Boost. 
-Details:
- A) Download the boost tarball,
-    decompress it, 
-    and cd to the boost dir (It doesn't matter where you put this --
-    you can even delete it when you are done.)
- B) TYPE sudo ./bootstrap.sh
- C) TYPE sudo ./b2 install
- D) Check the boost installation was successful by seeing that
-    /usr/local/include/boost/ exists and has lots of header files.
-  and /usr/local/lib/ contains boost libraries (.a, .so, and/or .dylib files)
+The installation requires the following prerequisite packages:
 
-(3) Install MPI if it is not installed already. 
-Notes: Mac Users: For Mac OS X 10.4 - 10.6, this comes standard.
-                  For Mac OS X 10.7 - 10.8, it does not.  
-    You can check if it is installed by seeing if the command
-    "mpicxx" is recognized.
-Details:
- A) Download open-mpi from the internet.
- B) cd openmpi-1.4.4
- C) sudo ./configure --prefix=/usr/local
- D) sudo make all install
+boost
+open-mpi 
+cmake
+sdsl-lite  
+cluster-delegator
+conley-morse-database
+capd <optional>
 
---EXTRAS, REQUIRED FOR SOME FEATURES--
-(4) Install CAPD
-  CAPD provides an integrator which can be used to create time-t 
+INSTALLATION DIRECTORIES
+
+Packages install themselves into some directory which we
+will call <install-directory>.
+
+There are two basic choices for an install directory. One
+is to use a system directory like /usr/local or /opt, which
+exist for this purpose. However these require a password
+to install into. The other choice is to perform installs into
+a home directory, like ~.
+
+The <install-directory> is chosen by the user for each
+package. It can always be chosen to be a folder in the
+user's home directory. However some packages might already
+be installed, usually in /usr/local. Also, the useful "brew" 
+installer on Mac OS X installs software into /usr/local.
+
+It is recommended to use a system installation directory 
+(e.g. /usr/local) for
+cmake, open-mpi, boost, and sdsl-lite
+
+and a home installation directory (e.g. ~) for
+cluster-delegator and conley-morse-database
+
+In what follows, we will refer to the <install-directory>
+of cluster-delegator and conley-morse-database
+as <home-install-dir> and the others as <system-install-dir>
+
+HEADERS, LIBRARIES, AND BINARIES
+
+The effect of installing boost, cmake, open-mpi, and sdsl-lite
+is to produce:
+* header files, which are placed in 
+  <system-install-dir>/include
+* libraries, which are placed in
+  <system-install-dir>/lib
+* binaries, which are placed in
+  <system-install-dir>/bin
+
+The effect of installing cluster-delegator and conley-morse-database
+is just to produce their folders. Inside of these folders there
+are include folders, but they do not attempt to install these header
+files into the system.
+
+MODIFYING THE PATH
+
+Both cmake and open-mpi create binaries, so for these programs
+to function you need to have <system-install-dir>/bin on your
+UNIX path. If <system-install-dir> is /usr/local for these installs
+(recommended) then most likely nothing needs to be done. Otherwise,
+Edit the ~/.bash_profile file to contain the line
+ PATH="<system-install-dir>/bin:${PATH}"
+You may need to restart your terminal program for the changes to
+take effect.
+
+GENERIC INSTRUCTIONS
+
+The generic instructions for open-mpi, boost, cmake, and sdsl-lite are
+* Download the package to some folder
+* Run its installer, telling it what <system-install-dir> you want
+
+For cluster-delegator and conley-morse-database, the instructions are
+* Download the package directly to <home-install-dir> from the repository.
+
+MAC USERS AND BREW
+Mac Users:
+Some of these installs can be accomplished with "brew". This will 
+choose <system-install-dir>= /usr/local 
+Obtain brew by typing:
+
+ruby -e "$(curl -fsSL https://raw.github.com/mxcl/homebrew/go)"
+
+LIST OF SPECIFIC INSTALL INSTRUCTIONS
+
+(1) Install Boost. (see their website)
+Mac OS X::
+brew install boost
+
+Linux:
+./bootstrap.sh --prefix=<system-install-dir>
+./b2 install
+
+(2) Install MPI if it is not installed already. 
+Mac OS X:
+brew install open-mpi
+
+Linux:
+Download open-mpi from the internet and cd to its folder
+./configure --prefix=<system-install-dir>
+make all install
+
+(3) Install "cmake"
+Note: We require "cmake" to build "sdsl-lite"
+On Mac OS X:
+brew install cmake
+
+On Linux:
+  Download and decompress the tarball from 
+  http://www.cmake.org/cmake/resources/software.html  
+  This might be done from the command line with:
+
+curl http://www.cmake.org/files/v2.8/cmake-2.8.10.2.tar.gz \
+      -o cmake-2.8.10.2.tar.gz
+tar xvfz cmake-2.8.10.2.tar.gz
+./bootstrap --prefix=<system-install-dir>
+make
+make install
+
+(4) Install "sdsl"
+  SDSL is maintained as a git repository. 
+  https://github.com/simongog/sdsl-lite
+
+  To install it:
+
+  git clone https://github.com/simongog/sdsl-lite.git
+  cd sdsl-lite
+  ./install.sh <system-install-dir>
+
+(5) Install "conley-morse-database"
+
+svn checkout http://conley-morse-database.googlecode.com/svn/trunk/ \ 
+             <home-install-dir>/conley-morse-database
+
+(6) Install "cluster-delegator"
+
+svn checkout http://cluster-delegator.googlecode.com/svn/trunk/ \ 
+             <home-install-dir>/cluster-delegator
+
+(7) Install CAPD (optional)
+  CAPD provides an integrator which can be used to create time-t
   maps arising from ordinary differential equations (ODEs).
 
+  If one does not want to build time-t maps using CAPD, this
+  step is not necessary.
+
   See the CAPD documentation for up to date details on installation.
-  
+
   As of this writing, the following seems to work:
     A package called "pkg-config" is required.
-    This is often pre-installed. 
+    This is often pre-installed.
     On Mac OS X, it can be obtained with the brew installer with
       brew install pkg-config
-    (See (5) below for more information on obtaining "brew".)
-
+  
   Now from the CAPD folder:
     ./configure
     make
     make install
 
+Final steps.
+The conley-morse-database/makefile.config
+file may need to be edited if the recommendations were not
+taken. By default it assumes
+ <system-install-dir>=/usr/local
+ and <home-install-dir> is the parent folder
+ of conley-morse-database. 
 
-(5) Install "cmake"
-We require "cmake" to use "sdsl"
+The folders where boost and sdsl can be found can be changed
+from these default locations.
 
-  On Mac OS X:
-    cmake can be installed using "brew". See
-    http://mxcl.github.io/homebrew/
-    ruby -e "$(curl -fsSL https://raw.github.com/mxcl/homebrew/go)"
-    brew update
-    brew install cmake
-
-    See http://mxcl.github.io/homebrew/ 
-
-  On Linux:
-    Download and decompress the tarball from 
-    http://www.cmake.org/cmake/resources/software.html
-    
-    This might be done from the command line with:
-
-    curl http://www.cmake.org/files/v2.8/cmake-2.8.10.2.tar.gz \
-      -o cmake-2.8.10.2.tar.gz
-    tar xvfz cmake-2.8.10.2.tar.gz
-
-    As superuser: (install in /usr/local/)
-      ./bootstrap
-      sudo make
-      sudo make install
-    Not as superuser: (install in <install_prefix>)
-      ./bootstrap --prefix=<install_prefix>
-      make
-      make install
-     Since the installation isn't in a default path, 
-     you need to make the cmake binaries to be visible. 
-     Edit the ~/.bash_profile file to contain the line
-     PATH="<install_prefix>/bin:${PATH}"
-     You may need to restart your terminal program at this point.
-
-(6) Install "sdsl"
-  SDSL is maintained as a git repository. 
-  https://github.com/simongog/sdsl
-
-  To install it, try the following::
-  cd <install-directory>
-  curl -L -o sdsl-master.tar.gz \
-    https://api.github.com/repos/simongog/sdsl/tarball
-  tar xvfz sdsl-master.tar.gz
-  mkdir sdsl
-  cd simongog-sdsl-4e85037    #this might change; whatever folder was created
-  ./install.sh <install-directory>/sdsl
-
+In the future a better system will be deployed so
+the user does not have to directly edit a makefile.
 
 See README file for further instructions.
 
 Email sharker@math.rutgers.edu
 if you can't get it to work or have any 
 other questions.
-
