@@ -87,15 +87,9 @@ public:
     //std::cout << "sdsl::util::get_size_in_bytes ( select_ ) = " << sdsl::util::get_size_in_bytes ( select_ ) << "\n";
 
     return sizeof ( RankSelect ) +  
-#ifndef SDSL_LITE         
-        sdsl::util::get_size_in_bytes ( bits_ ) +
-        sdsl::util::get_size_in_bytes ( rank_ ) +
-        sdsl::util::get_size_in_bytes ( select_ );
-#else
         sdsl::size_in_bytes ( bits_ ) +
         sdsl::size_in_bytes ( rank_ ) +
         sdsl::size_in_bytes ( select_ );      
-#endif
   }
 
 private:

@@ -133,97 +133,6 @@ SuccinctTree::assignFromLeafSequence ( const std::vector<bool> & leaf_sequence )
   tree_ = sdsl::bp_support_sada <> ( & leaf_sequence_ );
   rank_ = sdsl::rank_support_v5 <0> ( &leaf_sequence_ );
   select_ =  sdsl::select_support_mcl <0> ( &leaf_sequence_ );
-
-#if 0
-  // BEGIN DEBUG
-
-  for ( uint64_t i = 0; i < leaf_sequence.size (); ++ i ) {
-    std::cout << (leaf_sequence [ i ] ? "1":"0");
-  }
-  std::cout << "\n";
-
-  std::cout << "SuccinctTree::assignFromLeafSequence. last_ = " << last_ << "\n";
-  std::cout << "SuccinctTree::assignFromLeafSequence. size_ = " << size_ << "\n";
-  std::cout << "SuccinctTree::assignFromLeafSequence. leaf_count_ = " << leaf_count_ << "\n";
-  std::cout << "SuccinctTree::assignFromLeafSequence. leaf_sequence_ = " << leaf_sequence_ . size () << "\n";
-
-  std::cout << "SuccinctTree::assignFromLeafSequence. Beginning basic sanity test\n";
-  boost::unordered_set<uint64_t> left_children;
-  boost::unordered_set<uint64_t> right_children;
-  boost::unordered_set<uint64_t> parents;
-
-  if ( leaf_sequence [ 0 ] == 0 ) {
-    std::cout << "The root is a leaf.\n";
-  }
-  int64_t excess = 0;
-  for ( uint64_t i = 0; i < leaf_sequence_.size (); ++ i ) {
-    if ( leaf_sequence_ [ i ] == 1 ) ++ excess;
-    else -- excess;
-    //std::cout << excess << "\n";
-  }
-
-  for ( uint64_t i = 0; i < leaf_sequence_.size (); ++ i ) {
-    if ( leaf_sequence_ [ i ] == 0 ) continue;
-    std::cout << "tree_.find_close(" << i << ") = " <<
-                    tree_.find_close(i) << "   ";
-    // brute force calculation.
-    int64_t brute = 0;
-    uint64_t j = i;
-    for ( ; j < leaf_sequence_.size (); ++ j) {
-      if ( leaf_sequence_ [ j ] == 1 ) ++ brute;
-      else -- brute;
-      if ( brute == 0 ) break;
-    }
-    std::cout << "brute force: find_close(" << i << ") = " << j << "\n";
-  }
-
-  for ( uint64_t i = 0; i < leaf_sequence_.size (); ++ i ) {
-    if ( leaf_sequence_ [ i ] == 1 ) continue;
-    std::cout << "tree_.find_open(" << i << ") = " <<
-                    tree_.find_open(i) << "\n";
-  }
-  for ( uint64_t i = 0; i < size (); ++ i ) {
-    iterator it ( i );
-    if ( left ( it ) != end () ) left_children . insert ( * left(it) );
-
-    if ( right ( it ) != end () ) {
-      if ( right_children . count ( * right(it) ) ) {
-        std::cout << *it << " -?-R-?-> " <<  * right ( it ) << "\n";
-        std::cout << "tree_.find_close(" << *it << ") = " <<
-                    tree_.find_close(*it) << "\n";
-        std::cout << "leaf_sequence_[" << *it << "] = " <<
-                    leaf_sequence_[*it] << "\n";
-        //throw std::logic_error("Found the same right child twice!\n");
-      }
-      right_children . insert ( * right(it) );
-    }
-    if ( parent ( it ) != end () ) parents . insert ( * parent(it) );
-    
-    if ( left(it) == it ) std::cout << "Left is wrong.\n";
-    if ( right(it) == it ) std::cout << "Right is wrong.\n";
-    if ( parent(it) == it ) std::cout << "Parent is wrong.\n";
-
-
-    if ( left ( it) != end() && parent(left(it)) != it ) {
-      std::logic_error ( " parent(left(it))!=it in succinct tree\n" );
-    }
-    if ( right ( it) != end() && parent(right(it)) != it ) {
-      std::logic_error ( " parent(right(it))!=it in succinct tree\n" );
-    }
-    if ( parent (it) != end() && right(parent(it))!=it && left(parent(it))!=it ) {
-      std::logic_error ( " neither of parent's children is self\n" );
-    }
-    if ( parent (it) != end() && right(parent(it))==left(parent(it)) ) {
-      std::logic_error ( " parent has identical children\n" );
-    }
-  }
-  std::cout << "SuccinctTree::assignFromLeafSequence. Passed basic sanity test\n";
-  std::cout << "SuccinctTree::assignFromLeafSequence. left_children = " << left_children.size() << "\n";
-  std::cout << "SuccinctTree::assignFromLeafSequence. right_children = " << right_children.size() << "\n";
-  std::cout << "SuccinctTree::assignFromLeafSequence. parents = " << parents.size() << "\n";
-
-  // END DEBUG
-#endif
 }
 
 inline uint64_t 
@@ -240,11 +149,6 @@ SuccinctTree::TreeToLeaf ( iterator it ) const {
 
 inline SuccinctTree::iterator 
 SuccinctTree::LeafToTree ( uint64_t leaf ) const {
-  //std::cout << "SuccinctTree::LeafToTree  " << leaf << ", " << size_ << " " << leaf_count_ << "\n";
-  //for ( size_t i = 0; i < leaf_sequence_ . size (); ++ i ) {
-  //  std::cout << (leaf_sequence_ [ i ] ? "1" : "0");
-  //}
-  //std::cout << "\n";
   return iterator ( select_ . select ( leaf + 1 ) - 1 );
 }
 
@@ -295,24 +199,11 @@ SuccinctTree::isLeaf ( iterator it ) const {
 
 inline uint64_t 
 SuccinctTree::memory ( void ) const {
-  //std::cout << "SuccinctTree::memory \n";
-  //std::cout << "sdsl::util::get_size_in_bytes ( leaf_sequence_ ) = " << sdsl::util::get_size_in_bytes ( leaf_sequence_ ) << "\n";
-  //std::cout << "sdsl::util::get_size_in_bytes ( tree_ ) = " << sdsl::util::get_size_in_bytes ( tree_ ) << "\n";
-  //std::cout << "sdsl::util::get_size_in_bytes ( rank_ ) = " << sdsl::util::get_size_in_bytes ( rank_ ) << "\n";
-  //std::cout << "sdsl::util::get_size_in_bytes ( select_ ) = " << sdsl::util::get_size_in_bytes ( select_ ) << "\n";
-
   return sizeof ( SuccinctTree ) + 
-#ifndef SDSL_LITE         
-         sdsl::util::get_size_in_bytes ( leaf_sequence_ ) +
-         sdsl::util::get_size_in_bytes ( tree_ ) +
-         sdsl::util::get_size_in_bytes ( rank_ ) +
-         sdsl::util::get_size_in_bytes ( select_);
-#else
          sdsl::size_in_bytes ( leaf_sequence_ ) +
          sdsl::size_in_bytes ( tree_ ) +
          sdsl::size_in_bytes ( rank_ ) +
          sdsl::size_in_bytes ( select_);         
-#endif
 }
 
 inline const sdsl::bit_vector & 
