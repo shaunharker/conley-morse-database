@@ -42,10 +42,8 @@
 /*************************/
 
 #include <boost/serialization/export.hpp>
-#ifdef USE_SDSL
 #include "database/structures/SuccinctGrid.h"
 BOOST_CLASS_EXPORT_IMPLEMENT(SuccinctGrid);
-#endif
 #include "database/structures/PointerGrid.h"
 BOOST_CLASS_EXPORT_IMPLEMENT(PointerGrid);
 
