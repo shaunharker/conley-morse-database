@@ -1,0 +1,68 @@
+cd "${0%/*}"
+if [ -f CMDB ]; then
+  echo In conley-morse-database folder. Backing up a directory.
+  cd ..
+else
+  svn checkout http://conley-morse-database.googlecode.com/svn/trunk/ \ 
+      conley-morse-database
+  echo Conley-Morse-Database downloaded; fetching prerequisites.
+fi
+
+if [ ! -f /usr/local/bin/brew ]; then
+  ruby -e "$(curl -fsSL https://raw.github.com/Homebrew/homebrew/go/install)"
+  echo Homebrew is not installed.
+else
+  echo Homebrew already installed.
+fi
+if [ ! -d /usr/local/include/boost ]; then
+  brew install boost
+  echo Boost Libraries now installed.
+else
+  echo Boost already installed.
+fi
+
+# For some reason Boost is not creating a couple needed links
+if [ ! -f /usr/local/lib/libboost_thread.a ]; then
+  ln -s /usr/local/lib/libboost_thread-mt.a \ 
+        /usr/local/lib/libboost_thread.a
+  ln -s	/usr/local/lib/libboost_thread-mt.dylib \ 
+        /usr/local/lib/libboost_thread.dylib
+fi
+
+if [ ! -f /usr/local/bin/mpicxx ]; then
+  brew install open-mpi
+  echo Open-MPI now installed.
+else
+  echo Open-MPI already installed.
+fi
+
+if [ ! -f /usr/local/bin/cmake ]; then
+  brew install cmake
+  echo CMake now installed.
+else
+  echo CMake already installed.
+fi
+
+if [ ! -d sdsl-lite ]; then
+  git clone https://github.com/simongog/sdsl.git
+  cd sdsl-lite
+  ./install.sh /usr/local
+  cd ..
+  echo SDSL now installed.
+else
+  echo SDSL already installed.
+fi
+
+if [ ! -d cluster-delegator ]; then
+  svn checkout http://cluster-delegator.googlecode.com/svn/trunk/ \ 
+      cluster-delegator
+  echo Cluster Delegator installed.
+else
+  echo Cluster Delegator already installed.
+fi
+
+if [ ! d /opt/X11 ]; then
+  echo XQuartz must be installed to obtain X11
+  echo Visit http://xquartz.macosforge.org/landing/
+  echo and download and install the latest version.
+fi

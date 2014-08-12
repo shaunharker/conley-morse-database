@@ -2,7 +2,9 @@
 INSTALLATION DIRECTIONS (and some brief instructions)
 -----------------------------------------------------
 
-Prerequisites:
+Mac Users: Try typing ./MACINSTALL
+Read through this file if you have problems.
+Contact me at sharker@math.rutgers.edu if they persist.
 
 The installation requires the following prerequisite packages:
 
@@ -10,9 +12,13 @@ boost
 open-mpi 
 cmake
 sdsl-lite  
+X11
 cluster-delegator
 conley-morse-database
+GraphViz
 capd <optional>
+
+Installation instructions for a Mac:
 
 INSTALLATION DIRECTORIES
 
