@@ -18,6 +18,13 @@ else
   echo Homebrew already installed.
 fi
 
+if [ ! -f /usr/local/include/CImg.h ]; then
+  brew install CImg
+  echo CImg now installed.
+else
+  echo CImg already installed.
+fi
+
 # Boost
 if [ ! -d /usr/local/include/boost ]; then
   brew install boost

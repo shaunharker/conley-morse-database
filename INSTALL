@@ -13,12 +13,12 @@ open-mpi
 cmake
 sdsl-lite  
 X11
+CImg
 cluster-delegator
 conley-morse-database
 GraphViz
 capd <optional>
 
-Installation instructions for a Mac:
 
 INSTALLATION DIRECTORIES
 
