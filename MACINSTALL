@@ -68,20 +68,41 @@ else
   echo SDSL already installed.
 fi
 
-# Cluster Delegator
-if [ ! -d cluster-delegator ]; then
+# cluster-delegator
+if [ ! -d /usr/local/include/delegator ]; then
   svn checkout http://cluster-delegator.googlecode.com/svn/trunk/ \
       cluster-delegator
-  echo Cluster Delegator installed.
+  cd cluster-delegator
+  ./install.sh
+  cd ..
+  echo cluster-delegator installed.
 else
-  echo Cluster Delegator already installed.
+  echo cluster-delegator already installed.
 fi
 
-# XQuartz
+# CHomP
+if [ ! -d /usr/local/include/chomp ]; then
+  git clone https://github.com/sharker81/CHomP.git
+  cd CHomP
+  ./install-sh
+  cd ..
+  echo CHomP installed.
+else
+  echo CHomP already installed.
+fi
+
+# X11 (XQuartz)
+
 if [ ! -d /opt/X11 ]; then
-  echo XQuartz must be installed to obtain X11
-  echo Visit http://xquartz.macosforge.org/landing/
-  echo and download and install the latest version.
+  echo Installing XQuartz from
+  echo http://xquartz.macosforge.org/landing/
+  curl http://xquartz-dl.macosforge.org/SL/XQuartz-2.7.6.dmg -o ~/Downloads/XQuartz-2.7.6.dmg || (echo "Download failed. Please install XQuartz manually" && exit 1)
+  hdiutil attach ~/Downloads/XQuartz-2.7.6.dmg
+  sudo installer -pkg /Volumes/XQuartz-2.7.6/XQuartz.pkg -target /
+  hdiutil detach /Volumes/XQuartz-2.7.6
 else
   echo X11 already installed.
 fi
+
+cd conley-morse-database
+echo "X11=/opt/X11" > makefile.dep
