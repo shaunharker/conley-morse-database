@@ -75,7 +75,7 @@ fi
 if [ ! -d /usr/local/include/chomp ]; then
   git clone https://github.com/sharker81/CHomP.git
   cd CHomP
-  ./install-sh
+  ./install.sh
   cd ..
   echo CHomP installed.
 else
