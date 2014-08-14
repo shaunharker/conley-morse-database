@@ -71,17 +71,6 @@ else
   echo cluster-delegator already installed.
 fi
 
-# CHomP
-if [ ! -d /usr/local/include/chomp ]; then
-  git clone https://github.com/sharker81/CHomP.git
-  cd CHomP
-  ./install.sh
-  cd ..
-  echo CHomP installed.
-else
-  echo CHomP already installed.
-fi
-
 # X11 (XQuartz)
 
 if [ ! -d /opt/X11 ]; then
@@ -93,6 +82,17 @@ if [ ! -d /opt/X11 ]; then
   hdiutil detach /Volumes/XQuartz-2.7.6
 else
   echo X11 already installed.
+fi
+
+# CHomP                                                                         
+if [ ! -d /usr/local/include/chomp ]; then
+  git clone https://github.com/sharker81/CHomP.git
+  cd CHomP
+  ./install.sh
+  cd ..
+  echo CHomP installed.
+else
+  echo CHomP already installed.
 fi
 
 cd conley-morse-database
