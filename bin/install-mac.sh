@@ -4,7 +4,8 @@ cd ..
 # Homebrew
 if [ ! -f /usr/local/bin/brew ]; then
   ruby -e "$(curl -fsSL https://raw.github.com/Homebrew/homebrew/go/install)"
-  echo Homebrew is not installed.
+  brew doctor
+  echo Homebrew is now installed.
 else
   echo Homebrew already installed.
 fi
