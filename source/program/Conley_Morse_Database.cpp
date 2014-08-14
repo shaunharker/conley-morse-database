@@ -23,17 +23,13 @@
 #include "database/program/ConleyProcess.h"
 #endif
 
-#ifdef USE_SDSL
 #include "database/structures/SuccinctGrid.h"
-#endif
 #include "database/structures/PointerGrid.h"
 #include "database/structures/UniformGrid.h"
 #include "database/structures/EdgeGrid.h"
  
 #include <boost/serialization/export.hpp>
-#ifdef USE_SDSL
 BOOST_CLASS_EXPORT_IMPLEMENT(SuccinctGrid);
-#endif
 BOOST_CLASS_EXPORT_IMPLEMENT(PointerGrid);
 BOOST_CLASS_EXPORT_IMPLEMENT(UniformGrid);
 BOOST_CLASS_EXPORT_IMPLEMENT(EdgeGrid);

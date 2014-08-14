@@ -23,9 +23,7 @@
 
 /*  in Conley_Morse_Database.cpp
 #include <boost/serialization/export.hpp>
-#ifdef USE_SDSL
 BOOST_CLASS_EXPORT_IMPLEMENT(SuccinctGrid);
-#endif
 BOOST_CLASS_EXPORT_IMPLEMENT(PointerGrid);
 */
 
