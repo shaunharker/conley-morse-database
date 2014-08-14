@@ -51,7 +51,7 @@ fi
 
 # SDSL
 if [ ! -f /usr/local/lib/libsdsl.a ] || [ ! -d /usr/local/include/sdsl ]; then
-  git clone https://github.com/simongog/sdsl.git
+  git clone https://github.com/simongog/sdsl-lite.git
   cd sdsl-lite
   ./install.sh /usr/local
   cd ..
