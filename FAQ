@@ -1,0 +1,4 @@
+Q: I get compilation errors where it says it can't find 
+   (pick one:) X11 CImg.h, SDSL, Boost, etc...
+A: See the INSTALL file.
+   If problem persists, e-mail me at sharker81@gmail.com
