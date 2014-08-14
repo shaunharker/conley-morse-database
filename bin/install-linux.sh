@@ -12,7 +12,7 @@ if [ ! -d ${PREFIX}/include ]; then
 fi
 
 # Install openmpi
-if [ `which mpicxx` == "" ]; then
+if [ "`which mpicxx`" == "" ]; then
   curl http://www.open-mpi.org/software/ompi/v1.8/downloads/openmpi-1.8.1.tar.gz -o openmpi-1.8.1.tar.gz
   tar xvfz openmpi-1.8.1
   cd openmpi-1.8.1
@@ -22,7 +22,7 @@ if [ `which mpicxx` == "" ]; then
 fi
 
 # Install cmake
-if [ `which cmake` == "" ]; then
+if [ "`which cmake`" == "" ]; then
   curl http://www.cmake.org/files/v2.8/cmake-2.8.10.2.tar.gz \
           -o cmake-2.8.10.2.tar.gz
   tar xvfz cmake-2.8.10.2.tar.gz

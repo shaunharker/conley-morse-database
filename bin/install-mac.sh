@@ -95,7 +95,7 @@ else
 fi
 
 # GraphViz
-if [ `which dot` == "" ]; then
+if [ "`which dot`" == "" ]; then
   echo Installing GraphViz from www.graphviz.org
   curl http://www.graphviz.org/pub/graphviz/stable/macos/mountainlion/graphviz-2.36.0.pkg -o graphviz-2.36.0.pkg || (echo "Download failed. Please install GraphViz manually" && exit 1)
   sudo installer -pkg graphviz-2.36.0 -target /
