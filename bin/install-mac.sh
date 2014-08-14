@@ -72,7 +72,6 @@ else
 fi
 
 # X11 (XQuartz)
-
 if [ ! -d /opt/X11 ]; then
   echo Installing XQuartz from
   echo http://xquartz.macosforge.org/landing/
@@ -84,7 +83,7 @@ else
   echo X11 already installed.
 fi
 
-# CHomP                                                                         
+# CHomP
 if [ ! -d /usr/local/include/chomp ]; then
   git clone https://github.com/sharker81/CHomP.git
   cd CHomP
@@ -93,6 +92,15 @@ if [ ! -d /usr/local/include/chomp ]; then
   echo CHomP installed.
 else
   echo CHomP already installed.
+fi
+
+# GraphViz
+if [ `which dot` == "" ]; then
+  echo Installing GraphViz from www.graphviz.org
+  curl http://www.graphviz.org/pub/graphviz/stable/macos/mountainlion/graphviz-2.36.0.pkg -o graphviz-2.36.0.pkg || (echo "Download failed. Please install GraphViz manually" && exit 1)
+  sudo installer -pkg graphviz-2.36.0 -target /
+else
+  echo Graphviz already installed.
 fi
 
 cd conley-morse-database
