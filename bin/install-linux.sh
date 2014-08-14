@@ -1,6 +1,6 @@
 # Linux Installer script for conley-morse-database
 PREFIX:=$1
-
+cd ..
 # Install Boost
 if [ ! -d ${PREFIX}/include ]; then
   curl http://downloads.sourceforge.net/project/boost/boost/1.56.0/boost_1_56_0.tar.gz -o boost_1_56_0.tar.gz
@@ -55,6 +55,8 @@ if [ ! -d ${PREFIX}/include/delegator ]; then
   ./install.sh ${PREFIX}
   cd ..
 fi
+
+cd conley-morse-database
 
 if [ ${PREFIX} != "/usr/local" ]; then
     echo "PREREQ:=${PREFIX}" > makefile.dep
