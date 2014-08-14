@@ -1,189 +1,47 @@
 
-INSTALLATION DIRECTIONS (and some brief instructions)
------------------------------------------------------
+INSTALLATION DIRECTIONS
+-----------------------
 
-Mac Users: Try typing ./MACINSTALL
-Read through this file if you have problems.
-Contact me at sharker@math.rutgers.edu if they persist.
+Here is an example installation:
+cd ~
+mkdir work
+cd work
+git clone https://github.com/sharker81/conley-morse-database.git
+cd conley-morse-database
+./install.sh
 
-The installation requires the following prerequisite packages:
+You will likely be prompted for a password. If you
+do not have a password, see the instructions below
+for a nonstandard installation.
 
-boost
-open-mpi 
-cmake
-sdsl-lite  
-X11
-CImg
-cluster-delegator
-conley-morse-database
-GraphViz
-capd <optional>
+This could also create some folders in "work" when it installs
+software conley-morse-database depends on.
 
+The installer checks the system to see if it is a Mac or Linux.
+If it is a Mac, it uses the Homebrew "brew" installer for its
+builds and also installs X11 via XQuartz.
+Otherwise it defaults to a standard list of instructions.
 
-INSTALLATION DIRECTORIES
+Nonstandard Installations
+-------------------------
+If you do not have administrator rights then you can
+choose to install in a non-standard location by typing
+./install.sh [non-standard-install-dir]
 
-Packages install themselves into some directory which we
-will call <install-directory>.
+This is likely the case on an HPC cluster that is administered
+by others. Here is an example of an installation in that case::
 
-There are two basic choices for an install directory. One
-is to use a system directory like /usr/local or /opt, which
-exist for this purpose. However these require a password
-to install into. The other choice is to perform installs into
-a home directory, like ~.
+cd ~
+mkdir work
+cd work
+git clone https://github.com/sharker81/conley-morse-database.git
+cd conley-morse-database
+./install.sh ~/work
 
-The <install-directory> is chosen by the user for each
-package. It can always be chosen to be a folder in the
-user's home directory. However some packages might already
-be installed, usually in /usr/local. Also, the useful "brew" 
-installer on Mac OS X installs software into /usr/local.
+Again, this will also create other directories for other
+installation that are required apart from conley-morse-database.
+These will be placed in the ~/work folder. 
 
-It is recommended to use a system installation directory 
-(e.g. /usr/local) for
-cmake, open-mpi, boost, and sdsl-lite
-
-and a home installation directory (e.g. ~) for
-cluster-delegator and conley-morse-database
-
-In what follows, we will refer to the <install-directory>
-of cluster-delegator and conley-morse-database
-as <home-install-dir> and the others as <system-install-dir>
-
-HEADERS, LIBRARIES, AND BINARIES
-
-The effect of installing boost, cmake, open-mpi, and sdsl-lite
-is to produce:
-* header files, which are placed in 
-  <system-install-dir>/include
-* libraries, which are placed in
-  <system-install-dir>/lib
-* binaries, which are placed in
-  <system-install-dir>/bin
-
-The effect of installing cluster-delegator and conley-morse-database
-is just to produce their folders. Inside of these folders there
-are include folders, but they do not attempt to install these header
-files into the system.
-
-MODIFYING THE PATH
-
-Both cmake and open-mpi create binaries, so for these programs
-to function you need to have <system-install-dir>/bin on your
-UNIX path. If <system-install-dir> is /usr/local for these installs
-(recommended) then most likely nothing needs to be done. Otherwise,
-Edit the ~/.bash_profile file to contain the line
- PATH="<system-install-dir>/bin:${PATH}"
-You may need to restart your terminal program for the changes to
-take effect.
-
-GENERIC INSTRUCTIONS
-
-The generic instructions for open-mpi, boost, cmake, and sdsl-lite are
-* Download the package to some folder
-* Run its installer, telling it what <system-install-dir> you want
-
-For cluster-delegator and conley-morse-database, the instructions are
-* Download the package directly to <home-install-dir> from the repository.
-
-MAC USERS AND BREW
-Mac Users:
-Some of these installs can be accomplished with "brew". This will 
-choose <system-install-dir>= /usr/local 
-Obtain brew by typing:
-
-ruby -e "$(curl -fsSL https://raw.github.com/mxcl/homebrew/go)"
-
-LIST OF SPECIFIC INSTALL INSTRUCTIONS
-
-(1) Install Boost. (see their website)
-Mac OS X::
-brew install boost
-
-Linux:
-./bootstrap.sh --prefix=<system-install-dir>
-./b2 install
-
-(2) Install MPI if it is not installed already. 
-Mac OS X:
-brew install open-mpi
-
-Linux:
-Download open-mpi from the internet and cd to its folder
-./configure --prefix=<system-install-dir>
-make all install
-
-(3) Install "cmake"
-Note: We require "cmake" to build "sdsl-lite"
-On Mac OS X:
-brew install cmake
-
-On Linux:
-  Download and decompress the tarball from 
-  http://www.cmake.org/cmake/resources/software.html  
-  This might be done from the command line with:
-
-curl http://www.cmake.org/files/v2.8/cmake-2.8.10.2.tar.gz \
-      -o cmake-2.8.10.2.tar.gz
-tar xvfz cmake-2.8.10.2.tar.gz
-./bootstrap --prefix=<system-install-dir>
-make
-make install
-
-(4) Install "sdsl"
-  SDSL is maintained as a git repository. 
-  https://github.com/simongog/sdsl-lite
-
-  To install it:
-
-  git clone https://github.com/simongog/sdsl-lite.git
-  cd sdsl-lite
-  ./install.sh <system-install-dir>
-
-(5) Install "conley-morse-database"
-
-svn checkout http://conley-morse-database.googlecode.com/svn/trunk/ \ 
-             <home-install-dir>/conley-morse-database
-
-(6) Install "cluster-delegator"
-
-svn checkout http://cluster-delegator.googlecode.com/svn/trunk/ \ 
-             <home-install-dir>/cluster-delegator
-
-(7) Install CAPD (optional)
-  CAPD provides an integrator which can be used to create time-t
-  maps arising from ordinary differential equations (ODEs).
-
-  If one does not want to build time-t maps using CAPD, this
-  step is not necessary.
-
-  See the CAPD documentation for up to date details on installation.
-
-  As of this writing, the following seems to work:
-    A package called "pkg-config" is required.
-    This is often pre-installed.
-    On Mac OS X, it can be obtained with the brew installer with
-      brew install pkg-config
-  
-  Now from the CAPD folder:
-    ./configure
-    make
-    make install
-
-Final steps.
-The conley-morse-database/makefile.config
-file may need to be edited if the recommendations were not
-taken. By default it assumes
- <system-install-dir>=/usr/local
- and <home-install-dir> is the parent folder
- of conley-morse-database. 
-
-The folders where boost and sdsl can be found can be changed
-from these default locations.
-
-In the future a better system will be deployed so
-the user does not have to directly edit a makefile.
-
-See README file for further instructions.
-
-Email sharker@math.rutgers.edu
-if you can't get it to work or have any 
-other questions.
+Help
+----
+Contact me at sharker@math.rutgers.edu if you have problems.

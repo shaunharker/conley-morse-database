@@ -1,14 +1,4 @@
-cd "${0%/*}"
-
-# Conley-Morse-Database
-if [ -f CMDB ]; then
-  echo In conley-morse-database folder. Backing up a directory.
-  cd ..
-else
-  svn checkout http://conley-morse-database.googlecode.com/svn/trunk/ \
-      conley-morse-database
-  echo Conley-Morse-Database downloaded; fetching prerequisites.
-fi
+cd ..
 
 # Homebrew
 if [ ! -f /usr/local/bin/brew ]; then
