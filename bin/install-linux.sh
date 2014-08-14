@@ -1,4 +1,5 @@
 # Linux Installer script for conley-morse-database
+PREFIX:=$1
 
 # Install Boost
 if [ ! -d ${PREFIX}/include ]; then
@@ -53,4 +54,10 @@ if [ ! -d ${PREFIX}/include/delegator ]; then
   cd cluster-delegator
   ./install.sh ${PREFIX}
   cd ..
+fi
+
+if [ ${PREFIX} != "/usr/local" ]; then
+    echo "PREREQ:=${PREFIX}" > makefile.dep
+else
+    echo "PREREQ:=" > makefile.dep
 fi

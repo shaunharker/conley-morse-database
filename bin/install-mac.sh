@@ -1,3 +1,4 @@
+PREFIX=$1
 cd ..
 
 # Homebrew
@@ -95,4 +96,4 @@ else
 fi
 
 cd conley-morse-database
-echo "X11=/opt/X11" > makefile.dep
+echo "PREREQ=/opt/X11" > makefile.dep

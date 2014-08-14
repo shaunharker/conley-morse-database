@@ -2,6 +2,17 @@
 INSTALLATION DIRECTIONS
 -----------------------
 
+The conley-morse-database software does not itself requiring
+building or installing into system directories. The way it is
+to be used is to only compile against user-supplied code
+describing dynamical models (see the ./examples/ folder)
+and in this case the executables are placed directly into
+the model folder.
+
+However, conley-morse-database depends on a number of prerequisite 
+packages being installed. We provide an installation script
+to acquire and install these packages.
+
 Here is an example installation:
 cd ~
 mkdir work
@@ -27,6 +38,11 @@ Nonstandard Installations
 If you do not have administrator rights then you can
 choose to install in a non-standard location by typing
 ./install.sh [non-standard-install-dir]
+
+(Warning: This option will be ignored on Mac OS X.
+If you, really, really want to do this, you could type
+./bin/install-linux.sh [non-standard-install-dir]
+and it will pretend you have a Linux system.)
 
 This is likely the case on an HPC cluster that is administered
 by others. Here is an example of an installation in that case::
