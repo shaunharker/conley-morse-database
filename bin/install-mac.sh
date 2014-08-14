@@ -62,8 +62,7 @@ fi
 
 # cluster-delegator
 if [ ! -d /usr/local/include/delegator ]; then
-  svn checkout http://cluster-delegator.googlecode.com/svn/trunk/ \
-      cluster-delegator
+  git clone https://github.com/sharker81/cluster-delegator.git
   cd cluster-delegator
   ./install.sh
   cd ..
