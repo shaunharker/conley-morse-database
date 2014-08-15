@@ -3,7 +3,7 @@ PREFIX=$1
 cd ..
 # Install Boost
 if [ ! -d ${PREFIX}/include/boost ]; then
-  curl http://downloads.sourceforge.net/project/boost/boost/1.56.0/boost_1_56_0.tar.gz -o boost_1_56_0.tar.gz
+  wget http://downloads.sourceforge.net/project/boost/boost/1.56.0/boost_1_56_0.tar.gz
   tar xvfz boost_1_56_0.tar.gz
   cd boost_1_56_0
   ./bootstrap.sh --prefix=${PREFIX}
@@ -13,7 +13,7 @@ fi
 
 # Install openmpi
 if [ "`which mpicxx`" == "" ]; then
-  curl http://www.open-mpi.org/software/ompi/v1.8/downloads/openmpi-1.8.1.tar.gz -o openmpi-1.8.1.tar.gz
+  wget http://www.open-mpi.org/software/ompi/v1.8/downloads/openmpi-1.8.1.tar.gz
   tar xvfz openmpi-1.8.1
   cd openmpi-1.8.1
   ./configure --prefix=${PREFIX}
@@ -32,9 +32,8 @@ else
 fi
 
 if [ INSTALLCMAKE == "yes" ]; then
-  curl http://www.cmake.org/files/v2.8/cmake-2.8.10.2.tar.gz \
-          -o cmake-2.8.10.2.tar.gz
-  tar xvfz cmake-2.8.10.2.tar.gz
+  wget http://www.cmake.org/files/v3.0/cmake-3.0.1.tar.gz
+  tar xvfz cmake-3.0.1.tar.gz
   ./bootstrap --prefix=${PREFIX}
   make
   make install
