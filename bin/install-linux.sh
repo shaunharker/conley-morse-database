@@ -24,14 +24,16 @@ fi
 # Install cmake
 if [ "`which cmake`" == "" ]; then
   INSTALLCMAKE=yes
+  echo Will make cmake
 else
   CMAKEVERSION=`cmake --version | grep -o "[0-9]\.[0-9]"`
   if [ ` echo "$CMAKEVERSION < 3.0" | bc ` == "1" ]; then
+      echo Will make cmake
       INSTALLCMAKE=yes
   fi
 fi
 
-if [ INSTALLCMAKE == "yes" ]; then
+if [ $INSTALLCMAKE == "yes" ]; then
   wget http://www.cmake.org/files/v3.0/cmake-3.0.1.tar.gz
   tar xvfz cmake-3.0.1.tar.gz
   ./bootstrap --prefix=${PREFIX}
