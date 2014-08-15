@@ -1,8 +1,8 @@
 # Linux Installer script for conley-morse-database
-PREFIX:=$1
+PREFIX=$1
 cd ..
 # Install Boost
-if [ ! -d ${PREFIX}/include ]; then
+if [ ! -d ${PREFIX}/include/boost ]; then
   curl http://downloads.sourceforge.net/project/boost/boost/1.56.0/boost_1_56_0.tar.gz -o boost_1_56_0.tar.gz
   tar xvfz boost_1_56_0.tar.gz
   cd boost_1_56_0
