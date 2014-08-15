@@ -36,6 +36,7 @@ fi
 if [ $INSTALLCMAKE == "yes" ]; then
   wget http://www.cmake.org/files/v3.0/cmake-3.0.1.tar.gz
   tar xvfz cmake-3.0.1.tar.gz
+  cd cmake-3.0.1
   ./bootstrap --prefix=${PREFIX}
   make
   make install
