@@ -38,7 +38,7 @@ if [ INSTALLCMAKE == "yes" ]; then
   make
   make install
   cd ..
-#fi
+fi
 
 PATH=${PREFIX}/bin:${PATH}
 export PATH
