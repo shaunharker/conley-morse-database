@@ -23,6 +23,15 @@ fi
 
 # Install cmake
 if [ "`which cmake`" == "" ]; then
+  INSTALLCMAKE=yes
+else
+  CMAKEVERSION=`cmake --version | grep -o "[0-9]\.[0-9]"`
+  if [ ` echo "$CMAKEVERSION < 3.0" | bc ` == "1" ]; then
+      INSTALLCMAKE=yes
+  fi
+fi
+
+if [ INSTALLCMAKE == "yes" ]; then
   curl http://www.cmake.org/files/v2.8/cmake-2.8.10.2.tar.gz \
           -o cmake-2.8.10.2.tar.gz
   tar xvfz cmake-2.8.10.2.tar.gz
@@ -30,7 +39,10 @@ if [ "`which cmake`" == "" ]; then
   make
   make install
   cd ..
-fi
+#fi
+
+PATH=${PREFIX}/bin:${PATH}
+export PATH
 
 # Install "sdsl"
 if [ ! -d ${PREFIX}/include/sdsl ]; then
