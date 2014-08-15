@@ -3,7 +3,6 @@
 #ifndef CMDP_LESLIEMAP_H
 #define CMDP_LESLIEMAP_H
 
-//#include <boost/numeric/interval.hpp>
 #include "database/maps/Map.h"
 #include "database/structures/EuclideanParameterSpace.h"
 #include "database/structures/RectGeo.h"
@@ -11,19 +10,41 @@
 #include <boost/shared_ptr.hpp>
 #include <vector>
 
-struct ModelMap : public Map {
+class ModelMap : public Map {
+public:
   typedef simple_interval<double> interval;
+
+// User interface: method to be provided by user
+  // Parameter variables
+  interval p0, p1;
   
-  interval parameter1, parameter2;
-  
+  // Constructor: sets parameter variables
+  void assign ( RectGeo const& rectangle ) {
+    // Read parameter intervals from input rectangle
+    p0 = getRectangleComponent ( rectangle, 0 );
+    p1 = getRectangleComponent ( rectangle, 1 );  
+  }
+
+  // Map
+  RectGeo operator () ( const RectGeo & rectangle ) const {    
+    // Convert input to intervals
+    interval x0 = getRectangleComponent ( rectangle, 0 );
+    interval x1 = getRectangleComponent ( rectangle, 1 );
+
+    // Evaluate map
+    interval y0 = (p0 * x0 + p1 * x1 ) * exp ( -0.1 * (x0 + x1) );     
+    interval y1 = 0.7 * x0;
+    
+    // Return result
+    return makeRectangle ( y0, y1 );
+  } 
+
+// Program interface (methods used by program)
+
   ModelMap ( boost::shared_ptr<Parameter> parameter ) {
     const RectGeo & rectangle = 
       * boost::dynamic_pointer_cast<EuclideanParameter> ( parameter ) -> geo;
-    parameter1 = interval (rectangle . lower_bounds [ 0 ], 
-                           rectangle . upper_bounds [ 0 ]);
-    parameter2 = interval (rectangle . lower_bounds [ 1 ], 
-                           rectangle . upper_bounds [ 1 ]);
-    return;
+    assign ( rectangle );
   }
 
   boost::shared_ptr<Geo> 
@@ -31,30 +52,18 @@ struct ModelMap : public Map {
     return boost::shared_ptr<Geo> ( new RectGeo ( 
         operator () ( * boost::dynamic_pointer_cast<RectGeo> ( geo ) ) ) );
   }
-
-  RectGeo operator () 
-    ( const RectGeo & rectangle ) const {    
-    /* Read input */
-    //std::cout << "ModelMap::operator(). rectangle = " << rectangle << "\n";
-    interval x0 = interval (rectangle . lower_bounds [ 0 ], 
-                            rectangle . upper_bounds [ 0 ]);
-    interval x1 = interval (rectangle . lower_bounds [ 1 ], 
-                            rectangle . upper_bounds [ 1 ]);
-    
-    /* Perform map computation */
-    interval y0 = (parameter1 * x0 + parameter2 * x1 ) * 
-                   exp ( (double) -0.1 * (x0 + x1) );     
-    interval y1 = (double) 0.7 * x0;
-    
-    /* Write output */
-    double tol = 1e-8;
+private:
+  interval getRectangleComponent ( const RectGeo & rectangle, int d ) const {
+    return interval (rectangle . lower_bounds [ d ], rectangle . upper_bounds [ d ]); 
+  }
+  RectGeo makeRectangle ( interval const& y0, interval const& y1 ) const {
     RectGeo return_value ( 2 );
-    return_value . lower_bounds [ 0 ] = y0 . lower () - tol;
-    return_value . upper_bounds [ 0 ] = y0 . upper () + tol;
-    return_value . lower_bounds [ 1 ] = y1 . lower () - tol;
-    return_value . upper_bounds [ 1 ] = y1 . upper () + tol;
+    return_value . lower_bounds [ 0 ] = y0 . lower ();
+    return_value . upper_bounds [ 0 ] = y0 . upper ();
+    return_value . lower_bounds [ 1 ] = y1 . lower ();
+    return_value . upper_bounds [ 1 ] = y1 . upper ();
     return return_value;
-  } 
+  }
 };
 
 #endif

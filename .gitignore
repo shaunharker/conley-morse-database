@@ -4,7 +4,15 @@ SingleCMG
 computeLyapunov
 
 # Data files
+makefile.dep
+SingleCMG_statistics.txt
+*.DS_Store
+*.gv
+*.bmp
+*.png
+*.jpg
 *.mg
+*.cmg
 *.cmdb
 *.mdb
 *.raw

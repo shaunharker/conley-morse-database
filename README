@@ -25,8 +25,8 @@ Brief instructions on using the database software:
      Likely you'll want to do this on a cluster, however.
 
 To compute on different models, produce a different data directory, with
-config.xml and ModelMap.h files following the example of the "Leslie2D"
-example. Beware of errors in these files, however!
+config.xml, Model.h, and ModelMap.h files following the example of the 
+"Leslie2D" example.
 
 Please e-mail Shaun Harker sharker81@gmail.com
 to for problems or feature requests.
