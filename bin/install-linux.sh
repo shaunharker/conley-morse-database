@@ -1,5 +1,9 @@
 # Linux Installer script for conley-morse-database
 PREFIX=$1
+
+PATH=${PREFIX}/bin:${PATH}
+export PATH
+
 cd ..
 # Install Boost
 if [ ! -d ${PREFIX}/include/boost ]; then
@@ -42,9 +46,6 @@ if [ $INSTALLCMAKE == "yes" ]; then
   make install
   cd ..
 fi
-
-PATH=${PREFIX}/bin:${PATH}
-export PATH
 
 # Install "sdsl"
 if [ ! -d ${PREFIX}/include/sdsl ]; then
