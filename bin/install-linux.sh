@@ -55,6 +55,16 @@ if [ ! -d ${PREFIX}/include/sdsl ]; then
   cd ..
 fi
 
+# Install CImg.h
+if [ ! -f ${PREFIX}/include/CImg.h ]; then
+  wget http://downloads.sourceforge.net/project/cimg/CImg-1.5.9.zip
+  unzip CImg-1.5.9.zip
+  mv CImg-1.5.9/CImg.h ${PREFIX}/include/CImg.h
+  echo CImg now installed.
+else
+  echo CImg already installed.
+fi
+
 # Install "CHomP"
 if [ ! -d ${PREFIX}/include/chomp ]; then
   git clone https://github.com/sharker81/CHomP.git
