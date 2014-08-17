@@ -49,7 +49,7 @@ std::string conleyStringForZoo ( const Database & database,
   		for ( int i = 0; i < s . size () - 1; ++ i ) {
   			//if ( s [ i ] == '.' ) continue;
   			//if ( s [ i ] == ' ' ) continue;
-  			if ( s [ i ] == '\n' ) { t += string ( ", "); continue; }
+		  if ( s [ i ] == '\n' ) { t += std::string ( ", "); continue; }
   			t . push_back ( s [ i ] );
   		}
   		ss << t;

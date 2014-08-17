@@ -1,14 +1,22 @@
-############################################
-# makefile for Conley-Morse Database project
-############################################
+#############################################
+# makefile for Conley-Morse Database project#
+#############################################
+
+#############################################
+# basic options                             #
+#############################################
 COMPUTE_MORSE_SETS := yes
 COMPUTE_CONTINUATION := yes
-COMPUTE_CONLEY_INDEX := no
+COMPUTE_CONLEY_INDEX := yes
 
-# Optional Libraries:
+#############################################
+# advanced options                          #
+#############################################
 USE_CAPD := no
 
-###########################################
+##############################
+### DO NOT EDIT BELOW THIS ###
+##############################
 
 include makefile.config
 

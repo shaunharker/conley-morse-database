@@ -1,10 +1,10 @@
 # makefile for distrib project                                             
 CC := mpicxx
 CXX := mpicxx
-SOFTWARE := ../../../
-BOOST := $(SOFTWARE)/opt/
-CXXFLAGS := -ggdb -I $(SOFTWARE)/opt/include -I $(SOFTWARE)/cluster-delegator/include -I $(SOFTWARE)/sdsl/include -I ../../include -ftemplate-depth-2048
-LDFLAGS := -L $(SOFTWARE)/opt/lib -L $(SOFTWARE)/sdsl/lib
+SOFTWARE := ../../../../
+BOOST := $(SOFTWARE)
+CXXFLAGS := -std=c++11 -I$(SOFTWARE)/include -I ../../../include -ftemplate-depth-2048
+LDFLAGS := -L$(SOFTWARE)/lib
 LDLIBS := -lboost_serialization -lboost_thread -lboost_system -lboost_chrono -lsdsl -ldivsufsort -ldivsufsort64
 LDFLAGS += -Wl,-rpath,"$(abspath $(BOOST))/lib"
 all: main

@@ -14,9 +14,7 @@ packages being installed. We provide an installation script
 to acquire and install these packages.
 
 Here is an example installation:
-cd ~
-mkdir work
-cd work
+mkdir ~/work && cd ~/work
 git clone https://github.com/sharker81/conley-morse-database.git
 cd conley-morse-database
 ./install.sh
@@ -47,9 +45,7 @@ and it will pretend you have a Linux system.)
 This is likely the case on an HPC cluster that is administered
 by others. Here is an example of an installation in that case::
 
-cd ~
-mkdir work
-cd work
+mkdir ~/work && cd ~/work
 git clone https://github.com/sharker81/conley-morse-database.git
 cd conley-morse-database
 ./install.sh ~/work
