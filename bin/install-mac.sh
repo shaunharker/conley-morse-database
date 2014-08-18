@@ -1,3 +1,4 @@
+#!/bin/bash
 PREFIX=$1
 cd ..
 
