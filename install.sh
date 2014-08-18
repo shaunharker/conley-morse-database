@@ -32,7 +32,7 @@ fi
 if [ "$(uname)" == "Darwin" ]; then
     # Mac OS X platform        
     echo "Detected Mac OS X platform."
-    sudo ./bin/install-mac.sh ${PREFIX}
+    ./bin/install-mac.sh ${PREFIX}
 elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
     # Linux platform
     echo "Detected Linux platform."
