@@ -19,6 +19,7 @@ if [ ! -f /usr/local/bin/brew ]; then
 else
   echo Found. Checking for updates.
   brew update
+  brew upgrade
 fi
 
 echo
