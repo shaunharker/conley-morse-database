@@ -4,7 +4,7 @@ PREFIX=$1
 cd ..
 
 # Relax permissions of /usr/local
-chown -R $USER:admin /usr/local 2> error.log || sudo chown -R $USER:admin /usr/local
+chown -R $USER:admin /usr/local 2> error.log || (echo "The installer would like to change the permissions of /usr/local for Homebrew." && echo "This requires a password." && sudo chown -R $USER:admin /usr/local)
 rm error.log
 
 # Homebrew

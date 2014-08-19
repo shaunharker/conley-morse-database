@@ -70,6 +70,12 @@ The installer scripts can fail for a number of reasons.
 
 Here are some troubleshooting steps.
 
+========================================
+0. Update to the latest version of OS X.
+========================================
+In general it is difficult to test every combination
+so it makes things easier if you have the latest OS.
+
 ==================
 1. Don't use sudo.
 ==================
@@ -131,9 +137,9 @@ can ensure the permissions are correct by typing
 
 sudo chown -R $USER:admin /usr/local
 
-================================
-5. Use the brew version of Boost
-================================
+=================================
+5. Use the brew version of Boost.
+=================================
 
 You might have an earlier version of Boost on your system that
 wasn't installed using Brew. Brew actually applies some patches
@@ -151,4 +157,22 @@ cd /usr/local/lib
 rm -f libboost*
 brew install boost
 brew link boost
+
+==========================================
+6. Upgrade or reinstall Brew Libraries.
+==========================================
+It appears that updating OSes can cause troubles with
+brewed packages. See
+
+https://github.com/Homebrew/homebrew/wiki/FAQ
+
+=======================
+7. If all else fails...
+=======================
+You could try
+./bin/install-linux ~/Work
+
+which will install the dependencies in ~/Work rather
+than /usr/local.
+
 
