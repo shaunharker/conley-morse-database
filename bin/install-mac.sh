@@ -47,7 +47,7 @@ if [ ! -d /usr/local/include/boost ]; then
   echo Boost needs to be installed.
   if [ ! -d /usr/local/Cellar/boost ]; then
     echo Brewing Boost with Homebrew.
-    brew install boost || exit 1
+    brew install boost --c++11 || exit 1
   else
     echo Linking Boost from Homebrew Cellar.
     (brew unlink boost && brew link boost) || exit 1
