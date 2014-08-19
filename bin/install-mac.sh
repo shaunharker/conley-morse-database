@@ -38,7 +38,9 @@ echo ==\> Boost
 echo Checking for Boost.
 # Trash unbrewed copies.
 if [ ! -L /usr/local/include/boost ]; then
-  echo Detected unbrewed copy of Boost. Trashing it.
+  if [ -d /usr/local/include/boost ]; then
+    echo Detected unbrewed copy of Boost. Trashing it.
+  fi
   rm -rf /usr/local/include/boost
   rm -f /usr/local/lib/libboost*
 fi
