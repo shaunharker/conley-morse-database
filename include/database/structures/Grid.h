@@ -115,23 +115,13 @@ Grid::unionCover ( const std::vector < T > & V ) const {
   boost::unordered_set<Grid::GridElement> result_set;
   BOOST_FOREACH ( const T & geo, V ) {
     std::vector<Grid::GridElement> cover_vec = cover ( geo );
-// BS DEBUG BEGIN
-#ifdef BS_DEBUG_MODELMAP    
-    if ( cover_vec . empty () ) {
-      std::cout << *geo << "\n";
-      throw std::logic_error ( "Empty cover (boolean switching debug code)\n");
-    }
-#endif
-// BS DEBUG END
     result . insert ( result . end (), cover_vec . begin (), cover_vec . end () );
   }
 
-  std::vector<Grid::GridElement> unique_result;
-  std::sort ( result . begin (), result . end ());
-  std::unique_copy ( result . begin (), 
-                     result . end (), 
-                     std::back_inserter ( unique_result ) );
-  return unique_result;
+  std::sort ( result . begin (), result . end () );
+  auto last = std::unique ( result.begin(), result.end() );
+  result . erase(last, result.end());
+  return result;
 }
 
 template < class T >

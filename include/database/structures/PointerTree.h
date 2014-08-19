@@ -35,7 +35,9 @@ public:
   virtual void assign ( boost::shared_ptr<const CompressedTree> compressed );
   virtual uint64_t memory ( void ) const;
 private:
-  std::vector < PointerTreeNode * > nodes_;
+  std::vector < PointerTreeNode > nodes_;
+  std::vector < bool > parity_;
+  std::vector < bool > isleaf_; 
   friend class boost::serialization::access;
   template<typename Archive>
   void serialize(Archive & ar, const unsigned int file_version);
@@ -45,11 +47,11 @@ BOOST_CLASS_EXPORT_KEY(PointerTree);
 
 /// PointerTreeNode
 struct PointerTreeNode {
-  PointerTreeNode * left_;
-  PointerTreeNode * right_;
-  PointerTreeNode * parent_;
-  uint64_t contents_;
+  int64_t left_;
+  int64_t right_;
+  int64_t parent_;
   PointerTreeNode ( void );
+  PointerTreeNode ( int64_t left, int64_t right, int64_t parent );
   ~PointerTreeNode ( void );
   friend class boost::serialization::access;
   template<class Archive>
@@ -59,64 +61,62 @@ struct PointerTreeNode {
 // PointerTree Definitions
 inline 
 PointerTree::PointerTree ( void ) {
-  PointerTreeNode * node = new PointerTreeNode;
-  node -> contents_ = 0;
-  nodes_ . push_back ( node );
+  nodes_ . push_back ( PointerTreeNode ( 1, 1, 1 ) );
+  parity_ . push_back ( false );
+  isleaf_ . push_back ( true );
+  size_ = 1;
+
+ // debug
+  /*
+  std::cout << "default constructed tree.\n";
+  std::cout << "nodes_ . size () == " << nodes_ . size () << "\n";
+  std::cout << "size() == " << size () << "\n";
+  std::cout << "parity_ . size () == " << parity_ . size () << "\n";
+  std::cout << "isleaf_ . size () == " << isleaf_ . size () << "\n";
+  for ( size_t i = 0; i < nodes_ . size (); ++ i ) {
+    std::cout << " Node " << i << ":\n";
+    std::cout << "   left = " << nodes_[i].left_ << "\n";
+    std::cout << "   right = " << nodes_[i].right_ << "\n";
+    std::cout << "   parent = " << nodes_[i].parent_ << "\n";
+    std::cout << "   parity = " << ((parity_[i])? "right" : "left") << "\n";
+    std::cout << "   isleaf_ = " << ((isleaf_[i])? "yes" : "no" ) << "\n";
+  }
+*/
 }
+
 inline 
 PointerTree::~PointerTree ( void ) {
-  for ( size_t i = 0; i < nodes_ . size (); ++ i ) {
-    delete nodes_[i];
-  }
 }
 
 inline Tree::iterator 
 PointerTree::parent ( iterator it ) const {
-  PointerTreeNode * node = nodes_ [ * it ];
-  node = node -> parent_;
-  if ( node == NULL ) return end ();
-  return iterator ( node -> contents_ );
+  return Tree::iterator ( nodes_ [ *it ] . parent_ );
 }
 
 inline Tree::iterator 
 PointerTree::left ( iterator it ) const {
-  PointerTreeNode * node = nodes_ [ * it ];
-  node = node -> left_;
-  if ( node == NULL ) return end ();
-  return iterator ( node -> contents_ );
-  
+  return Tree::iterator ( nodes_ [ *it ] . left_ );
 }
 
 inline Tree::iterator 
 PointerTree::right ( iterator it ) const {
-  PointerTreeNode * node = nodes_ [ * it ];
-  node = node -> right_;
-  if ( node == NULL ) return end ();
-  return iterator ( node -> contents_ );
-  
+  return Tree::iterator ( nodes_ [ *it ] . right_ );
 }
 
 inline bool 
 PointerTree::isLeft ( iterator it ) const {
-  PointerTreeNode * node = nodes_ [ * it ];
-  PointerTreeNode * parent = node -> parent_;
-  if ( parent == NULL ) return false;
-  return (parent -> left_ == node );
+  return not parity_ [ *it ];
 }
 
 inline bool 
 PointerTree::isRight ( iterator it ) const {
-  PointerTreeNode * node = nodes_ [ * it ];
-  PointerTreeNode * parent = node -> parent_;
-  if ( parent == NULL ) return false;
-  return (parent -> right_ == node );
+  return parity_ [ *it ];
+
 }
 
 inline bool 
 PointerTree::isLeaf ( iterator it ) const {
-  PointerTreeNode * node = nodes_ [ * it ];
-  if ( ( node -> left_ == NULL ) && ( node -> right_ == NULL ) ) return true;
-  return false;
+  return isleaf_ [ *it ];
 }
 
 inline void 
@@ -128,60 +128,52 @@ PointerTree::assign ( boost::shared_ptr<const CompressedTree> compressed ) {
   const std::vector<bool> & valid_sequence = 
     compressed -> valid_sequence;
   size_t N = leaf_sequence . size ();
-  std::stack<std::pair<PointerTreeNode *, int> > path_to_root;
-  for ( size_t i = 0; i < nodes_ . size (); ++ i ) delete nodes_[i];
+  std::stack<std::pair<Tree::iterator, int> > path_to_root;
   nodes_ . clear ();
+  parity_ . clear ();
+  isleaf_ . clear ();
   size_ = 0;
   if ( compressed -> leafCount () == 0 ) return;
-  PointerTreeNode * sentinel = new PointerTreeNode;  
+  Tree::iterator sentinel ( -1 );
   path_to_root . push ( std::make_pair (sentinel, 0) );
   int64_t last_encountered_leaf = -1;
   for ( size_t i = 0; i < N; ++ i ) {
     while ( path_to_root . top () . second == 2 ) path_to_root . pop ();
-    PointerTreeNode * parent = path_to_root . top () . first;
-    int child_num = path_to_root . top () . second;
-    path_to_root . pop ();
-    path_to_root . push ( std::make_pair ( parent, child_num + 1 ) );
+    Tree::iterator parent = path_to_root . top () . first;
+    int child_num = path_to_root . top () . second ++;
     if ( leaf_sequence [ i ] == LEAF ) {
       ++ last_encountered_leaf;
       if ( not valid_sequence [ last_encountered_leaf ] ) continue;
     }
-    //std::cout << "Creating a node.\n";
-    PointerTreeNode * node = new PointerTreeNode;
-    nodes_ . push_back ( node );
-    node -> parent_ = parent;
-    node -> contents_ = size_ ++;
+    Tree::iterator node ( nodes_ . size () );
+    nodes_ . push_back ( PointerTreeNode ( -1, -1, * parent ) );
     if ( child_num == 0 ) {
-      parent -> left_ = node;
+      if ( parent != sentinel ) nodes_ [ * parent ] . left_ = * node;
+      parity_ . push_back ( false );
     } else {
-      parent -> right_ = node;
+      if ( parent != sentinel ) nodes_ [ * parent ] . right_ = * node;
+      parity_ . push_back ( true );
     }
     if ( leaf_sequence [ i ] == NOT_A_LEAF ) {
       path_to_root . push ( std::make_pair ( node, 0 ) );
-    } 
+      isleaf_ . push_back ( false );
+    } else {
+      isleaf_ . push_back ( true );
+    }
   }
-  
-  //std::cout << "The following line should fail if N == 0, and N = " << N << "\n";
-  /*
-  for ( size_t i = 0; i < N; ++ i ) {
-    std::cout << (leaf_sequence[i]?"1":"0");
+  size_ = nodes_ . size ();
+  for ( size_t i = 0; i < nodes_ . size (); ++ i ) {
+    if ( nodes_[i] . left_ == -1 ) nodes_[i] . left_ = size ();
+    if ( nodes_[i] . right_ == -1 ) nodes_[i] . right_ = size ();
+    if ( nodes_[i] . parent_ == -1 ) nodes_[i] . parent_ = size ();
   }
-  std::cout << "\n";
-  for ( size_t i = 0; i < N; ++ i ) {
-    std::cout << (valid_sequence[i]?"1":"0");
-  }
-  std::cout << "\n";
-  */
-  sentinel -> left_ -> parent_ = NULL;
-  //std::cout << "Did it?\n";
-  delete sentinel;
 }
 
 inline uint64_t 
 PointerTree::memory ( void ) const {
   return sizeof ( PointerTree ) +
-         sizeof ( PointerTreeNode * ) * nodes_ . size () +
-         sizeof ( PointerTreeNode ) * nodes_ . size ();
+         sizeof ( PointerTreeNode ) * nodes_ . size () + 
+         2 * nodes_ . size ();
 }
 
 template<typename Archive> void 
@@ -189,6 +181,8 @@ PointerTree::serialize ( Archive & ar,
                          const unsigned int file_version ) {
   ar & boost::serialization::base_object<Tree>(*this);
   ar & nodes_;
+  ar & parity_;
+  ar & isleaf_;
 }
 
 // PointerTreeNode Definitions
@@ -199,11 +193,14 @@ PointerTreeNode::serialize ( Archive & ar,
     ar & left_;
     ar & right_;
     ar & parent_;
-    ar & contents_;
   }
+
+inline PointerTreeNode::PointerTreeNode ( int64_t left, int64_t right, int64_t parent ) 
+: left_ ( left ), right_ ( right ), parent_ ( parent ) {
+}
+
 inline PointerTreeNode::PointerTreeNode ( void ) 
-: left_ ( NULL ), right_ ( NULL ), 
-  parent_ ( NULL ), contents_ ( 0 ) {
+: left_ ( 0 ), right_ ( 0 ), parent_ ( 0 ) {
 }
 
 inline PointerTreeNode::~PointerTreeNode ( void ) {

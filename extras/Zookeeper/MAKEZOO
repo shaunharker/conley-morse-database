@@ -1,6 +1,7 @@
+rm -rf graphs
 mkdir graphs
 cd graphs
-../makeDatabaseZoo/main $1/database.cmdb
+../makeDatabaseZoo/main $1/database.cmdb || exit 1
 cd ..
 rm -rf $1/Zoo
 cp -rf template $1/Zoo

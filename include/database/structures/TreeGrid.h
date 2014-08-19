@@ -614,13 +614,6 @@ TreeGrid::coverAccept ( const RectGeo & visitor ) const  {
   // numbers could give us less precision, and this method would
   // fail to be rigorous. Checking this condition has not yet been implemented.
 
-  // DEBUG
-  if ( size () == 0 ) {
-    std::cout << "Warning, calling cover in an empty TreeGrid\n";
-    std::cout << "The dimension of this Grid is " << dimension () << "\n";
-    abort ();
-  }
-  // END DEBUG
 
   const RectGeo & geometric_region = visitor;
   std::vector<Grid::GridElement> results;
@@ -638,7 +631,16 @@ TreeGrid::coverAccept ( const RectGeo & visitor ) const  {
     width [ d ] = bounds_ . upper_bounds [ d ] - bounds_ . lower_bounds [ d ];
   }
   
-  std::stack < RectGeo > work_stack;
+    // Initialize variables
+  RectGeo region ( dimension_ );
+  static  std::vector<int64_t> LB; LB . resize ( dimension_);
+  static std::vector<int64_t> UB; UB . resize ( dimension_);
+  static std::vector<int64_t> NLB; NLB . resize ( dimension_);
+  static std::vector<int64_t> NUB; NUB . resize ( dimension_);
+  static std::stack<Tree::iterator, std::vector<Tree::iterator> > parent;
+  static std::stack<std::pair<Tree::iterator, Tree::iterator>, 
+                    std::vector<std::pair<Tree::iterator, Tree::iterator>> > children;
+  static std::stack < RectGeo, std::vector<RectGeo> > work_stack;
 
   // TODO: Make this computation happen once and for all
   bool periodic_flag = false;
@@ -691,18 +693,17 @@ TreeGrid::coverAccept ( const RectGeo & visitor ) const  {
    [0,1]^d. To avoid having to translate to real coordinates at each leaf, we instead
    convert the input to these standard coordinates, which we put into integers. */
   
+
   while ( not work_stack . empty () ) {
     //std::cout << "Top of cover loop. Size of work stack = " << work_stack . size () << "\n";
     RectGeo GR = work_stack . top ();
-    work_stack . pop ();
+    work_stack . pop (); // PROFILED
     //std::cout << "Trying to cover " << GR << "\n";
     // Step 1. Convert input to standard coordinates.
-    RectGeo region ( dimension_ );
-    static std::vector<int64_t> LB ( dimension_);
-    static std::vector<int64_t> UB ( dimension_);
+
 #define INTPHASEWIDTH (((int64_t)1) << 60)
 #define TRUNCATIONERROR (((int64_t)1) << 10 )
-    static Real bignum ( INTPHASEWIDTH );
+    Real bignum ( INTPHASEWIDTH );
     bool out_of_bounds = false;
     for ( int d = 0; d < dimension_; ++ d ) {
       // Convert lower bounds to standard coordinates (i.e. [0,1] range)
@@ -738,8 +739,7 @@ TreeGrid::coverAccept ( const RectGeo & visitor ) const  {
     if ( out_of_bounds ) continue;
     // Step 2. Perform DFS on the Grid tree, recursing whenever we have intersection,
     //         (or adding leaf to output when we have leaf intersection)
-    static std::vector<int64_t> NLB ( dimension_);
-    static std::vector<int64_t> NUB ( dimension_);
+
     for ( int d = 0; d < dimension_; ++ d ) {
       NLB [ d ] = 0;
       NUB [ d ] = INTPHASEWIDTH;
@@ -762,8 +762,13 @@ TreeGrid::coverAccept ( const RectGeo & visitor ) const  {
     char state = 0;
     int depth = -1;
 
-    std::stack<Tree::iterator> parent;
-    std::stack<std::pair<Tree::iterator, Tree::iterator> > children;
+
+    if ( not parent . empty () ) {
+      abort ();
+    }
+    if ( not children . empty () ) {
+      abort ();
+    }
     parent . push ( tree_end );
 
     while ( 1 ) {
@@ -796,11 +801,6 @@ TreeGrid::coverAccept ( const RectGeo & visitor ) const  {
             if ( children . top () . second == tree_end ) {
               // Here's what we are looking for.
               iterator grid_it = TreeToGrid ( N );
-              // DEBUG BEGIN
-              if ( grid_it == end () ) {
-                throw std::logic_error ( "TreeGrid::coverAccept. Didn't I filter this out?\n");
-              }
-              // DEBUG END
               if ( grid_it != end () ) results . push_back ( * grid_it ); 
               // Issue the order to rise.
               //std::cout << "Issue rise.\n";
@@ -817,7 +817,7 @@ TreeGrid::coverAccept ( const RectGeo & visitor ) const  {
           }
         } else {
           // No intersection, issue order to rise.
-          children . push ( std::make_pair ( 0, 0 ) ); // dummy to be popped
+          children . push ( std::make_pair ( 0, 0 ) ); // dummy to be popped (PROFILED)
           //std::cout << "No intersection. \n";
           //std::cout << "Issue Rise.\n";
           state = 3;
@@ -912,7 +912,7 @@ TreeGrid::coverAccept ( const PrismGeo & visitor ) const {
   std::vector<Grid::GridElement> results;
 
   //std::cout << "chomp::Prism version of Cover\n";
-  static RectGeo G ( dimension_ );
+  /* static */ RectGeo G ( dimension_ );
   
   /* Use a stack, not a queue, and do depth first search.
    The advantage of this is that we can maintain the geometry during our Euler Tour.
@@ -926,8 +926,8 @@ TreeGrid::coverAccept ( const PrismGeo & visitor ) const {
   
   // Step 2. Perform DFS on the Grid tree, recursing whenever we have intersection,
   //         (or adding leaf to output when we have leaf intersection)
-  static std::vector<uint64_t> NLB ( dimension_);
-  static std::vector<uint64_t> NUB ( dimension_);
+  /* static */ std::vector<uint64_t> NLB ( dimension_);
+  /* static */ std::vector<uint64_t> NUB ( dimension_);
   for ( int d = 0; d < dimension_; ++ d ) {
     NLB [ d ] = 0;
     NUB [ d ] = INTPHASEWIDTH;

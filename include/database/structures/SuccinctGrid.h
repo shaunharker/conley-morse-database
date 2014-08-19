@@ -42,8 +42,8 @@ public:
   // Virtual Methods
   virtual Tree::iterator GridToTree ( Grid::iterator it ) const;
   virtual Grid::iterator TreeToGrid ( Tree::iterator it ) const;
-  virtual uint64_t       GridToLeaf ( Grid::iterator it ) const;
-  virtual Grid::iterator LeafToGrid ( uint64_t leaf ) const;
+  virtual int64_t       GridToLeaf ( Grid::iterator it ) const;
+  virtual Grid::iterator LeafToGrid ( int64_t leaf ) const;
   virtual const SuccinctTree & tree ( void ) const;
   virtual SuccinctTree & tree ( void );
   virtual SuccinctGrid * spawn ( void ) const;
@@ -89,7 +89,7 @@ SuccinctGrid::~SuccinctGrid ( void ) {
 
 inline Grid::iterator 
 SuccinctGrid::TreeToGrid ( Tree::iterator it_tree ) const {
-  uint64_t leaf = tree () . TreeToLeaf ( it_tree );
+  int64_t leaf = tree () . TreeToLeaf ( it_tree );
   if ( leaf == tree () . leafEnd () ) return end ();
   return LeafToGrid ( leaf );
 }
@@ -99,13 +99,13 @@ SuccinctGrid::GridToTree ( iterator it ) const {
   return tree () . LeafToTree ( GridToLeaf ( it ) );
 }
 
-inline uint64_t
+inline int64_t
 SuccinctGrid::GridToLeaf ( Grid::iterator it ) const {
   return valid_sequence_ . select ( *it );
 }
 
 inline Grid::iterator 
-SuccinctGrid::LeafToGrid ( uint64_t leaf ) const {
+SuccinctGrid::LeafToGrid ( int64_t leaf ) const {
   if ( not valid_sequence_ . bits ( leaf ) ) return end ();
   return iterator ( valid_sequence_ . rank ( leaf ) );
 }

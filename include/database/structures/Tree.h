@@ -15,9 +15,9 @@ class Tree {
 public:
   
   // Typedefs
-  typedef boost::counting_iterator < uint64_t > iterator;
+  typedef boost::counting_iterator < int64_t > iterator;
   typedef iterator const_iterator;
-  typedef uint64_t value_type;
+  typedef int64_t value_type;
   typedef uint64_t size_type;
   
   // Constructor/Deconstructor Methods
@@ -90,7 +90,7 @@ inline Tree::iterator Tree::begin ( void ) const {
 }
 
 inline Tree::iterator Tree::end ( void ) const {
-  return iterator ( size () );
+  return iterator ( size() );
 }
 
 inline Tree::size_type Tree::size ( void ) const {
@@ -173,54 +173,6 @@ Tree::subtree ( const std::deque < iterator > & leaves ) const {
       new_valid_sequence . push_back ( VALID );
     }
   }  
-#if 0
-  std::stack < std::pair<iterator, int> > work_stack;
-  work_stack . push ( std::make_pair(begin (), 0 ) );
-  while ( not work_stack . empty () ) {
-    iterator it = work_stack . top () . first;
-    int visit = work_stack . top () . second;
-    work_stack . pop ();
-    
-    iterator left_it = left ( it );
-    bool left_branch;
-    if ( left_it == end_it ) left_branch = false;
-    else left_branch = visited [ * left_it ];
-    
-    iterator right_it = right ( it );
-    bool right_branch;
-    if ( right_it == end_it ) right_branch = false;
-    else right_branch = visited [ * right_it ];
-    
-    if ( visit == 0 ) {
-      if ( left_branch || right_branch ) {
-        new_leaf_sequence . push_back ( NOT_A_LEAF );
-        work_stack . push ( std::make_pair ( it, 1 ) );
-      } else {
-        new_leaf_sequence . push_back ( LEAF );
-        new_valid_sequence . push_back ( VALID );
-      }
-      if ( left_branch ) {
-        work_stack . push ( std::make_pair ( left_it, 0 ) );
-        continue;
-      } else {
-        if ( right_branch ) {
-          new_leaf_sequence . push_back ( LEAF );
-          new_valid_sequence . push_back ( NOT_VALID );
-        }
-      }
-    }
-    if ( visit == 1 ) {
-      if ( right_branch ) {
-          work_stack . push ( std::make_pair ( right_it, 0 ) );
-      } else {
-        if ( left_branch ) {
-          new_leaf_sequence . push_back ( LEAF );
-          new_valid_sequence . push_back ( NOT_VALID );
-        }
-      }
-    }
-  }
-#endif
   return result;
 }
 
