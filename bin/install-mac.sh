@@ -188,4 +188,4 @@ fi
 
 cd conley-morse-database
 echo "PREREQ=/opt/X11 /usr/local" > makefile.dep
-echo "USER_CXX_FLAGS=-libstd=libc++" >> makefile.dep
+echo "USER_CXX_FLAGS=-stdlib=libc++" >> makefile.dep
