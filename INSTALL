@@ -19,21 +19,27 @@ git clone https://github.com/sharker81/conley-morse-database.git
 cd conley-morse-database
 ./install.sh
 
-You will likely be prompted for a password. If you
-do not have a password, see the instructions below
-for a nonstandard installation.
+This will install into /usr/local and also ~/work.
 
-This could also create some folders in "work" when it installs
-software conley-morse-database depends on.
+Note that if you have a boost installation in /usr/local that is 
+not "brewed" with Homebrew, it will be replaced.
+
+You will likely be prompted for a password. This is due to 
+the writes to /usr/local.  If you do not have a password, or not 
+want to install anything to /usr/local, then see below for a 
+nonstandard installation.
 
 The installer checks the system to see if it is a Mac or Linux.
 If it is a Mac, it uses the Homebrew "brew" installer for its
-builds and also installs X11 via XQuartz.
+builds and also installs X11 via XQuartz. "brew" installs its
+packages into /usr/local.
+
 Otherwise it defaults to a standard list of instructions.
 
 Nonstandard Installations
 -------------------------
-If you do not have administrator rights then you can
+If you do not have administrator rights (or else do not want
+to install anything to your system directories) then you can
 choose to install in a non-standard location by typing
 ./install.sh [non-standard-install-dir]
 
@@ -43,7 +49,7 @@ If you, really, really want to do this, you could type
 and it will pretend you have a Linux system.)
 
 This is likely the case on an HPC cluster that is administered
-by others. Here is an example of an installation in that case::
+by others. Here is an example of an installation in that case:
 
 mkdir ~/work && cd ~/work
 git clone https://github.com/sharker81/conley-morse-database.git
@@ -57,3 +63,92 @@ These will be placed in the ~/work folder.
 Help
 ----
 Contact me at sharker@math.rutgers.edu if you have problems.
+
+KNOWN ISSUES (and fixes) for MAC OS X:
+
+The installer scripts can fail for a number of reasons.
+
+Here are some troubleshooting steps.
+
+==================
+1. Don't use sudo.
+==================
+Make sure you aren't using "sudo" to run the script.
+If you did use sudo, it may have created root owned files 
+wherever you told it to install things, for example in ~/Work if
+you followed the instructions above.
+You can fix these problems with
+
+sudo chown -R $USER:admin /usr/local
+sudo chown -R $USER:staff ~/Work 
+
+Change ~/Work to whatever directory you installed to if not ~/Work,
+of course.
+
+=======================
+2. Check your compiler. 
+=======================
+Type
+g++ -v
+
+It should show you are using LLVM clang:
+Configured with: --prefix=/Applications/Xcode.app/Contents/Developer/usr --with-gxx-include-dir=/usr/include/c++/4.2.1
+Apple LLVM version 5.1 (clang-503.0.40) (based on LLVM 3.4svn)
+Target: x86_64-apple-darwin13.3.0
+Thread model: posix
+
+If instead it shows you are using GCC 4.2.1, then C++11 is not available.
+You will need to update your system. Probably the most straightforward way
+to go about this is install the latest Mac OS and download the latest version
+of XCode. 
+
+==========================================
+3. Make sure you can execute bash scripts.
+==========================================
+Type
+
+bash
+echo $0
+exit
+
+This ought to say "bash". If it doesn't, then there is probably something
+goofy with either your ~/.bash_profile file or your ~/.bashrc file where
+it immediately loads another type of shell. You'll need to edit these files
+to make it so your bash program isn't getting hijacked by another type of
+shell.
+
+For example, if your ~/.bashrc file has a line "tcsh" in it, this is
+loading a new type of shell -- you don't want that. Take that line out.
+In particular the Homebrew install won't work under "tcsh".
+
+======================================
+4. Relax the permissions of /usr/local
+======================================
+
+Homebrew puts your installations in /usr/local, and they relax the 
+permissions. Things can get a little wonky if they aren't right. You
+can ensure the permissions are correct by typing
+
+sudo chown -R $USER:admin /usr/local
+
+================================
+5. Use the brew version of Boost
+================================
+
+You might have an earlier version of Boost on your system that
+wasn't installed using Brew. Brew actually applies some patches
+to fix a couple known problems on Mac (such problems come and go),
+so it might be possible you are having troubles because your Boost
+is either outdated or hasn't been appropriately patched. You can
+ensure you have the Boost version as follows:
+
+First, make sure you have Homebrew installed.
+
+brew uninstall boost
+cd /usr/local/include
+rm -rf boost
+cd /usr/local/lib
+rm -f libboost*
+brew install boost
+brew link boost
+

@@ -1,27 +1,57 @@
 #!/bin/bash
+
 PREFIX=$1
 cd ..
 
+# Relax permissions of /usr/local
+chown -R $USER:admin /usr/local 2> error.log || sudo chown -R $USER:admin /usr/local
+rm error.log
+
 # Homebrew
+echo ==\> Homebrew
+echo Checking for Homebrew.
 if [ ! -f /usr/local/bin/brew ]; then
-  ruby -e "$(curl -fsSL https://raw.github.com/Homebrew/homebrew/go/install)"
+  echo Not found.
+  ruby -e "$(curl -fsSL https://raw.github.com/Homebrew/homebrew/go/install)" || exit 1
   brew doctor
   echo Homebrew is now installed.
 else
-  echo Homebrew already installed.
+  echo Found. Checking for updates.
+  brew update
 fi
 
+echo
+echo ==\> CImg
+echo Checking for CImg.
 if [ ! -f /usr/local/include/CImg.h ]; then
-  brew install CImg
+  brew install CImg || exit 1
   echo CImg now installed.
 else
   echo CImg already installed.
 fi
 
 # Boost
+
+echo
+echo ==\> Boost
+echo Checking for Boost.
+# Trash unbrewed copies.
+if [ ! -L /usr/local/include/boost ]; then
+  echo Detected unbrewed copy of Boost. Trashing it.
+  rm -rf /usr/local/include/boost
+  rm -f /usr/local/lib/libboost*
+fi
+
 if [ ! -d /usr/local/include/boost ]; then
-  brew install boost
-  echo Boost Libraries now installed.
+  echo Boost needs to be installed.
+  if [ ! -d /usr/local/Cellar/boost ]; then
+    echo Brewing Boost with Homebrew.
+    brew install boost || exit 1
+  else
+    echo Linking Boost from Homebrew Cellar.
+    (brew unlink boost && brew link boost) || exit 1
+  fi
+  echo Boost now installed.
 else
   echo Boost already installed.
 fi
@@ -35,26 +65,46 @@ if [ ! -f /usr/local/lib/libboost_thread.a ]; then
 fi
 
 # Open-MPI
+echo
+echo ==\> OpenMPI
+echo Checking for OpenMPI.
 if [ ! -f /usr/local/bin/mpicxx ]; then
-  brew install open-mpi
+  echo Not found. Installing OpenMPI.
+  brew install open-mpi || exit 1
   echo Open-MPI now installed.
 else
   echo Open-MPI already installed.
 fi
 
 # CMake
+echo
+echo ==\> cmake
+echo Checking for cmake.
 if [ ! -f /usr/local/bin/cmake ]; then
-  brew install cmake
+  echo Not found. Installing cmake.
+  brew install cmake || exit 1
   echo CMake now installed.
 else
   echo CMake already installed.
 fi
 
 # SDSL
+echo
+echo ==\> SDSL
+echo Checking for SDSL.
 if [ ! -f /usr/local/lib/libsdsl.a ] || [ ! -d /usr/local/include/sdsl ]; then
-  git clone https://github.com/simongog/sdsl-lite.git
-  cd sdsl-lite
-  ./install.sh /usr/local
+  echo Not found.
+  if [ ! -d sdsl-lite ]; then
+    echo Cloning SDSL repository.
+    git clone https://github.com/simongog/sdsl-lite.git || exit 1
+    cd sdsl-lite
+  else 
+    echo Found sdsl repository. Updating.
+    cd sdsl-lite
+    git pull origin master || exit 1
+  fi
+  echo Running SDSL installer.
+  ./install.sh /usr/local || exit 1
   cd ..
   echo SDSL now installed.
 else
@@ -62,17 +112,32 @@ else
 fi
 
 # cluster-delegator
-if [ ! -d /usr/local/include/delegator ]; then
-  git clone https://github.com/sharker81/cluster-delegator.git
-  cd cluster-delegator
-  ./install.sh
+echo
+echo ==\> cluster-delegator
+echo Checking for cluster-delegator.
+if [ ! -d /usr/local/include/delegator ] || [ ! -f /usr/local/include/boost/serialization/unordered_set.hpp ]; then
+  echo Not found.
+  if [ ! -d cluster-delegator ]; then
+    echo Cloning cluster-delegator repository 
+    git clone https://github.com/sharker81/cluster-delegator.git || exit 1
+    cd cluster-delegator
+  else
+    echo Found cluster-delegator repository
+    cd cluster-delegator || exit 1
+    git pull origin master || exit 1
+  fi
+  echo Running installer script
+  ./install.sh || exit 1
   cd ..
   echo cluster-delegator installed.
 else
   echo cluster-delegator already installed.
 fi
-
+    
 # X11 (XQuartz)
+echo
+echo ==\> X11
+echo Checking for X11 \(XQuartz\).
 if [ ! -d /opt/X11 ]; then
   echo Installing XQuartz from
   echo http://xquartz.macosforge.org/landing/
@@ -85,18 +150,34 @@ else
 fi
 
 # CHomP
+echo
+echo ==\> CHomP
+echo Checking for CHomP.
 if [ ! -d /usr/local/include/chomp ]; then
-  git clone https://github.com/sharker81/CHomP.git
-  cd CHomP
-  ./install.sh
-  cd ..
+  echo CHomP not found.
+  if [ ! -d CHomP ]; then
+    echo Cloning CHomP repository
+    git clone https://github.com/sharker81/CHomP.git || exit 1
+    cd CHomP
+  else
+    echo Found CHomP repository
+    cd CHomP || exit 1
+    git pull origin master || exit 1
+  fi
+  echo Installing CHomP
+  ./install.sh || exit 1
+  cd .. || exit 1
   echo CHomP installed.
 else
   echo CHomP already installed.
 fi
 
 # GraphViz
+echo
+echo ==\> GraphViz
+echo Checking for GraphViz.
 if [ "`which dot`" == "" ]; then
+  echo Not found.
   echo Installing GraphViz from www.graphviz.org
   curl http://www.graphviz.org/pub/graphviz/stable/macos/mountainlion/graphviz-2.36.0.pkg -o graphviz-2.36.0.pkg || (echo "Download failed. Please install GraphViz manually" && exit 1)
   sudo installer -pkg graphviz-2.36.0.pkg -target /
@@ -105,4 +186,4 @@ else
 fi
 
 cd conley-morse-database
-echo "PREREQ=/opt/X11" > makefile.dep
+echo "PREREQ=/opt/X11 /usr/local" > makefile.dep
