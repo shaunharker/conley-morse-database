@@ -1,6 +1,23 @@
 #!/bin/bash
 # Installer for conley-morse-database
 
+# Determine if C++11 compiler is present
+echo '#if __cplusplus <= 199711L' > tmp.cpp
+echo '#error This library needs at least a C++11 compliant compiler' >> tmp.cpp
+echo '#endif' >> tmp.cpp
+echo 'int main(){return 0;}' >> tmp.cpp
+g++ -std=c++11 tmp.cpp -o tmp.out 2> tmp.log || OLDCOMPILER="yes"
+rm -f tmp.cpp
+rm -f tmp.out
+rm -f tmp.log
+if [ "$OLDCOMPILER" == "yes" ]; then
+  echo This software requires a C++11 compiler.
+  echo Either GCC version \>= 4.7 or Clang are known to work.
+  echo See INSTALL file for hints on how to resolve this problem.
+  exit 1
+fi
+
+# Determine installation prefix
 CUR_DIR=`pwd`
 PREFIX=/usr/local
 if [ $# -ge 1 ]; then

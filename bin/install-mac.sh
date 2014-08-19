@@ -8,6 +8,7 @@ chown -R $USER:admin /usr/local 2> error.log || sudo chown -R $USER:admin /usr/l
 rm error.log
 
 # Homebrew
+echo
 echo ==\> Homebrew
 echo Checking for Homebrew.
 if [ ! -f /usr/local/bin/brew ]; then
