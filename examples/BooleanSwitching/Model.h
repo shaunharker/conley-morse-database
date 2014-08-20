@@ -19,6 +19,7 @@
 
 #include "ModelMap.h"
 
+#include "Phase/BooleanSwitchingMaps.h"
 #include "Phase/MultiDimensionalIndices.h"
 #include "Phase/Wall.h"
 #include "Parameter/BooleanSwitchingParameterSpace.h"
