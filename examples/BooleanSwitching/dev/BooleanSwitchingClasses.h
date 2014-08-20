@@ -29,11 +29,11 @@ typedef int Axis;
 // return the dimension of the face
 inline int 
 faceDimension ( const Face & face ) {
-	int counter = 0;
-	for ( Face::const_iterator it=face.begin(); it!=face.end(); ++it ) {
-		if ( *it == 1 ) { ++counter; }
-	}
-	return counter;
+    int counter = 0;
+    for ( Face::const_iterator it=face.begin(); it!=face.end(); ++it ) {
+        if ( *it == 1 ) { ++counter; }
+    }
+    return counter;
 }
 
 #endif

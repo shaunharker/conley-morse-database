@@ -15,16 +15,13 @@
 #include "database/structures/Grid.h"
 #include "database/structures/MorseGraph.h"
 #include "database/program/Configuration.h"
-#include "database/maps/AtlasMap.h"
 #include "database/maps/Map.h"
 
-#include "BooleanSwitchingClasses.h"
-#include "ConstructBooleanMaps.h"
-#include "BooleanMap.h"
-#include "MultiDimensionalIndices.h"
-#include "LookUpTable.h"
-#include "Wall.h"
-#include "BooleanSwitchingParameterSpace.h"
+#include "ModelMap.h"
+
+#include "Phase/MultiDimensionalIndices.h"
+#include "Phase/Wall.h"
+#include "Parameter/BooleanSwitchingParameterSpace.h"
 
 
 class Model {
@@ -57,7 +54,6 @@ private:
   int phase_space_dimension_;
   MultiDimensionalIndices domains_;
   boost::unordered_map<Wall, size_t> walls_;
-  LUT lut_;
 public:
   friend class boost::serialization::access;
   template<class Archive>
@@ -78,14 +74,11 @@ Model::initialize ( int argc, char * argv [] ) {
   std::cout << "Model::initialize. Initialize phase space.\n";
   domains_ . assign  ( parameter_space_ -> domainLimits () );
   phase_space_dimension_ = parameter_space_ -> dimension ();
-  // Construct Lookup Table
-  std::cout << "Model::initialize. Construct Lookup Table.\n";
-  lut_ = constructLookUpTable ( phase_space_dimension_ );
   // Loop through domains and create walls and interior point.
   std::cout << "Model::initialize. Build walls.\n";
   size_t num_walls = 0;
   BOOST_FOREACH ( const std::vector<size_t> & domain, domains_ ) {
-    for ( CFace cface = -phase_space_dimension_; 
+    for ( int cface = -phase_space_dimension_; 
           cface <= phase_space_dimension_; ++ cface ) {
       Wall wall ( cface, domain );
       if ( walls_ . count ( wall ) == 0 ) {
@@ -116,7 +109,6 @@ Model::phaseSpace ( void ) const {
 
 inline boost::shared_ptr < const Map > 
 Model::map ( boost::shared_ptr<Parameter> p) const { 
-  typedef AtlasMap<BooleanChartMap> ModelMap;
   boost::shared_ptr < ModelMap > atlasmap ( new ModelMap );
   // Loop through domains and add wall maps
 #ifdef BS_DEBUG_MODELMAP
@@ -131,14 +123,10 @@ Model::map ( boost::shared_ptr<Parameter> p) const {
   boost::unordered_set<uint64_t> mapped_in, mapped_out;
 #endif
   BOOST_FOREACH ( const std::vector<size_t> & domain, domains_ ) {
-    typedef std::pair<CFace, CFace> CFacePair;
-    std::vector < CFacePair > listofmaps = 
-      //BooleanPairFacesMaps ( domain,
-      //                       parameter_space_ -> closestFace ( p, domain ), 
-      //                       lut_,
-      //                       domains_ . limits () );
+    typedef std::pair<int, int> intPair;
+    std::vector < intPair > listofmaps = 
       BooleanSwitchingMaps ( parameter_space_ -> closestFace ( p, domain ) );
-    BOOST_FOREACH ( const CFacePair & cface_pair, listofmaps ) {
+    BOOST_FOREACH ( const intPair & cface_pair, listofmaps ) {
       Wall wall1 ( cface_pair . first, domain );
       Wall wall2 ( cface_pair . second, domain );
       int id1 = walls_ . find ( wall1 ) -> second;

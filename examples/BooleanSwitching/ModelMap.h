@@ -1,9 +1,9 @@
-#ifndef BOOLEANSWITCHINGCHARTMAP_H
-#define BOOLEANSWITCHINGCHARTMAP_H
+/// ModelMap.h
+
+#ifndef BOOLEANSWITCHINGMODELMAP_H
+#define BOOLEANSWITCHINGMODELMAP_H
 
 #include "database/structures/RectGeo.h"
-
-// RectMap
 
 class BooleanChartMap {
 public:
@@ -19,5 +19,7 @@ public:
 private:
   RectGeo chart1_, chart2_;
 };
+
+typedef AtlasMap<BooleanChartMap> ModelMap;
 
 #endif

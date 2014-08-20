@@ -4,6 +4,10 @@
 #ifndef BOOLEANSWITCHINGPARAMETER
 #define BOOLEANSWITCHINGPARAMETER
 
+#include <iostream>
+#include <vector>
+#include "boost/functional/hash.hpp"
+
 /// class BooleanSwitchingParameter
 ///    A smart vertex class representing parameters of interest
 ///    for a Boolean Switching network, ignoring closest axis information
