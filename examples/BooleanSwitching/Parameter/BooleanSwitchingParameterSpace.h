@@ -20,75 +20,83 @@
 #include "Network.h"
 #include "Parameter/FactorGraph.h"
 #include "Parameter/BooleanSwitchingParameter.h"
+#include "Parameter/Polytope.h"
 
 /// class BooleanSwitchingParameterSpace
 class BooleanSwitchingParameterSpace : public AbstractParameterSpace {
 public:
-    // typedef
-    typedef uint64_t ParameterIndex;
-    typedef boost::counting_iterator < ParameterIndex > iterator;
-    typedef iterator const_iterator;
-    // Constructor/Deconstructor
-    BooleanSwitchingParameterSpace ( void ) {}
-    virtual ~BooleanSwitchingParameterSpace ( void ) {}
+  // typedef
+  typedef uint64_t ParameterIndex;
+  typedef boost::counting_iterator < ParameterIndex > iterator;
+  typedef iterator const_iterator;
+  // Constructor/Deconstructor
+  BooleanSwitchingParameterSpace ( void ) {}
+  virtual ~BooleanSwitchingParameterSpace ( void ) {}
 
-    /// initialize
-    ///    Create the ParameterSpace given the configuration specified
-    virtual void initialize ( int argc, char * argv [] );
+  /// initialize
+  ///    Create the ParameterSpace given the configuration specified
+  virtual void initialize ( int argc, char * argv [] );
 
-    /// adjacencies
-    ///    Return a vector of adjacent vertices.
-    virtual std::vector<ParameterIndex> adjacencies ( ParameterIndex v ) const;
-    
-    /// size
-    ///    Return the number of vertices
-    virtual uint64_t size ( void ) const;
+  /// adjacencies
+  ///    Return a vector of adjacent vertices.
+  virtual std::vector<ParameterIndex> adjacencies ( ParameterIndex v ) const;
+  
+  /// size
+  ///    Return the number of vertices
+  virtual uint64_t size ( void ) const;
 
-    /// parameter
-    ///    Return the parameter object associated with a vertex
-    virtual boost::shared_ptr<Parameter> parameter ( ParameterIndex v ) const;
-    
-    /// search
-    ///    Given a parameter, find the vertex associated with it
-    ///    (This can be used to find a parameter which might contain the other)
-    virtual uint64_t search ( boost::shared_ptr<Parameter> parameter ) const;
-    
-    /// closestFace
-    ///   given a domain, return the closest face 
-    ///   closest face is output in the following form:
-    ///   There are d entries in an std::vector<int>
-    ///     0 means lower bound, 1 means between, 2 means upper bound
-    std::vector<int> closestFace ( boost::shared_ptr<Parameter> parameter, 
-                                   std::vector<size_t> const& domain ) const;
-    /// domainLimits
-    ///    Return a vector containing the number of thresholds plus one in each dimension
-    ///    This gives us the number of bins in each dimension, which is needed
-    ///    for multidimensional iteration through the "domains" (i.e. regions between
-    ///    thresholds)
-    std::vector<size_t> domainLimits ( void ) const;
+  /// parameter
+  ///    Return the parameter object associated with a vertex
+  virtual boost::shared_ptr<Parameter> parameter ( ParameterIndex v ) const;
+  
+  /// search
+  ///    Given a parameter, find the vertex associated with it
+  ///    (This can be used to find a parameter which might contain the other)
+  virtual uint64_t search ( boost::shared_ptr<Parameter> parameter ) const;
+  
+  /// closestFace
+  ///   given a domain, return the closest face 
+  ///   closest face is output in the following form:
+  ///   There are d entries in an std::vector<int>
+  ///     0 means lower bound, 1 means between, 2 means upper bound
+  std::vector<int> closestFace ( boost::shared_ptr<Parameter> parameter, 
+                                 std::vector<size_t> const& domain ) const;
+  /// domainLimits
+  ///    Return a vector containing the number of thresholds plus one in each dimension
+  ///    This gives us the number of bins in each dimension, which is needed
+  ///    for multidimensional iteration through the "domains" (i.e. regions between
+  ///    thresholds)
+  std::vector<size_t> domainLimits ( void ) const;
 
-    /// dimension
-    ///    Return dimension
-    int dimension ( void ) const;
+  /// dimension
+  ///    Return dimension
+  int dimension ( void ) const;
 
   /// factorGraph
   ///    Return factor graph
   const FactorGraph &
   factorGraph ( int i ) const;
+
+/*
+  /// polytope
+  ///   Return a polytope corresponding to a parameter
+  Polytope 
+  polytope ( boost::shared_ptr<Parameter> parameter ) const;
+*/
 private:
 
-    /// dimension_
-    ///   dimension of phase space. This is equal to the number of network nodes.
-    int dimension_; 
+  /// dimension_
+  ///   dimension of phase space. This is equal to the number of network nodes.
+  int dimension_; 
 
-    /// factors_
-    ///    The stored FactorGraphs
-    std::vector<FactorGraph> factors_;
+  /// factors_
+  ///    The stored FactorGraphs
+  std::vector<FactorGraph> factors_;
 
-    /// network_
-    BooleanSwitching::Network network_;
+  /// network_
+  BooleanSwitching::Network network_;
 
-    // Serialization
+  // Serialization
   friend class boost::serialization::access;
   template<class Archive>
   void serialize(Archive & ar, const unsigned int version) {
@@ -302,5 +310,19 @@ inline const FactorGraph &
 BooleanSwitchingParameterSpace::factorGraph ( int i ) const {
   return factors_ [ i ];
 }
+
+/*
+inline Polytope BooleanSwitchingParameterSpace::
+polytope ( boost::shared_ptr<Parameter> parameter ) const {
+  Polytope result;
+  const BooleanSwitchingParameter & p = 
+      * boost::dynamic_pointer_cast<BooleanSwitchingParameter> ( parameter );
+  for ( int d = 0; d < dimension_; ++ d ) {
+    MonotonicMap mono = factors_ [ d ] . vertices [ p . monotonic_function_ [ d ] ];
+    result << mono . polytope ();
+  }
+  return result;
+}
+*/
 
 #endif

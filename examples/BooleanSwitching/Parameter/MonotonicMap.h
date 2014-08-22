@@ -225,6 +225,38 @@ public:
     return true;
   }
 
+#if 0
+  /// polytope
+  ///   return polytope corresponding to monotonic map
+  Polytope polytope ( void ) const {
+    // TODO
+    // Case division based on logic type.
+    int max_terms_in_factor = 0;
+    for ( int i = 0; i < logic_ . size (); ++ i ) {
+      max_terms_in_factor = std::max ( max_terms_in_factor, logic_[i] );
+    }
+    if ( logic_ . size () == 1 ) { 
+      // Case (n) (all sum case)
+      for ( int k = 0; k < logic_[0]; ++ k ) {
+        poly . addVariable ( k );
+      }
+    } else if ( max_terms_in_factor == 1 ) {
+      // Case (1,1,1,1...,1) (n-times, all product case)
+      
+      // TODO 1. 
+    } else if ( logic_ . size () == 2 ) {
+      if ( logic_[0] == 2 && logic_[1] == 1 ) {
+        // Case (2, 1)
+        // TODO 2. 
+      }
+      if ( logic_[0] == 1 && logic_[1] == 2 ) {
+        // Case (1,2). Symmetric to case (2,1). (We just rotate the bits)
+        // TODO 3. 
+      }
+    } 
+  }
+#endif
+  
   friend std::size_t hash_value ( const MonotonicMap & p ) {
     std::size_t seed = 0;
     int N = (1 << p.n);

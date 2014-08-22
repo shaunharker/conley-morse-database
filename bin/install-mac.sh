@@ -1,10 +1,18 @@
 #!/bin/bash
 
+OSVERSION=`sw_vers -productVersion | grep -o "\..*\." | sed 's/\.//g'` 
+
+if [ "`echo "${OSVERSION} < 9" | bc`" == "1" ]; then
+  echo Versions of Mac OS X less than 10.9 are known to have issues.
+  echo Please update your OS to use this installer.
+  exit 1
+fi
+ 
 PREFIX=$1
 cd ..
 
 # Relax permissions of /usr/local
-chown -R $USER:admin /usr/local 2> error.log || (echo "The installer would like to change the permissions of /usr/local for Homebrew." && echo "This requires a password." && sudo chown -R $USER:admin /usr/local)
+chown -R $USER:admin /usr/local 2> error.log || (echo "The installer would like to change the permissions of /usr/local for Homebrew." && echo "This requires a password." && echo "Note: if you do not want to use Homebrew then quit this installer and install the prerequisites by hand." && sudo -k chown -R $USER:admin /usr/local)
 rm error.log
 
 # Homebrew
