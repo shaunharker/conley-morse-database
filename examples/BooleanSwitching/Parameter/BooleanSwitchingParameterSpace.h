@@ -13,6 +13,7 @@
 #include <vector>
 #include <stack>
 #include <fstream>
+#include <sstream>
 
 #include "database/structures/ParameterSpace.h"
 #include "database/structures/AbstractParameterSpace.h"
@@ -76,6 +77,9 @@ public:
   ///    Return factor graph
   const FactorGraph &
   factorGraph ( int i ) const;
+
+  std::string
+  prettyPrint ( boost::shared_ptr<Parameter> parameter ) const;
 
 /*
   /// polytope
@@ -324,5 +328,18 @@ polytope ( boost::shared_ptr<Parameter> parameter ) const {
   return result;
 }
 */
+
+std::string BooleanSwitchingParameterSpace::
+prettyPrint ( boost::shared_ptr<Parameter> parameter ) const {
+  std::stringstream result;
+  const BooleanSwitchingParameter & p = 
+      * boost::dynamic_pointer_cast<BooleanSwitchingParameter> ( parameter );
+  for ( int d = 0; d < dimension_; ++ d ) {
+    MonotonicMap mono = factors_ [ d ] . vertices [ p . monotonic_function_ [ d ] ];
+    result << mono . prettyPrint ();
+  }
+  return result . str ();  
+}
+
 
 #endif
