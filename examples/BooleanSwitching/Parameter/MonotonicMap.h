@@ -256,7 +256,21 @@ public:
     } 
   }
 #endif
-  
+
+  /// polytope
+  ///   return polytope corresponding to monotonic map
+  std::string prettyPrint ( std::string const& symbol,
+                            std::vector<std::string> const& input_symbols,
+                            std::vector<std::string> const& output_symbols ) const {
+    int N = (1 << n);
+    for ( int i = 0; i < N; ++ i ) { 
+      std::string out_symbol = data_ [ i ];
+      for ( int j = 0; j < logic_ . size (); ++ j ) {
+
+      }
+    }
+  }
+
   friend std::size_t hash_value ( const MonotonicMap & p ) {
     std::size_t seed = 0;
     int N = (1 << p.n);
