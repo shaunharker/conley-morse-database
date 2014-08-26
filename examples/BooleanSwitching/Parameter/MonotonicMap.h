@@ -225,50 +225,38 @@ public:
     return true;
   }
 
-#if 0
-  /// polytope
-  ///   return polytope corresponding to monotonic map
-  Polytope polytope ( void ) const {
-    // TODO
-    // Case division based on logic type.
-    int max_terms_in_factor = 0;
-    for ( int i = 0; i < logic_ . size (); ++ i ) {
-      max_terms_in_factor = std::max ( max_terms_in_factor, logic_[i] );
-    }
-    if ( logic_ . size () == 1 ) { 
-      // Case (n) (all sum case)
-      for ( int k = 0; k < logic_[0]; ++ k ) {
-        poly . addVariable ( k );
-      }
-    } else if ( max_terms_in_factor == 1 ) {
-      // Case (1,1,1,1...,1) (n-times, all product case)
-      
-      // TODO 1. 
-    } else if ( logic_ . size () == 2 ) {
-      if ( logic_[0] == 2 && logic_[1] == 1 ) {
-        // Case (2, 1)
-        // TODO 2. 
-      }
-      if ( logic_[0] == 1 && logic_[1] == 2 ) {
-        // Case (1,2). Symmetric to case (2,1). (We just rotate the bits)
-        // TODO 3. 
-      }
-    } 
-  }
-#endif
-
-  /// polytope
-  ///   return polytope corresponding to monotonic map
+  /// prettyPrint
+  ///   return string corresponding to monotonic map
   std::string prettyPrint ( std::string const& symbol,
                             std::vector<std::string> const& input_symbols,
                             std::vector<std::string> const& output_symbols ) const {
+    std::stringstream ss;
     int N = (1 << n);
     for ( int i = 0; i < N; ++ i ) { 
-      std::string out_symbol = data_ [ i ];
+      int bin = data_[i];
+      if ( bin > 0 ) {
+        ss << "THETA(" << symbol << ", " << output_symbols[bin-1] << ") <= "; 
+      }
+      std::string out_symbol = output_symbols[ data_ [ i ];
+      int count = 0;
       for ( int j = 0; j < logic_ . size (); ++ j ) {
-
+        ss << "(";
+        for ( int k = 0; k < logic_[j]; ++ k ) {
+          if ( i & ( 1 << count ) == 0 ) {
+            ss << "LOW(";
+          } else {
+            ss << "HI(";
+          }
+          ss << input_symbols [ count ++ ] << ", " << symbol << ")";
+          if ( k != logic_[j]-1 ) ss << " + ";
+        }
+        ss << ")";
+      }
+      if ( bin < m ) {
+        ss << " <= THETA(" << symbol << ", " << output_symbols[bin] << ")\n"; 
       }
     }
+    return ss . str ();
   }
 
   friend std::size_t hash_value ( const MonotonicMap & p ) {

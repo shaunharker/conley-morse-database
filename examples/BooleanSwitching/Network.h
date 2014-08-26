@@ -1,36 +1,104 @@
 #ifndef BOOLEANSWITCHINGNETWORK_H
 #define BOOLEANSWITCHINGNETWORK_H
 
-// char_sep_example_2.cpp
 #include <iostream>
 #include <fstream>
-#include <boost/tokenizer.hpp>
 #include <string>
 #include <sstream>
 #include <vector>
 #include <exception>
-#include "boost/unordered_map.hpp"
-#include "boost/foreach.hpp"
+#include <functional>
+#include <unordered_map>
+#include <boost/tokenizer.hpp>
+#include "boost/iterator/counting_iterator.hpp"
+#include "boost/iterator/transform_iterator.hpp"
 
 namespace BooleanSwitching {
 
-struct NodeData {
-  int index;
-  std::vector<std::vector<int> > logic;
+struct Node {
+  int index; // indexing starts at 1
+  std::vector<std::vector<int> > logic; // negative indices represent down-regulation
   std::vector<int> out_order;
 };
 
 class Network {
 public:
-  boost::unordered_map<std::string, int> nodes_;
-  std::vector<NodeData> node_data_;
+  /// iterator
+  ///   iterators dereference to class Node
+  typedef boost::transform_iterator < std::function < Node const ( int64_t ) >, 
+    boost::counting_iterator<int64_t> > iterator;
+
+  /// begin
+  iterator 
+  begin ( void ) const;
+
+  /// end
+  iterator 
+  end ( void ) const;
+  
+  /// size
+  int
+  size ( void ) const;
+
+  /// load
+  /// load network from file
+  void 
+  load ( char const* filename );
+
+  /// index
+  ///   Return index of node given name string
+  int 
+  index ( std::string const& name ) const;
+
+  /// name
+  ///   Return name of node given index
+  std::string
+  name ( int index ) const;
+
+  /// node
+  ///   Return node information given index
+  Node const&
+  node ( int index ) const;
+private:
+  std::unordered_map<std::string, int> name_to_index_;
+  std::vector<std::string> names_;
+  std::vector<Node> nodes_;
 };
+
+inline Network::iterator Network::
+begin ( void ) const {
+  return iterator ( 1, std::bind ( &Network::node, this, _1 ) );
+}
+
+inline Network::iterator Network::
+end ( void ) const {
+  return begin() + size();
+}
+
+inline int Network::
+size ( void ) const {
+  return name_to_index_ . size ();
+}
+
+inline int Network::
+index ( std::string const& name ) const {
+  return name_to_index_[name];
+}
+inline std::string Network::
+name ( int index ) const {
+  return names_[index];
+}
+
+inline Node const& Network::
+node ( int index ) const {
+  return nodes_[index];
+}
 
 inline std::ostream & 
 operator << ( std::ostream & stream, 
-              const NodeData & data ) {
-  stream << "Node " << data . index << ":\n";
-  BOOST_FOREACH ( const std::vector<int> & factor, data . logic ) {
+              const Node & node ) {
+  stream << "Node " << node . index << ":\n";
+  for ( const std::vector<int> & factor : node . logic ) {
     stream << "(";
     for ( int i = 0; i < factor . size (); ++ i ) {
       if ( i != 0 ) stream << ", ";
@@ -39,9 +107,9 @@ operator << ( std::ostream & stream,
     stream << ")";
   }
   stream << "\n  Out Order:  ";
-  for ( int i = 0; i < data . out_order . size (); ++ i ) {
+  for ( int i = 0; i < node . out_order . size (); ++ i ) {
     if ( i != 0 ) stream << ", ";
-    stream << data . out_order [ i ];
+    stream << node . out_order [ i ];
   }
   stream << "\n";
   return stream;
@@ -52,13 +120,12 @@ operator << ( std::ostream & stream,
 inline std::ostream & 
 operator << ( std::ostream & stream, 
               const Network & network ) {
-  stream << "There are " << network . nodes_ . size () << " nodes with the following names and indices:\n";
-  typedef std::pair<const std::string, int> value_t;
-  BOOST_FOREACH ( const value_t & node, network . nodes_ ) {
-    stream << node . first << " <-> " << node . second << "\n";
+  stream << "There are " << network . size () << " nodes with the following names and indices:\n";
+  for ( auto const& node : network ) {
+    stream << node . index << " <-> " << network . name ( node . index ) << "\n";
   }
-  BOOST_FOREACH ( const NodeData & data, network . node_data_ ) {
-    stream << data << "\n";
+  for ( auto const& node : network ) {
+    stream << node << "\n";
   }
   return stream;
 }
@@ -66,7 +133,7 @@ operator << ( std::ostream & stream,
 
 inline int 
 parseNodeName ( const std::string & field, 
-                boost::unordered_map<std::string, int> & nodes_ ) {
+                std::unordered_map<std::string, int> & name_to_index_ ) {
   //std::cout << "NODE: " << field << "\n"; // DEBUG
   typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
   boost::char_separator<char> sep(" ", "~");
@@ -84,38 +151,38 @@ parseNodeName ( const std::string & field,
     negated = false;
     nodeName = token;
   }
-  if ( nodes_ . count ( nodeName ) == 0 ) {
-    int new_index = nodes_ . size () + 1;
-    nodes_ [ nodeName ] = new_index;
+  if ( name_to_index_ . count ( nodeName ) == 0 ) {
+    int new_index = name_to_index_ . size () + 1;
+    name_to_index_ [ nodeName ] = new_index;
   } 
   if ( tok_iter != tokens . end () ) throw std::logic_error ( field );
-  return ( negated ? -1 : 1 ) * nodes_ [ nodeName ];
+  return ( negated ? -1 : 1 ) * name_to_index_ [ nodeName ];
 }
 
 inline std::vector<int> 
 parseSum( const std::string & field,
-          boost::unordered_map<std::string, int> & nodes_ ) {
+          std::unordered_map<std::string, int> & name_to_index_ ) {
   //std::cout << "SUM: " << field << "\n"; // DEBUG
   std::vector<int> result;
   typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
   boost::char_separator<char> sep("+ ");
   tokenizer tokens(field, sep);
-  BOOST_FOREACH ( std::string summand, tokens ) {
-    result . push_back ( parseNodeName ( summand, nodes_ ) );
+  for ( std::string const& summand : tokens ) {
+    result . push_back ( parseNodeName ( summand, name_to_index_ ) );
   }
   return result;
 }
 
 inline std::vector< std::vector<int> > 
 parseProductOfSums( const std::string & field,
-                    boost::unordered_map<std::string, int> & nodes_ ) {
+                    std::unordered_map<std::string, int> & name_to_index_ ) {
   //std::cout << "POS: " << field << "\n"; // DEBUG
   std::vector< std::vector<int> > result;
   typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
   boost::char_separator<char> sep("()");
   tokenizer tokens(field, sep);
-  BOOST_FOREACH ( std::string factor, tokens ) {
-    std::vector<int> factor_parse = parseSum ( factor, nodes_ );
+  for ( std::string const& factor : tokens ) {
+    std::vector<int> factor_parse = parseSum ( factor, name_to_index_ );
     if ( factor_parse . size () > 0 ) result . push_back ( factor_parse );
   }
   return result;
@@ -123,40 +190,39 @@ parseProductOfSums( const std::string & field,
 
 inline std::vector< int > 
 parseOutOrder( const std::string & field,
-               boost::unordered_map<std::string, int> & nodes_ ) {
+               std::unordered_map<std::string, int> & name_to_index_ ) {
   //std::cout << "OUT: " << field << "\n"; // DEBUG
   std::vector<int> result;
   typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
   boost::char_separator<char> sep(", ");
   tokenizer tokens(field, sep);
-  BOOST_FOREACH ( std::string outNode, tokens ) {
-    result . push_back ( parseNodeName ( outNode, nodes_ ) );
+  for ( std::string const& outNode : tokens ) {
+    result . push_back ( parseNodeName ( outNode, name_to_index_ ) );
   }
   return result;
 }
 
-inline NodeData 
+inline Node 
 parseLine ( const std::string & line,
-            boost::unordered_map<std::string, int> & nodes_ ) {
+            std::unordered_map<std::string, int> & name_to_index_ ) {
   //std::cout << "LINE: " << line << "\n"; // DEBUG
-  NodeData result;
+  Node result;
   typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
   boost::char_separator<char> sep(":->");
   tokenizer tokens(line, sep);
   tokenizer::iterator tok_iter = tokens . begin ();
   if ( tok_iter == tokens . end () ) throw std::logic_error ( line );
-  result . index = parseNodeName ( * tok_iter ++, nodes_ );
+  result . index = parseNodeName ( * tok_iter ++, name_to_index_ );
   if ( tok_iter == tokens . end () ) throw std::logic_error ( line );
-  result . logic = parseProductOfSums ( * tok_iter ++, nodes_ );
+  result . logic = parseProductOfSums ( * tok_iter ++, name_to_index_ );
   if ( tok_iter == tokens . end () ) throw std::logic_error ( line );
-  result . out_order = parseOutOrder ( * tok_iter ++, nodes_ );
+  result . out_order = parseOutOrder ( * tok_iter ++, name_to_index_ );
   if ( tok_iter != tokens . end () ) throw std::logic_error ( line );
   return result;
 }
 
-inline Network
-loadNetwork ( const char * filename ) {
-  Network result;
+inline void Network::
+load ( const char * filename ) {
   std::ifstream infile ( filename );
   if ( not infile . good () ) {
     throw std::logic_error ( "Problem loading network file.\n");
@@ -164,8 +230,8 @@ loadNetwork ( const char * filename ) {
   std::string line;
   while ( std::getline ( infile, line ) ) {
     try {
-      NodeData data = parseLine ( line, result . nodes_ );
-      result . node_data_ . push_back ( data );
+      Node node = parseLine ( line, name_to_index_ );
+      nodes_ . push_back ( node );
     } catch ( std::logic_error & except ) {
       std::stringstream ss;
       ss << "Failure parsing network file " << filename << "\n";
@@ -174,8 +240,10 @@ loadNetwork ( const char * filename ) {
     }
   }
   infile . close ();
-  std::cout << "Network.h loadNetwork. " << result << "\n"; // DEBUG
-  return result;
+  names_ . resize ( name_to_index_ . size () );
+  for ( auto name_index_pair : name_to_index_ ) {
+    names_ [ name_index_pair.second ] = name_index_pair.first;
+  }
 }
 
 }

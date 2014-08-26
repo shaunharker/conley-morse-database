@@ -6,9 +6,10 @@
 #include <exception>
 #include <sstream>
 
-#include "boost/unordered_map.hpp"
+#include <unordered_map>
+#include <unordered_set>
+
 #include "boost/shared_ptr.hpp"
-#include "boost/foreach.hpp"
 
 #include "database/structures/RectGeo.h"
 #include "database/structures/ParameterSpace.h"
@@ -54,7 +55,7 @@ private:
   boost::shared_ptr < BooleanSwitchingParameterSpace > parameter_space_;
   int phase_space_dimension_;
   MultiDimensionalIndices domains_;
-  boost::unordered_map<Wall, size_t> walls_;
+  std::unordered_map<Wall, size_t> walls_;
 public:
   friend class boost::serialization::access;
   template<class Archive>
@@ -78,7 +79,7 @@ Model::initialize ( int argc, char * argv [] ) {
   // Loop through domains and create walls and interior point.
   std::cout << "Model::initialize. Build walls.\n";
   size_t num_walls = 0;
-  BOOST_FOREACH ( const std::vector<size_t> & domain, domains_ ) {
+  for ( std::vector<size_t> const& domain : domains_ ) {
     for ( int cface = -phase_space_dimension_; 
           cface <= phase_space_dimension_; ++ cface ) {
       Wall wall ( cface, domain );
@@ -99,7 +100,7 @@ inline boost::shared_ptr < Grid >
 Model::phaseSpace ( void ) const {
   boost::shared_ptr < Atlas > space ( new Atlas );
   typedef std::pair<Wall, size_t> WallIndexPair;
-  BOOST_FOREACH ( const WallIndexPair & wall_index_pair, walls_ ) {
+  for ( WallIndexPair const& wall_index_pair : walls_ ) {
     const Wall & wall = wall_index_pair . first;
     int wall_id = wall_index_pair . second;
     RectGeo rect = wall . reducedRect (); 
@@ -116,18 +117,18 @@ Model::map ( boost::shared_ptr<Parameter> p) const {
   std::ofstream outfile ("map.gv");
   outfile << "digraph G {\n";
   typedef std::pair<Wall, size_t> WallIndexPair;
-  BOOST_FOREACH ( const WallIndexPair & wall_index_pair, walls_ ) {
+  for ( WallIndexPair const& wall_index_pair : walls_ ) {
     const Wall & wall = wall_index_pair . first;
     int wall_id = wall_index_pair . second;
     outfile << wall_id << "[label=\"" << wall . rect () << "\"]\n";
   }
-  boost::unordered_set<uint64_t> mapped_in, mapped_out;
+  std::unordered_set<uint64_t> mapped_in, mapped_out;
 #endif
-  BOOST_FOREACH ( const std::vector<size_t> & domain, domains_ ) {
+  for ( std::vector<size_t> const& domain : domains_ ) {
     typedef std::pair<int, int> intPair;
     std::vector < intPair > listofmaps = 
       BooleanSwitchingMaps ( parameter_space_ -> closestFace ( p, domain ) );
-    BOOST_FOREACH ( const intPair & cface_pair, listofmaps ) {
+    for ( intPair const& cface_pair : listofmaps ) {
       Wall wall1 ( cface_pair . first, domain );
       Wall wall2 ( cface_pair . second, domain );
       int id1 = walls_ . find ( wall1 ) -> second;
@@ -145,7 +146,7 @@ Model::map ( boost::shared_ptr<Parameter> p) const {
 #ifdef BS_DEBUG_MODELMAP
   outfile << "}\n\n";
   outfile . close ();
-  BOOST_FOREACH ( uint64_t in, mapped_in ) {
+  for ( uint64_t in : mapped_in ) {
     if ( mapped_out . count ( in ) == 0 ) {
       abort ();
     }
