@@ -11,8 +11,8 @@
 #include <sstream>
 #include <unordered_map>
 
-#include <boost/shared_ptr.hpp>
-
+#include "boost/shared_ptr.hpp"
+#include "boost/functional/hash.hpp"
 #include "database/structures/ParameterSpace.h"
 #include "database/structures/AbstractParameterSpace.h"
 
@@ -34,7 +34,7 @@ public:
 
   /// initialize
   ///    Create the ParameterSpace given the configuration specified
-  virtual void initialize ( int argc, char * argv [] );
+  virtual void initialize ( int64_t argc, char * argv [] );
 
   /// adjacencies
   ///    Return a vector of adjacent vertices.
@@ -56,9 +56,9 @@ public:
   /// closestFace
   ///   given a domain, return the closest face 
   ///   closest face is output in the following form:
-  ///   There are d entries in an std::vector<int>
+  ///   There are d entries in an std::vector<int64_t>
   ///     0 means lower bound, 1 means between, 2 means upper bound
-  std::vector<int> closestFace ( boost::shared_ptr<Parameter> parameter, 
+  std::vector<int64_t> closestFace ( boost::shared_ptr<Parameter> parameter, 
                                  std::vector<size_t> const& domain ) const;
   /// domainLimits
   ///    Return a vector containing the number of thresholds plus one in each dimension
@@ -69,15 +69,15 @@ public:
 
   /// dimension
   ///    Return dimension
-  int dimension ( void ) const;
+  int64_t dimension ( void ) const;
 
   /// factorGraph
   ///    Return factor graph
   const FactorGraph &
-  factorGraph ( int i ) const;
+  factorGraph ( int64_t i ) const;
 
-  /// prettyPrint
-  ///    Print out parameter in human readable format
+  /// prettyPrint64_t
+  ///    Print64_t out parameter in human readable format
   std::string
   prettyPrint ( boost::shared_ptr<Parameter> parameter ) const;
 
@@ -85,7 +85,7 @@ private:
 
   /// dimension_
   ///   dimension of phase space. This is equal to the number of network nodes.
-  int dimension_; 
+  int64_t dimension_; 
 
   /// factors_
   ///    The stored FactorGraphs
@@ -102,7 +102,7 @@ private:
 };
 
 inline void 
-BooleanSwitchingParameterSpace::initialize ( int argc, char * argv [] ) {
+BooleanSwitchingParameterSpace::initialize ( int64_t argc, char * argv [] ) {
   std::cout << "BooleanSwitchingParameterSpace::initialize\n";
   // Load the network file
   std::string filestring ( argv[1] );
@@ -120,15 +120,15 @@ BooleanSwitchingParameterSpace::initialize ( int argc, char * argv [] ) {
   // Loop through nodes and create FactorGraphs
   factors_ . resize ( dimension_ );
   for ( BooleanSwitching::Node const& node : network_ ) {
-    int d = node . index - 1; // Index of node (minus one to start indexing at 0)
-    int n = 0; // Number of in edges for node d
-    std::vector<int> logic; // Logic for node d inputs
-    for ( int i = 0; i < node . logic . size (); ++ i ) {
-        int k = node . logic [ i ] . size ();
+    int64_t d = node . index - 1; // Index of node (minus one to start indexing at 0)
+    int64_t n = 0; // Number of in edges for node d
+    std::vector<int64_t> logic; // Logic for node d inputs
+    for ( int64_t i = 0; i < node . logic . size (); ++ i ) {
+        int64_t k = node . logic [ i ] . size ();
         logic . push_back ( k );
             n += k;
         }
-    int m = node . out_order . size ();
+    int64_t m = node . out_order . size ();
     factors_ [ d ] . construct ( MonotonicMap ( n, m, logic ) );
     std::cout << "BooleanSwitchingParameterSpace::initialize." << 
       "factors_[" << d << "].size() = " << factors_[d].size() << "\n"; // DEBUG
@@ -148,10 +148,10 @@ BooleanSwitchingParameterSpace::adjacencies ( ParameterIndex v ) const {
   }
   // Loop through coordinates and change monotonic functions by one
   uint64_t multiplier = 1;
-  for ( int d = 0; d < dimension_; ++ d ) {
-    int digit = p -> monotonic_function_ [ d ];
-    const std::vector<int> & neighbors = factors_ [ d ] . adjacencies ( digit );
-    for ( int neighbor : neighbors ) {
+  for ( int64_t d = 0; d < dimension_; ++ d ) {
+    int64_t digit = p -> monotonic_function_ [ d ];
+    std::vector<int64_t> const& neighbors = factors_ [ d ] . adjacencies ( digit );
+    for ( int64_t neighbor : neighbors ) {
         result . push_back ( v + multiplier * ( neighbor - digit ) );
     }
     multiplier *= factors_ [ d ] . size ();
@@ -162,7 +162,7 @@ BooleanSwitchingParameterSpace::adjacencies ( ParameterIndex v ) const {
 inline uint64_t 
 BooleanSwitchingParameterSpace::size ( void ) const {
   uint64_t result = 1;
-  for ( int d = 0; d < dimension_; ++ d ) {
+  for ( int64_t d = 0; d < dimension_; ++ d ) {
     result *= factors_ [ d ] . size ();
   }
   return result;
@@ -172,7 +172,7 @@ inline boost::shared_ptr<Parameter>
 BooleanSwitchingParameterSpace::parameter ( ParameterIndex v ) const {
   boost::shared_ptr<BooleanSwitchingParameter> 
     p ( new BooleanSwitchingParameter(dimension_) );
-  for ( int d = 0; d < dimension_; ++ d ) {
+  for ( int64_t d = 0; d < dimension_; ++ d ) {
     size_t factor_size = factors_ [ d ] . size ();
     p -> monotonic_function_ [ d ] = v % factor_size;
     v /= factor_size;
@@ -186,7 +186,7 @@ BooleanSwitchingParameterSpace::search ( boost::shared_ptr<Parameter> parameter 
     * boost::dynamic_pointer_cast<BooleanSwitchingParameter> ( parameter );
   uint64_t result = 0;
   uint64_t multiplier = 1;
-  for ( int d = 0; d < dimension_; ++ d ) {
+  for ( int64_t d = 0; d < dimension_; ++ d ) {
     result += multiplier * p . monotonic_function_ [ d ];
     multiplier *= factors_ [ d ] . size ();
   }
@@ -194,13 +194,13 @@ BooleanSwitchingParameterSpace::search ( boost::shared_ptr<Parameter> parameter 
 }
 
 
-inline std::vector<int> 
+inline std::vector<int64_t> 
 BooleanSwitchingParameterSpace::closestFace 
                 ( boost::shared_ptr<Parameter> p, 
-                  const std::vector<size_t> const& domain ) const {
+                  std::vector<size_t> const& domain ) const {
   boost::shared_ptr<BooleanSwitchingParameter> parameter =
   boost::dynamic_pointer_cast<BooleanSwitchingParameter> ( p ); 
-  std::vector<int> result ( dimension_ );
+  std::vector<int64_t> result ( dimension_ );
   if ( dimension_ != domain . size () ) { 
     std::cout << "error. BooleanSwitchingParameter::closestFace. "
                  "Inappropriate input domain size.\n";
@@ -219,11 +219,11 @@ BooleanSwitchingParameterSpace::closestFace
   //          from network indexing to dimension indexing, which is
   //          just to subtract 1.
   //          We store the "state" via network indexing.
-  std::unordered_map < std::pair<int, int>, bool > state;
+  std::unordered_map < std::pair<int64_t, int64_t>, bool, boost::hash<std::pair<int64_t, int64_t>> > state;
   for ( BooleanSwitching::Node const& node : network_ ) {
-    int critical_value = domain [ node . index - 1 ];
-    int count = 0;
-    for ( int out_node : node . out_order ) {
+    int64_t critical_value = domain [ node . index - 1 ];
+    int64_t count = 0;
+    for ( int64_t out_node : node . out_order ) {
       state [ std::make_pair ( node . index, out_node ) ] = 
         ( count ++ < critical_value );
     }
@@ -241,21 +241,21 @@ BooleanSwitchingParameterSpace::closestFace
   // End
   for ( BooleanSwitching::Node const& node : network_ ) {
     uint64_t code = 0;
-    for ( std::vector<int> const& factor : node . logic ) {
-      for ( int in_node : factor ) {
+    for ( std::vector<int64_t> const& factor : node . logic ) {
+      for ( int64_t in_node : factor ) {
         code <<= 1;
         bool bit = state [ std::make_pair ( std::abs(in_node), 
                            node . index ) ];
-        if ( in_node < 0 ) bit = not bit; // Take into account down-regulation
+        if ( in_node < 0 ) bit = not bit; // Take int64_to account down-regulation
         if ( bit ) ++ code;
       }
     }
     // Note. Input code for node (node . index) has been established
-    int d = node . index - 1; // Index of node (minus one to start indexing at 0)
-    int monotonic_function_index = parameter -> monotonic_function_ [ d ];
+    int64_t d = node . index - 1; // Index of node (minus one to start indexing at 0)
+    int64_t monotonic_function_index = parameter -> monotonic_function_ [ d ];
     const MonotonicMap & monotonic_function = 
       factors_ [ d ] . vertices [ monotonic_function_index ];
-    int bin = monotonic_function . data_ [ code ];
+    int64_t bin = monotonic_function . data_ [ code ];
     if ( bin < domain [ d ] ) result [ d ] = 0;
     else if ( bin == domain [ d ] ) result [ d ] = 1;
     else if ( bin > domain [ d ] ) result [ d ] = 2;    
@@ -272,32 +272,32 @@ BooleanSwitchingParameterSpace::domainLimits ( void ) const {
   return result;
 }
 
-inline int
+inline int64_t
 BooleanSwitchingParameterSpace::dimension ( void ) const {
   return dimension_;
 }
 
 inline const FactorGraph &
-BooleanSwitchingParameterSpace::factorGraph ( int i ) const {
+BooleanSwitchingParameterSpace::factorGraph ( int64_t i ) const {
   return factors_ [ i ];
 }
 
-std::string BooleanSwitchingParameterSpace::
+inline std::string BooleanSwitchingParameterSpace::
 prettyPrint ( boost::shared_ptr<Parameter> parameter ) const {
   std::stringstream result;
   const BooleanSwitchingParameter & p = 
       * boost::dynamic_pointer_cast<BooleanSwitchingParameter> ( parameter );
-  for ( int d = 0; d < dimension_; ++ d ) {
+  for ( int64_t d = 0; d < dimension_; ++ d ) {
     std::string symbol = network_ . name ( d );
     std::vector<std::string> input_symbols, output_symbols;
     BooleanSwitching::Node node = network_ . node ( d + 1 );
-    for ( std::vector<int> const& factor : node . logic ) {
-      for ( int input : factor ) {
-        input_symbols . push_back ( network_ . name ( std::abs(input) );
+    for ( std::vector<int64_t> const& factor : node . logic ) {
+      for ( int64_t input : factor ) {
+        input_symbols . push_back ( network_ . name ( std::abs(input) ) );
       }
     }
-    for ( int output : node . out_order ) {
-      output_symbols . push_back ( network_ . name ( output );
+    for ( int64_t output : node . out_order ) {
+      output_symbols . push_back ( network_ . name ( output ) );
     }
     MonotonicMap mono = factors_ [ d ] . vertices [ p . monotonic_function_ [ d ] ];
     result << mono . prettyPrint ( symbol, input_symbols, output_symbols );

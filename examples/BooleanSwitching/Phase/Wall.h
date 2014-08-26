@@ -21,7 +21,7 @@ class Wall {
 public:
   Wall ( void ) {}
   Wall ( int face, 
-         std::vector<int> const& domain );
+         std::vector<size_t> const& domain );
 
   // store the geometrical information of the chart
   // convention : 
@@ -46,17 +46,17 @@ public:
   RectGeo reducedRect ( void ) const;
 
 //
-  friend std::size_t hash_value ( Wall const & chart ) {
-  std::size_t seed = 0;
-  
-  std::vector < double > const& lbounds = chart.rect().lower_bounds;
-  std::vector < double > const& ubounds = chart.rect().upper_bounds;
+  friend std::size_t hash_value ( Wall const& chart ) {
+    std::size_t seed = 0;
+    
+    std::vector < double > const& lbounds = chart.rect().lower_bounds;
+    std::vector < double > const& ubounds = chart.rect().upper_bounds;
 
-  for ( unsigned int i = 0; i < chart.rect().dimension(); ++i ) {
-    boost::hash_combine ( seed, lbounds[i] );
-    boost::hash_combine ( seed, ubounds[i] );
-  }
-  return seed;
+    for ( unsigned int i = 0; i < chart.rect().dimension(); ++i ) {
+      boost::hash_combine ( seed, lbounds[i] );
+      boost::hash_combine ( seed, ubounds[i] );
+    }
+    return seed;
   }
 
 // to compare charts, we do not check the id number
@@ -87,8 +87,19 @@ private:
 
 };
 
+namespace std {
+  template <>
+  struct hash<Wall>
+  {
+    std::size_t operator()(Wall const& wall) const {
+      return hash_value ( wall );
+    }
+  };
+
+}
+
 inline Wall::Wall ( int face, 
-                    std::vector<int> const& domain ) {
+                    std::vector<size_t> const& domain ) {
   // dimension of the phase space
   int dimension = domain. size();
 
@@ -137,8 +148,8 @@ Wall::isFixedPoint ( void ) const {
   std::vector < double > const& ubounds = rect_ . upper_bounds;
   int dim = lbounds . size();
   for ( int i = 0; i < dim; ++ i )  {
-    // if at least one direction is not degenerate -> not a fixed point
-    if ( abs(lbounds[i]-ubounds[i]) > 1e-12 ) {
+    // if at least one direction is degenerate -> not a fixed point
+    if ( abs(lbounds[i]-ubounds[i]) < 1e-12 ) {
       output = false;
       break;
     }

@@ -16,16 +16,16 @@
 namespace BooleanSwitching {
 
 struct Node {
-  int index; // indexing starts at 1
-  std::vector<std::vector<int> > logic; // negative indices represent down-regulation
-  std::vector<int> out_order;
+  int64_t index; // indexing starts at 1
+  std::vector<std::vector<int64_t> > logic; // negative indices represent down-regulation
+  std::vector<int64_t> out_order;
 };
 
 class Network {
 public:
   /// iterator
   ///   iterators dereference to class Node
-  typedef boost::transform_iterator < std::function < Node const ( int64_t ) >, 
+  typedef boost::transform_iterator < std::function < Node const& ( int64_t ) >, 
     boost::counting_iterator<int64_t> > iterator;
 
   /// begin
@@ -37,7 +37,7 @@ public:
   end ( void ) const;
   
   /// size
-  int
+  int64_t
   size ( void ) const;
 
   /// load
@@ -47,27 +47,27 @@ public:
 
   /// index
   ///   Return index of node given name string
-  int 
+  int64_t 
   index ( std::string const& name ) const;
 
   /// name
   ///   Return name of node given index
   std::string
-  name ( int index ) const;
+  name ( int64_t index ) const;
 
   /// node
   ///   Return node information given index
   Node const&
-  node ( int index ) const;
+  node ( int64_t index ) const;
 private:
-  std::unordered_map<std::string, int> name_to_index_;
+  std::unordered_map<std::string, int64_t> name_to_index_;
   std::vector<std::string> names_;
   std::vector<Node> nodes_;
 };
 
 inline Network::iterator Network::
 begin ( void ) const {
-  return iterator ( 1, std::bind ( &Network::node, this, _1 ) );
+  return iterator ( 1, std::bind ( &Network::node, this, std::placeholders::_1 ) );
 }
 
 inline Network::iterator Network::
@@ -75,22 +75,22 @@ end ( void ) const {
   return begin() + size();
 }
 
-inline int Network::
+inline int64_t Network::
 size ( void ) const {
   return name_to_index_ . size ();
 }
 
-inline int Network::
+inline int64_t Network::
 index ( std::string const& name ) const {
-  return name_to_index_[name];
+  return name_to_index_ . find ( name ) -> second;
 }
 inline std::string Network::
-name ( int index ) const {
+name ( int64_t index ) const {
   return names_[index];
 }
 
 inline Node const& Network::
-node ( int index ) const {
+node ( int64_t index ) const {
   return nodes_[index];
 }
 
@@ -98,16 +98,16 @@ inline std::ostream &
 operator << ( std::ostream & stream, 
               const Node & node ) {
   stream << "Node " << node . index << ":\n";
-  for ( const std::vector<int> & factor : node . logic ) {
+  for ( const std::vector<int64_t> & factor : node . logic ) {
     stream << "(";
-    for ( int i = 0; i < factor . size (); ++ i ) {
+    for ( int64_t i = 0; i < factor . size (); ++ i ) {
       if ( i != 0 ) stream << ", ";
       stream << factor [ i ];
     }
     stream << ")";
   }
   stream << "\n  Out Order:  ";
-  for ( int i = 0; i < node . out_order . size (); ++ i ) {
+  for ( int64_t i = 0; i < node . out_order . size (); ++ i ) {
     if ( i != 0 ) stream << ", ";
     stream << node . out_order [ i ];
   }
@@ -131,9 +131,9 @@ operator << ( std::ostream & stream,
 }
 
 
-inline int 
+inline int64_t 
 parseNodeName ( const std::string & field, 
-                std::unordered_map<std::string, int> & name_to_index_ ) {
+                std::unordered_map<std::string, int64_t> & name_to_index_ ) {
   //std::cout << "NODE: " << field << "\n"; // DEBUG
   typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
   boost::char_separator<char> sep(" ", "~");
@@ -152,18 +152,18 @@ parseNodeName ( const std::string & field,
     nodeName = token;
   }
   if ( name_to_index_ . count ( nodeName ) == 0 ) {
-    int new_index = name_to_index_ . size () + 1;
+    int64_t new_index = name_to_index_ . size () + 1;
     name_to_index_ [ nodeName ] = new_index;
   } 
   if ( tok_iter != tokens . end () ) throw std::logic_error ( field );
   return ( negated ? -1 : 1 ) * name_to_index_ [ nodeName ];
 }
 
-inline std::vector<int> 
+inline std::vector<int64_t> 
 parseSum( const std::string & field,
-          std::unordered_map<std::string, int> & name_to_index_ ) {
+          std::unordered_map<std::string, int64_t> & name_to_index_ ) {
   //std::cout << "SUM: " << field << "\n"; // DEBUG
-  std::vector<int> result;
+  std::vector<int64_t> result;
   typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
   boost::char_separator<char> sep("+ ");
   tokenizer tokens(field, sep);
@@ -173,26 +173,26 @@ parseSum( const std::string & field,
   return result;
 }
 
-inline std::vector< std::vector<int> > 
+inline std::vector< std::vector<int64_t> > 
 parseProductOfSums( const std::string & field,
-                    std::unordered_map<std::string, int> & name_to_index_ ) {
+                    std::unordered_map<std::string, int64_t> & name_to_index_ ) {
   //std::cout << "POS: " << field << "\n"; // DEBUG
-  std::vector< std::vector<int> > result;
+  std::vector< std::vector<int64_t> > result;
   typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
   boost::char_separator<char> sep("()");
   tokenizer tokens(field, sep);
   for ( std::string const& factor : tokens ) {
-    std::vector<int> factor_parse = parseSum ( factor, name_to_index_ );
+    std::vector<int64_t> factor_parse = parseSum ( factor, name_to_index_ );
     if ( factor_parse . size () > 0 ) result . push_back ( factor_parse );
   }
   return result;
 }
 
-inline std::vector< int > 
+inline std::vector< int64_t > 
 parseOutOrder( const std::string & field,
-               std::unordered_map<std::string, int> & name_to_index_ ) {
+               std::unordered_map<std::string, int64_t> & name_to_index_ ) {
   //std::cout << "OUT: " << field << "\n"; // DEBUG
-  std::vector<int> result;
+  std::vector<int64_t> result;
   typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
   boost::char_separator<char> sep(", ");
   tokenizer tokens(field, sep);
@@ -204,7 +204,7 @@ parseOutOrder( const std::string & field,
 
 inline Node 
 parseLine ( const std::string & line,
-            std::unordered_map<std::string, int> & name_to_index_ ) {
+            std::unordered_map<std::string, int64_t> & name_to_index_ ) {
   //std::cout << "LINE: " << line << "\n"; // DEBUG
   Node result;
   typedef boost::tokenizer<boost::char_separator<char> > tokenizer;

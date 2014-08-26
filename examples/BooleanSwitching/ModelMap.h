@@ -3,6 +3,7 @@
 #ifndef BOOLEANSWITCHINGMODELMAP_H
 #define BOOLEANSWITCHINGMODELMAP_H
 
+#include "database/maps/AtlasMap.h"
 #include "database/structures/RectGeo.h"
 
 class BooleanChartMap {

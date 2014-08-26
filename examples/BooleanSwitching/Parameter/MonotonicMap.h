@@ -16,8 +16,8 @@
 class MonotonicMap {
 public:
   // data
-  int n; // number of in edges  -- domain is {0,1,...,2^n-1}
-  int m; // number of out edges -- codomain is {0,1,...,m}
+  int64_t n; // number of in edges  -- domain is {0,1,...,2^n-1}
+  int64_t m; // number of out edges -- codomain is {0,1,...,m}
 
   /// logic_
   ///    An expression of the form (a+b+c)(d+e)f(g+h)
@@ -27,43 +27,43 @@ public:
   ///    The entries in logic_ line up to the bits in the domain of data_
   ///    in such a way that the last entry of logic_ corresponds to the least
   ///    significant bit of data_'s domain.
-  std::vector< int> logic_; // logic
+  std::vector< int64_t> logic_; // logic
   
   /// data_
   ///    data_ is an array storing the values of
   ///    a map from {0,1,...2^n-1} -> {0,1,...m}
-  std::vector< int > data_;  // mapping
+  std::vector< int64_t > data_;  // mapping
 
 
   // constructors
   MonotonicMap ( void ) {}
-  MonotonicMap ( int n, int m ) : n(n), m(m) {
+  MonotonicMap ( int64_t n, int64_t m ) : n(n), m(m) {
     data_ . resize ( (1 << n), 0 );
     logic_ . resize ( 1, n ); // all-sum by default
   }
-  MonotonicMap ( int n, int m, const std::vector<int> & logic ): n(n), m(m), logic_(logic) {
+  MonotonicMap ( int64_t n, int64_t m, std::vector<int64_t> const& logic ): n(n), m(m), logic_(logic) {
     data_ . resize ( (1 << n), 0 );
   }
-  MonotonicMap ( int n, 
-                 int m, 
-                 const std::vector<int> & logic, 
-                 const std::vector<int> & data )
+  MonotonicMap ( int64_t n, 
+                 int64_t m, 
+                 std::vector<int64_t> const& logic, 
+                 std::vector<int64_t> const& data )
     : n(n), m(m), logic_(logic), data_(data) {}
 
   // Check if monotonic
   bool monotonic ( void ) const {
     //std::cout << "Calling monotonic\n";
-    int N = (1 << n);
-    for ( int i = 0; i < N; ++ i ) {
-      std::vector<int> children;
-      for ( int pos = 0; pos < n; ++ pos ) {
-        int bit = 1 << pos;
+    int64_t N = (1 << n);
+    for ( int64_t i = 0; i < N; ++ i ) {
+      std::vector<int64_t> children;
+      for ( int64_t pos = 0; pos < n; ++ pos ) {
+        int64_t bit = 1 << pos;
         if ( not ( i & bit ) ) { 
           //std::cout << "Pushing child " << (i|bit) << " of " << i << "\n";
           children . push_back ( i | bit );
         }
       }
-      BOOST_FOREACH ( int child, children ) {
+      BOOST_FOREACH ( int64_t child, children ) {
         if ( data_[child] < data_[i] ) { 
           //std::cout << " Return false because data_[" << child << "] < data_[" << i << "]\n";
           //std::cout << " data_[" << child << "] = " << data_[child] << "\n";
@@ -94,28 +94,28 @@ public:
     // An upper bound for this procedure is 8^n. For small n it should be tractable.
     // Actually it would be better to loop through the pairs first and the
     // substitutions second, to avoid having to store information
-    int max_terms_in_factor = 0;
-    for ( int i = 0; i < logic_ . size (); ++ i ) {
+    int64_t max_terms_in_factor = 0;
+    for ( int64_t i = 0; i < logic_ . size (); ++ i ) {
       max_terms_in_factor = std::max ( max_terms_in_factor, logic_[i] );
     }
 
     if ( (logic_ . size () == 1) || (max_terms_in_factor == 1) ) {
       // Case (n) (all sum case) or Case (1,1,1,1...,1) (n-times, all product case)
-      int N = (1 << n);
-      for ( int i = 0; i < N; ++ i ) {
+      int64_t N = (1 << n);
+      for ( int64_t i = 0; i < N; ++ i ) {
         // I corresponds to the bits of i that are on.
         //std::cout << "Top of loop\n";
 
-        for ( int a = 0; a < N; ++ a ) {
+        for ( int64_t a = 0; a < N; ++ a ) {
           if ( (a & i) != a ) continue;
-          for ( int b = 0; b < N; ++ b ) {
+          for ( int64_t b = 0; b < N; ++ b ) {
             if ( (b & i) != b ) continue;
             bool less = false;
             bool greater = false;
-            for ( int c = 0; c < N; ++ c ) {
+            for ( int64_t c = 0; c < N; ++ c ) {
               if ( (c & i ) != 0 ) continue;
-              int x = data_[a|c];
-              int y = data_[b|c];
+              int64_t x = data_[a|c];
+              int64_t y = data_[b|c];
               /*
               std::cout << "\n a = " << a << "\n";
               std::cout << " b = " << b << "\n";
@@ -150,12 +150,12 @@ public:
         // and then we have two versions of Rule C, which does allow a reverse:
         // " 010 > 100 implies 011 >= 101 "  (Rule C)
         // " 010 < 100 implies 011 <= 101 "  (Rule C, reversed)
-        int D010 = data_[2];
-        int D001 = data_[1];
-        int D110 = data_[6]; 
-        int D101 = data_[5];
-        int D100 = data_[4];
-        int D011 = data_[3];
+        int64_t D010 = data_[2];
+        int64_t D001 = data_[1];
+        int64_t D110 = data_[6]; 
+        int64_t D101 = data_[5];
+        int64_t D100 = data_[4];
+        int64_t D011 = data_[3];
 
         if ( (D010 < D001) && not (D110 <= D101) ) return false;
         if ( (D100 < D001) && not (D110 <= D011) ) return false;
@@ -165,12 +165,12 @@ public:
       }
       if ( logic_[0] == 1 && logic_[1] == 2 ) {
         // Case (1,2). Symmetric to case (2,1). (We just rotate the bits)
-        int D010 = data_[2];
-        int D001 = data_[1];
-        int D110 = data_[6]; 
-        int D101 = data_[5];
-        int D100 = data_[4];
-        int D011 = data_[3];
+        int64_t D010 = data_[2];
+        int64_t D001 = data_[1];
+        int64_t D110 = data_[6]; 
+        int64_t D101 = data_[5];
+        int64_t D100 = data_[4];
+        int64_t D011 = data_[3];
 
         if ( (D001 < D100) && not (D011 <= D110) ) return false;
         if ( (D010 < D100) && not (D011 <= D101) ) return false;
@@ -181,7 +181,7 @@ public:
     } 
     std::cout << "BooleanSwitching Node realizability condition unknown.\n";
     std::cout << "Logic size = " << logic_ . size () << "\n";
-    for ( int i = 0; i < logic_ . size (); ++ i ) std::cout << logic_[i] << " ";
+    for ( int64_t i = 0; i < logic_ . size (); ++ i ) std::cout << logic_[i] << " ";
     std::cout << "\n";
     throw std::logic_error ( "MonotonicMap:: realizability algorithm cannot handle current situation\n");
     return false;
@@ -193,9 +193,9 @@ public:
     std::vector<boost::shared_ptr<MonotonicMap> > results;
 
     // Obtain neighbors via changing the monotone function
-    std::vector<int> copy = data_;
-    int N = (1 << n);
-    for ( int i = 0; i < N; ++ i ) {
+    std::vector<int64_t> copy = data_;
+    int64_t N = (1 << n);
+    for ( int64_t i = 0; i < N; ++ i ) {
       if ( copy[i] > 0 ) {
         -- copy[i];
         boost::shared_ptr<MonotonicMap> new_map ( new MonotonicMap ( n, m, logic_, copy ) );
@@ -218,8 +218,8 @@ public:
   bool operator == ( const MonotonicMap & rhs ) const {
     if ( n != rhs . n ) return false;
     if ( m != rhs . m ) return false;
-    int N = (1 << n);
-    for ( int i = 0; i < N; ++ i ) {
+    int64_t N = (1 << n);
+    for ( int64_t i = 0; i < N; ++ i ) {
       if ( data_[i] != rhs.data_[i] ) return false;
     }
     return true;
@@ -231,18 +231,17 @@ public:
                             std::vector<std::string> const& input_symbols,
                             std::vector<std::string> const& output_symbols ) const {
     std::stringstream ss;
-    int N = (1 << n);
-    for ( int i = 0; i < N; ++ i ) { 
-      int bin = data_[i];
+    int64_t N = (1 << n);
+    for ( int64_t i = 0; i < N; ++ i ) { 
+      int64_t bin = data_[i];
       if ( bin > 0 ) {
         ss << "THETA(" << symbol << ", " << output_symbols[bin-1] << ") <= "; 
       }
-      std::string out_symbol = output_symbols[ data_ [ i ];
-      int count = 0;
-      for ( int j = 0; j < logic_ . size (); ++ j ) {
+      int64_t count = 0;
+      for ( int64_t j = 0; j < logic_ . size (); ++ j ) {
         ss << "(";
-        for ( int k = 0; k < logic_[j]; ++ k ) {
-          if ( i & ( 1 << count ) == 0 ) {
+        for ( int64_t k = 0; k < logic_[j]; ++ k ) {
+          if ( (i & ( 1 << count )) == 0 ) {
             ss << "LOW(";
           } else {
             ss << "HI(";
@@ -261,8 +260,8 @@ public:
 
   friend std::size_t hash_value ( const MonotonicMap & p ) {
     std::size_t seed = 0;
-    int N = (1 << p.n);
-    for ( int i = 0; i < N; ++ i ) {
+    int64_t N = (1 << p.n);
+    for ( int64_t i = 0; i < N; ++ i ) {
       boost::hash_combine(seed, p.data_[i] );
     }
     return seed;
@@ -271,12 +270,12 @@ public:
   friend std::ostream & operator << ( std::ostream & stream, 
                                       const MonotonicMap & print_me ) {
     stream << "{(In,Out)=(" << print_me . n << ", " << print_me . m << "), Logic=(";
-    for ( int i = 0; i < print_me . logic_ . size (); ++ i ) { 
+    for ( int64_t i = 0; i < print_me . logic_ . size (); ++ i ) { 
       if ( i != 0 ) stream << ",";
       std::cout << print_me . logic_[i];
     }
     stream << "), Data=(";
-    for ( int i = 0; i < print_me . data_ . size (); ++ i ) { 
+    for ( int64_t i = 0; i < print_me . data_ . size (); ++ i ) { 
       if ( i != 0 ) stream << ",";
       std::cout << print_me . data_[i];
     }

@@ -11,6 +11,8 @@
 
 #include "boost/shared_ptr.hpp"
 
+#include "database/structures/Atlas.h"
+
 #include "database/structures/RectGeo.h"
 #include "database/structures/ParameterSpace.h"
 #include "database/structures/Grid.h"
@@ -53,7 +55,7 @@ public:
 private:
   Configuration config_;
   boost::shared_ptr < BooleanSwitchingParameterSpace > parameter_space_;
-  int phase_space_dimension_;
+  int64_t phase_space_dimension_;
   MultiDimensionalIndices domains_;
   std::unordered_map<Wall, size_t> walls_;
 public:
@@ -80,7 +82,7 @@ Model::initialize ( int argc, char * argv [] ) {
   std::cout << "Model::initialize. Build walls.\n";
   size_t num_walls = 0;
   for ( std::vector<size_t> const& domain : domains_ ) {
-    for ( int cface = -phase_space_dimension_; 
+    for ( int64_t cface = -phase_space_dimension_; 
           cface <= phase_space_dimension_; ++ cface ) {
       Wall wall ( cface, domain );
       if ( walls_ . count ( wall ) == 0 ) {
@@ -102,7 +104,7 @@ Model::phaseSpace ( void ) const {
   typedef std::pair<Wall, size_t> WallIndexPair;
   for ( WallIndexPair const& wall_index_pair : walls_ ) {
     const Wall & wall = wall_index_pair . first;
-    int wall_id = wall_index_pair . second;
+    int64_t wall_id = wall_index_pair . second;
     RectGeo rect = wall . reducedRect (); 
     space -> add_chart ( wall_id, rect );
   }
@@ -119,20 +121,20 @@ Model::map ( boost::shared_ptr<Parameter> p) const {
   typedef std::pair<Wall, size_t> WallIndexPair;
   for ( WallIndexPair const& wall_index_pair : walls_ ) {
     const Wall & wall = wall_index_pair . first;
-    int wall_id = wall_index_pair . second;
+    int64_t wall_id = wall_index_pair . second;
     outfile << wall_id << "[label=\"" << wall . rect () << "\"]\n";
   }
   std::unordered_set<uint64_t> mapped_in, mapped_out;
 #endif
   for ( std::vector<size_t> const& domain : domains_ ) {
-    typedef std::pair<int, int> intPair;
+    typedef std::pair<int64_t, int64_t> intPair;
     std::vector < intPair > listofmaps = 
       BooleanSwitchingMaps ( parameter_space_ -> closestFace ( p, domain ) );
     for ( intPair const& cface_pair : listofmaps ) {
       Wall wall1 ( cface_pair . first, domain );
       Wall wall2 ( cface_pair . second, domain );
-      int id1 = walls_ . find ( wall1 ) -> second;
-      int id2 = walls_ . find ( wall2 ) -> second;
+      int64_t id1 = walls_ . find ( wall1 ) -> second;
+      int64_t id2 = walls_ . find ( wall2 ) -> second;
       BooleanChartMap map ( wall1 . reducedRect (), 
                             wall2 . reducedRect () );
       atlasmap -> addMap ( id1, id2, map );

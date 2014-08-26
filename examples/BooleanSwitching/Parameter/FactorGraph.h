@@ -19,11 +19,11 @@ template < class T >
 class ConnectedSmartGraph {
 public:
   // gives indexing
-  boost::unordered_map<T, int> preorder;
+  boost::unordered_map<T, int64_t> preorder;
   // array of vertices
   std::vector<T> vertices;
   // optional
-  std::vector<std::vector< int > > adjacencies_;
+  std::vector<std::vector< int64_t > > adjacencies_;
 
   size_t size ( void ) const {
     return vertices . size ();
@@ -59,7 +59,7 @@ public:
 
   void compute_adjacencies ( void ) {
     adjacencies_ . resize ( vertices . size () );
-    for ( int v = 0; v < vertices . size (); ++ v ) {
+    for ( int64_t v = 0; v < vertices . size (); ++ v ) {
       T vertex = vertices [ v ];
       std::vector<boost::shared_ptr<T> > neighbors = vertex . neighbors ();
       BOOST_FOREACH ( boost::shared_ptr<T> ptr, neighbors ) {
@@ -68,18 +68,18 @@ public:
     }
   }
 
-  const std::vector<int> & adjacencies ( int v ) const {
+  const std::vector<int64_t> & adjacencies ( int64_t v ) const {
     return adjacencies_ [ v ];
   }
 
   void saveToFile ( void ) const {
     std::ofstream outfile ( "graph.gv" );
     outfile << "graph factorgraph {\n";
-    for ( int v = 0; v < vertices . size (); ++ v ) {
+    for ( int64_t v = 0; v < vertices . size (); ++ v ) {
       const T & vertex = vertices [ v ];
       std::vector<boost::shared_ptr<T> > neighbors = vertex . neighbors ();
       BOOST_FOREACH ( boost::shared_ptr<T> ptr, neighbors ) {
-        int u = preorder . find ( * ptr) -> second;
+        int64_t u = preorder . find ( * ptr) -> second;
         if ( v < u ) {
           outfile << v << " -- " << u << "\n";
         }

@@ -31,7 +31,7 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 all: Conley_Morse_Database
 
 #conley-morse-database target
-DATABASE := dirs ./build/program/Conley_Morse_Database.o 
+DATABASE := ./build/program/Conley_Morse_Database.o 
 
 ifeq ($(COMPUTE_MORSE_SETS),yes)
 	DATABASE += ./build/program/MorseProcess.o 
@@ -47,7 +47,7 @@ ifeq ($(COMPUTE_CONLEY_INDEX),yes)
 	CXXFLAGS += -D COMPUTE_CONLEY_INDEX
 endif
 
-Conley_Morse_Database: $(DATABASE)
+Conley_Morse_Database: dirs $(DATABASE)
 	$(CC) $(LDFLAGS) $(DATABASE) -o $@ $(LDLIBS)
 
 # SingleCMG target
