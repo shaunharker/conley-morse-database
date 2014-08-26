@@ -31,7 +31,7 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 all: Conley_Morse_Database
 
 #conley-morse-database target
-DATABASE := ./build/program/Conley_Morse_Database.o 
+DATABASE := dirs ./build/program/Conley_Morse_Database.o 
 
 ifeq ($(COMPUTE_MORSE_SETS),yes)
 	DATABASE += ./build/program/MorseProcess.o 
@@ -69,7 +69,7 @@ clean:
 	$(MAKE) -C ./extras/Lyapunov clean
 
 # Create build directories
-.PHONY: build-dirs
+.PHONY: dirs
 dirs:
 	mkdir build
 	mkdir build/program
