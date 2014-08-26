@@ -86,12 +86,12 @@ index ( std::string const& name ) const {
 }
 inline std::string Network::
 name ( int64_t index ) const {
-  return names_[index];
+  return names_[index-1];
 }
 
 inline Node const& Network::
 node ( int64_t index ) const {
-  return nodes_[index];
+  return nodes_[index-1];
 }
 
 inline std::ostream & 
@@ -242,7 +242,7 @@ load ( const char * filename ) {
   infile . close ();
   names_ . resize ( name_to_index_ . size () );
   for ( auto name_index_pair : name_to_index_ ) {
-    names_ [ name_index_pair.second ] = name_index_pair.first;
+    names_ [ name_index_pair.second - 1 ] = name_index_pair.first;
   }
 }
 

@@ -34,7 +34,7 @@ public:
 
   /// initialize
   ///    Create the ParameterSpace given the configuration specified
-  virtual void initialize ( int64_t argc, char * argv [] );
+  virtual void initialize ( int argc, char * argv [] );
 
   /// adjacencies
   ///    Return a vector of adjacent vertices.
@@ -102,7 +102,7 @@ private:
 };
 
 inline void 
-BooleanSwitchingParameterSpace::initialize ( int64_t argc, char * argv [] ) {
+BooleanSwitchingParameterSpace::initialize ( int argc, char * argv [] ) {
   std::cout << "BooleanSwitchingParameterSpace::initialize\n";
   // Load the network file
   std::string filestring ( argv[1] );
@@ -117,6 +117,7 @@ BooleanSwitchingParameterSpace::initialize ( int64_t argc, char * argv [] ) {
   std::cout << "BooleanSwitchingParameterSpace::initialize." << 
     "dimension_ = " << dimension_ << "\n"; // DEBUG
 
+  std::cout << network_ << "\n";
   // Loop through nodes and create FactorGraphs
   factors_ . resize ( dimension_ );
   for ( BooleanSwitching::Node const& node : network_ ) {
@@ -124,10 +125,10 @@ BooleanSwitchingParameterSpace::initialize ( int64_t argc, char * argv [] ) {
     int64_t n = 0; // Number of in edges for node d
     std::vector<int64_t> logic; // Logic for node d inputs
     for ( int64_t i = 0; i < node . logic . size (); ++ i ) {
-        int64_t k = node . logic [ i ] . size ();
-        logic . push_back ( k );
-            n += k;
-        }
+      int64_t k = node . logic [ i ] . size ();
+      logic . push_back ( k );
+      n += k;
+    }
     int64_t m = node . out_order . size ();
     factors_ [ d ] . construct ( MonotonicMap ( n, m, logic ) );
     std::cout << "BooleanSwitchingParameterSpace::initialize." << 
