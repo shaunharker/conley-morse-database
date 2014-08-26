@@ -67,9 +67,9 @@ clean:
 	find ./build -name "*.so" -delete
 	$(MAKE) -C ./extras/SingleCMG clean
 	$(MAKE) -C ./extras/Lyapunov clean
+	rm -rf build
 
 # Create build directories
 .PHONY: dirs
 dirs:
-	mkdir build
-	mkdir build/program
+	mkdir -p build/program
