@@ -27,8 +27,12 @@
 #include "Phase/Wall.h"
 #include "Parameter/BooleanSwitchingParameterSpace.h"
 
+// Header file containing the condition string for annotations
+#include "AnnotationConditions.h"
+
 
 class Model {
+  typedef std::vector<Grid::GridElement> CellContainer;
 public:
   /// initialize
   ///   Given command line arguments, load necessary files 
@@ -58,6 +62,20 @@ private:
   int64_t phase_space_dimension_;
   MultiDimensionalIndices domains_;
   std::unordered_map<Wall, size_t> walls_;
+ 
+  bool validateMorseGraph ( MorseGraph * mg_in ) const;
+ 
+  std::vector < std::string > constructAnnotationsMorseSet (
+                                  const boost::shared_ptr<Grid> & phasespace,
+                                  const CellContainer & subset ) const;
+
+  bool hasAllStatesOn ( const Wall & wall ) const;
+  bool hasAllStatesOff ( const Wall & wall ) const;
+  
+  // Correspondence between the chart id and the wall
+  // restriction : we cannot subdivide the charts
+  boost::unordered_map<size_t, Wall> chartIdToWall_;     
+    
 public:
   friend class boost::serialization::access;
   template<class Archive>
@@ -86,6 +104,8 @@ Model::initialize ( int argc, char * argv [] ) {
           cface <= phase_space_dimension_; ++ cface ) {
       Wall wall ( cface, domain );
       if ( walls_ . count ( wall ) == 0 ) {
+        // needed to be able to check conditions on morse sets
+        chartIdToWall_ [ num_walls ] = wall;
         walls_ [ wall ] = num_walls ++;
       }
     }
@@ -159,14 +179,154 @@ Model::map ( boost::shared_ptr<Parameter> p) const {
 
 inline void 
 Model::annotate( MorseGraph * mg_in ) const {
-/*
   MorseGraph & mg = *mg_in;
-  mg . annotation () . insert ( "annotation_A" );
-  mg . annotation () . insert ( "annotation_B" );
-  for ( int v = 0; v < mg.NumVertices(); ++ v ) {
-    mg . annotation ( v ) . insert ( std::string ( "annotation_C" ) );
+  
+  if ( validateMorseGraph ( & mg ) ) {
+      mg . annotation () . insert ( "GOOD" );
+  } else {
+      mg . annotation () . insert ( "BAD" );
   }
-*/
+}
+
+inline bool Model::validateMorseGraph ( MorseGraph * mg_in ) const {
+  MorseGraph & mg = *mg_in;
+  boost::shared_ptr < Grid > atlas = phaseSpace ( );
+  // To validate a Morse Graph we need :
+  // condition1 && !condition2 && condition3
+  bool c1, c2, c3;
+  c1 = false;
+  c2 = false;
+  c3 = false;
+  for ( int v = 0; v < mg.NumVertices(); ++ v ) {
+    boost::shared_ptr<const Grid> my_subgrid ( mg . grid ( v ) );
+    if ( not my_subgrid ) {
+      std::cout << "Abort! This vertex does not have an associated grid!\n";
+      abort ();
+    }
+    CellContainer my_subset = atlas -> subset ( * my_subgrid );
+    // construct the annotation of the morse set
+    std::vector < std::string > vertexAnnotation =
+    constructAnnotationsMorseSet ( atlas, my_subset );
+    // Check the annotations to know which conditions are satisfied
+    for ( unsigned int i=0; i<vertexAnnotation.size(); ++i ) {
+      // annotate the vertex of the morsegraph
+      mg . annotation ( v ) . insert ( vertexAnnotation[i] );
+
+      if ( vertexAnnotation[i] == CONDITION1STRING ) { c1 = true; }
+      if ( vertexAnnotation[i] == CONDITION2STRING ) { c2 = true; }
+      if ( vertexAnnotation[i] == CONDITION3STRING ) { c3 = true; }
+    }
+  }
+  // we want a morse graph with
+  // 1) a fixed point with all states off
+  // 2) no fixed point with all states on
+  // 3) a morse set where every variable makes a transition
+  return (c1 && !c2 && c3);
+}
+
+inline
+std::vector < std::string > Model::constructAnnotationsMorseSet (
+                                    const boost::shared_ptr<Grid> & phasespace,
+                                    const CellContainer & subset ) const {
+  std::vector < std::string > annotation;
+  bool condition0, condition1, condition2, condition3, condition4;
+  condition0 = false;
+  condition1 = false;
+  condition2 = false;
+  condition3 = false;
+  condition4 = false;
+  // to keep track of the variables making a transition
+  std::set < int > wallVariables;
+  // Loop through the grid elements of the morse set
+  BOOST_FOREACH ( Grid::GridElement ge, subset ) {
+    if ( not boost::dynamic_pointer_cast < AtlasGeo > ( phasespace -> geometry ( ge ) ) ) {
+      std::cout << "Unexpected null response from geometry\n";
+    }
+    AtlasGeo geo = * boost::dynamic_pointer_cast < AtlasGeo > ( phasespace -> geometry ( ge ) );
+    size_t id = geo . id ( );      
+    Wall wall = chartIdToWall_ . find ( id ) -> second;
+    if ( wall . isFixedPoint() ) {
+      if ( hasAllStatesOff ( wall ) ) { condition1 = true; }
+      if ( hasAllStatesOn ( wall ) ) { condition2 = true; }
+      if ( !condition1 && !condition2 ) { condition0 = true; }
+    } else {
+      condition4 = true;
+      RectGeo box = wall . rect();
+      // check which dimension is degenerated
+      bool checkstatus;
+      checkstatus = false;
+      for ( unsigned int i=0; i<box.dimension(); ++i ) {
+        if ( std::abs(box.upper_bounds[i]-box.lower_bounds[i]) < 1e-12 ) {
+          wallVariables . insert ( i );
+        }
+      }
+      if ( wallVariables . size() == wall.rect().dimension() ) {
+        condition3 = true;
+      }
+    }
+  }
+  //
+  if ( condition0 ) {
+    annotation . push_back ( CONDITION0STRING );
+  }
+  if ( !condition0 && !condition3 ) {
+    std::cout << "NOT A FULL CYCLE : " << wallVariables.size() << "\n";
+    std::string str;
+    str = "";
+    std::set < int >::iterator it;
+    for ( it=wallVariables.begin(); it!=wallVariables.end(); ++it ) {
+      std::stringstream ss(*it);
+      str += ss.str();
+      std::cout << "MYSTRING = " << *it <<"\n";
+    }
+    annotation . push_back ( str );
+  }
+  if ( condition1 ) {
+    annotation . push_back ( CONDITION1STRING );
+  }
+  if ( condition2 ) {
+    annotation . push_back ( CONDITION2STRING );
+  }
+  if ( condition3 ) {
+    annotation . push_back ( CONDITION3STRING );
+  } 
+  return annotation;
+}
+
+inline
+bool Model::hasAllStatesOn ( const Wall & wall ) const {
+  bool AllStatesOn = true;
+  //
+  const std::vector < double > & lbounds = wall . rect() . lower_bounds;
+  const std::vector < double > & ubounds = wall . rect() . upper_bounds;
+  int dim = lbounds . size();
+  //
+  // for the cube [a_i,b_i]^n
+  // need only to check if b_i is not less than 1.0
+  for ( unsigned int i=0; i<dim; ++i ) {
+    if ( ubounds[i] <= 1.0 + 1e-10 ) {
+      AllStatesOn = false;
+    }
+  }
+  return AllStatesOn;
+}
+
+inline
+bool Model::hasAllStatesOff ( const Wall & wall ) const {
+  bool AllStatesOff = true;
+  //
+  const std::vector < double > & lbounds = wall . rect() . lower_bounds;
+  const std::vector < double > & ubounds = wall . rect() . upper_bounds;
+  int dim = lbounds . size();
+  //
+  // for the cube [a_i,b_i]^n
+  // need only to check if b_i is not greater than 1.0
+  for ( unsigned int i=0; i<dim; ++i ) {
+      if ( lbounds[i] >= 1.0 - 1e-10 ) {
+          AllStatesOff = false;
+      }
+  }
+  return AllStatesOff;
 }
 
 #endif
