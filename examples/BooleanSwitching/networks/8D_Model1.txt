@@ -1,0 +1,8 @@
+X : (X + Y3 + W3)(~Z)(~W1) : Y1 X Z W3 Y2
+Y1 : X : Y2
+Y2 : X + Y1 + W1 : Y3 W1
+Y3 : Y2(~W1) : X
+Z : X(~W2) : X
+W1 : Y2(~W2) : Y2 W2 X Y3
+W2 : W1(~W3) : Z W1
+W3 : X : X W2
