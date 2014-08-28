@@ -1,0 +1,22 @@
+for file in `find $1 -regex ".*CMG.*\.gv"`; do
+    base=`basename $file .gv`
+    dir=`dirname $file`
+    dot $dir/$base.gv -Tpng -o$dir/$base.png
+done
+for file in `find $1 -regex ".*HASSE.*\.gv"`; do
+    base=`basename $file .gv`
+    dir=`dirname $file`
+    dot $dir/$base.gv -Tpng -o$dir/$base.png
+done
+for file in `find $1 -regex ".*MGCC.*\.gv"`; do 
+    base=`basename $file .gv`
+    dir=`dirname $file`
+#    echo $file
+#    echo $dir
+#    echo $base
+#    echo $dir/$base
+#    echo $dir/$base.gv
+    dot $dir/$base.gv -Tpng -o$dir/$base.png -Tcmapx -o$dir/$base-cmapx.html
+done
+
+

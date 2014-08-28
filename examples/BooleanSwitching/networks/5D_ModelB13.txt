@@ -1,0 +1,5 @@
+X : (X+Y3)(~Z) :  Z Y1 X Y2
+Y1 : X : Y2
+Y2 : Y1 + X : Y3
+Y3 : Y2 : X
+Z : X : X
