@@ -252,8 +252,9 @@ public:
         ss << ")";
       }
       if ( bin < m ) {
-        ss << " <= THETA(" << symbol << ", " << output_symbols[bin] << ")\n"; 
+        ss << " <= THETA(" << symbol << ", " << output_symbols[bin] << ")"; 
       }
+      ss << "\n";
     }
     return ss . str ();
   }
