@@ -1,0 +1,110 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!--
+This file has been modified for the purposes of the CMDB project.
+This file is part of Canviz. See http://www.canviz.org/
+$Id: old.html.in 256 2009-01-08 11:14:07Z ryandesign.com $
+-->
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta name="MSSmartTagsPreventParsing" content="true" />
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<title>Morse Graph Continuation Class Zoo</title>
+	<link rel="stylesheet" type="text/css" href="code/styles_inner.css" />
+	<script type="text/javascript" src="code/prototype.js"></script>
+	<script type="text/javascript" src="code/scripts_common.js"></script>
+</head>
+<body>
+
+
+
+<SCRIPT Language="JavaScript">
+
+position = 0;
+
+function loadGraphs(begin) {
+document.open();
+document.write("<h2>Conley-Morse Continuation Classes</h2>");
+
+document.write('<p><a href="CI.html"> Click here for list of all Conley Indices that occur, sorted by frequency.</a></p>');
+
+document.write('<p><a href="hasse.html"> Click here for the Hasse Diagram Zoo, sorted by frequency.</a></p>');
+
+document.write('<p><a href="cmg.html"> Click here for the Conley-Morse Graph Zoo, sorted by frequency.</a></p>');
+
+backbuttonstring='<input type="button" id="BackButton" value="Click for previous"/>';
+
+nextbuttonstring='<input type="button" id="NextButton" value="Click for more"/>';
+document.write(backbuttonstring);
+document.write(nextbuttonstring);
+
+// this will be updated by the bash script MAKEZOO
+// numberOfCMG = 9;
+
+document.getElementById("BackButton").onclick = function () {
+  // position = position - numberOfCMG;
+  position = position - 25;
+  if ( position < 0 ) position = 0;
+  loadGraphs(position);
+}
+
+document.getElementById("NextButton").onclick = function () {
+  // position = position + numberOfCMG;
+  position = position + 25;
+  loadGraphs(position);
+}
+
+// showstring='<p>Showing Conley-Morse Continuation Classes ' + begin + ' - ' + (begin+numberOfCMG-1) + '</p>'
+showstring='<p>Showing Conley-Morse Continuation Classes ' + begin + ' - ' + (begin+25-1) + '</p>'
+document.write(showstring);
+
+document.write("<img src=\"./graphs/legend.png\">");
+
+str = "";
+//total = numberOfCMG;
+//if ( Math.ceil(total/5) > 1 ) {
+//  columns = 5;
+//  rows = Math.ceil(total/columns); 
+//} else { 
+//  columns = total;
+//  rows = 1;
+//}
+
+columns = 5;
+rows = 5;
+
+str += '<table border="1" cellspacing="1" cellpadding="5">';
+mgcc = begin;
+for(i = 0; i < rows; i++){
+   str += '<tr>';
+   for (j = 0; j < columns; j++){
+      var pngfile = './graphs/MGCC' + mgcc + '.png';
+      str += '<td><div class="MGCC' + mgcc + '"><img src="' + pngfile + '" usemap="#MGCC' + mgcc + '" border="0" /></div><p id="output'+ mgcc +'"></p></td>';
+       mgcc ++;
+   }
+   str += '</tr>';
+}
+
+str += '</table>';
+
+
+for(mgcc = begin; mgcc < begin+25; mgcc ++ ){
+   var filePath = './graphs/MGCC' + mgcc + '-cmapx.html';
+   xmlhttp = new XMLHttpRequest();
+   xmlhttp.open("GET",filePath,false);
+   xmlhttp.send(null);
+   var fileContent = xmlhttp.responseText;
+   var fileArray = fileContent.split('\n');
+   str += fileContent;
+}
+
+document.write(str);
+document.close();
+}
+
+loadGraphs(position);
+
+</SCRIPT>
+
+</body>
+</html>

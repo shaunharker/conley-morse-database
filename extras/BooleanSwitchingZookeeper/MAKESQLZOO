@@ -1,0 +1,13 @@
+mkdir graphs
+cd graphs
+../makeDatabaseZooSQL/main $1/database.mdb $1
+
+cd ..
+rm -rf $1/Zoo
+cp -rf template $1/Zoo
+mv -f graphs $1/Zoo
+mv -f $1/Zoo/graphs/CI.html $1/Zoo
+$1/Zoo/COMPUTE $1
+
+cd $1/Zoo
+
