@@ -289,7 +289,7 @@ prettyPrint ( boost::shared_ptr<Parameter> parameter ) const {
   const BooleanSwitchingParameter & p = 
       * boost::dynamic_pointer_cast<BooleanSwitchingParameter> ( parameter );
   for ( int64_t d = 0; d < dimension_; ++ d ) {
-    std::string symbol = network_ . name ( d );
+    std::string symbol = network_ . name ( d + 1 );
     std::vector<std::string> input_symbols, output_symbols;
     BooleanSwitching::Node node = network_ . node ( d + 1 );
     for ( std::vector<int64_t> const& factor : node . logic ) {
