@@ -269,16 +269,20 @@ std::vector < std::string > Model::constructAnnotationsMorseSet (
   if ( condition0 ) {
     annotation . push_back ( CONDITION0STRING );
   }
-  if ( !condition0 && !condition3 ) {
-    std::cout << "NOT A FULL CYCLE : " << wallVariables.size() << "\n";
+  if ( !condition0 && !condition1 && !condition2  && !condition3 ) {
+//    std::cout << "NOT A FULL CYCLE : " << wallVariables.size() << "\n";
     std::string str;
     str = "";
     std::set < int >::iterator it;
     for ( it=wallVariables.begin(); it!=wallVariables.end(); ++it ) {
-      std::stringstream ss(*it);
-      str += ss.str();
-      std::cout << "MYSTRING = " << *it <<"\n";
+      std::stringstream ss;
+      ss << *it;
+      str += ss.str() + " ";
+//      std::cout << "MYSTRING = " << *it <<"\n";
     }
+//    std::cout << "STRING =" << str << "\n";
+    std::string conditionstring(CONDITION4STRING);
+    str = conditionstring + ":" + str;
     annotation . push_back ( str );
   }
   if ( condition1 ) {
