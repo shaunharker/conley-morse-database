@@ -20,21 +20,17 @@ str='var networks = { '
 for dim in $listdim
 do 
 	str=$str" '$dim' : [ "
-	# keep only the directory names
+	# keep only the directory names with a given dimension
 	listdir=`find "$databasedir" -maxdepth 1 -type d -name "${dim}*" | sed 's:^\./::' | rev | cut -d'/' -f1 | rev `
-	# echo $dim
-	# echo $listdir
 	for i in $listdir
 	do 
 		str=$str" '$i', "
-
 		# create the png for the network equations
 		a2ps --no-header --border=no "$databasedir/$i/$i.txt" -o test.ps
 	  ps2eps --rotate=+ test.ps
 	  convert -density 300 -quality 100 test.eps test.png
 	  mv test.png "$databasedir/$i/${i}_equations.png"
 	  rm test.*
-
 	  # convert the txt file into a graphviz file and then .png
 	  ./convertTXTtoGV.sh "$databasedir/$i/$i.txt"
 	  dot "$databasedir/$i/$i.gv" -Tpng -o"$databasedir/$i/${i}_network.png"
