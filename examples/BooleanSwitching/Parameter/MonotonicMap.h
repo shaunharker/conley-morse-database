@@ -232,6 +232,9 @@ public:
                             std::vector<std::string> const& output_symbols ) const {
     if ( input_symbols . size () != n ) {
       std::cout << "input_symbols.size() = " << input_symbols . size () << " != " << n << " = n \n";
+      for ( std::string const& s, input_symbols ) std::cout << s << " "; std::cout << "\n";
+      std::cout << "output_symbols.size() = " << output_symbols . size () << " != " << m << " = m \n";
+      for ( std::string const& s, output_symbols ) std::cout << s << " "; std::cout << "\n";
       for ( int64_t j = 0; j < logic_ . size (); ++ j ) {
         std::cout << logic_[j] << " ";
       }
