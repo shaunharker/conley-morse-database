@@ -88,9 +88,7 @@ while ($row = $results->fetchArray()) {
     $counter = 0;
   }
   // Introduce the "map" objects
-  $doc = new DOMDocument();
-  $doc->loadHTMLFile("MGCC{$MGfileindex}-cmapx.html");
-  echo $doc->saveHTML();
+  include ( "graphs/MGCC{$MGfileindex}-cmapx.html" );
 }
 echo "</table>";
 
