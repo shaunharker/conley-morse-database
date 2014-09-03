@@ -233,7 +233,7 @@ public:
     if ( input_symbols . size () != n ) {
       std::cout << "input_symbols.size() = " << input_symbols . size () << " != " << n << " = n \n";
       for ( int64_t j = 0; j < logic_ . size (); ++ j ) {
-        std::cout << logic_[j].size() << " ";
+        std::cout << logic_[j] << " ";
       }
       std::cout << "\n";
       throw std::logic_error ( "MontonicMap::prettyPrint. input_symbols.size() != n\n");
