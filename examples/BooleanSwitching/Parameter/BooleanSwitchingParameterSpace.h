@@ -292,11 +292,12 @@ prettyPrint ( boost::shared_ptr<Parameter> parameter ) const {
       * boost::dynamic_pointer_cast<BooleanSwitchingParameter> ( parameter );
   for ( int64_t d = 0; d < dimension_; ++ d ) {
     std::string symbol = network_ . name ( d + 1 );
-    std::cout << "BooleanSwitchingParameterSpace::prettyPrint. d = " 
-              << d << " and symbol = " << symbol << "\n";
-    std::vector<std::string> input_symbols, output_symbols;
     BooleanSwitching::Node node = network_ . node ( d + 1 );
+    int64_t fd = node . index - 1;
+    std::cout << "BooleanSwitchingParameterSpace::prettyPrint. d = " 
+              << d << " fd = " << fd << " and symbol = " << symbol << "\n";
     std::cout << "node.logic.size() == " << node . logic . size () << "\n";
+    std::vector<std::string> input_symbols, output_symbols;
     for ( std::vector<int64_t> const& factor : node . logic ) {
       std::cout << "(";
       for ( int64_t input : factor ) {
@@ -310,7 +311,7 @@ prettyPrint ( boost::shared_ptr<Parameter> parameter ) const {
     for ( int64_t output : node . out_order ) {
       output_symbols . push_back ( network_ . name ( output ) );
     }
-    MonotonicMap mono = factors_ [ d ] . vertices [ p . monotonic_function_ [ d ] ];
+    MonotonicMap mono = factors_ [ fd ] . vertices [ p . monotonic_function_ [ fd ] ];
     result << mono . prettyPrint ( symbol, input_symbols, output_symbols );
   }
   return result . str ();  
