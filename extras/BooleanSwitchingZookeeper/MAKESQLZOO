@@ -8,7 +8,6 @@ cd .. || exit 1
 rm -rf $1/Zoo || exit 1
 cp -rf template $1/Zoo || exit 1
 mv -f graphs $1/Zoo || exit 1
-mv -f $1/Zoo/graphs/CI.html $1/Zoo || exit 1
 $1/Zoo/COMPUTE $1 || exit 1
 
 
