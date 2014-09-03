@@ -103,7 +103,8 @@ std::string constructLabel ( const std::string & string ) {
   } else {
     std::cout << "string = " << string << "\n";
     std::cout << "condition string format not implemented\n";
-    abort();
+    return std::string (); // TODO: Arnaud, could you take a look at this? 9-3-2014
+    //abort();
   }
 }
 
