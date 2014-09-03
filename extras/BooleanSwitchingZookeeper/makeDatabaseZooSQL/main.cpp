@@ -101,6 +101,7 @@ std::string constructLabel ( const std::string & string ) {
     str += extrafields[extrafields.size()-2] + " }";
     return str;
   } else {
+    std::cout << "string = " << string << "\n";
     std::cout << "condition string format not implemented\n";
     abort();
   }
