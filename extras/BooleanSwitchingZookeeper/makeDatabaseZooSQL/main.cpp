@@ -303,7 +303,7 @@ std::string dotFile ( const Database & database,
     }
   }
   ss << "LEGEND [label=\"MGCC " << mgcc << "\\n " << 100.0*frequency << "% \""
-     << " href=\"inequalities.html?mgcc=" << mgcc << "\" " 
+     << " href=\"inequalities.html?mgcc=" << order_index << "\" " 
      << "shape=\"" << shapestr << "\"]\n";
 
  	// Edges
@@ -340,24 +340,24 @@ void MGCC_Zoo ( Database const& database,
 	std::sort ( mgcc_sorted_by_frequency . rbegin (), mgcc_sorted_by_frequency . rend () ); // sort in descending order
 
 	// DISPLAY MGCC ZOO DATA
-	for ( uint64_t mgcc_zoo_index = 0; mgcc_zoo_index < mgcc_sorted_by_frequency . size (); ++ mgcc_zoo_index ) {
-		long frequency = mgcc_sorted_by_frequency [ mgcc_zoo_index ] . first;
-		uint64_t mgcc = mgcc_sorted_by_frequency [ mgcc_zoo_index ] . second;
+	for ( uint64_t order_index = 0; order_index < mgcc_sorted_by_frequency . size (); ++ order_index ) {
+		long frequency = mgcc_sorted_by_frequency [ order_index ] . first;
+		uint64_t mgcc = mgcc_sorted_by_frequency [ order_index ] . second;
     // Create Dot File
     {
 		std::string filename;
 		std::stringstream ss;
-		ss << "MGCC" << mgcc_zoo_index << ".gv";
+		ss << "MGCC" << order_index << ".gv";
 		filename = ss . str ();
 		std::ofstream outfile ( filename . c_str () );
-		outfile << dotFile ( database, mgcc, mgcc_zoo_index , (double) frequency / (double) total_count, sqldb );
+		outfile << dotFile ( database, mgcc, order_index , (double) frequency / (double) total_count, sqldb );
 		outfile . close ();
     }
     // Create Parameter File
     if ( parameter_space ) {
       std::string filename;
       std::stringstream ss;
-      ss << "MGCC" << mgcc_zoo_index << ".txt";
+      ss << "MGCC" << order_index << ".txt";
       filename = ss . str ();
       std::ofstream outfile ( filename . c_str () );
       const MGCC_Record & mgcc_record = database.MGCC_Records()[mgcc];
