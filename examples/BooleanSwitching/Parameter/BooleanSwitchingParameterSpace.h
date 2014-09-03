@@ -130,6 +130,7 @@ BooleanSwitchingParameterSpace::initialize ( int argc, char * argv [] ) {
       n += k;
     }
     int64_t m = node . out_order . size ();
+    std::cout << "Constructing factors_[" << d << "] with n = " << n << " and m = " << m << "\n";
     factors_ [ d ] . construct ( MonotonicMap ( n, m, logic ) );
     std::cout << "BooleanSwitchingParameterSpace::initialize." << 
       "factors_[" << d << "].size() = " << factors_[d].size() << "\n"; // DEBUG
@@ -290,6 +291,8 @@ prettyPrint ( boost::shared_ptr<Parameter> parameter ) const {
       * boost::dynamic_pointer_cast<BooleanSwitchingParameter> ( parameter );
   for ( int64_t d = 0; d < dimension_; ++ d ) {
     std::string symbol = network_ . name ( d + 1 );
+    std::cout << "BooleanSwitchingParameterSpace::prettyPrint. d = " 
+              << d << " and symbol = " << symbol << "\n";
     std::vector<std::string> input_symbols, output_symbols;
     BooleanSwitching::Node node = network_ . node ( d + 1 );
     for ( std::vector<int64_t> const& factor : node . logic ) {
