@@ -365,6 +365,7 @@ void MGCC_Zoo ( Database const& database,
       ss << "MGCC" << order_index << ".txt";
       filename = ss . str ();
       std::ofstream outfile ( filename . c_str () );
+      outfile << "MGCC " << mgcc << ": There are " << frequency << " parameters.\n";
       const MGCC_Record & mgcc_record = database.MGCC_Records()[mgcc];
       for ( uint64_t mgccp : mgcc_record . mgccp_indices ) {
         const MGCCP_Record & mgccp_record = database.MGCCP_Records()[mgccp];
