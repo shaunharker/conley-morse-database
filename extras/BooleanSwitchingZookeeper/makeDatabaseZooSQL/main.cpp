@@ -66,12 +66,14 @@ DAG makeDAG ( const Database & database, uint64_t mgcc );
 std::string extractSymbol ( const std::string & string ) {
   std::vector<std::string> fields;
   boost::split ( fields, string, boost::is_any_of (":") );
-  return "\""+fields[0]+"\"";
+  if ( fields . size () >= 1 ) return "\""+fields[0]+"\"";
+  else return "\"\""; // DEBUG
 }
 std::string extractSymbolWithoutQuotes ( const std::string & string ) {
   std::vector<std::string> fields;
   boost::split ( fields, string, boost::is_any_of (":") );
-  return fields[0];
+  if ( fields . size () >= 1 ) return fields[0];
+  else return std::string (); // DEBUG
 }
 
 std::string extractConditionalString ( const std::string & string ) {
@@ -80,7 +82,8 @@ std::string extractConditionalString ( const std::string & string ) {
   // convention for the condition string from AnnotationConditions.h
   // symbol : description : extra information
   // the conditional string is simply symbol : description
-  return fields[0] + ":" + fields[1];
+  if ( fields . size () >= 2 ) return fields[0] + ":" + fields[1];
+  else return std::string (); // DEBUG
 }
 
 std::string constructLabel ( const std::string & string ) {
