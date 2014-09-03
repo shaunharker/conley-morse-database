@@ -131,6 +131,8 @@ BooleanSwitchingParameterSpace::initialize ( int argc, char * argv [] ) {
     }
     int64_t m = node . out_order . size ();
     std::cout << "Constructing factors_[" << d << "] with n = " << n << " and m = " << m << "\n";
+    std::cout << "This should correspond to " << network_ . name ( node . index ) << "\n";
+    for ( int64_t x : logic ) std::cout << x << " "; std::cout << "\n";
     factors_ [ d ] . construct ( MonotonicMap ( n, m, logic ) );
     std::cout << "BooleanSwitchingParameterSpace::initialize." << 
       "factors_[" << d << "].size() = " << factors_[d].size() << "\n"; // DEBUG
