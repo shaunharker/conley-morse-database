@@ -2,6 +2,7 @@
 Conley_Morse_Database
 SingleCMG
 computeLyapunov
+main
 
 # Data files
 makefile.dep
