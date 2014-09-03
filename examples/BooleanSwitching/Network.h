@@ -84,6 +84,7 @@ inline int64_t Network::
 index ( std::string const& name ) const {
   return name_to_index_ . find ( name ) -> second;
 }
+
 inline std::string Network::
 name ( int64_t index ) const {
   return names_[index-1];
