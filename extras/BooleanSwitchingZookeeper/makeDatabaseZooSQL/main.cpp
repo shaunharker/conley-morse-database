@@ -361,17 +361,11 @@ void MGCC_Zoo ( Database const& database,
       filename = ss . str ();
       std::ofstream outfile ( filename . c_str () );
       const MGCC_Record & mgcc_record = database.MGCC_Records()[mgcc];
-      std::cout << "order_index = " << order_index << " and mgcc = " << mgcc << "\n";
       for ( uint64_t mgccp : mgcc_record . mgccp_indices ) {
-        std::cout << "mgccp = " << mgccp << "\n";
         const MGCCP_Record & mgccp_record = database.MGCCP_Records()[mgccp];
         for ( uint64_t pi : mgccp_record . parameter_indices ) {
-          std::cout << "pi = " << pi << "\n";
-          std::cout << "{\n";
           outfile << "{\n";
-          std::cout << parameter_space -> prettyPrint ( parameter_space -> parameter ( pi ) );
           outfile << parameter_space -> prettyPrint ( parameter_space -> parameter ( pi ) );
-          std::cout << "}\n";
           outfile << "}\n";
         }
       }
