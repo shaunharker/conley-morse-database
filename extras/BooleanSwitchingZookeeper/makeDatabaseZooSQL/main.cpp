@@ -61,7 +61,6 @@ DAG makeDAG ( const Database & database, uint64_t mgcc );
 
 //
 
-
 // split a string into different fields delimited by a colon ":"
 // return the first field found
 std::string extractSymbol ( const std::string & string ) {
@@ -75,6 +74,37 @@ std::string extractSymbolWithoutQuotes ( const std::string & string ) {
   return fields[0];
 }
 
+std::string extractConditionalString ( const std::string & string ) {
+  std::vector<std::string> fields;
+  boost::split ( fields, string, boost::is_any_of (":") );
+  // convention for the condition string from AnnotationConditions.h
+  // symbol : description : extra information
+  // the conditional string is simply symbol : description
+  return fields[0] + ":" + fields[1];
+}
+
+std::string constructLabel ( const std::string & string ) {
+  std::vector<std::string> fields;
+  boost::split ( fields, string, boost::is_any_of (":") );
+  if ( fields.size() == 2 ) {
+    return "&#92;n " + extractSymbolWithoutQuotes(string);
+  }
+  if ( fields.size() == 3 ) {
+    std::string str;
+    str = "&#92;n " + extractSymbolWithoutQuotes(string) + "&#92;n { ";
+    std::vector<std::string> extrafields;
+    boost::split ( extrafields, fields[2], boost::is_any_of (" ") );
+    // Warning : need -2 because there is an extra space at the end of the string
+    for ( unsigned int i=0; i<extrafields.size()-2; ++i ) {
+      str += extrafields[i] + ", ";
+    }
+    str += extrafields[extrafields.size()-2] + " }";
+    return str;
+  } else {
+    std::cout << "condition string format not implemented\n";
+    abort();
+  }
+}
 
 
 void insertMorseSetIntoDatabase ( sqlite3 * db,
@@ -84,23 +114,27 @@ void insertMorseSetIntoDatabase ( sqlite3 * db,
                   const std::vector < std::string > & myannotations ) {
   bool done;
   done = false;
-  int fp,fpon,fpoff,fc;
+  int fp,fpon,fpoff,fc,xc;
   fp=0;
   fpon=0;
   fpoff=0;
   fc=0;
+  xc=0;
   for ( unsigned int i=0; i<myannotations.size(); ++i ) {
-    if ( myannotations[i] == CONDITION0STRING ) {
+    if ( extractConditionalString(myannotations[i]) == CONDITION0STRING ) {
       fp = 1;
     }
-    if ( myannotations[i] == CONDITION1STRING ) {
+    if ( extractConditionalString(myannotations[i]) == CONDITION1STRING ) {
       fpoff = 1;
     }
-    if ( myannotations[i] == CONDITION2STRING ) {
+    if ( extractConditionalString(myannotations[i]) == CONDITION2STRING ) {
       fpon = 1;
     }
-    if ( myannotations[i] == CONDITION3STRING ) {
+    if ( extractConditionalString(myannotations[i]) == CONDITION3STRING ) {
       fc = 1;
+    }
+    if ( extractConditionalString(myannotations[i]) == CONDITION4STRING ) {
+      xc = 1;
     }
   }
   std::vector <SQLColumnData > data;
@@ -111,6 +145,7 @@ void insertMorseSetIntoDatabase ( sqlite3 * db,
   data . push_back ( SQLColumnData(extractSymbol(CONDITION1STRING),fpoff) );
   data . push_back ( SQLColumnData(extractSymbol(CONDITION2STRING),fpon) );
   data . push_back ( SQLColumnData(extractSymbol(CONDITION3STRING),fc) );
+  data . push_back ( SQLColumnData(extractSymbol(CONDITION4STRING),xc) );
   insertMorseSetRecord ( db, "morsesets", data );
 }
 
@@ -122,19 +157,13 @@ void insertMorseSetIntoDatabase ( sqlite3 * db,
 std::string makeLabel ( const std::vector < std::string > & myannotations ) {
   std::string output;
   output = "";
+  if ( myannotations.size() == 0 ) {
+    std::cout << "No annotations.\n";
+    abort();
+  }
   for ( unsigned int i=0; i<myannotations.size(); ++i ) {
-    if ( myannotations[i] == CONDITION0STRING ) {
-      output += "&#92;n " + extractSymbolWithoutQuotes(CONDITION0STRING);
-    }
-    if ( myannotations[i] == CONDITION1STRING ) {
-      output += "&#92;n " + extractSymbolWithoutQuotes(CONDITION1STRING);
-    }
-    if ( myannotations[i] == CONDITION2STRING ) {
-      output += "&#92;n " + extractSymbolWithoutQuotes(CONDITION2STRING);
-    }
-    if ( myannotations[i] == CONDITION3STRING ) {
-      output += "&#92;n " + extractSymbolWithoutQuotes(CONDITION3STRING);
-    }
+    // we concatenate all the labels from all the annotations
+    output += constructLabel(myannotations[i]);
   }
   return output;
 }
@@ -370,6 +399,8 @@ int main ( int argc, char * argv [] ) {
   symbol = extractSymbol ( CONDITION3STRING );
   columns . push_back ( std::pair<std::string,std::string> (symbol,datatype) );
 
+  symbol = extractSymbol ( CONDITION4STRING );
+  columns . push_back ( std::pair<std::string,std::string> (symbol,datatype) );
 
   createMainTableSQLDatabase ( sqlDB, "MORSESETS", columns );
 

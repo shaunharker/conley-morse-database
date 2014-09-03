@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>List of Boolean Switching Networks</title>
+        <link rel="stylesheet" href="css/style.css" type="text/css" media="screen, projection">
+        <script type="text/javascript" src="js/jquery-1.4.2.min.js">
+        </script>
+        <script type="text/javascript" src="js/scripts.js">
+        </script>
+        </script>
+
+<style type="text/css">
+            ul li {
+            	display: block;
+                /*width : 300px;*/
+                /*list-style-type: none;*/
+            }
+            ul li img {
+                /*min-height : 45px;*/
+                vertical-align : middle;
+                /*border-bottom : 1px black solid;*/
+            }
+            li { 
+                margin: 20px 0;
+            }
+</style>
+</head>
+<body>
+
+<h1> Boolean Switching Networks </h1>
+
+<SCRIPT Language="JavaScript">
+// This is updated by the bash script
+var networks = {};
+
+var str="";
+
+str+="<div id=\"listContainer\">";
+str+="<div class=\"listControl\">";
+str+="<a id=\"expandList\">Expand All</a>";
+str+="<a id=\"collapseList\">Collapse All</a>";
+str+="</div>";
+
+
+str+="<ul id=\"expList\">";
+for (var dim in networks) {
+	str+="<li>" + dim;
+	str+="<ul>";
+	for (var dir in networks[dim] ) {
+		str+="<li> <span> " + networks[dim][dir] + "&nbsp; &nbsp;";
+        // add the equations
+		str+="<img src=" + "\"" + networks[dim][dir] + "/" + networks[dim][dir] + "_equations.png\" width=\"250\" > &nbsp; &nbsp;";
+        // add the network
+        str+="<img src=" + "\"" + networks[dim][dir] + "/" + networks[dim][dir] + "_network.png\" width=\"250\" > &nbsp; &nbsp;";
+        // add the Zoo links
+		str+=" <a href=\"" + networks[dim][dir] + "/Zoo/index.html\"> Zoo </a> &nbsp; &nbsp; "
+        str+=" <a href=\"" + networks[dim][dir] + "/Zoo/indexSQL.html\"> ZooSQL </a></span>"
+        str+="  </li>";
+	}
+	str+="</ul>";
+	str+="</li>";
+}
+str+="</ul>";
+
+
+str+="</div>";
+
+
+document.write(str);
+document.close();
+
+</SCRIPT>
+</body>
+</html>
