@@ -230,6 +230,12 @@ public:
   std::string prettyPrint ( std::string const& symbol,
                             std::vector<std::string> const& input_symbols,
                             std::vector<std::string> const& output_symbols ) const {
+    if ( input_symbols . size () != n ) {
+      throw std::logic_error ( "MontonicMap::prettyPrint. input_symbols.size() != n\n");
+    }
+    if ( output_symbols . size () != m ) {
+      throw std::logic_error ( "MontonicMap::prettyPrint. output_symbols.size() != m\n");
+    }
     std::stringstream ss;
     int64_t N = (1 << n);
     for ( int64_t i = 0; i < N; ++ i ) { 
@@ -242,9 +248,9 @@ public:
         ss << "(";
         for ( int64_t k = 0; k < logic_[j]; ++ k ) {
           if ( (i & ( 1 << count )) == 0 ) {
-            ss << "LOW(";
+            ss << "L(";
           } else {
-            ss << "HI(";
+            ss << "U(";
           }
           ss << input_symbols [ count ++ ] << ", " << symbol << ")";
           if ( k != logic_[j]-1 ) ss << " + ";
