@@ -77,18 +77,23 @@ $results = $db->query($sqlquery) or die ('Query failed');
 echo "<table border=\"1\">";
 $counter=0;
 while ($row = $results->fetchArray()) {
-      if ( $counter == 0 ) {
-        echo "<tr>";
-      }
-      $MGfileindex=$row[MORSEGRAPHFILEID];
-      echo "<td> <img src=\"graphs/MGCC$MGfileindex.png\" width=\"200\" > </td>";
-      $counter = $counter + 1;
-      if ( $counter==5 ) {
-        echo "</tr>";
-        $counter = 0;
-      }
+  if ( $counter == 0 ) {
+    echo "<tr>";
+  }
+  $MGfileindex=$row[MORSEGRAPHFILEID];
+  echo "<td> <img src=\"graphs/MGCC$MGfileindex.png\" usemap=\"#MGCC{$MGfileindex}\" width=\"200\" > </td>";
+  $counter = $counter + 1;
+  if ( $counter==5 ) {
+    echo "</tr>";
+    $counter = 0;
+  }
+  // Introduce the "map" objects
+  $doc = new DOMDocument();
+  $doc->loadHTMLFile("MGCC{$MGfileindex}-cmapx.html");
+  echo $doc->saveHTML();
 }
 echo "</table>";
+
 
 ?>
 

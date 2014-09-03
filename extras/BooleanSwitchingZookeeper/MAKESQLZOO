@@ -1,15 +1,15 @@
-mkdir graphs
-cd graphs
-../makeDatabaseZooSQL/main $1/database.mdb $1
+#!/bin/bash
 
-cd ..
+mkdir graphs || exit 1
+cd graphs || exit 1
+../makeDatabaseZooSQL/main $1/database.mdb $1 || exit 1
+cd .. || exit 1
 
-
-rm -rf $1/Zoo
-cp -rf template $1/Zoo
-mv -f graphs $1/Zoo
-mv -f $1/Zoo/graphs/CI.html $1/Zoo
-$1/Zoo/COMPUTE $1
+rm -rf $1/Zoo || exit 1
+cp -rf template $1/Zoo || exit 1
+mv -f graphs $1/Zoo || exit 1
+mv -f $1/Zoo/graphs/CI.html $1/Zoo || exit 1
+$1/Zoo/COMPUTE $1 || exit 1
 
 
 # copy the webpage with SQL query 

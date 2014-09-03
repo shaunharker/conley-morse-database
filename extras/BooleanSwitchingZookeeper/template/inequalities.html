@@ -1,0 +1,30 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <title>Parameter Inequalities</title>
+</head>
+<body>
+
+<script Language="JavaScript">
+var GET = {};
+var query = window.location.search.substring(1).split("&");
+for (var i = 0, max = query.length; i < max; i++) {
+  if (query[i] === "") continue;
+  var param = query[i].split("=");
+  GET[decodeURIComponent(param[0])] = decodeURIComponent(param[1] || "");
+}
+var mgcc = GET.mgcc;
+document.open();
+var filePath = './graphs/MGCC' + mgcc + '.txt';
+xmlhttp = new XMLHttpRequest();
+xmlhttp.open("GET",filePath,false);
+xmlhttp.send(null);
+var fileContent = xmlhttp.responseText;
+document.write( fileContent );
+document.close();
+
+</script>
+
+</body>
