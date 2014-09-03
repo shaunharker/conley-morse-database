@@ -363,7 +363,7 @@ void MGCC_Zoo ( Database const& database,
       const MGCC_Record & mgcc_record = database.MGCC_Records()[mgcc];
       for ( uint64_t mgccp : mgcc_record . mgccp_indices ) {
         const MGCCP_Record & mgccp_record = database.MGCCP_Records()[mgccp];
-        for ( int64_t pi : mgccp_record . parameter_indices ) {
+        for ( uint64_t pi : mgccp_record . parameter_indices ) {
           outfile << "{\n";
           outfile << parameter_space -> prettyPrint ( parameter_space -> parameter ( pi ) );
           outfile << "}\n";
