@@ -130,10 +130,10 @@ BooleanSwitchingParameterSpace::initialize ( int argc, char * argv [] ) {
       n += k;
     }
     int64_t m = node . out_order . size ();
-    std::cout << "\n BooleanSwitchingParameterSpace::initialize. Constructing factors_[" << d << "] with n = " << n << " and m = " << m << "\n";
-    std::cout << "This should correspond to " << network_ . name ( node . index ) << "\n";
     for ( int64_t x : logic ) std::cout << x << " "; std::cout << "\n";
     factors_ [ d ] . construct ( MonotonicMap ( n, m, logic ) );
+    std::cout << "\n BooleanSwitchingParameterSpace::initialize. Constructing factors_[" << d << "] with n = " << n << " and m = " << m << "\n";
+    std::cout << "This should correspond to " << network_ . name ( node . index ) << "\n";
     std::cout << "factors_[" << d << "].size() = " << factors_[d].size() << "\n"; // DEBUG
   }
 }
@@ -294,20 +294,12 @@ prettyPrint ( boost::shared_ptr<Parameter> parameter ) const {
     std::string symbol = network_ . name ( d + 1 );
     BooleanSwitching::Node node = network_ . node ( d + 1 );
     int64_t fd = node . index - 1;
-    std::cout << "BooleanSwitchingParameterSpace::prettyPrint. d = " 
-              << d << " fd = " << fd << " and symbol = " << symbol << "\n";
-    std::cout << "node.logic.size() == " << node . logic . size () << "\n";
     std::vector<std::string> input_symbols, output_symbols;
     for ( std::vector<int64_t> const& factor : node . logic ) {
-      std::cout << "(";
       for ( int64_t input : factor ) {
-        std::cout << input << " ";
         input_symbols . push_back ( network_ . name ( std::abs(input) ) );
       }
-      std::cout << ")";
     }
-    std::cout << "\n";
-    std::cout << "Node = " << node << "\n";
     for ( int64_t output : node . out_order ) {
       output_symbols . push_back ( network_ . name ( output ) );
     }
