@@ -306,7 +306,7 @@ prettyPrint ( boost::shared_ptr<Parameter> parameter ) const {
       std::cout << ")";
     }
     std::cout << "\n";
-    std::cout << "Node = " << node << "\n"
+    std::cout << "Node = " << node << "\n";
     for ( int64_t output : node . out_order ) {
       output_symbols . push_back ( network_ . name ( output ) );
     }
