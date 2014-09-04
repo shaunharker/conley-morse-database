@@ -46,12 +46,19 @@ int main ( int argc, char * argv [] ) {
   boost::unordered_set < uint64_t > parameters;
   boost::unordered_set < uint64_t > mgr_indices;
   
-  // the index of interest comes from the last argument
-  uint64_t mgccp_index;
-  mgccp_index = atoi(argv[argc-1]);
   
+  const std::vector < MGCC_Record > & mgcc_records =
+  database . MGCC_Records ();
+  
+  std::cout << "Number of records : " << mgcc_records.size() << "\n";
+  
+  // the index of interest comes from the last argument
+  uint64_t mgcc;
+  mgcc = atoi(argv[argc-1]);
+  
+  // we take the first parameter index from that particular record
   const MGCCP_Record & mgccp_record =
-  database . MGCCP_Records () [ mgccp_index ];
+  database . MGCCP_Records () [ mgcc_records[mgcc].mgccp_indices[0] ];
   uint64_t morsegraph_index = mgccp_record . morsegraph_index;
   mgr_indices . insert ( morsegraph_index );
   const MorseGraphRecord & morsegraph_record =
@@ -109,64 +116,6 @@ int main ( int argc, char * argv [] ) {
   std::cout << "Computed a Morse graph with "
   << mg . NumVertices () << " nodes.\n";
   
-  
-//  
-//  std::ofstream ofile;
-//  ofile.open("morse_sets.dat");
-//  
-//  typedef std::vector<Grid::GridElement> CellContainer;
-//  typedef  MorseGraph::VertexIterator VI;
-//  VI it, stop;
-//  for (boost::tie ( it, stop ) = mg . Vertices (); it != stop;  ++ it ) {
-//    
-//    
-//    std::set < std::string > annotations = mg . annotation ( *it );
-//    // should have only one annotation
-//    BOOST_FOREACH ( std::string str, annotations ) {
-//      std::vector<std::string> fields;
-//      boost::split ( fields, str, boost::is_any_of (":") );
-//      if ( fields[0] == "FC " ) {
-//        std::cout << "found FC\n";
-//        
-//        
-//        
-//      }
-//    }
-//    
-//    // std::cout << "new vertex \n";
-//    
-//    boost::shared_ptr<const Grid> my_subgrid ( mg . grid ( *it ) );
-//    
-//    if ( not my_subgrid ) {
-//      std::cout << "Abort! This vertex does not have an associated grid!\n";
-//      abort ();
-//    }
-//    CellContainer my_subset = phase_space -> subset ( * my_subgrid );
-//    
-//    BOOST_FOREACH ( Grid::GridElement ge, my_subset ) {
-//      if ( not boost::dynamic_pointer_cast < AtlasGeo > ( phase_space -> geometry ( ge ) ) ) {
-//        std::cout << "Unexpected null response from geometry\n";
-//      }
-//      AtlasGeo geo = * boost::dynamic_pointer_cast < AtlasGeo > ( phase_space -> geometry ( ge ) );
-//      RectGeo box =  geo . rect ();
-//      int id = geo . id ();
-//      // std::cout << "(Chart, Rect) = (" << id << ", " << box << ")\n";
-//      
-//      ofile << std::setprecision(15) << *it << " " << id << " ";
-//      
-//      
-//      
-//      for ( unsigned int i=0; i<box.dimension(); ++i ) {
-//        ofile << std::setprecision(15) << box.lower_bounds[i] << " " << box.upper_bounds[i] << " ";
-//      }
-//      ofile << "\n";
-//      
-//    }
-//  }
-//  
-//  ofile.close();
-  
- 
  
   return 0;
 }
