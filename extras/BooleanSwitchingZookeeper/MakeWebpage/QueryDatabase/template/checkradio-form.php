@@ -80,11 +80,11 @@ try {
 		// Construct the Table 
 		echo "<table border=\"1\">";
 		$counter=0;
-		while ($row = $results->fetchArray()) {
+		foreach ( $results as $m ) {
 		  if ( $counter == 0 ) {
 		    echo "<tr>";
 		  }
-		  $MGfileindex=$row[MORSEGRAPHFILEID];
+		  $MGfileindex=$m[MORSEGRAPHFILEID];
 		  echo "<td> <img src=\"graphs/MGCC$MGfileindex.png\" usemap=\"#MGCC{$MGfileindex}\" width=\"200\" > </td>";
 		  $counter = $counter + 1;
 		  if ( $counter==5 ) {
