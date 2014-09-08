@@ -284,6 +284,7 @@ std::string dotFile ( const Database & database,
 
     // string for the vertex
     std::vector<std::string> annotation_vertex = mydag . annotation_vertex[i];
+    
     std::string mystring = "";
     if ( !annotation_vertex.empty() ) {
       mystring = makeLabel ( annotation_vertex );
@@ -383,11 +384,122 @@ void MGCC_Zoo ( Database const& database,
 
 
 
+
+void Hasse_Zoo ( const Database & database ) {
+	// Sort mgcc by frequency
+	// data
+	std::vector < std::pair < long, uint64_t > > dag_indices_by_frequency;
+	uint64_t total_count = 0;
+  
+	// algo
+	{
+		dag_indices_by_frequency . resize ( database.dagData() . size () );
+		for ( uint64_t dag = 0; dag < dag_indices_by_frequency . size (); ++ dag ) {
+			dag_indices_by_frequency [ dag ] . first = 0;
+			dag_indices_by_frequency [ dag ] . second = dag;
+		}
+		for ( uint64_t mgcc = 0; mgcc < database.MGCC_Records().size (); ++ mgcc ) {
+			const MGCC_Record & mgcc_record = database.MGCC_Records()[mgcc];
+			BOOST_FOREACH ( uint64_t mgccp, mgcc_record . mgccp_indices ) {
+				const MGCCP_Record & mgccp_record = database.MGCCP_Records()[mgccp];
+				long frequency = mgccp_record . parameter_indices . size ();
+				uint64_t morsegraph_index = mgccp_record . morsegraph_index;
+  			const MorseGraphRecord & morsegraph_record =
+        database . morsegraphData () [ morsegraph_index ];
+  			uint64_t dag_index = morsegraph_record . dag_index;
+				dag_indices_by_frequency [ dag_index ] . first += frequency;
+				total_count += frequency;
+			}
+		}
+		std::sort ( dag_indices_by_frequency . rbegin (), dag_indices_by_frequency . rend () ); // sort in descending order
+	}
+	// DISPLAY HASSE ZOO DATA
+	for ( uint64_t zoo_index = 0; zoo_index < dag_indices_by_frequency . size (); ++ zoo_index ) {
+		long frequency = dag_indices_by_frequency [ zoo_index ] . first;
+		uint64_t dag_index = dag_indices_by_frequency [ zoo_index ] . second;
+		// Produce filename
+		// data
+		std::string filename;
+		// algo
+		{
+			std::stringstream ss;
+			ss << "HASSE" << zoo_index << ".gv";
+			filename = ss . str ();
+	  }
+		// Create Body of File
+		// data
+		std::stringstream ss;
+		// algo
+		{
+      
+  		const DAG_Data & dag = database . dagData () [ dag_index ];
+      
+  		// debug
+			if ( dag . num_vertices == 0 ) {
+				std::cout << "EMPTY HASSE DIAGRAM. It seems a bug is present.)\n";
+				std::cout << "database.dagData()[" << dag_index << "]\n";
+				for ( uint64_t mgcc = 0; mgcc < database.MGCC_Records().size (); ++ mgcc ) {
+					const MGCC_Record & mgcc_record = database.MGCC_Records()[mgcc];
+					BOOST_FOREACH ( uint64_t mgccp, mgcc_record . mgccp_indices ) {
+						const MGCCP_Record & mgccp_record = database.MGCCP_Records()[mgccp];
+						uint64_t morsegraph_index = mgccp_record . morsegraph_index;
+  					const MorseGraphRecord & morsegraph_record =
+  					database . morsegraphData () [ morsegraph_index ];
+  					uint64_t other_dag_index = morsegraph_record . dag_index;
+						if ( other_dag_index == dag_index ) {
+							uint64_t pb = mgccp_record . parameter_indices [ 0 ];
+							std::cout << mgcc << ", " << mgccp << ", " << pb << ": " <<  *database.parameter_space().parameter(pb) << "\n";
+						}
+					}
+				}
+				{
+  				typedef std::pair<int, int> Edge;
+  				BOOST_FOREACH ( const Edge & e, dag . partial_order ) {
+  					std::cout << e . first << " -> " << e . second << "; ";
+  				}
+  	  	}
+        continue; //abort ();
+			}
+			// end debug
+      
+      ss << "digraph HASSE" << zoo_index << " { \n";
+  		// Vertices
+  		for ( int i = 0; i < dag . num_vertices; ++ i ) {
+    		ss << i << " [label=\"" << i << "\"]\n";
+  		}
+	 		ss << "LEGEND [label=\"HASSE " << zoo_index << "\\n " << 100.0*((double)frequency/(double)total_count) << "% \" shape=\"rectangle\"]\n";
+  		{
+        typedef std::pair<int, int> Edge;
+        BOOST_FOREACH ( const Edge & e, dag . partial_order ) {
+          ss << e . first << " -> " << e . second << "; ";
+        }
+  	  }
+			ss << "}\n";
+	  }
+		// Write File
+		// data
+		std::ofstream outfile ( filename . c_str () );
+		// algo
+		outfile << ss . str ();
+		outfile . close ();
+	}
+}
+
+
+
+
+
+
 int main ( int argc, char * argv [] ) {
 	// Load database
   Database database;
   database . load ( argv [ 1 ] );
   std::cout << "Successfully loaded database.\n";
+  
+#ifndef NOCONLEYINDEX
+  database . makeAttractorsMinimal ();
+#endif
+  database . performTransitiveReductions ();
   
   // Open the SQL Database and create the main table if needed
   sqlite3 *sqlDB;
@@ -438,7 +550,8 @@ int main ( int argc, char * argv [] ) {
   }
 
   MGCC_Zoo ( database, sqlDB, parameter_space );
-
+  Hasse_Zoo ( database );
+  
   parameter_space . reset ();
   return 0;
 }
