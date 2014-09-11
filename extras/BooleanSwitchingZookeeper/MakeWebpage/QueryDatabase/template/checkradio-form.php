@@ -54,64 +54,41 @@ try {
 		}
 	}
 
-	// Check the last radio button to retrieve the prefix for the filename fo the files to display
-	$filenamePrefix=end($_POST['radio']);
-
-	// if we ask for the Morse Graph Continuation Class
-	if ( $filenamePrefix == "MGCC" ) {
-
-		if ( $doingquery == true ) {
-			if ( $countQuery > 1 ) { 
-				$sqlquery .= $istring;
-			}
-			// if selected a No, we need to append estring
-			if ( NOfound == true ) {
-				$sqlquery .= $estring;
-			}
-		} else {
-		// if no basic query, we select everything
-			$sqlquery="select distinct MORSEGRAPHFILEID from morsesets";
+	if ( $doingquery == true ) {
+		if ( $countQuery > 1 ) { 
+			$sqlquery .= $istring;
 		}
-
-		//echo "$sqlquery";
-
-		$results = $file_db->query($sqlquery) or die ('Query failed');
-
-		// Construct the Table 
-		echo "<table border=\"1\">";
-		$counter=0;
-		foreach ( $results as $m ) {
-		  if ( $counter == 0 ) {
-		    echo "<tr>";
-		  }
-		  $MGfileindex=$m[MORSEGRAPHFILEID];
-		  echo "<td> <img src=\"graphs/MGCC$MGfileindex.png\" usemap=\"#MGCC{$MGfileindex}\" width=\"200\" > </td>";
-		  $counter = $counter + 1;
-		  if ( $counter==5 ) {
-		    echo "</tr>";
-		    $counter = 0;
-		  }
-		  // Introduce the "map" objects
-		  include ( "graphs/MGCC{$MGfileindex}-cmapx.html" );
+		// if selected a No, we need to append estring
+		if ( NOfound == true ) {
+			$sqlquery .= $estring;
 		}
-		echo "</table>";
-	} else { // if we asked instead for the Hasse Diagrams 
-		echo "<table border=\"1\">";
-		$counter=0;
-		// loop through all the files of the form HASSE*.png
-		foreach ( glob("graphs/HASSE*png") as $HasseFile ) {
-		  if ( $counter=0 ) {
-		        echo "<tr>";
-		  }
-		  echo "<td> <img src=\"$HasseFile\" width=\"200\" > </td>";
-		  $counter = $counter + 1;
-		  if ( $counter==5 ) {
-		    echo "</tr>";
-		    $counter = 0;
-		  }
-		}
-		echo "</table>";
+	} else {
+	// if no basic query, we select everything
+		$sqlquery="select distinct MORSEGRAPHFILEID from morsesets";
 	}
+
+	//echo "$sqlquery";
+
+	$results = $file_db->query($sqlquery) or die ('Query failed');
+
+	// Construct the Table 
+	echo "<table border=\"1\">";
+	$counter=0;
+	foreach ( $results as $m ) {
+	  if ( $counter == 0 ) {
+	    echo "<tr>";
+	  }
+	  $MGfileindex=$m[MORSEGRAPHFILEID];
+	  echo "<td> <img src=\"graphs/MGCC$MGfileindex.png\" usemap=\"#MGCC{$MGfileindex}\" width=\"200\" > </td>";
+	  $counter = $counter + 1;
+	  if ( $counter==5 ) {
+	    echo "</tr>";
+	    $counter = 0;
+	  }
+	  // Introduce the "map" objects
+	  include ( "graphs/MGCC{$MGfileindex}-cmapx.html" );
+	}
+	echo "</table>";
 	$file_db -> close(); 
 }
 catch (PDOException $e) {
