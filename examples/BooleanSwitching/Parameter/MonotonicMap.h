@@ -78,8 +78,6 @@ public:
   }
 
   bool realizable ( void ) const {
-    // currently this is sum-sum realizable
-
     // What is realizable?
     // For each subset of variables I,
     // define the complement to be J,
@@ -116,16 +114,6 @@ public:
               if ( (c & i ) != 0 ) continue;
               int64_t x = data_[a|c];
               int64_t y = data_[b|c];
-              /*
-              std::cout << "\n a = " << a << "\n";
-              std::cout << " b = " << b << "\n";
-              std::cout << " c = " << c << "\n";
-              std::cout << " a|c = " << (a|c) << "\n";
-              std::cout << " b|c = " << (b|c) << "\n";
-              std::cout << " data_[a|c] = " << data_[a|c] << "\n";
-              std::cout << " data_[b|c] = " << data_[b|c] << "\n";
-              */
-
               if ( x < y ) { 
                 less = true;
               }
@@ -177,6 +165,49 @@ public:
         if ( (D001 > D010) && not (D101 >= D110) ) return false;
         if ( (D001 < D010) && not (D101 <= D110) ) return false;
         return true;     
+      }
+      if ( logic_[0] == 2 && logic_[1] == 2 ) {
+        // Case (2,2). "(a+b)(c+d)"
+        // Slice Conditions.
+        std::vector<int64_t> slices = { 0b1100, 0b0011, 0b1011, 0b0111, 0b1101, 0b1110 };
+        for ( int64_t slice : slices ) {
+          for ( int64_t x = 0; x < 16; ++ x ) {
+            for ( int64_t v = 0; v < 16; ++ v ) {
+              int64_t y = (x & slice) | (v & ~slice);
+              int64_t u = (x & ~slice) | (v & slice);
+              if ( data_[x] < data_[y] && !(data_[u] <= data_[v]) ) return false;
+            }
+          }
+        }
+        // Promotion Condition.
+        std::vector<int64_t> factorslices = { 0b1100, 0b0011 };
+        for ( int64_t x = 0; x < 16; ++ x ) {
+          for ( int64_t y = 0; y < 16; ++ y ) {
+            if ( data_[x] >= data_[y] ) continue;
+            for ( int64_t slice : factorslices ) {
+              // Guarantee that f_{slice}(x) >= f_{slice}(y)
+              // or else continue
+              bool condition_met = false;
+              for ( int64_t z = 0; z < 16; ++ z ) {
+                if ( data_ [ (x & slice) | (z & ~slice) ] > data_ [ (y & slice) | (z & ~slice) ]) {
+                  condition_met = true;
+                  break;
+                }
+              }
+              if ( not condition_met ) continue;
+              // Check all valid promotions and enforce f(X) <= f(Y)
+              for ( int i = 0; i < 4; ++ i ) {
+                int64_t bit = 1 << i;
+                if ( not (slice & bit) ) continue;
+                if ( (x & bit) | (y & bit) ) continue;
+                int64_t X = x | bit;
+                int64_t Y = y | bit;
+                if ( data_[X] > data_[Y] ) return false;
+              }
+            }
+          }
+        }
+        return true;
       }
     } 
     std::cout << "BooleanSwitching Node realizability condition unknown.\n";
