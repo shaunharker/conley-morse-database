@@ -14,7 +14,7 @@ printf "<html> \n <head> \n <title> $2 </title> \n </head> \n <body> \n" > $file
 
 # for the radio buttons
 printf "<form action=\"checkradio-form.php\" method=\"post\" target=\"MGframe\">\n" >> $file
-printf "Find the Morse graph that contains at least one Morse set with the following properties : <br />\n" >> $file
+printf "<p>Find the Morse graph that contains at least one Morse set with the following properties :</p>\n" >> $file
 printf "<table border=\"1\">\n" >> $file
 # columns title
 printf "<tr> \n <th> Yes </th> \n <th> No </th> \n <th> Either </th> \n</tr> \n" >> $file
@@ -28,7 +28,7 @@ while read line; do
 #   #define C**** 
     string=`echo $line | grep '^#define C' | cut -d'"' -f2`
     if [ -n "$string" ]; then
-    	counter=$(( $counter+1 )) >> $file
+    	counter=$(( $counter+1 )) # >> $file
 	    printf "<tr> \n" >> $file
 	    printf "<td> <input type=\"radio\" name=\"radio["$counter"]\" " >> $file
 	    # value convention (colon separated) ->  status : symbol
@@ -56,8 +56,8 @@ while read line; do
 	    printf "</tr>" >> $file
 	  fi
 done < $sourcedir/AnnotationConditions.h
-
 printf "</table>\n" >> $file
+printf "<br>" >> $file
 printf "<input type=\"submit\" name=\"formSubmit\" value=\"Submit\" />\n" >> $file
 printf "</form>\n" >> $file
 

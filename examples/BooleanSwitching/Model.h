@@ -142,7 +142,7 @@ Model::map ( boost::shared_ptr<Parameter> p) const {
   for ( WallIndexPair const& wall_index_pair : walls_ ) {
     const Wall & wall = wall_index_pair . first;
     int64_t wall_id = wall_index_pair . second;
-    outfile << wall_id << "[label=\"" << wall . rect () << "\"]\n";
+    outfile << wall_id << "[label=\"" << wall_id << " &#92;n " << wall . rect () << "\"]\n";
   }
   std::unordered_set<uint64_t> mapped_in, mapped_out;
 #endif
@@ -293,7 +293,21 @@ std::vector < std::string > Model::constructAnnotationsMorseSet (
   }
   if ( condition3 ) {
     annotation . push_back ( CONDITION3STRING );
-  } 
+#ifdef BS_DEBUG_MODELMAP
+    std::ofstream ofile;
+    ofile . open ( "morseset.txt" );
+    BOOST_FOREACH ( Grid::GridElement ge, subset ) {
+      if ( not boost::dynamic_pointer_cast < AtlasGeo > ( phasespace -> geometry ( ge ) ) ) {
+        std::cout << "Unexpected null response from geometry\n";
+      }
+      AtlasGeo geo = * boost::dynamic_pointer_cast < AtlasGeo > ( phasespace -> geometry ( ge ) );
+      size_t id = geo . id ( );
+      Wall wall = chartIdToWall_ . find ( id ) -> second;
+      ofile << id << " " << wall.rect() << "\n";
+    }
+    ofile . close ();
+#endif
+  }
   return annotation;
 }
 
