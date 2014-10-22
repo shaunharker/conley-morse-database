@@ -34,6 +34,13 @@ public:
   ///    a map from {0,1,...2^n-1} -> {0,1,...m}
   std::vector< int64_t > data_;  // mapping
 
+  /// constraints_
+  ///    constraints_ is an array storing value of the form (m, (x,y)),
+  ///    where m, x, and y are int64_t.
+  ///    The effect of an item in constraints_ is to enforce extra
+  ///    realizability conditions
+  ///    data_[a] < data_[b]  whenever (a & ~m ) == (b & ~m)  and (a&m == x) and (b&m == y)
+  std::vector<std::pair<int64_t,std::pair<int64_t, int64_t>>> constraints_;
 
   // constructors
   MonotonicMap ( void ) {}
@@ -44,11 +51,18 @@ public:
   MonotonicMap ( int64_t n, int64_t m, std::vector<int64_t> const& logic ): n(n), m(m), logic_(logic) {
     data_ . resize ( (1 << n), 0 );
   }
+  MonotonicMap ( int64_t n, int64_t m, 
+                 std::vector<int64_t> const& logic, 
+                 std::vector<std::pair<int64_t,std::pair<int64_t,int64_t>>> const& constraints )
+  : n(n), m(m), logic_(logic), constraints_(constraints) {
+    data_ . resize ( (1 << n), 0 );
+  }
   MonotonicMap ( int64_t n, 
                  int64_t m, 
                  std::vector<int64_t> const& logic, 
+                 std::vector<std::pair<int64_t,std::pair<int64_t,int64_t>>> const& constraints,
                  std::vector<int64_t> const& data )
-    : n(n), m(m), logic_(logic), data_(data) {}
+    : n(n), m(m), logic_(logic), constraints_(constraints), data_(data) {}
 
   // Check if monotonic
   bool monotonic ( void ) const {
@@ -78,20 +92,23 @@ public:
   }
 
   bool realizable ( void ) const {
-    // What is realizable?
-    // For each subset of variables I,
-    // define the complement to be J,
-    // We want to realize a partial order on 2^I
-    // by inducing it via every substitution of selection
-    // of J variables.
-    // This means I have to loop through all choice I of subsets of variables.
-    // That shouldn't be hard. Then I have to loop through 
-    // substitutions of the J variables.
-    // And within that, I need to loop through pairs of choices of substitutions for
-    // the I variables.
-    // An upper bound for this procedure is 8^n. For small n it should be tractable.
-    // Actually it would be better to loop through the pairs first and the
-    // substitutions second, to avoid having to store information
+    // Step 1. Check constraints. (current algorithm takes 2^{2n}*|constraints| time) 
+    {
+      int64_t N = (1 << n);
+      for ( int64_t a = 0; a < N; ++ a ) {
+        for ( int64_t b = 0; b < N; ++ b ) {
+          for ( std::pair<int64_t, std::pair<int64_t, int64_t>> const& constraint : constraints_ ) {
+            int64_t const& mask = constraint . first;
+            int64_t const& x = constraint . second . first;
+            int64_t const& y = constraint . second . second;
+            if ( ((a & ~mask) == (b & ~mask)) && ( (a & mask) == x ) && ( (b & mask) == y ) ) {
+              if ( data_[a] > data_[b] ) return false;
+            }
+          }
+        }
+      }
+    }
+    // Step 2. Other realizability conditions
     int64_t max_terms_in_factor = 0;
     for ( int64_t i = 0; i < logic_ . size (); ++ i ) {
       max_terms_in_factor = std::max ( max_terms_in_factor, logic_[i] );
@@ -229,14 +246,14 @@ public:
     for ( int64_t i = 0; i < N; ++ i ) {
       if ( copy[i] > 0 ) {
         -- copy[i];
-        boost::shared_ptr<MonotonicMap> new_map ( new MonotonicMap ( n, m, logic_, copy ) );
+        boost::shared_ptr<MonotonicMap> new_map ( new MonotonicMap ( n, m, logic_, constraints_, copy ) );
         if ( new_map -> monotonic () && new_map -> realizable () ) 
           results . push_back ( new_map );
         ++ copy[i];
       }
       if ( copy[i] < m ) {
         ++ copy[i];
-        boost::shared_ptr<MonotonicMap> new_map ( new MonotonicMap ( n, m, logic_, copy ) );
+        boost::shared_ptr<MonotonicMap> new_map ( new MonotonicMap ( n, m, logic_, constraints_, copy ) );
         if ( new_map -> monotonic () && new_map -> realizable () ) 
           results . push_back ( new_map );
         -- copy[i];
