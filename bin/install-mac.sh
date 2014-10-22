@@ -21,7 +21,7 @@ echo ==\> Homebrew
 echo Checking for Homebrew.
 if [ ! -f /usr/local/bin/brew ]; then
   echo Not found.
-  ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"" || exit 1
+  ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" || exit 1
   brew doctor
   echo Homebrew is now installed.
 else
