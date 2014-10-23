@@ -116,6 +116,45 @@ int main ( int argc, char * argv [] ) {
   std::cout << "Computed a Morse graph with "
   << mg . NumVertices () << " nodes.\n";
   
+
+  //  
+ std::ofstream ofile;
+ ofile.open("morse_sets.dat");
+ 
+ typedef std::vector<Grid::GridElement> CellContainer;
+ typedef  MorseGraph::VertexIterator VI;
+ VI it, stop;
+ for (boost::tie ( it, stop ) = mg . Vertices (); it != stop;  ++ it ) {
+   
+   boost::shared_ptr<const Grid> my_subgrid ( mg . grid ( *it ) );
+   
+   if ( not my_subgrid ) {
+     std::cout << "Abort! This vertex does not have an associated grid!\n";
+     abort ();
+   }
+   CellContainer my_subset = phase_space -> subset ( * my_subgrid );
+   
+   BOOST_FOREACH ( Grid::GridElement ge, my_subset ) {
+     if ( not boost::dynamic_pointer_cast < AtlasGeo > ( phase_space -> geometry ( ge ) ) ) {
+       std::cout << "Unexpected null response from geometry\n";
+     }
+     AtlasGeo geo = * boost::dynamic_pointer_cast < AtlasGeo > ( phase_space -> geometry ( ge ) );
+     RectGeo box =  geo . rect ();
+     int id = geo . id ();
+     // std::cout << "(Chart, Rect) = (" << id << ", " << box << ")\n";
+     
+     ofile << *it << " " << id ;//  << " ): " << box << "\n";
+     
+     ofile << "\n";
+     
+   }
+ }
+ 
+ ofile.close();
+  
+
+
+  
  
   return 0;
 }
