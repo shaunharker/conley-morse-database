@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <utility>
-#include "boost/unordered_map.hpp"
+#include "unordered_map"
 #include "boost/shared_ptr.hpp"
 #include "boost/serialization/serialization.hpp"
 #include "boost/serialization/vector.hpp"
@@ -47,7 +47,7 @@ public:
 	typedef uint64_t ParameterIndex;
 	std::vector<ParameterIndex> vertices;
 	std::vector<std::pair<ParameterIndex, ParameterIndex> > edges;
-	boost::unordered_map<ParameterIndex, boost::shared_ptr<Parameter> > parameter;
+	std::unordered_map<ParameterIndex, boost::shared_ptr<Parameter> > parameter;
 	/// empty
 	/// determine if the ParameterPatch is empty
 	/// this is useful because the ParameterSpace::patch routine

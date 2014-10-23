@@ -1,13 +1,8 @@
 #!/bin/bash
+OSVERSION=`sw_vers -productVersion` 
+echo You have Mac OS X Version ${OSVERSION} 
+echo Note: If your version is below 10.9 you may experience problems.
 
-OSVERSION=`sw_vers -productVersion | grep -o "\..*\." | sed 's/\.//g'` 
-
-if [ "`echo "${OSVERSION} < 9" | bc`" == "1" ]; then
-  echo Versions of Mac OS X less than 10.9 are known to have issues.
-  echo Please update your OS to use this installer.
-  exit 1
-fi
- 
 PREFIX=$1
 cd ..
 
