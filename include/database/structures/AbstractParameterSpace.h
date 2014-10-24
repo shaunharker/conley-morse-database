@@ -91,6 +91,7 @@ AbstractParameterSpace::computeAdjacencyLists ( void ) {
 	size_ = size ();
 	std::cout << "AbstractParameterSpace size = " << size () << "\n";
 	// begin debug
+  /*
 	size_t edges = 0;
 	size_t vertices = 0;
 	std::random_device rd;
@@ -105,6 +106,7 @@ AbstractParameterSpace::computeAdjacencyLists ( void ) {
   }
   std::cout << "Parameter Graph. V = " << vertices << " and E = " << edges << "\n";
   // end debugf
+  */
   abort ();
   adjacency_lists_ . resize ( size () );
 	BOOST_FOREACH ( ParameterIndex v, *this ) {
