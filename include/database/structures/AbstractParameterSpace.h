@@ -105,9 +105,9 @@ AbstractParameterSpace::computeAdjacencyLists ( void ) {
     if ( vertices % 1000000 == 0 ) std::cout << "Parameter Graph. V = " << vertices << " and E = " << edges << "\n";
   }
   std::cout << "Parameter Graph. V = " << vertices << " and E = " << edges << "\n";
+  abort ();
   // end debugf
   */
-  abort ();
   adjacency_lists_ . resize ( size () );
 	BOOST_FOREACH ( ParameterIndex v, *this ) {
 		adjacency_lists_ [ v ] = adjacencies ( v );

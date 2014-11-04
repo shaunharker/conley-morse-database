@@ -20,17 +20,22 @@ struct Node {
   int64_t index; // indexing starts at 1
   std::vector<std::vector<int64_t> > logic; // negative indices represent down-regulation
   std::vector<int64_t> out_order;
+  
   // Constraint information
+  //   How "constraints" are encoded:
+  //   Given a constraint (m,(x,y)) in constraints
+  //   Given two bit codes, A and B, 
+  //   we test if A matches B off the mask m.
+  //   If so,
+  //   we test if A matches x on the mask
+  //   whether B matches y on the mask
+  //   bool matches == ((x & mask) == A);
+  //   Whenever we have two matches we must enforce the constraint.
   std::vector<std::pair<int64_t,std::pair<int64_t,int64_t>>> constraints;
-  // How "constraints" are encoded:
-  // Given a constraint (m,(x,y)) in constraints
-  // Given two bit codes, A and B, 
-  // we test if A matches B off the mask m.
-  // If so,
-  // we test if A matches x on the mask
-  // whether B matches y on the mask
-  // bool matches == ((x & mask) == A);
-  // Whenever we have two matches we must enforce the constraint.
+
+  // Choice information. -1 if no choice. Otherwise, forces node to be a certain
+  // vertex of the factor graph for the node.
+  int64_t choice;
 };
 
 class Network {
@@ -76,6 +81,11 @@ private:
   ///   add a constraint
   void
   addConstraint ( std::string const& line );
+
+  /// pickFactor
+  ///    parse a line 
+  void
+  pickFactor ( std::string const& line );
 
   std::unordered_map<std::string, int64_t> name_to_index_;
   std::vector<std::string> names_;
@@ -222,6 +232,7 @@ parseLine ( const std::string & line,
             std::unordered_map<std::string, int64_t> & name_to_index_ ) {
   //std::cout << "LINE: " << line << "\n"; // DEBUG
   Node result;
+  result . choice = -1;
   typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
   boost::char_separator<char> sep(":->");
   tokenizer tokens(line, sep);
@@ -298,11 +309,11 @@ Network::addConstraint ( std::string const& line ) {
     if ( node_index != first_index ) {
       throw std::logic_error ( "Problem parsing inequality (first arguments don't match)\n");
     }
-    std::string second_argment = * tok_iter ++;
-    if ( name_to_index_ . count ( second_argment ) == 0 ) {
+    std::string second_argument = * tok_iter ++;
+    if ( name_to_index_ . count ( second_argument ) == 0 ) {
       throw std::logic_error ( "Problem parsing inequality (second argument)\n");
     }
-    int64_t second_index = name_to_index_ [ second_argment ];
+    int64_t second_index = name_to_index_ [ second_argument ];
     terms [ second_index ] = U_or_L;
     std::cout << "Parsed term " << term << " as (" << first_index << ", " 
               << second_index << ") with " << (U_or_L ? "U" : "L") << " on "
@@ -341,6 +352,15 @@ Network::addConstraint ( std::string const& line ) {
 
 }
 
+inline void
+Network::pickFactor ( std::string const& line ) {
+  std::stringstream ss ( line );
+  std::string atsymbol, nodename, monotonic_map_index;
+  ss >> atsymbol >> nodename >> monotonic_map_index;
+  int64_t node_index = index ( nodename );
+  int64_t choice = std::stoll(monotonic_map_index);
+  nodes_ [ node_index - 1] . choice = choice;
+}
 
 inline void 
 initialParse ( const std::string & line,
@@ -363,7 +383,7 @@ load ( const char * filename ) {
   bool inequalities_present = false;
   std::string line;
   while ( std::getline ( infile, line ) ) {
-    if ( line[0] != '.' ) initialParse ( line, name_to_index_ );
+    if ( line[0] != '.' && line[0] != '@' ) initialParse ( line, name_to_index_ );
     else inequalities_present = true;
   }
   infile.clear();
@@ -374,6 +394,8 @@ load ( const char * filename ) {
   while ( std::getline ( infile, line ) ) {
     if ( line[0] == '.' ) {
       addConstraint ( line );
+    } else if ( line[0] == '@' ) {
+      pickFactor ( line );
     } else {
       try {
         Node node = parseLine ( line, name_to_index_ );

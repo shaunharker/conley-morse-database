@@ -10,3 +10,11 @@ W2 : W1 : Z W1
 . U(X,X) - L(X,X) < U(X,Z) - L(X,Z)
 . U(X,W1) - L(X,W1) < U(X,Y3) - L(X,Y3)
 . U(Y2,Y1) - L(Y2,Y1) < U(Y2,W1) - L(Y2,W1)
+. U(Y3,Y2) - L(Y3,Y2) < U(Y3,W1) - L(Y3,W1)
+. U(Z,X) - L(Z,X) < U(Z,W2) - L(Z,W2)
+. U(W1,Y2) - L(W1,Y2) < U(W1,W2) - L(W1,W2)
+. L(X,Y3) + U(X,Z) < U(X,Y3) + L(X,Z)
+. L(X,X) + U(X,W1) < U(X,X) + L(X,W1)
+. U(X,X) + L(X,Z) + U(X,W1) < L(X,X) + U(X,Z) + L(X,W1)
+. U(X,X) + L(X,Y3) + U(X,Z) + U(X,W1) < L(X,X) + U(X,Y3) + L(X,Z) + L(X,W1)
+@ Y2 7
