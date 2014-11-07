@@ -143,8 +143,8 @@ Model::map ( boost::shared_ptr<Parameter> p) const {
   mywalls . resize ( walls_.size() );
   outEdges . resize ( walls_.size() );
   
-  std::ofstream wallsFile ( "walls.dat" );
-  std::ofstream outEdgesFile ( "outEdges.dat" );
+  std::ofstream wallsFile ( "walls.txt" );
+  std::ofstream outEdgesFile ( "outEdges.txt" );
 #endif
   
 #ifdef BS_DEBUG_MODELMAP
