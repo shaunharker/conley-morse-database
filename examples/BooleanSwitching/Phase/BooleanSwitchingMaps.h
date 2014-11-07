@@ -6,7 +6,6 @@
 #define BOOLEANSWITCHINGMAPS_H
 
 #include <vector>
-#include "boost/foreach.hpp"
 #include <utility>
 
 std::vector < std::pair < int64_t, int64_t > >
@@ -38,8 +37,8 @@ BooleanSwitchingMaps ( std::vector<int64_t> const& closestface ) {
     cold . push_back ( 0 );
     hot . push_back ( 0 );
   }
-  BOOST_FOREACH ( int64_t c, cold ) {
-    BOOST_FOREACH ( int64_t h, hot ) {
+  for ( int64_t c : cold ) {
+    for ( int64_t h : hot ) {
       result . push_back ( std::make_pair ( c, h ) );
     }
   }
