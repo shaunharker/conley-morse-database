@@ -2,6 +2,8 @@
 #ifndef _CMDP_COMPUTE_MORSE_GRAPH_HPP_
 #define _CMDP_COMPUTE_MORSE_GRAPH_HPP_
 
+#define MEMORYBOOKKEEPING
+
 #ifdef CMG_VISUALIZE
 #include <boost/unordered_map.hpp>
 #include "CImg.h"
@@ -371,8 +373,8 @@ Compute_Morse_Graph (MorseGraph * MG,
                      const unsigned int Max, 
                      const unsigned int Limit) {
   // Produce Morse Set Decomposition Hierarchy
-  //std::cout << "Compute_Morse_Graph. Initializing root MorseDecomposition\n";
-  //std::cout << "Compute_Morse_Graph. phase_space -> size () == " << phase_space -> size () << "\n";
+  std::cout << "Compute_Morse_Graph. Initializing root MorseDecomposition\n";
+  std::cout << "Compute_Morse_Graph. A phase_space -> size () == " << phase_space -> size () << "\n";
 
   boost::shared_ptr<Grid> root_space ( (Grid *) (phase_space -> clone ()) );
   
@@ -390,6 +392,9 @@ Compute_Morse_Graph (MorseGraph * MG,
   //std::cout << "Calling ConstructMorseGraph\n";
   // Stitch together Morse Graph from Decomposition Hierarchy
   ConstructMorseGraph ( phase_space, MG, root, Min );
+
+  std::cout << "Compute_Morse_Graph. B phase_space -> size () == " << phase_space -> size () << "\n";
+
   // Free memory used in decomposition hierarchy
   delete root;
 #ifdef MEMORYBOOKKEEPING

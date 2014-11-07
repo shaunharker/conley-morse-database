@@ -11,11 +11,11 @@
 #include <boost/shared_ptr.hpp>
 #include "boost/foreach.hpp"
 #include <boost/serialization/serialization.hpp>
-#include <boost/unordered_set.hpp>
-#include <boost/unordered_map.hpp>
+#include "boost/functional/hash.hpp"
+
+#include <unordered_set>
 #include <boost/serialization/set.hpp>
 #include <boost/serialization/unordered_set.hpp>
-#include <boost/serialization/unordered_map.hpp>
 #include "boost/serialization/shared_ptr.hpp"
 #include "boost/serialization/set.hpp"
 #include <boost/archive/text_oarchive.hpp>
@@ -41,7 +41,7 @@ class MorseGraph {
 
   // Edge types
   typedef std::pair<Vertex, Vertex> Edge;
-  typedef boost::unordered_set<Edge>::const_iterator EdgeIterator;
+  typedef std::unordered_set<Edge, boost::hash<Edge>>::const_iterator EdgeIterator;
   typedef std::pair<EdgeIterator, EdgeIterator> EdgeIteratorPair;
 
   /** Create an empty graph */
@@ -123,7 +123,7 @@ class MorseGraph {
 private:
   // DATA
   int num_vertices_;
-  boost::unordered_set < Edge > edges_;
+  std::unordered_set < Edge, boost::hash<Edge> > edges_;
   boost::shared_ptr < Grid > phasespace_;
   std::vector < boost::shared_ptr <Grid > > grids_;
   std::vector < boost::shared_ptr < chomp::ConleyIndex_t > > conleyindexes_;

@@ -5,6 +5,8 @@
 
 #include <cstddef>
 #include <vector>
+#include <unordered_set>
+#include <unordered_map>
 
 #include <boost/shared_ptr.hpp>
 #include <boost/foreach.hpp>
@@ -16,7 +18,12 @@
 #include <boost/serialization/set.hpp>
 #include <boost/serialization/unordered_set.hpp>
 #include <boost/serialization/unordered_map.hpp>
+
+// The next two includes are due to a bug as of 10/23/14 that affects the shared_ptr include
+#include <boost/serialization/singleton.hpp>
+#include <boost/serialization/extended_type_info.hpp>
 #include "boost/serialization/shared_ptr.hpp"
+
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/nvp.hpp>
 
@@ -381,22 +388,22 @@ private:
   std::vector < BG_Data > bg_data_;
   std::vector < CS_Data > cs_data_;
   std::vector < CI_Data > ci_data_;
-  boost::unordered_map < std::string, uint64_t > string_index_;
-  boost::unordered_map < Annotation_Record, uint64_t > annotation_index_;
-  boost::unordered_map < MorseGraphRecord, uint64_t > morsegraph_index_;
-  boost::unordered_map < DAG_Data, uint64_t > dag_index_;
-  boost::unordered_map < BG_Data, uint64_t > bg_index_;
-  boost::unordered_map < CS_Data, uint64_t > cs_index_;
-  boost::unordered_map < CI_Data, uint64_t > ci_index_;
+  std::unordered_map < std::string, uint64_t > string_index_;
+  std::unordered_map < Annotation_Record, uint64_t, boost::hash<Annotation_Record> > annotation_index_;
+  std::unordered_map < MorseGraphRecord, uint64_t, boost::hash<MorseGraphRecord> > morsegraph_index_;
+  std::unordered_map < DAG_Data, uint64_t, boost::hash<DAG_Data> > dag_index_;
+  std::unordered_map < BG_Data, uint64_t, boost::hash<BG_Data> > bg_index_;
+  std::unordered_map < CS_Data, uint64_t, boost::hash<CS_Data> > cs_index_;
+  std::unordered_map < CI_Data, uint64_t, boost::hash<CI_Data> > ci_index_;
   // continuation data
-  boost::unordered_map < INCCP_Record, uint64_t > inccp_index_;
+  std::unordered_map < INCCP_Record, uint64_t, boost::hash<INCCP_Record> > inccp_index_;
   std::vector < uint64_t > pb_to_mgccp_;
   std::vector < uint64_t > mgccp_to_mgcc_;
   std::vector < uint64_t > inccp_to_incc_;
-  std::vector < boost::unordered_set < uint64_t > > incc_to_mgcc_;
+  std::vector < std::unordered_set < uint64_t > > incc_to_mgcc_;
   std::vector < uint64_t > mgcc_sizes_;
   std::vector < uint64_t > incc_sizes_;
-  std::vector < boost::unordered_set < uint64_t > > mgcc_nb_;
+  std::vector < std::unordered_set < uint64_t > > mgcc_nb_;
   std::vector < uint64_t > incc_conley_;
   std::vector < MGCCP_Record > MGCCP_records_;
   std::vector < INCCP_Record > INCCP_records_;
@@ -513,10 +520,10 @@ public:
   const std::vector < uint64_t > & pb_to_mgccp ( void ) const { return pb_to_mgccp_; }
   const std::vector < uint64_t > & mgccp_to_mgcc ( void ) const { return mgccp_to_mgcc_; }
   const std::vector < uint64_t > & inccp_to_incc ( void ) const { return inccp_to_incc_; }
-  const std::vector < boost::unordered_set < uint64_t > > & incc_to_mgcc ( void ) const { return incc_to_mgcc_; }
+  const std::vector < std::unordered_set < uint64_t > > & incc_to_mgcc ( void ) const { return incc_to_mgcc_; }
   const std::vector < uint64_t > & mgcc_sizes ( void ) const { return mgcc_sizes_; }
   const std::vector < uint64_t > & incc_sizes ( void ) const { return incc_sizes_; }
-  const std::vector < boost::unordered_set < uint64_t > > & mgcc_nb ( void ) const { return mgcc_nb_; }
+  const std::vector < std::unordered_set < uint64_t > > & mgcc_nb ( void ) const { return mgcc_nb_; }
   const std::vector < uint64_t > & incc_conley ( void ) const { return incc_conley_; }
 
 
@@ -813,7 +820,7 @@ public:
 
   std::vector < std::vector < uint64_t > > 
   Components ( void ) const {
-    boost::unordered_map < uint64_t, uint64_t > rep_to_component;
+    std::unordered_map < uint64_t, uint64_t > rep_to_component;
     std::vector < std::vector < uint64_t > > components;
     uint64_t N = parent . size ();
     uint64_t num_components = 0;
@@ -853,8 +860,8 @@ inline bool Database::is_isomorphism ( const MorseGraphRecord & mgr1,
   const DAG_Data & dag2 = dagData()[mgr2.dag_index];
   // Check that it is a bijection
   if ( dag1 . num_vertices != dag2 . num_vertices ) return false;
-  boost::unordered_map < int, int > forward;
-  boost::unordered_map < int, int > backward;
+  std::unordered_map < int, int > forward;
+  std::unordered_map < int, int > backward;
   typedef std::pair < int, int > Edge;
   size_t num_clutch_edges = 0;
   BOOST_FOREACH ( const Edge & e, bg . edges ) {
@@ -869,8 +876,8 @@ inline bool Database::is_isomorphism ( const MorseGraphRecord & mgr1,
   if ( num_clutch_edges != (uint64_t) dag1 . num_vertices ) return false;
   if ( num_clutch_edges != (uint64_t) dag2 . num_vertices ) return false;
   // Check that the partial order is respected
-  boost::unordered_set < Edge > po1;
-  boost::unordered_set < Edge > po2;
+  std::unordered_set < Edge, boost::hash<Edge> > po1;
+  std::unordered_set < Edge, boost::hash<Edge> > po2;
   BOOST_FOREACH ( const Edge & e, dag1 . partial_order ) po1 . insert ( e );
   BOOST_FOREACH ( const Edge & e, dag2 . partial_order ) po2 . insert ( e );
   BOOST_FOREACH ( const Edge & e, dag1 . partial_order ) {
@@ -933,7 +940,7 @@ inline void Database::postprocess ( void ) {
   // "Morse Graph Continuation Class Pieces"
   //std::cout << "Database::postprocess create MGCCP \n";
 
-  boost::unordered_map < ParameterIndex, uint64_t > rep_to_mgccp;
+  std::unordered_map < ParameterIndex, uint64_t > rep_to_mgccp;
   BOOST_FOREACH ( ParameterIndex pi, * parameter_space_ ) {
     if ( param_to_mgr [ pi ] == - 1) continue; // ignore uncomputed parameters
     ParameterIndex mgccp_rep = mgccp_uf . Find ( pi );
@@ -1071,9 +1078,9 @@ inline void Database::postprocess ( void ) {
       }
     }
     /* TODO: Deal with non-trivial convex sets (bigger than singletons)
-    boost::unordered_map < uint64_t, uint64_t > dag_to_cs1;
-    boost::unordered_map < uint64_t, uint64_t > dag_to_cs2;
-    boost::unordered_map < uint64_t, uint64_t > rep_to_cs
+    std::unordered_map < uint64_t, uint64_t > dag_to_cs1;
+    std::unordered_map < uint64_t, uint64_t > dag_to_cs2;
+    std::unordered_map < uint64_t, uint64_t > rep_to_cs
     for ( uint64_t i = 0; i < dag1 . num_vertices; ++ i ) {
       dag_to_cs1 [ i ] = bg_connected_components . Find ( i );
     }
@@ -1222,7 +1229,7 @@ inline void Database::makeAttractorsMinimal ( void ) {
         const CS_Data & cs_data = csData () [ cs ];
         DAG_Data new_dag;
         new_dag . num_vertices = dag_data . num_vertices;
-        boost::unordered_set < int > convex_set_vertices;
+        std::unordered_set < int > convex_set_vertices;
         BOOST_FOREACH( int v, cs_data . vertices ) convex_set_vertices . insert ( v );
         //std::cout << "CSV size = " << convex_set_vertices . size () << "\n";
         if ( convex_set_vertices . size () == 0 ) continue;
@@ -1261,7 +1268,7 @@ inline void Database::performTransitiveReductions ( void ) {
   for ( uint64_t dag_index = 0; dag_index < dag_data_ . size (); ++ dag_index ) {
     DAG_Data & dag = dag_data_ [ dag_index ];
     dag_index_ . erase ( dag );
-    boost::unordered_map < int, boost::unordered_set < int > > G, squared;
+    std::unordered_map < int, std::unordered_set < int > > G, squared;
     for ( int i = 0; i < (int) dag . partial_order . size (); ++ i ) {
       std::pair<int,int> edge = dag.partial_order[i];
       if ( edge . second == edge . first ) continue;

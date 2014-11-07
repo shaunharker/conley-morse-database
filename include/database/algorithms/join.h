@@ -65,13 +65,13 @@ struct joinImpl < Atlas, InputIterator > {
 		if ( start == stop ) return;
 		boost::shared_ptr<Atlas> start_ptr = boost::dynamic_pointer_cast<Atlas> ( *start );
 		// assert ( start_ptr );
+		// Note: It appears we must be joining Atlases with same chart structure
 		std::vector < Atlas::size_type > chart_ids;
-		for ( Atlas::ChartIteratorPair it_pair = start_ptr -> charts (); 
-			    it_pair . first != it_pair . second; ++ it_pair . first ) {
-			chart_ids . push_back ( it_pair . first -> first );
+		for ( Atlas::IdChartPair const& pair : start_ptr -> charts () ) {
+			chart_ids . push_back ( pair . first );
 		}
 
-		BOOST_FOREACH ( Atlas::size_type chart_id, chart_ids ) {
+		for ( Atlas::size_type chart_id : chart_ids ) {
 			//std::cout << "Atlas join, top of loop, chart_id=" << chart_id << ".\n";
 
 			std::vector<boost::shared_ptr<TreeGrid> > charts;
@@ -97,7 +97,7 @@ struct joinImpl < Atlas, InputIterator > {
 			join ( output -> chart ( chart_id ), charts . begin (), charts . end () );
 			//std::cout << "Atlas join returned from join recursion\n";
 		}
-		output -> update_csum_ ();
+		output -> finalize ();
 	} 
 };
 #endif

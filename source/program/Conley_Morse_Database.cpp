@@ -3,6 +3,9 @@
  */
 
 #define MAIN_CPP_FILE
+
+#include <cstdint>
+
 #include "boost/serialization/export.hpp"
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>

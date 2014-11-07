@@ -111,10 +111,9 @@ Grid::cover ( boost::shared_ptr<Geo> geo ) const {
 template < class T >
 inline std::vector<Grid::GridElement> 
 Grid::unionCover ( const std::vector < T > & V ) const {
-  std::vector<Grid::GridElement> result;
-  boost::unordered_set<Grid::GridElement> result_set;
-  BOOST_FOREACH ( const T & geo, V ) {
-    std::vector<Grid::GridElement> cover_vec = cover ( geo );
+  std::vector<Grid::GridElement> result, cover_vec;
+  for ( T const& geo : V ) {
+    cover_vec = cover ( geo );
     result . insert ( result . end (), cover_vec . begin (), cover_vec . end () );
   }
 
@@ -129,7 +128,7 @@ inline std::vector<Grid::GridElement>
 Grid::intersectionCover ( const std::vector < T > & V ) const {
   boost::unordered_set<Grid::GridElement> result_set;
   bool first = true;
-  BOOST_FOREACH ( const T & geo, V ) {
+  for ( const T & geo : V ) {
     std::vector<Grid::GridElement> cover_vec = cover ( geo );
     boost::unordered_set<Grid::GridElement> 
       cover_set ( cover_vec . begin (), cover_vec . end () );
@@ -137,7 +136,7 @@ Grid::intersectionCover ( const std::vector < T > & V ) const {
     if ( first ) {
       std::swap ( result_set, cover_set );
     } else {
-      BOOST_FOREACH ( Grid::GridElement ge, result_set ) {
+      for ( Grid::GridElement ge : result_set ) {
         if ( cover_set . count ( ge ) == 0 ) result_set . erase ( ge );
       }
     }

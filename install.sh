@@ -1,6 +1,5 @@
 #!/bin/bash
 # Installer for conley-morse-database
-
 # Determine if C++11 compiler is present
 echo '#if __cplusplus <= 199711L' > tmp.cpp
 echo '#error This library needs at least a C++11 compliant compiler' >> tmp.cpp

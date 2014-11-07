@@ -4,7 +4,7 @@
 #include <iostream>
 #include <exception>
 #include <vector>
-
+#include <random>
 #include "database/structures/ParameterSpace.h"
 
 #include "boost/shared_ptr.hpp"
@@ -21,7 +21,7 @@ public:
 
 	/// adjacencies
 	///    Return a vector of adjacent vertices.
-	virtual std::vector<ParameterIndex> 
+	virtual std::vector<ParameterIndex>
 	adjacencies ( ParameterIndex v ) const;
 	
 	/// size
@@ -89,7 +89,26 @@ AbstractParameterSpace::search ( boost::shared_ptr<Parameter> parameter ) const 
 inline void 
 AbstractParameterSpace::computeAdjacencyLists ( void ) {
 	size_ = size ();
-	adjacency_lists_ . resize ( size () );
+	std::cout << "AbstractParameterSpace size = " << size () << "\n";
+	// begin debug
+  /*
+	size_t edges = 0;
+	size_t vertices = 0;
+	std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_int_distribution<> dis(0, size());
+	while ( 1 ) {
+	//BOOST_FOREACH ( ParameterIndex v, *this ) {
+		ParameterIndex v = dis(gen); 
+		++ vertices;
+		edges += adjacencies (v) . size ();
+    if ( vertices % 1000000 == 0 ) std::cout << "Parameter Graph. V = " << vertices << " and E = " << edges << "\n";
+  }
+  std::cout << "Parameter Graph. V = " << vertices << " and E = " << edges << "\n";
+  abort ();
+  // end debugf
+  */
+  adjacency_lists_ . resize ( size () );
 	BOOST_FOREACH ( ParameterIndex v, *this ) {
 		adjacency_lists_ [ v ] = adjacencies ( v );
 	}

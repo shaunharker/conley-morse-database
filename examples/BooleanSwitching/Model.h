@@ -128,6 +128,7 @@ Model::phaseSpace ( void ) const {
     RectGeo rect = wall . reducedRect (); 
     space -> add_chart ( wall_id, rect );
   }
+  space -> finalize ();
   return boost::dynamic_pointer_cast<Grid> ( space );
 }
 
