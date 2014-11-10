@@ -34,6 +34,13 @@ public:
   ///    a map from {0,1,...2^n-1} -> {0,1,...m}
   std::vector< int64_t > data_;  // mapping
 
+  /// constraints_
+  ///    constraints_ is an array storing value of the form (m, (x,y)),
+  ///    where m, x, and y are int64_t.
+  ///    The effect of an item in constraints_ is to enforce extra
+  ///    realizability conditions
+  ///    data_[a] < data_[b]  whenever (a & ~m ) == (b & ~m)  and (a&m == x) and (b&m == y)
+  std::vector<std::pair<int64_t,std::pair<int64_t, int64_t>>> constraints_;
 
   // constructors
   MonotonicMap ( void ) {}
@@ -44,11 +51,18 @@ public:
   MonotonicMap ( int64_t n, int64_t m, std::vector<int64_t> const& logic ): n(n), m(m), logic_(logic) {
     data_ . resize ( (1 << n), 0 );
   }
+  MonotonicMap ( int64_t n, int64_t m, 
+                 std::vector<int64_t> const& logic, 
+                 std::vector<std::pair<int64_t,std::pair<int64_t,int64_t>>> const& constraints )
+  : n(n), m(m), logic_(logic), constraints_(constraints) {
+    data_ . resize ( (1 << n), 0 );
+  }
   MonotonicMap ( int64_t n, 
                  int64_t m, 
                  std::vector<int64_t> const& logic, 
+                 std::vector<std::pair<int64_t,std::pair<int64_t,int64_t>>> const& constraints,
                  std::vector<int64_t> const& data )
-    : n(n), m(m), logic_(logic), data_(data) {}
+    : n(n), m(m), logic_(logic), constraints_(constraints), data_(data) {}
 
   // Check if monotonic
   bool monotonic ( void ) const {
@@ -78,22 +92,23 @@ public:
   }
 
   bool realizable ( void ) const {
-    // currently this is sum-sum realizable
-
-    // What is realizable?
-    // For each subset of variables I,
-    // define the complement to be J,
-    // We want to realize a partial order on 2^I
-    // by inducing it via every substitution of selection
-    // of J variables.
-    // This means I have to loop through all choice I of subsets of variables.
-    // That shouldn't be hard. Then I have to loop through 
-    // substitutions of the J variables.
-    // And within that, I need to loop through pairs of choices of substitutions for
-    // the I variables.
-    // An upper bound for this procedure is 8^n. For small n it should be tractable.
-    // Actually it would be better to loop through the pairs first and the
-    // substitutions second, to avoid having to store information
+    // Step 1. Check constraints. (current algorithm takes 2^{2n}*|constraints| time) 
+    {
+      int64_t N = (1 << n);
+      for ( int64_t a = 0; a < N; ++ a ) {
+        for ( int64_t b = 0; b < N; ++ b ) {
+          for ( std::pair<int64_t, std::pair<int64_t, int64_t>> const& constraint : constraints_ ) {
+            int64_t const& mask = constraint . first;
+            int64_t const& x = constraint . second . first;
+            int64_t const& y = constraint . second . second;
+            if ( ((a & ~mask) == (b & ~mask)) && ( (a & mask) == x ) && ( (b & mask) == y ) ) {
+              if ( data_[a] > data_[b] ) return false;
+            }
+          }
+        }
+      }
+    }
+    // Step 2. Other realizability conditions
     int64_t max_terms_in_factor = 0;
     for ( int64_t i = 0; i < logic_ . size (); ++ i ) {
       max_terms_in_factor = std::max ( max_terms_in_factor, logic_[i] );
@@ -116,16 +131,6 @@ public:
               if ( (c & i ) != 0 ) continue;
               int64_t x = data_[a|c];
               int64_t y = data_[b|c];
-              /*
-              std::cout << "\n a = " << a << "\n";
-              std::cout << " b = " << b << "\n";
-              std::cout << " c = " << c << "\n";
-              std::cout << " a|c = " << (a|c) << "\n";
-              std::cout << " b|c = " << (b|c) << "\n";
-              std::cout << " data_[a|c] = " << data_[a|c] << "\n";
-              std::cout << " data_[b|c] = " << data_[b|c] << "\n";
-              */
-
               if ( x < y ) { 
                 less = true;
               }
@@ -178,6 +183,49 @@ public:
         if ( (D001 < D010) && not (D101 <= D110) ) return false;
         return true;     
       }
+      if ( logic_[0] == 2 && logic_[1] == 2 ) {
+        // Case (2,2). "(a+b)(c+d)"
+        // Slice Conditions.
+        std::vector<int64_t> slices = { 0b1100, 0b0011, 0b1011, 0b0111, 0b1101, 0b1110 };
+        for ( int64_t slice : slices ) {
+          for ( int64_t x = 0; x < 16; ++ x ) {
+            for ( int64_t v = 0; v < 16; ++ v ) {
+              int64_t y = (x & slice) | (v & ~slice);
+              int64_t u = (x & ~slice) | (v & slice);
+              if ( data_[x] < data_[y] && !(data_[u] <= data_[v]) ) return false;
+            }
+          }
+        }
+        // Promotion Condition.
+        std::vector<int64_t> factorslices = { 0b1100, 0b0011 };
+        for ( int64_t x = 0; x < 16; ++ x ) {
+          for ( int64_t y = 0; y < 16; ++ y ) {
+            if ( data_[x] >= data_[y] ) continue;
+            for ( int64_t slice : factorslices ) {
+              // Guarantee that f_{slice}(x) >= f_{slice}(y)
+              // or else continue
+              bool condition_met = false;
+              for ( int64_t z = 0; z < 16; ++ z ) {
+                if ( data_ [ (x & slice) | (z & ~slice) ] > data_ [ (y & slice) | (z & ~slice) ]) {
+                  condition_met = true;
+                  break;
+                }
+              }
+              if ( not condition_met ) continue;
+              // Check all valid promotions and enforce f(X) <= f(Y)
+              for ( int i = 0; i < 4; ++ i ) {
+                int64_t bit = 1 << i;
+                if ( not (slice & bit) ) continue;
+                if ( (x & bit) | (y & bit) ) continue;
+                int64_t X = x | bit;
+                int64_t Y = y | bit;
+                if ( data_[X] > data_[Y] ) return false;
+              }
+            }
+          }
+        }
+        return true;
+      }
     } 
     std::cout << "BooleanSwitching Node realizability condition unknown.\n";
     std::cout << "Logic size = " << logic_ . size () << "\n";
@@ -198,14 +246,14 @@ public:
     for ( int64_t i = 0; i < N; ++ i ) {
       if ( copy[i] > 0 ) {
         -- copy[i];
-        boost::shared_ptr<MonotonicMap> new_map ( new MonotonicMap ( n, m, logic_, copy ) );
+        boost::shared_ptr<MonotonicMap> new_map ( new MonotonicMap ( n, m, logic_, constraints_, copy ) );
         if ( new_map -> monotonic () && new_map -> realizable () ) 
           results . push_back ( new_map );
         ++ copy[i];
       }
       if ( copy[i] < m ) {
         ++ copy[i];
-        boost::shared_ptr<MonotonicMap> new_map ( new MonotonicMap ( n, m, logic_, copy ) );
+        boost::shared_ptr<MonotonicMap> new_map ( new MonotonicMap ( n, m, logic_, constraints_, copy ) );
         if ( new_map -> monotonic () && new_map -> realizable () ) 
           results . push_back ( new_map );
         -- copy[i];

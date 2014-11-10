@@ -91,6 +91,12 @@ private:
   ///    The stored FactorGraphs
   std::vector<FactorGraph> factors_;
 
+  /// pinned_
+  ///    If we want to fix a parameter from one of the factor graphs,
+  ///    we set pinned_[d] to be the index of the monotonic map we want to fix it
+  ///    at. Otherwise, we set pinned_[d]=-1
+  std::vector<int64_t> pinned_;
+
   /// network_
   BooleanSwitching::Network network_;
 
@@ -120,6 +126,7 @@ BooleanSwitchingParameterSpace::initialize ( int argc, char * argv [] ) {
   std::cout << network_ << "\n";
   // Loop through nodes and create FactorGraphs
   factors_ . resize ( dimension_ );
+  pinned_ . resize ( dimension_ );
   for ( BooleanSwitching::Node const& node : network_ ) {
     int64_t d = node . index - 1; // Index of node (minus one to start indexing at 0)
     int64_t n = 0; // Number of in edges for node d
@@ -131,10 +138,12 @@ BooleanSwitchingParameterSpace::initialize ( int argc, char * argv [] ) {
     }
     int64_t m = node . out_order . size ();
     for ( int64_t x : logic ) std::cout << x << " "; std::cout << "\n";
-    factors_ [ d ] . construct ( MonotonicMap ( n, m, logic ) );
+    factors_ [ d ] . construct ( MonotonicMap ( n, m, logic, node . constraints ) );
+    pinned_ [ d ] = node . choice;
     std::cout << "\n BooleanSwitchingParameterSpace::initialize. Constructing factors_[" << d << "] with n = " << n << " and m = " << m << "\n";
     std::cout << "This should correspond to " << network_ . name ( node . index ) << "\n";
     std::cout << "factors_[" << d << "].size() = " << factors_[d].size() << "\n"; // DEBUG
+    if ( pinned_[d] != -1 ) std::cout << "Pinned to monotonic map " << pinned_[d] << "\n"; //DEBUG
   }
 }
 
@@ -152,6 +161,7 @@ BooleanSwitchingParameterSpace::adjacencies ( ParameterIndex v ) const {
   // Loop through coordinates and change monotonic functions by one
   uint64_t multiplier = 1;
   for ( int64_t d = 0; d < dimension_; ++ d ) {
+    if ( pinned_[d] != -1 ) continue;
     int64_t digit = p -> monotonic_function_ [ d ];
     std::vector<int64_t> const& neighbors = factors_ [ d ] . adjacencies ( digit );
     for ( int64_t neighbor : neighbors ) {
@@ -166,7 +176,7 @@ inline uint64_t
 BooleanSwitchingParameterSpace::size ( void ) const {
   uint64_t result = 1;
   for ( int64_t d = 0; d < dimension_; ++ d ) {
-    result *= factors_ [ d ] . size ();
+    if ( pinned_[d] == -1 ) result *= factors_ [ d ] . size ();
   }
   return result;
 }
@@ -176,6 +186,10 @@ BooleanSwitchingParameterSpace::parameter ( ParameterIndex v ) const {
   boost::shared_ptr<BooleanSwitchingParameter> 
     p ( new BooleanSwitchingParameter(dimension_) );
   for ( int64_t d = 0; d < dimension_; ++ d ) {
+    if ( pinned_[d] != -1 ) {
+      p -> monotonic_function_ [ d ] = pinned_ [ d ];
+      continue;
+    }
     size_t factor_size = factors_ [ d ] . size ();
     p -> monotonic_function_ [ d ] = v % factor_size;
     v /= factor_size;

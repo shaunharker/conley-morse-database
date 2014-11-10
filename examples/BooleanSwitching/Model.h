@@ -128,6 +128,7 @@ Model::phaseSpace ( void ) const {
     RectGeo rect = wall . reducedRect (); 
     space -> add_chart ( wall_id, rect );
   }
+  space -> finalize ();
   return boost::dynamic_pointer_cast<Grid> ( space );
 }
 
@@ -135,6 +136,18 @@ inline boost::shared_ptr < const Map >
 Model::map ( boost::shared_ptr<Parameter> p) const { 
   boost::shared_ptr < ModelMap > atlasmap ( new ModelMap );
   // Loop through domains and add wall maps
+  
+// For Bree
+#ifdef BS_DEBUG_MODELMAP
+  std::vector < std::set<int64_t> > outEdges;
+  std::vector < Wall > mywalls;
+  mywalls . resize ( walls_.size() );
+  outEdges . resize ( walls_.size() );
+  
+  std::ofstream wallsFile ( "walls.txt" );
+  std::ofstream outEdgesFile ( "outEdges.txt" );
+#endif
+  
 #ifdef BS_DEBUG_MODELMAP
   std::ofstream outfile ("map.gv");
   outfile << "digraph G {\n";
@@ -142,10 +155,35 @@ Model::map ( boost::shared_ptr<Parameter> p) const {
   for ( WallIndexPair const& wall_index_pair : walls_ ) {
     const Wall & wall = wall_index_pair . first;
     int64_t wall_id = wall_index_pair . second;
-    outfile << wall_id << "[label=\"" << wall_id << " &#92;n " << wall . rect () << "\"]\n";
+    // just to order them (not the best way)
+    mywalls[wall_id] = wall;
   }
+  
+  // Save the wall information sorted
+  for ( unsigned int i=0; i<mywalls.size(); ++i ) {
+    
+    outfile << i << "[label=\"" << i << " &#92;n " << mywalls[i] . rect () << "\"]\n";
+    
+    wallsFile << i << " ";
+    if ( mywalls[i] . isFixedPoint() ) {
+      wallsFile << "-1 ";
+    } else {
+      // check which direction is degenerated (should have only one)
+      int dir;
+      for ( unsigned int j=0; j<mywalls[i].rect().dimension(); ++j ) {
+        if ( std::abs(mywalls[i].rect().upper_bounds[j]-mywalls[i].rect().lower_bounds[j] )<1e-12 ) {
+          dir = j;
+        }
+      }
+      wallsFile << dir;
+    }
+    wallsFile << " " << mywalls[i].rect() << "\n";
+  }
+  wallsFile . close();
+  
   std::unordered_set<uint64_t> mapped_in, mapped_out;
 #endif
+
   for ( std::vector<size_t> const& domain : domains_ ) {
     typedef std::pair<int64_t, int64_t> intPair;
     std::vector < intPair > listofmaps = 
@@ -158,14 +196,27 @@ Model::map ( boost::shared_ptr<Parameter> p) const {
       BooleanChartMap map ( wall1 . reducedRect (), 
                             wall2 . reducedRect () );
       atlasmap -> addMap ( id1, id2, map );
+      
 #ifdef BS_DEBUG_MODELMAP
       mapped_out . insert ( id1 );
       mapped_in . insert ( id2 );
       outfile << id1 << " -> " << id2 << "\n";
+      
+      outEdges [ id1 ] . insert ( id2 );
 #endif
     }
   }
 #ifdef BS_DEBUG_MODELMAP
+  // save in file out-edges information
+  for ( unsigned int i=0; i<outEdges.size(); ++i ) {
+    outEdgesFile << i << " ";
+    for ( int64_t id : outEdges[i] ) {
+      outEdgesFile << id << " ";
+    }
+    outEdgesFile << "\n";
+  }
+  outEdgesFile.close();
+  
   outfile << "}\n\n";
   outfile . close ();
   for ( uint64_t in : mapped_in ) {

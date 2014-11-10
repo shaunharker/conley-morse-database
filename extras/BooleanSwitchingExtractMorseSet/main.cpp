@@ -39,10 +39,10 @@ BOOST_CLASS_EXPORT_IMPLEMENT(AbstractParameterSpace);
 int main ( int argc, char * argv [] ) {
   Database database;
   database . load ( argv [ 1 ] );
-
-  const AbstractParameterSpace & space = 
-    dynamic_cast<const AbstractParameterSpace&> (database . parameter_space ());
-
+  
+  const AbstractParameterSpace & space =
+  dynamic_cast<const AbstractParameterSpace&> (database . parameter_space ());
+  
   boost::unordered_set < uint64_t > parameters;
   boost::unordered_set < uint64_t > mgr_indices;
   
@@ -70,24 +70,28 @@ int main ( int argc, char * argv [] ) {
   std::cout << "Number of vertices : " << dag_data . num_vertices << "\n";
   
   std::vector < uint64_t > pindex = mgccp_record . parameter_indices;
-
-//
+  
+  //
   Model model;
   model . initialize ( argc-1, argv+1 );
-//
+  //
   BooleanSwitchingParameterSpace & boolean_space = *
   boost::dynamic_pointer_cast<BooleanSwitchingParameterSpace> (
-                                                    model . parameterSpace () );
-//
-  std::cout << "Parameters inequalities : \n";
+                                                               model . parameterSpace () );
+  //
+  //  std::cout << "Parameters inequalities : \n";
+  std::ofstream parameterfile;
+  parameterfile . open ( "parametersInequalities.txt" );
   for ( uint64_t pi : pindex ) {
-    std::cout << boolean_space . prettyPrint ( boolean_space . parameter ( pi ) );
+    parameterfile << boolean_space . prettyPrint ( boolean_space . parameter ( pi ) );
   }
-// pick one paramater index to construct p
+  parameterfile . close();
+  
+  // pick one paramater index to construct p
   boost::shared_ptr<BooleanSwitchingParameter> p =
   boost::dynamic_pointer_cast<BooleanSwitchingParameter> (
-                                      boolean_space . parameter ( pindex[0] ) );
-//
+                                                          boolean_space . parameter ( pindex[0] ) );
+  //
   boost::shared_ptr<const Map> map = model . map ( p );
   if ( not map ) {
     std::cout << "No map associated with parameter " <<
@@ -116,6 +120,53 @@ int main ( int argc, char * argv [] ) {
   std::cout << "Computed a Morse graph with "
   << mg . NumVertices () << " nodes.\n";
   
- 
+  //
+  std::ofstream ofile;
+  ofile.open("morseSets.txt");
+  
+  typedef std::vector<Grid::GridElement> CellContainer;
+  typedef  MorseGraph::VertexIterator VI;
+  VI it, stop;
+  for (boost::tie ( it, stop ) = mg . Vertices (); it != stop;  ++ it ) {
+    
+    boost::shared_ptr<const Grid> my_subgrid ( mg . grid ( *it ) );
+    
+    if ( not my_subgrid ) {
+      std::cout << "Abort! This vertex does not have an associated grid!\n";
+      abort ();
+    }
+    CellContainer my_subset = phase_space -> subset ( * my_subgrid );
+    
+    BOOST_FOREACH ( Grid::GridElement ge, my_subset ) {
+      if ( not boost::dynamic_pointer_cast < AtlasGeo > ( phase_space -> geometry ( ge ) ) ) {
+        std::cout << "Unexpected null response from geometry\n";
+      }
+      AtlasGeo geo = * boost::dynamic_pointer_cast < AtlasGeo > ( phase_space -> geometry ( ge ) );
+      RectGeo box =  geo . rect ();
+      int id = geo . id ();
+      // std::cout << "(Chart, Rect) = (" << id << ", " << box << ")\n";
+      
+      ofile << *it << " " << id ;//  << " ): " << box << "\n";
+      
+      ofile << "\n";
+      
+    }
+  }
+  
+  ofile.close();
+  
+  
+  // Extract the coorespondence network node and variable names
+  BooleanSwitching::Network network;
+  network.load(argv[3]);
+  
+  std::ofstream variablefile;
+  variablefile . open ( "variables.txt" );
+  // index starts at 1
+  for ( unsigned int i=1; i<=network.size(); ++i ) {
+    variablefile << i-1 << " " << network.name(i) << "\n";
+  }
+  variablefile.close();
+  
   return 0;
 }

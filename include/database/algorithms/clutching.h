@@ -1,7 +1,6 @@
 #ifndef CMDB_CLUTCHING_H
 #define CMDB_CLUTCHING_H
 
-#include <boost/foreach.hpp>
 #include <algorithm>
 #include <stack>
 #include <vector>
@@ -12,6 +11,8 @@
 #include "boost/serialization/map.hpp"
 #include "boost/serialization/set.hpp"
 
+#include "database/structures/Atlas.h"
+#include "database/structures/TreeGrid.h"
 #include "database/structures/MorseGraph.h"
 #include "database/structures/Database.h"
 #include "database/structures/Tree.h"
@@ -59,10 +60,8 @@ inline void Clutching( BG_Data * result,
   		const Atlas & atlas = * boost::dynamic_pointer_cast<const Atlas> 
         ( graph1 . grid ( i ) );
       size_t count = 0;
-  		for ( Atlas::ChartIteratorPair it_pair = atlas . charts ();
-  				  it_pair . first != it_pair . second;
-  				  ++ it_pair . first ) {
-  			Atlas::Chart chart = it_pair . first -> second;
+      for ( Atlas::IdChartPair const& pair : atlas . charts () ) {
+  			Atlas::Chart chart = pair . second;
         if ( chart -> size () > 0 ) {
   			 graph1_trees[count][i] = chart;
         } else {
@@ -75,10 +74,8 @@ inline void Clutching( BG_Data * result,
   		const Atlas & atlas = * boost::dynamic_pointer_cast<const Atlas> 
         ( graph2 . grid ( i ) );
       size_t count = 0;
-  		for ( Atlas::ChartIteratorPair it_pair = atlas . charts ();
-  				  it_pair . first != it_pair . second;
-  				  ++ it_pair . first ) {
-  			Atlas::Chart chart = it_pair . first -> second;
+      for ( Atlas::IdChartPair const& pair : atlas . charts () ) {
+  			Atlas::Chart chart = pair . second;
         if ( chart -> size () > 0 ) {
          graph2_trees[count][i] = chart;
         } else {
@@ -273,7 +270,7 @@ inline void Clutching( BG_Data * result,
   // Advance iterators to end, collecting intersections
   // Return result
   //std::cout << "Collate Results.\n";
-  BOOST_FOREACH ( const MorseGraph::Edge & edge, bipartite_graph ) {
+  for ( MorseGraph::Edge const& edge : bipartite_graph ) {
     result -> edges . push_back ( edge );
   }
 }
