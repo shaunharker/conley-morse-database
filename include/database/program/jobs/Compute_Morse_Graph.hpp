@@ -2,8 +2,6 @@
 #ifndef _CMDP_COMPUTE_MORSE_GRAPH_HPP_
 #define _CMDP_COMPUTE_MORSE_GRAPH_HPP_
 
-#define MEMORYBOOKKEEPING
-
 #ifdef CMG_VISUALIZE
 #include <boost/unordered_map.hpp>
 #include "CImg.h"
