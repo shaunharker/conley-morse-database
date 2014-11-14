@@ -1,0 +1,30 @@
+<config>
+<model>
+  <name> IAS Model</name>
+  <desc> This is a model for intermittent androgen suppression therapy. </desc>
+</model>
+<param>
+  <dim> 10 </dim>
+  <bounds>
+    <lower> 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0</lower>
+    <upper> 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0</upper>
+  </bounds>
+  <subdiv>
+    <depth> 0 </depth>
+    <sizes> 1 1 1 1 1 1 1 1 1 1 </sizes>
+  </subdiv>
+</param>
+<phase>
+  <dim> 2 </dim>
+  <bounds>
+    <lower> -1.0 -1.0 </lower>
+    <upper> 15.0 15.0 </upper>
+  </bounds>
+  <subdiv>
+    <init> 0 </init>
+    <min> 24 </min>
+    <max> 30 </max>
+    <limit> 10000 </limit>
+  </subdiv>
+</phase>
+</config>
