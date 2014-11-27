@@ -79,18 +79,18 @@ int main ( int argc, char * argv [] ) {
   boost::dynamic_pointer_cast<BooleanSwitchingParameterSpace> (
                                                                model . parameterSpace () );
   //
-  //  std::cout << "Parameters inequalities : \n";
-  std::ofstream parameterfile;
-  parameterfile . open ( "parametersInequalities.txt" );
-  for ( uint64_t pi : pindex ) {
-    parameterfile << boolean_space . prettyPrint ( boolean_space . parameter ( pi ) );
-  }
-  parameterfile . close();
+ 
   
   // pick one paramater index to construct p
   boost::shared_ptr<BooleanSwitchingParameter> p =
   boost::dynamic_pointer_cast<BooleanSwitchingParameter> (
                                                           boolean_space . parameter ( pindex[0] ) );
+  //  std::cout << "Parameters inequalities : \n";
+  std::ofstream parameterfile;
+  parameterfile . open ( "parametersInequalities.txt" );
+    parameterfile << boolean_space . prettyPrint ( boolean_space . parameter ( pindex[0] ) );
+  parameterfile . close();
+  
   //
   boost::shared_ptr<const Map> map = model . map ( p );
   if ( not map ) {
