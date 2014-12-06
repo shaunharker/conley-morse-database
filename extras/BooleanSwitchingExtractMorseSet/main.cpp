@@ -158,7 +158,10 @@ int main ( int argc, char * argv [] ) {
   
   // Extract the coorespondence network node and variable names
   BooleanSwitching::Network network;
-  network.load(argv[3]);
+  std::string str1 = argv[2];
+  std::string str2 = argv[3];
+  std::string str3 = str1 + "/" + str2;
+  network.load(str3.c_str());
   
   std::ofstream variablefile;
   variablefile . open ( "variables.txt" );
