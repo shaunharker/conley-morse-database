@@ -112,16 +112,45 @@ std::string constructLabel ( const std::string & string ) {
   }
 }
 
+struct sqlMSdatatype {
+  int fp=0;
+  int fpon=0;
+  int fpoff=0;
+  int fc=0;
+  int xc=0;
+};
 
+
+void updateMorseSetSQLcolumns ( sqlMSdatatype & dt,
+                    const std::vector < std::string > & myannotations) {
+  for ( unsigned int i=0; i<myannotations.size(); ++i ) {
+    if ( extractConditionalString(myannotations[i]) == CONDITION0STRING ) {
+      dt.fp = 1;
+    }
+    if ( extractConditionalString(myannotations[i]) == CONDITION1STRING ) {
+      dt.fpoff = 1;
+    }
+    if ( extractConditionalString(myannotations[i]) == CONDITION2STRING ) {
+      dt.fpon = 1;
+    }
+    if ( extractConditionalString(myannotations[i]) == CONDITION3STRING ) {
+      dt.fc = 1;
+    }
+    if ( extractConditionalString(myannotations[i]) == CONDITION4STRING ) {
+      dt.xc = 1;
+    }
+  }
+}
 
 
 
 void insertMorseSetIntoDatabase ( sqlite3 * db,
                                  int permutationid,
                   int morsegraphid,
-                  int morsesetid,
-                  const std::vector < std::string > & myannotations ) {
-  bool done;
+//                  int morsesetid,
+//                  const std::vector < std::string > & myannotations ) {
+                  const sqlMSdatatype & sqldt ) {
+/*  bool done;
   done = false;
   int fp,fpon,fpoff,fc,xc;
   fp=0;
@@ -145,16 +174,16 @@ void insertMorseSetIntoDatabase ( sqlite3 * db,
     if ( extractConditionalString(myannotations[i]) == CONDITION4STRING ) {
       xc = 1;
     }
-  }
+  }*/
   std::vector <SQLColumnData > data;
   data . push_back ( SQLColumnData("PERMUTATIONID", permutationid) );
   data . push_back ( SQLColumnData("MORSEGRAPHID", morsegraphid) );
-  data . push_back ( SQLColumnData("MORSESETID", morsesetid) );
-  data . push_back ( SQLColumnData(extractSymbol(CONDITION0STRING),fp) );
-  data . push_back ( SQLColumnData(extractSymbol(CONDITION1STRING),fpoff) );
-  data . push_back ( SQLColumnData(extractSymbol(CONDITION2STRING),fpon) );
-  data . push_back ( SQLColumnData(extractSymbol(CONDITION3STRING),fc) );
-  data . push_back ( SQLColumnData(extractSymbol(CONDITION4STRING),xc) );
+//  data . push_back ( SQLColumnData("MORSESETID", morsesetid) );
+  data . push_back ( SQLColumnData(extractSymbol(CONDITION0STRING),sqldt.fp) );
+  data . push_back ( SQLColumnData(extractSymbol(CONDITION1STRING),sqldt.fpoff) );
+  data . push_back ( SQLColumnData(extractSymbol(CONDITION2STRING),sqldt.fpon) );
+  data . push_back ( SQLColumnData(extractSymbol(CONDITION3STRING),sqldt.fc) );
+  data . push_back ( SQLColumnData(extractSymbol(CONDITION4STRING),sqldt.xc) );
   insertMorseSetRecord ( db, "morsesets", data );
 }
 
@@ -270,11 +299,14 @@ std::string dotFile ( const Database & database,
   DAG mydag = makeDAG ( database, mgcc );
 
   SQLMorseGraphData sqldata;
+  sqldata . permutationId = permutationid;
   sqldata . morseGraphFileId = order_index;
   sqldata . morseGraphId = mgcc;
   sqldata . percentage = frequency;
   insertMorseGraphRecord ( sqldb, "MORSEGRAPHS", sqldata );
-  
+ 
+  sqlMSdatatype msdt;
+ 
     // Vertices
   for ( int i = 0; i < dag . num_vertices; ++ i ) {
     CS_Data cs_data;
@@ -300,8 +332,10 @@ std::string dotFile ( const Database & database,
     if ( !annotation_vertex.empty() ) {
       mystring = makeLabel ( annotation_vertex );
 //      insertMorseSetIntoDatabase ( sqldb, mgcc, order_index, incc_index, annotation_vertex );
-      insertMorseSetIntoDatabase ( sqldb, permutationid, mgcc, incc_index, annotation_vertex );
-      
+//      insertMorseSetIntoDatabase ( sqldb, permutationid, mgcc, incc_index, annotation_vertex );
+  
+updateMorseSetSQLcolumns (msdt, annotation_vertex );
+    
     } else {
       std::cout << "No annotation for vertex : " << i << "\n";
     }
@@ -309,7 +343,7 @@ std::string dotFile ( const Database & database,
     "('Unknown Conley Index'," << order_index << "))\"]\n";
 #endif
   }
-
+  insertMorseSetIntoDatabase ( sqldb, permutationid, mgcc, msdt );
 
   std::vector < std::string > annotationMG = mydag . annotation;
   std::string shapestr;
@@ -533,7 +567,7 @@ void initializeSQLDB ( sqlite3 *db ) {
 
 // Arguments :
 //
-// path/database.mdb path/network.txt path/globalSQLDatabase.db index nameofpermutation
+// path/database.mdb path/network network.txt pathglobalSQLDatabase index nameofpermutation
 
 int main ( int argc, char * argv [] ) {
   
@@ -542,7 +576,8 @@ int main ( int argc, char * argv [] ) {
   char *zErrMsg = 0;
   int rc;
   sqlite3 *masterDB;
-  std::string masterDatabaseFilename = "database.db";
+  std::string masterDatabaseDirectory(argv[argc-3]);
+  std::string masterDatabaseFilename = masterDatabaseDirectory + "/database.db";
   rc = sqlite3_open ( masterDatabaseFilename.c_str(), &masterDB );
   if ( rc ) {
     std::cout << "Cannot open the database : " << sqlite3_errmsg(masterDB) <<"\n";
