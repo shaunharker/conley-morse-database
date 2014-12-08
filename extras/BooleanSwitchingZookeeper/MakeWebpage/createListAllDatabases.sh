@@ -12,7 +12,7 @@
 databasedir=$1
 
 # format for the directory name nD_something where n is the dimension
-listdim=`find "$databasedir" -maxdepth 1 -type d -name '[0-9]*' | sed 's:^\./::' | rev | cut -d'/' -f1 | rev | cut -d'_' -f1 | uniq | sort`
+listdim=`find "$databasedir" -mindepth 1 -maxdepth 1 -type d -name '[0-9]*' | sed 's:^\./::' | rev | cut -d'/' -f1 | rev | cut -d'_' -f1 | uniq | sort`
 
 file=index.html
 
@@ -26,14 +26,14 @@ do
 	do 
 		str=$str" '$i', "
 		# create the png for the network equations
-		a2ps --no-header --border=no "$databasedir/$i/$i.txt" -o test.ps
-	  ps2eps --rotate=+ test.ps
-	  convert -density 300 -quality 100 test.eps test.png
-	  mv test.png "$databasedir/$i/${i}_equations.png"
-	  rm test.*
+#		a2ps --no-header --border=no "$databasedir/$i/$i.txt" -o test.ps
+#	  ps2eps --rotate=+ test.ps
+#	  convert -density 300 -quality 100 test.eps test.png
+#	  mv test.png "$databasedir/$i/${i}_equations.png"
+#	  rm test.*
 	  # convert the txt file into a graphviz file and then .png
-	  ./convertTXTtoGV.sh "$databasedir/$i/$i.txt"
-	  dot "$databasedir/$i/$i.gv" -Tpng -o"$databasedir/$i/${i}_network.png"
+#	  ./convertTXTtoGV.sh "$databasedir/$i/$i.txt"
+#	  dot "$databasedir/$i/$i.gv" -Tpng -o"$databasedir/$i/${i}_network.png"
 	done
 	# remove the last comma
 	str=`echo $str | rev | cut -c 2- | rev`
