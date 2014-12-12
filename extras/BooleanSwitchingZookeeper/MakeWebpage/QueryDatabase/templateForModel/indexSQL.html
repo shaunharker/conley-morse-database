@@ -1,0 +1,43 @@
+<html> 
+ <head> 
+ <title> Zoo </title> 
+ </head> 
+ <body> 
+<form action="checkradio-form.php" method="post" target="MGframe">
+<p>Find the Morse graph that contains at least one Morse set with the following properties :</p>
+<table border="1">
+<tr> 
+ <th> Yes </th> 
+ <th> No </th> 
+ <th> Either </th> 
+</tr> 
+<tr> 
+<td> <input type="radio" name="radio[1]" value="Y:FP " /> </td> 
+<td> <input type="radio" name="radio[1]" value="N:FP " /> </td> 
+<td> <input type="radio" name="radio[1]" value="E" checked /> </td> 
+<td> FP : Morse Set is a fixed point (FP OFF and FP ON not included) </td>
+</tr><tr> 
+<td> <input type="radio" name="radio[2]" value="Y:FP OFF " /> </td> 
+<td> <input type="radio" name="radio[2]" value="N:FP OFF " /> </td> 
+<td> <input type="radio" name="radio[2]" value="E" checked /> </td> 
+<td> FP OFF : Morse Set is a fixed point with all states off </td>
+</tr><tr> 
+<td> <input type="radio" name="radio[3]" value="Y:FP ON " /> </td> 
+<td> <input type="radio" name="radio[3]" value="N:FP ON " /> </td> 
+<td> <input type="radio" name="radio[3]" value="E" checked /> </td> 
+<td> FP ON : Morse Set is a fixed point with all states on </td>
+</tr><tr> 
+<td> <input type="radio" name="radio[4]" value="Y:FC " /> </td> 
+<td> <input type="radio" name="radio[4]" value="N:FC " /> </td> 
+<td> <input type="radio" name="radio[4]" value="E" checked /> </td> 
+<td> FC : Morse Set in which every variable makes a transition </td>
+</tr><tr> 
+<td> <input type="radio" name="radio[5]" value="Y:XC " /> </td> 
+<td> <input type="radio" name="radio[5]" value="N:XC " /> </td> 
+<td> <input type="radio" name="radio[5]" value="E" checked /> </td> 
+<td> XC : Morse Set with transition given by { } </td>
+</tr></table>
+<br><input type="submit" name="formSubmit" value="Submit" />
+</form>
+<iframe name="MGframe" width="1200" height="900"> </iframe></body> 
+ </html>
