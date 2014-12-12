@@ -20,7 +20,6 @@ do
   networkfile=$permutationname.txt
   echo $i
 
-  
   makeDatabaseAllSQL/main $i/database.mdb $i/ $networkfile $modeldir $counter $permutationname
 
 # remove unnecessary files
