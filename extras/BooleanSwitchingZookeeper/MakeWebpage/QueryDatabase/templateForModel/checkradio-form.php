@@ -1,10 +1,10 @@
+<?php
+
 /*
 PHP code to query the SQL Database of the model across all the parameters
 (permutations)
 It returns an HTML table to update the webpage indexSQL.html
 */
-
-<?php
 
 try {
 	// Open database (create it if it does not exist)
@@ -13,7 +13,7 @@ try {
 	PDO::ERRMODE_EXCEPTION);
 
 	// SQL query returns : name of permutations, # morsegraph found, min. percentage, max. percentage, sum of percentage
-	$sqlquery="select PERMUTATIONS.PERMUTATIONDIR,COUNT(MORSEGRAPHS.PERCENTAGE), "
+	$sqlquery="select PERMUTATIONS.PERMUTATIONDIR,COUNT(MORSEGRAPHS.PERCENTAGE), ";
 	$sqlquery .= "ROUND(100.0*MIN(MORSEGRAPHS.PERCENTAGE),2)";
 	$sqlquery .= ",ROUND(100.0*MAX(MORSEGRAPHS.PERCENTAGE),2)";
 	$sqlquery .= ",ROUND(100.0*SUM(MORSEGRAPHS.PERCENTAGE),2)";
