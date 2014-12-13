@@ -544,7 +544,7 @@ void initializeSQLDB ( sqlite3 *db ) {
   std::string datatype;
   columns . push_back ( SQLColumn("PERMUTATIONID","INT") );
   columns . push_back ( SQLColumn("MORSEGRAPHID","INT") );
-  columns . push_back ( SQLColumn("MORSESETID","INT") );
+  //columns . push_back ( SQLColumn("MORSESETID","INT") );
   datatype = "INT";
   symbol = extractSymbol ( CONDITION0STRING );
   columns . push_back ( SQLColumn (symbol,datatype) );

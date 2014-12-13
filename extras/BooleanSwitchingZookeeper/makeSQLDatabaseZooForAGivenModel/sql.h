@@ -163,7 +163,6 @@ void insertPermutationRecord ( sqlite3 *db,
   sqlstring += NumberToString ( data.permutationId ) + ", ";
   sqlstring += "\"" + data.permutationString + "\");";
   
-  std::cout << sqlstring << "\n";
   /* Execute SQL statement */
   char *zErrMsg = 0;
   int rc;
