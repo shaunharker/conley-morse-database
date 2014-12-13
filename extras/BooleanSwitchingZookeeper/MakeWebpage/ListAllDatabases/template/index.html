@@ -1,19 +1,19 @@
 <!DOCTYPE html>
-<html>
-<head>
+<html> 
+<head> 
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+      <script type='text/javascript' src='http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js'></script>
 
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-        <title>List of Boolean Switching Networks</title>
+      <title> Switching Boolean Databases </title> 
         <link rel="stylesheet" href="css/style.css" type="text/css" media="screen, projection">
         <script type="text/javascript" src="js/jquery-1.4.2.min.js">
         </script>
         <script type="text/javascript" src="js/scripts.js">
         </script>
-        </script>
 
 <style type="text/css">
             ul li {
-            	display: block;
+              display: block;
                 /*width : 300px;*/
                 /*list-style-type: none;*/
             }
@@ -26,51 +26,57 @@
                 margin: 20px 0;
             }
 </style>
-</head>
-<body>
 
-<h1> Boolean Switching Networks </h1>
+</head> 
 
-<SCRIPT Language="JavaScript">
-// This is updated by the bash script
-var networks = {};
+<body> 
 
-var str="";
+<h1> List of Databases: </h1>
 
-str+="<div id=\"listContainer\">";
-str+="<div class=\"listControl\">";
-str+="<a id=\"expandList\">Expand All</a>";
-str+="<a id=\"collapseList\">Collapse All</a>";
-str+="</div>";
+<div id="listContainer">
+  <ul id="expList"> </ul>
+</div>
 
+<script  Language="JavaScript">
 
-str+="<ul id=\"expList\">";
-for (var dim in networks) {
-	str+="<li>" + dim;
-	str+="<ul>";
-	for (var dir in networks[dim] ) {
-		str+="<li> <span> " + networks[dim][dir] + "&nbsp; &nbsp;";
-        // add the equations
-		str+="<img src=" + "\"" + networks[dim][dir] + "/" + networks[dim][dir] + "_equations.png\" width=\"250\" > &nbsp; &nbsp;";
-        // add the network
-        str+="<img src=" + "\"" + networks[dim][dir] + "/" + networks[dim][dir] + "_network.png\" width=\"250\" > &nbsp; &nbsp;";
-        // add the Zoo links
-		str+=" <a href=\"" + networks[dim][dir] + "/Zoo/index.html\"> Zoo </a> &nbsp; &nbsp; "
-        str+=" <a href=\"" + networks[dim][dir] + "/Zoo/indexSQL.html\"> ZooSQL </a></span>"
-        str+="  </li>";
-	}
-	str+="</ul>";
-	str+="</li>";
-}
-str+="</ul>";
+$(document).ready(function(){ 
+//         /* call the php that has the php array which is json_encoded */
+        $.getJSON('getDatabasePath.php', function(data) {
+		var str="";
+                /* data will hold the php array as a javascript object */
+                // key:name, value:path
+                // loop through the dimension
+                $.each(data, function(keydim, dim) { 
+                  str += "<li>" + keydim;
+                  str += '<ul>';
+                  // loop through the models
+                  $.each(dim, function(keymodel,model) {
+                    str += "<li>" + keymodel; 
+// Add the network image
+str += " &nbsp; &nbsp; <img src=" + "\"" + keydim +  "/" + keymodel + "/network.png\" width=\"250\" >";
+// Add the query of the model 
+//str += " &nbsp; &nbsp; <a href=\"http://www.google.com\"> Model Query </a>";                    
+                    str += '<ul>';
+                    // loop through the permutation    
+                    $.each(model, function(keypermutation,permutation) {
+                        str += '<li>' + keypermutation;
+// Add the equations
+str += " &nbsp; &nbsp; <img src=" + "\"" + keydim +  "/" + keymodel + "/" + keypermutation + "/equations.png\" width=\"250\" >";
+str+=" &nbsp; &nbsp; <a href=\"" + keydim +  "/" + keymodel + "/" + keypermutation  + "/Zoo/index.html\"> Zoo </a> &nbsp; &nbsp; "
+str+=" &nbsp; &nbsp; <a href=\"" +  keydim +  "/" + keymodel + "/" + keypermutation + "/Zoo/indexSQL.html\"> ZooSQL </a></span>"
+                        str += '</li>';
+                    });
+                    str += "</ul></li>";
+                  });
+                    str += "</ul></li>";
+                });
+               str += "</ul>";
+$('#expList').html(str);
+        });
 
+ });
 
-str+="</div>";
+</script>
 
-
-document.write(str);
-document.close();
-
-</SCRIPT>
 </body>
 </html>
