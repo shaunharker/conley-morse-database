@@ -55,15 +55,15 @@ $(document).ready(function(){
 // Add the network image
 str += " &nbsp; &nbsp; <img src=" + "\"" + keydim +  "/" + keymodel + "/network.png\" width=\"250\" >";
 // Add the query of the model 
-//str += " &nbsp; &nbsp; <a href=\"http://www.google.com\"> Model Query </a>";                    
+str += " &nbsp; &nbsp; <a href=\"" + keydim + "/" + keymodel + "/indexSQL.html\" target=\"_blank\"> Model Query </a>";                    
                     str += '<ul>';
                     // loop through the permutation    
                     $.each(model, function(keypermutation,permutation) {
                         str += '<li>' + keypermutation;
 // Add the equations
 str += " &nbsp; &nbsp; <img src=" + "\"" + keydim +  "/" + keymodel + "/" + keypermutation + "/equations.png\" width=\"250\" >";
-str+=" &nbsp; &nbsp; <a href=\"" + keydim +  "/" + keymodel + "/" + keypermutation  + "/Zoo/index.html\"> Zoo </a> &nbsp; &nbsp; "
-str+=" &nbsp; &nbsp; <a href=\"" +  keydim +  "/" + keymodel + "/" + keypermutation + "/Zoo/indexSQL.html\"> ZooSQL </a></span>"
+str+=" &nbsp; &nbsp; <a href=\"" + keydim +  "/" + keymodel + "/" + keypermutation  + "/Zoo/index.html\" target=\"_blank\"> Zoo </a> &nbsp; &nbsp; "
+str+=" &nbsp; &nbsp; <a href=\"" +  keydim +  "/" + keymodel + "/" + keypermutation + "/Zoo/indexSQL.html\" target=\"_blank\"> ZooSQL </a></span>"
                         str += '</li>';
                     });
                     str += "</ul></li>";
