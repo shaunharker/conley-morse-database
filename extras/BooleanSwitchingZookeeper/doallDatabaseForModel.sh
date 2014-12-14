@@ -3,14 +3,22 @@
 
 resultdir=$1
 
+sourcedir="/share/data/goullet/ConleyMorseDatabase/conley-morse-database/examples/BooleanSwitching/"
+
 # find the first level, i.e. dimension
-dimensions=`find "$resultdir" -mindepth 1 -maxdepth 1 -type d -name "*D"`
+dimensions=`find "$resultdir" -mindepth 1 -maxdepth 1 -type d -name "5D"`
 
 for dim in $dimensions
 do
 echo $dim
+  # find the different models for a given dimension
+  models=`find "$dim" -mindepth 1 -maxdepth 1 -type d -name "*"`
+  for model in $models
+  do 
+    echo $model
 
+./MakeDatabaseForModel.sh $model $sourcedir
+
+  done
 done
 
-
-#./MakeDatabaseForModel.sh /share/data/CHomP/Projects/Databases_for_the_Global_Dynamics/Databases/Switching_Networks/3D/3D_Haase_I.2.2/ /share/data/goullet/ConleyMorseDatabase/conley-morse-database/examples/BooleanSwitching/

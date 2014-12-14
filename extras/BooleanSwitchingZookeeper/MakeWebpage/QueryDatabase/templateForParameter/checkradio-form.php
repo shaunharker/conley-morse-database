@@ -14,6 +14,8 @@ $actual_link = "http://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
 $pieces=explode("/",$actual_link);
 $parameterName=$pieces[count($pieces)-3];
 
+echo $parameterName;
+
 	// Open database
 	$file_db = new PDO('sqlite:../../database.db');
 	$file_db->setAttribute(PDO::ATTR_ERRMODE,

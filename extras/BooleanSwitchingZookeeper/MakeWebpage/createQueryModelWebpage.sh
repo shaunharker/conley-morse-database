@@ -8,5 +8,5 @@ sourcedir="$2"
 cd QueryDatabase/templateForModel
 cp *.php "$modeldir"
 
-./createWebpage "$sourcedir" "$modeldir"
+./createWebpage.sh "$sourcedir" "$modeldir"
 cd ../..

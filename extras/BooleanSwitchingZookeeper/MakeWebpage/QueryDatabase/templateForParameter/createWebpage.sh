@@ -7,7 +7,7 @@
 # argument is the path to the source code of the BooleanSwitching
 sourcedir="$1"
 
-file=indexSQL.html
+file="$2/indexSQL.html"
 
 rm $file
 printf "<html> \n <head> \n <title> $2 </title> \n </head> \n <body> \n" > $file
