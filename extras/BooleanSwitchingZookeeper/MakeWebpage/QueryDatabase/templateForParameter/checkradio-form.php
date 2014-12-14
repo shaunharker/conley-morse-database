@@ -1,78 +1,66 @@
-
 <?php
 
+/*
+PHP code to query the SQL Database of the model for a parameter
+(permutation)
+It returns an HTML table to update the webpage indexSQL.html
+The HTML/PHP codes are in the parameter subdirectory
+*/
 
 try {
-	// Open database (create it if it does not exist)
-	$file_db = new PDO('sqlite:graphs/database.sql');
+
+// retrieve the name of the parameter subdirectory from the path
+$actual_link = "http://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+$pieces=explode("/",$actual_link);
+$parameterName=$pieces[count($pieces)-3];
+
+	// Open database
+	$file_db = new PDO('sqlite:../../database.db');
 	$file_db->setAttribute(PDO::ATTR_ERRMODE,
-     	   	               PDO::ERRMODE_EXCEPTION);
+	PDO::ERRMODE_EXCEPTION);
 
-	// basis for the query string 
-	// need to retrieve the morse graph file id to fetch graphviz graphs
-	$sqlquery="select distinct MORSEGRAPHFILEID from morsesets where ";
+	// SQL query returns : name of permutations, # morsegraph found, min. percentage, max. percentage, sum of percentage
 
-	$doingquery=false;
-
-	$intersectsqlstring=" intersect select MORSEGRAPHFILEID from morsesets where ";
-	$istring='';
-
-	// need to keep track of the properties 'N'
-	$exceptsqlstring=" except select MORSEGRAPHFILEID from morsesets where ";
-	$estring='';
-	$NoFound=false;
-
-	$countQuery=0;
-
+	$sqlquery = "select distinct MORSEGRAPHS.MORSEGRAPHFILEID from MORSEGRAPHS ";
+	$sqlquery .= " INNER JOIN PERMUTATIONS ON MORSEGRAPHS.PERMUTATIONID=PERMUTATIONS.PERMUTATIONID ";
+	$sqlquery .= " AND PERMUTATIONS.PERMUTATIONDIR=";
+	$sqlquery .= "\"".$parameterName."\""; 
+	$sqlquery .= " INNER JOIN MORSESETS ON MORSESETS.MORSEGRAPHID=MORSEGRAPHS.MORSEGRAPHID ";
+	$sqlquery .= " AND MORSESETS.PERMUTATIONID=PERMUTATIONS.PERMUTATIONID ";
+	$condition="";
+	$firstpass=false;
+	$firstcondition=false;
 	foreach ( $_POST['radio'] as $message ) {
-		
 		$pos = strpos($message,':');
 		if ( $pos !== false ) {
 			// retieve the radio button status and symbol
 			$status = substr($message, 0, $pos);
 			$symbol = substr($message, $pos+1);
-	 		if ( $status == "Y" ) {
-				$doingquery=true;
-				if ( $countQuery == 0 ) {
-					$sqlquery .= "\"".$symbol."\"=1";
-				} else {	
-					$istring .= $intersectsqlstring."\"".$symbol."\"=1";
-				}	
-				++$countQuery;
-	 		}
-	 		if ( $status == "N" ) {
-				$doingquery=true;
-				$NoFound=true;
-				if ( $countQuery == 0 ) {
-					$sqlquery .= "\"".$symbol."\"=0";
-				} else {	
-					$istring .= $intersectsqlstring."\"".$symbol."\"=0";
+			if ( $status == "Y" ) {
+				if ( $firstpass == false or $firstcondition == true ) {
+					$condition .= " AND ";
 				}
-				$estring .= $exceptsqlstring."\"".$symbol."\"=1 ";
-				++$countQuery;	
-	   	}
+				$condition .= "\"".$symbol."\"=1";
+				$firstpass = true;
+				$firstcondition = true;
+			}
+			if ( $status == "N" ) {
+				if ( $firstpass == false or $firstcondition == true ) {
+					$condition .= " AND ";
+				}
+				$condition .= "\"".$symbol."\"=0";
+				$firstpass = true;
+				$firstcondition = true;
+			}
 		}
 	}
 
-	if ( $doingquery == true ) {
-		if ( $countQuery > 1 ) { 
-			$sqlquery .= $istring;
-		}
-		// if selected a No, we need to append estring
-		if ( NOfound == true ) {
-			$sqlquery .= $estring;
-		}
-	} else {
-	// if no basic query, we select everything
-		$sqlquery="select distinct MORSEGRAPHFILEID from morsesets";
-	}
-
-	//echo "$sqlquery";
+	$sqlquery .= $condition;
 
 	$results = $file_db->query($sqlquery) or die ('Query failed');
 
-	// Construct the Table 
-	echo "<table border=\"1\">";
+	echo "<table border=\"1\" >";
+
 	$counter=0;
 	foreach ( $results as $m ) {
 	  if ( $counter == 0 ) {
@@ -89,12 +77,11 @@ try {
 	  include ( "graphs/MGCC{$MGfileindex}-cmapx.html" );
 	}
 	echo "</table>";
-	$file_db -> close(); 
+	
+	$file_db -> close();
 }
 catch (PDOException $e) {
-        echo $e->getMessage();
+	echo $e->getMessage();
 }
 
 ?>
-
-
