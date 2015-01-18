@@ -80,7 +80,9 @@ int main ( int argc, char * argv [] ) {
                                                                model . parameterSpace () );
   //
  
-  
+ 
+std::cout << "Number of parameters : " << pindex.size() << "\n";
+ 
   // pick one paramater index to construct p
   boost::shared_ptr<BooleanSwitchingParameter> p =
   boost::dynamic_pointer_cast<BooleanSwitchingParameter> (

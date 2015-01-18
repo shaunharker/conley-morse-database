@@ -5,6 +5,7 @@
 
 # argument the path of the database
 modeldir=$1
+cp optimizeSQLDatabase_backup.txt optimizeSQL.txt
 sqlite3 $modeldir/database.db < optimizeSQL.txt
 
  
