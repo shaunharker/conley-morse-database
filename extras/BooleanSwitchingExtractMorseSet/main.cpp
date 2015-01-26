@@ -83,34 +83,6 @@ int main ( int argc, char * argv [] ) {
                                                                model . parameterSpace () );
   //
 
-// Output the parameter graph for the given MGCC number
-
-std::cout << "Number of parameters : " << pindex.size() << "\n";
-
-  std::ofstream myfile;
-  myfile . open ( "parameterGraphForaGivenMGCC.gv" );
-  myfile << "graph {\n";
- for ( unsigned int i=0; i<pindex.size(); ++i ) {
-   std::cout << "i= " << i << " : " << pindex[i] << "\n";
-   myfile << pindex[i] <<";\n";
- }
-
- for ( unsigned int i=0; i<pindex.size()-1; ++i ) {
-   uint64_t p1 = pindex[i];
-   for ( unsigned int j=i+1; j<pindex.size(); ++j ) {
-     uint64_t p2 = pindex[j];
-     uint64_t x ( p1 ^ p2 );
-     if ( (x != 0) && !(x & (x - 1)) ) { // check it is a power of 2, i.e. only a single 1 in the bit sequence
-      //  std::cout << p1 << " " << p2 << " are neighbors\n";
-       myfile << p1 << "--" << p2 << ";\n";
-     } else {
-      //  std::cout << p1 << " " << p2 << " are not neighbors\n";
-     }
-   }
- }
- myfile << "}";
- myfile.close();
-
  //
 
   // pick one paramater index to construct p
@@ -120,7 +92,10 @@ std::cout << "Number of parameters : " << pindex.size() << "\n";
   //  std::cout << "Parameters inequalities : \n";
   std::ofstream parameterfile;
   parameterfile . open ( "parametersInequalities.txt" );
-  parameterfile << boolean_space . prettyPrint ( boolean_space . parameter ( pindex[0] ) );
+  for ( unsigned int i=0; i<pindex.size(); ++i ) {
+    parameterfile << boolean_space . prettyPrint ( boolean_space . parameter ( pindex[i] ) );
+    parameterfile << "\n\n";
+  }
   parameterfile . close();
 
   //
