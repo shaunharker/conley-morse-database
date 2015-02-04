@@ -10,7 +10,7 @@ sourcedir="$1"
 file="$2/indexSQL.html"
 
 rm $file
-printf "<html> \n <head> \n <title> $2 </title> \n </head> \n <body> \n" > $file
+printf "<html> \n <head> \n <title> Zoo </title> \n </head> \n <body> \n" > $file
 
 # for the radio buttons
 printf "<form action=\"checkradio-form.php\" method=\"post\" target=\"MGframe\">\n" >> $file
@@ -60,6 +60,13 @@ printf "</table>\n" >> $file
 printf "<br>" >> $file
 printf "<input type=\"submit\" name=\"formSubmit\" value=\"Submit\" />\n" >> $file
 printf "</form>\n" >> $file
+
+printf "<p> Extract morse graph information with MGCC number : </p>\n" >> $file
+printf "<form action=\"extractMGCCinfo.php\" method=\"post\" >\n" >> $file
+printf "<input type=\"text\" name=\"MGCCnumber\">\n" >> $file
+printf "<input type=\"submit\" name=\"mgextractSubmit\" value=\"postprocess\"/>\n
+</form>\n" >> $file
+
 
 # put the iframe
 printf "<iframe name=\"MGframe\" width=\"1200\" height=\"900\"> </iframe>" >> $file
