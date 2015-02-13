@@ -10,7 +10,7 @@ LDLIBS := -lboost_serialization -lboost_thread -lboost_system -lboost_chrono -ls
 
 all: extractParameterGraphMGCC
 
-BSTest: main.o
+extractParameterGraphMGCC: main.o
 	$(CC) $(LDFLAGS) main.o -o $@ $(LDLIBS)
 
 .PHONY: clean

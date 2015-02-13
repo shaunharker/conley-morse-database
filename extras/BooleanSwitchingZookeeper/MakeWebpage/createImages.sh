@@ -8,6 +8,9 @@
 # Path where the database is
 databasedir=$1
 
+# path of the destination
+destdir=$2
+
 # extract the name of the directory
 # Remark: The name of the directory is used as a prefix for some of the
 # file names
