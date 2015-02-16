@@ -56,6 +56,12 @@ public:
   ///   Given a MorseGraph, provide annotations.
   void annotate ( MorseGraph * mg_in ) const;
 
+  /// Save the walls ( phase space )
+  void saveWalls ( const char *filename ) const;
+
+  /// get the maps between walls
+  std::vector< std::pair<int64_t,int64_t> > getWallMaps ( boost::shared_ptr<Parameter> p ) const;
+
 private:
   Configuration config_;
   boost::shared_ptr < BooleanSwitchingParameterSpace > parameter_space_;
@@ -136,54 +142,6 @@ inline boost::shared_ptr < const Map >
 Model::map ( boost::shared_ptr<Parameter> p) const { 
   boost::shared_ptr < ModelMap > atlasmap ( new ModelMap );
   // Loop through domains and add wall maps
-  
-// For Bree
-#ifdef BS_DEBUG_MODELMAP
-  std::vector < std::set<int64_t> > outEdges;
-  std::vector < Wall > mywalls;
-  mywalls . resize ( walls_.size() );
-  outEdges . resize ( walls_.size() );
-  
-  std::ofstream wallsFile ( "walls.txt" );
-  std::ofstream outEdgesFile ( "outEdges.txt" );
-#endif
-  
-#ifdef BS_DEBUG_MODELMAP
-  std::ofstream outfile ("map.gv");
-  outfile << "digraph G {\n";
-  typedef std::pair<Wall, size_t> WallIndexPair;
-  for ( WallIndexPair const& wall_index_pair : walls_ ) {
-    const Wall & wall = wall_index_pair . first;
-    int64_t wall_id = wall_index_pair . second;
-    // just to order them (not the best way)
-    mywalls[wall_id] = wall;
-  }
-  
-  // Save the wall information sorted
-  for ( unsigned int i=0; i<mywalls.size(); ++i ) {
-    
-    outfile << i << "[label=\"" << i << " &#92;n " << mywalls[i] . rect () << "\"]\n";
-    
-    wallsFile << i << " ";
-    if ( mywalls[i] . isFixedPoint() ) {
-      wallsFile << "-1 ";
-    } else {
-      // check which direction is degenerated (should have only one)
-      int dir;
-      for ( unsigned int j=0; j<mywalls[i].rect().dimension(); ++j ) {
-        if ( std::abs(mywalls[i].rect().upper_bounds[j]-mywalls[i].rect().lower_bounds[j] )<1e-12 ) {
-          dir = j;
-        }
-      }
-      wallsFile << dir;
-    }
-    wallsFile << " " << mywalls[i].rect() << "\n";
-  }
-  wallsFile . close();
-  
-  std::unordered_set<uint64_t> mapped_in, mapped_out;
-#endif
-
   for ( std::vector<size_t> const& domain : domains_ ) {
     typedef std::pair<int64_t, int64_t> intPair;
     std::vector < intPair > listofmaps = 
@@ -196,35 +154,8 @@ Model::map ( boost::shared_ptr<Parameter> p) const {
       BooleanChartMap map ( wall1 . reducedRect (), 
                             wall2 . reducedRect () );
       atlasmap -> addMap ( id1, id2, map );
-      
-#ifdef BS_DEBUG_MODELMAP
-      mapped_out . insert ( id1 );
-      mapped_in . insert ( id2 );
-      outfile << id1 << " -> " << id2 << "\n";
-      
-      outEdges [ id1 ] . insert ( id2 );
-#endif
     }
   }
-#ifdef BS_DEBUG_MODELMAP
-  // save in file out-edges information
-  for ( unsigned int i=0; i<outEdges.size(); ++i ) {
-    outEdgesFile << i << " ";
-    for ( int64_t id : outEdges[i] ) {
-      outEdgesFile << id << " ";
-    }
-    outEdgesFile << "\n";
-  }
-  outEdgesFile.close();
-  
-  outfile << "}\n\n";
-  outfile . close ();
-  for ( uint64_t in : mapped_in ) {
-    if ( mapped_out . count ( in ) == 0 ) {
-      abort ();
-    }
-  }
-#endif
   return atlasmap;
 }
 
@@ -238,6 +169,62 @@ Model::annotate( MorseGraph * mg_in ) const {
       mg . annotation () . insert ( "BAD" );
   }
 }
+
+inline 
+void Model::saveWalls ( const char *filename ) const {
+  //
+  std::vector < Wall > mywalls;
+  mywalls . resize ( walls_.size() );
+  std::ofstream ofile ( filename );
+  //
+  typedef std::pair<Wall, size_t> WallIndexPair;
+  for ( WallIndexPair const& wall_index_pair : walls_ ) {
+    const Wall & wall = wall_index_pair . first;
+    int64_t wall_id = wall_index_pair . second;
+    // just to order them (not the best way)
+    mywalls[wall_id] = wall;
+  }
+  // Save the wall information sorted
+  for ( unsigned int i=0; i<mywalls.size(); ++i ) {
+    ofile << i << " ";
+    if ( mywalls[i] . isFixedPoint() ) {
+      ofile << "-1 ";
+    } else {
+      // check which direction is degenerated (should have only one)
+      int dir;
+      for ( unsigned int j=0; j<mywalls[i].rect().dimension(); ++j ) {
+        if ( std::abs(mywalls[i].rect().upper_bounds[j]-mywalls[i].rect().lower_bounds[j] )<1e-12 ) {
+          dir = j;
+        }
+      }
+      ofile << dir;
+    }
+    ofile << " " << mywalls[i].rect() << "\n";
+  }
+  ofile . close();
+}
+
+inline
+std::vector< std::pair<int64_t,int64_t> > Model::getWallMaps ( boost::shared_ptr<Parameter> p ) const {
+  //  similar method to map
+  std::vector< std::pair<int64_t,int64_t> > output;
+  //
+  for ( std::vector<size_t> const& domain : domains_ ) {
+    typedef std::pair<int64_t, int64_t> intPair;
+    std::vector < intPair > listofmaps = 
+      BooleanSwitchingMaps ( parameter_space_ -> closestFace ( p, domain ) );
+    for ( intPair const& cface_pair : listofmaps ) {
+      Wall wall1 ( cface_pair . first, domain );
+      Wall wall2 ( cface_pair . second, domain );
+      int64_t id1 = walls_ . find ( wall1 ) -> second;
+      int64_t id2 = walls_ . find ( wall2 ) -> second;
+      //
+      output . push_back ( std::pair<int64_t,int64_t>(id1,id2) );
+    }
+  }    
+  return output;
+}
+
 
 inline bool Model::validateMorseGraph ( MorseGraph * mg_in ) const {
   MorseGraph & mg = *mg_in;
@@ -274,6 +261,8 @@ inline bool Model::validateMorseGraph ( MorseGraph * mg_in ) const {
   // 3) a morse set where every variable makes a transition
   return (c1 && !c2 && c3);
 }
+
+
 
 inline
 std::vector < std::string > Model::constructAnnotationsMorseSet (
