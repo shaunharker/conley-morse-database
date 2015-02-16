@@ -69,6 +69,10 @@ int main ( int argc, char * argv [] ) {
   std::vector<Edge> edges;
   std::unordered_set < uint64_t > nodes;
 
+  std::ofstream infoFile;
+  infoFile . open ( "parameterGraphInequalities.txt" );
+  infoFile << "{\n";
+
   // Loop through the MGCCPs
   for ( unsigned int mgccpi=0; mgccpi<mgcc_records[mgcc].mgccp_indices.size(); ++mgccpi ) {
 
@@ -89,20 +93,18 @@ int main ( int argc, char * argv [] ) {
     // Extract a subpace of the parameter space
     std::unordered_set<uint64_t> subgraph;
     //
-    std::ofstream infoFile;
-    infoFile . open ( "parameterGraphInequalities.txt" );
-    infoFile << "{\n";
-    for ( uint64_t p=0; p<pindex.size()-1; ++p ) {
+   for ( uint64_t p=0; p<pindex.size()-1; ++p ) {
       subgraph.insert(pindex[p]);
       nodes.insert(pindex[p]);
       infoFile << "\"" << pindex[p] << "\":\"";
       infoFile << boolean_space . prettyPrint ( boolean_space . parameter ( pindex[p] ) );
       infoFile << "\",\n";
     }
+    subgraph.insert(pindex[pindex.size()-1]);
+    nodes.insert(pindex[pindex.size()-1]);
     infoFile << "\"" << pindex[pindex.size()-1] << "\":\"";
     infoFile << boolean_space . prettyPrint ( boolean_space . parameter ( pindex[pindex.size()-1] ) );
     infoFile << "\n\"}";
-    infoFile.close();
     //
     for ( uint64_t p : subgraph ) {
       std::vector<uint64_t> adj = boolean_space . adjacencies ( p );
@@ -121,6 +123,7 @@ int main ( int argc, char * argv [] ) {
 
   //
 
+  infoFile . close ( );
 
 // std::cout << "# edges : " << edges.size() << "\n";
 // for ( Edge e : edges ) {
