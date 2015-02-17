@@ -58,6 +58,9 @@ public:
 
   /// Save the walls ( phase space )
   void saveWalls ( const char *filename ) const;
+  
+  /// Get the wall information for a given id
+  std::unordered_map <size_t, Wall >  getWalls ( void ) const;
 
   /// get the maps between walls
   std::vector< std::pair<int64_t,int64_t> > getWallMaps ( boost::shared_ptr<Parameter> p ) const;
@@ -205,6 +208,19 @@ void Model::saveWalls ( const char *filename ) const {
 }
 
 inline
+std::unordered_map <size_t,Wall>  Model::getWalls ( void ) const { 
+  std::unordered_map <size_t,Wall> output;
+  //
+  typedef std::pair<Wall, size_t> WallIndexPair;
+  for ( WallIndexPair const& wall_index_pair : walls_ ) {
+    const Wall & wall = wall_index_pair . first;
+    int64_t wall_id = wall_index_pair . second;
+    output[wall_id] = wall;
+  }
+  return output; 
+} 
+
+inline
 std::vector< std::pair<int64_t,int64_t> > Model::getWallMaps ( boost::shared_ptr<Parameter> p ) const {
   //  similar method to map
   std::vector< std::pair<int64_t,int64_t> > output;
@@ -333,20 +349,6 @@ std::vector < std::string > Model::constructAnnotationsMorseSet (
   }
   if ( condition3 ) {
     annotation . push_back ( CONDITION3STRING );
-#ifdef BS_DEBUG_MODELMAP
-    std::ofstream ofile;
-    ofile . open ( "morseset.txt" );
-    BOOST_FOREACH ( Grid::GridElement ge, subset ) {
-      if ( not boost::dynamic_pointer_cast < AtlasGeo > ( phasespace -> geometry ( ge ) ) ) {
-        std::cout << "Unexpected null response from geometry\n";
-      }
-      AtlasGeo geo = * boost::dynamic_pointer_cast < AtlasGeo > ( phasespace -> geometry ( ge ) );
-      size_t id = geo . id ( );
-      Wall wall = chartIdToWall_ . find ( id ) -> second;
-      ofile << id << " " << wall.rect() << "\n";
-    }
-    ofile . close ();
-#endif
   }
   return annotation;
 }
