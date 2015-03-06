@@ -10,12 +10,12 @@ LDFLAGS := -L $(SOFTWARE)/opt/lib -L $(SOFTWARE)/sdsl/lib -L $(GRAPHICS)/lib -L$
 LDLIBS := -lboost_serialization -lboost_thread -lboost_system -lboost_chrono -lsdsl -ldivsufsort -ldivsufsort64 -lX11
 LDLIBS += -Wl,-rpath,/share/data/goullet/ConleyMorseDatabase/lib:/opt/openmpi/lib  
 
-all: extractMorseSets
+all: extractMorseSetMGCC
 
-extractMorseSets: main.o
+extractMorseSetMGCC: main.o
 	$(CC) $(LDFLAGS) main.o -o $@ $(LDLIBS)
 
 .PHONY: clean
 clean:
 	rm -f main.o
-	rm -f BSTest
+	rm -f extractMorseSetMGCC

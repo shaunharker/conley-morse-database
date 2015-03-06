@@ -9,6 +9,9 @@ codepath=$2
 # Merge all the individual databases into one database for the model 
 ./mergeMultipleDatabases.sh $destdir $destdir/database.db 
 
+# optimize the database
+./optimizeSQLDatabase.sh $destdir/
+
 # put together the morsegraphs files in Zoo/graphs
 subdirs=`find "$destdir" -mindepth 1 -maxdepth 1 -type d -name "*" | sed 's:^\./::'`
 
@@ -24,14 +27,19 @@ do
 
   # Add the html/php files for the webpage (Shaun's stuff)
   cp -r template/*  $i/Zoo/
+  ( cd $i/Zoo ; ./COMPUTE graphs )
 
   # Add the SQL html/php files for the parameter webpage
   MakeWebpage/QueryDatabase/templateForParameter/createWebpage.sh $codepath $i/Zoo/
   cp MakeWebpage/QueryDatabase/templateForParameter/checkradio-form.php $i/Zoo/
-  cp MakeWebpage/QueryDatabase/templateForParameter/extractMGCCinfo.php $i/Zoo/
-  cp MakeWebpage/QueryDatabase/templateForParameter/extractMGCCcleanup.sh $i/Zoo/
-  cp MakeWebpage/QueryDatabase/templateForParameter/extractMGCC.sh $i/Zoo/
-
+  cp MakeWebpage/QueryDatabase/templateForParameter/extractMorseSetMGCC.php $i/Zoo/
+  cp MakeWebpage/QueryDatabase/templateForParameter/extractMorseSetMGCC.sh $i/Zoo/
+  cp MakeWebpage/QueryDatabase/templateForParameter/extractParameterGraphMGCC.php $i/Zoo/
+  cp MakeWebpage/QueryDatabase/templateForParameter/extractParameterGraphMGCC.sh $i/Zoo/
+  cp MakeWebpage/QueryDatabase/templateForParameter/seeParameterGraphMGCC.php $i/Zoo/
+  cp MakeWebpage/QueryDatabase/templateForParameter/seeParameterGraphMGCC.sh $i/Zoo/
+  cp MakeWebpage/QueryDatabase/templateForParameter/indexParameterGraph.html $i/Zoo/
+  cp MakeWebpage/QueryDatabase/templateForParameter/readGraphviz.php $i/Zoo/
 done
 
 # Add the SQL html/php files for the model webpage

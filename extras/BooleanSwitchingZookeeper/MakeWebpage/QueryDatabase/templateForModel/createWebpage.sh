@@ -8,6 +8,7 @@
 # This is needed to generate automatically the list of radio button necessary
 sourcedir="$1"
 
+# This is to retrieve the labels used for the morse sets
 modeldir="$2"
 
 file="$modeldir/indexSQL.html"

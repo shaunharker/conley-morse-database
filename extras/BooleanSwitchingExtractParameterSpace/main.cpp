@@ -71,7 +71,7 @@ int main ( int argc, char * argv [] ) {
 
   std::ofstream infoFile;
   infoFile . open ( "parameterGraphInequalities.txt" );
-  infoFile << "{\n";
+  infoFile << "{\n\"data\":[";
 
   // Loop through the MGCCPs
   for ( unsigned int mgccpi=0; mgccpi<mgcc_records[mgcc].mgccp_indices.size(); ++mgccpi ) {
@@ -96,15 +96,15 @@ int main ( int argc, char * argv [] ) {
    for ( uint64_t p=0; p<pindex.size()-1; ++p ) {
       subgraph.insert(pindex[p]);
       nodes.insert(pindex[p]);
-      infoFile << "\"" << pindex[p] << "\":\"";
+      infoFile << "{\"" << pindex[p] << "\":\"";
       infoFile << boolean_space . prettyPrint ( boolean_space . parameter ( pindex[p] ) );
-      infoFile << "\",\n";
+      infoFile << "\"},\n";
     }
     subgraph.insert(pindex[pindex.size()-1]);
     nodes.insert(pindex[pindex.size()-1]);
-    infoFile << "\"" << pindex[pindex.size()-1] << "\":\"";
+    infoFile << "{\"" << pindex[pindex.size()-1] << "\":\"";
     infoFile << boolean_space . prettyPrint ( boolean_space . parameter ( pindex[pindex.size()-1] ) );
-    infoFile << "\n\"}";
+    infoFile << "\n\"}\n]\n}";
     //
     for ( uint64_t p : subgraph ) {
       std::vector<uint64_t> adj = boolean_space . adjacencies ( p );
