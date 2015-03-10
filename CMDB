@@ -2,9 +2,9 @@
 make clean
 make MODELDIR=$1 || exit 1
 mv Conley_Morse_Database $1 || exit 1
-if [ "`which qsub`" != "" ]; then
-  qsub -v ENV_MODELDIR=$1 script.sh
-else
-  cd $1
-  mpiexec -np 8 ./Conley_Morse_Database ./
-fi
+#if [ "`which qsub`" != "" ]; then
+#  qsub -v ENV_MODELDIR=$1 script.sh
+#else
+#  cd $1
+#  mpiexec -np 8 ./Conley_Morse_Database ./
+#fi

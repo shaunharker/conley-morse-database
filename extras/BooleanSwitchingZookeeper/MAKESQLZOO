@@ -1,8 +1,10 @@
 #!/bin/bash
 
+rm -rf graphs
 mkdir graphs || exit 1
 cd graphs || exit 1
-../makeDatabaseZooSQL/main $1/database.mdb $1 `basename $1`.txt || exit 1
+###../makeDatabaseZooSQL/main $1/database.mdb $1 `basename $1`.txt || exit 1
+../makeDatabaseZooSQL/main $1/database.mdb $1  || exit 1
 cd .. || exit 1
 
 rm -rf $1/Zoo || exit 1
@@ -15,7 +17,7 @@ $1/Zoo/COMPUTE $1 || exit 1
 # create the html file
 cd MakeWebpage
 cd QueryDatabase/template
-./createWebpage.sh "$1" "Zoo"
+./createWebpage.sh "$2" "Zoo"
 cd ../..
 cp QueryDatabase/template/indexSQL.html "$1/Zoo"
 cp QueryDatabase/template/checkradio-form.php "$1/Zoo"
