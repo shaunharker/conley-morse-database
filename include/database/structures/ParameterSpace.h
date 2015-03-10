@@ -148,8 +148,8 @@ ParameterSpace::patch ( void ) const {
 	while ( 1 ) {
 		if ( default_patch_method_edge_ == 0 ) {
 			if ( default_patch_method_vertex_ == size () ) { 
+        // Return empty patch to signal exhaustion.
 				default_patch_method_vertex_ = 0;
-        //std::cout << "ParameterSpace::patch. Returning empty patch.\n"; // DEBUG
 				return result;
 			} else {
 				default_patch_method_neighbors_ = adjacencies ( default_patch_method_vertex_ );

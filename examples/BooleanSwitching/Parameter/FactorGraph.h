@@ -6,6 +6,7 @@
 #define BOOLEANSWITCHINGFACTORGRAPH_H
 
 #include <vector>
+#include <stack>
 #include "boost/unordered_map.hpp"
 #include "boost/foreach.hpp"
 #include "boost/shared_ptr.hpp"

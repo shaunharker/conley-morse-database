@@ -3,6 +3,7 @@
  */
 
 #define MAIN_CPP_FILE
+#define PROCESS_ONE
 
 #include <cstdint>
 
@@ -15,6 +16,9 @@
 #include <fstream>
 #define CMG_VERBOSE
 #include "delegator/delegator.h"  /* For Coordinator_Worker_Scheme<>() */
+#ifdef PROCESS_ONE
+#include "database/program/Process1.h"
+#endif
 #ifdef COMPUTE_MORSE_SETS
 #include "database/program/MorseProcess.h"
 #endif
@@ -46,6 +50,21 @@ BOOST_CLASS_EXPORT_IMPLEMENT(AbstractParameterSpace);
 
 int main ( int argc, char * argv [] ) {
   delegator::Start ();
+
+#ifdef PROCESS_ONE
+  std::cout << "STARTING PROCESS 1\n";
+  {
+  time_t morsestarttime = time ( NULL );
+  delegator::Run < Process1 > (argc, argv);
+  time_t morsetime = time ( NULL ) - morsestarttime;
+  std::string filestring ( argv[1] );
+  std::string appendstring ( "/Process1Time.txt" );
+  std::ofstream timeoutfile ( (filestring + appendstring) . c_str () );
+  timeoutfile << morsetime << " seconds.\n";
+  timeoutfile . close ();
+  }
+#endif
+
 #ifdef COMPUTE_MORSE_SETS
   std::cout << "STARTING MORSE PROCESS\n";
   time_t morsestarttime = time ( NULL );

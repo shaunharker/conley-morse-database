@@ -87,6 +87,10 @@ private:
   void
   pickFactor ( std::string const& line );
 
+  /// consistency
+  bool
+  consistent ( void ) const;
+
   std::unordered_map<std::string, int64_t> name_to_index_;
   std::vector<std::string> names_;
   std::vector<Node> nodes_;
@@ -413,8 +417,41 @@ load ( const char * filename ) {
   for ( auto name_index_pair : name_to_index_ ) {
     names_ [ name_index_pair.second - 1 ] = name_index_pair.first;
   }
+  if ( not consistent () ) { 
+    throw std::logic_error ( "Problem loading network file: inconsistent file.\n");
+  }
 }
 
+  /// consistency
+  inline bool Network::
+  consistent ( void ) const {
+    typedef std::pair<int64_t, int64_t> network_edge_t;
+    std::vector< network_edge_t > in_edges, out_edges;
+    for ( Node const& node : nodes_ ) {
+      int64_t u = node . index;
+      for ( std::vector<int64_t> const& f : node . logic ) {
+        for ( int64_t const& v : f ) {
+          in_edges . push_back ( std::make_pair ( std::abs(v), u ) );
+        }
+      }
+      for ( int64_t const& v : node . out_order ) {
+        out_edges . push_back ( std::make_pair ( u, v ) );
+      }
+    }
+    std::sort ( in_edges . begin (), in_edges . end () );
+    std::sort ( out_edges . begin (), out_edges . end () );
+    if ( in_edges . size () != out_edges . size () ) return false;
+    size_t N = in_edges . size ();
+    for ( size_t i = 0; i < N; ++ i ) {
+      if ( in_edges [ i ] != out_edges [ i ] ) { 
+        std::cout << "(" << in_edges[i].first << ", " << in_edges[i].second << ")";
+        std::cout << " != (" << out_edges[i].first << ", " << out_edges[i].second << ")\n";
+        return false;
+      }
+    }
+    return true;
+  }
+  
 }
 
 #endif
