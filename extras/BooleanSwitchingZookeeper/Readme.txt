@@ -1,6 +1,32 @@
 
 try to use absolute path
 
+Each run/case directory should contain the following files : 
+config.xml, the network file, database.mdb, database.raw
+
+!!!! By default, it is assumed that the name of the directory is the
+name of the case (i.e the prefix of the network file)
+
+A) For a single run/case
+
+  1) To create the images for the network and equations
+     SingleRunCreateImages.sh PATH
+     where PATH is the path containing database.mdb
+  2) To create the SQL database and graphviz files for the Hasse,MGCC graphs
+     SingleRunSQLDatabase.sh PATH NAME
+     PATH : directory containing database.mdb
+     NAME : prefix of the network file
+  3) To create the SQL Webpages
+     SingleRunSWLWebpages.sh PATH SRC
+     PATH : directory containing database.mdb
+     SRC : directory of the boolean switching code (most likely: examples/BooleanSwitching)
+
+
+     
+B) For a model containing multiple cases
+
+Structure : Model/case*/
+
 We use temporary directory to postprocess the data to avoid to delete/change
 original output data
 
@@ -37,5 +63,5 @@ We will make also an extra copy of the image network for the model.
 mergePostprocessedData.sh
 It takes 2 arguments ( the same as constructMultipleDatabases.sh )
 
-If everything went through for 1) and 2), this script will move the postprocessed data (temporary directory) into the model data
+If everything went smoothly in 1) and 2), this script will move the postprocessed data (temporary directory) into the model data
 
