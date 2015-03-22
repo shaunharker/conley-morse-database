@@ -92,7 +92,7 @@ echo ==\> CImg
 echo Checking for CImg.
 if [ ! -f ${PREFIX}/include/CImg.h ]; then
   echo Not found. Installing CImg.
-  wget http://downloads.sourceforge.net/project/cimg/CImg-1.5.9.zip || exit 1
+  wget http://downloads.sourceforge.net/project/cimg/older_versions/CImg-1.5.9.zip || exit 1
   unzip CImg-1.5.9.zip || exit 1
   mv CImg-1.5.9/CImg.h ${PREFIX}/include/CImg.h || exit 1
   echo CImg now installed.
