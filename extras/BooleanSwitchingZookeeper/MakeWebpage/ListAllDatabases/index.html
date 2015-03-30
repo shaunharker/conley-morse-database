@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html> 
+<head> 
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+      
+<script type='text/javascript' src='http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js'></script>
+
+      <title> Switching Boolean Databases </title> 
+   
+<!--     <link rel="stylesheet" href="css/style.css" type="text/css" media="screen, projection">
+        <script type="text/javascript" src="js/jquery-1.4.2.min.js">
+        </script>
+        <script type="text/javascript" src="js/scripts.js">
+        </script>
+-->
+<!--
+<style type="text/css">
+            ul li {
+              display: block;
+                /*width : 300px;*/
+                /*list-style-type: none;*/
+            }
+            ul li img {
+                /*min-height : 45px;*/
+                vertical-align : middle;
+                /*border-bottom : 1px black solid;*/
+            }
+            li { 
+                margin: 20px 0;
+            }
+</style>
+-->
+</head> 
+
+
+<script>
+
+
+
+function updateList( p1 ) {
+	document.getElementById("listOfDatabases").innerHTML = p1;
+}
+
+function readDatabases() {
+
+// in PHP dim is obtained using $dim=$_GET["dim"];
+	$.getJSON('getListDatabases.php', function(data) {
+		str="";
+		str="<table border=\"1\">";
+		str += "<tr>";
+		str += "<td> Name </td> <td>Equations</td> <td>Zoo</td> <td>SQL Query</td>";
+		str += "</tr>";
+		 /* data will hold the php array as a javascript object */
+                // key:name, value:path
+                    // loop through the permutation    
+                    $.each(data, function(keypermutation,permutation) {
+var keymodel="2D_Example";
+str += "<tr>";
+str += "<td>" + keypermutation + "</td>";
+str += "<td> <img src=\"" + keypermutation + "/equations.png\" width=\"250\" > </td>";  
+str += "<td> <a href=\"" + keypermutation  + "/Zoo/index.html\" target=\"_blank\"> Zoo </a> </td>";
+str += "<td> <a href=\"" + keypermutation + "/Zoo/indexSQL.html\" target=\"_blank\"> ZooSQL </a> </td>"; 
+str += "</tr>";
+                    });
+str += "</table>";
+
+updateList( str  );
+        });
+	
+}
+
+
+</script>
+
+
+<body> 
+
+
+<h1> List of databases: </h1>
+
+<div id="listOfDatabases"> </div>
+
+<script>
+
+$(document).ready(function() { 
+
+readDatabases();
+
+ });
+
+</script>
+
+
+</body>
+</html>
