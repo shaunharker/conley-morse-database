@@ -11,7 +11,7 @@ LDLIBS += -Wl,-rpath,/share/data/goullet/ConleyMorseDatabase/lib:/opt/openmpi/li
 
 all: extractFullParameterGraphColoredMGCC
 
-extractParameterGraphMGCC: main.o
+extractFullParameterGraphColoredMGCC: main.o
 	$(CC) $(LDFLAGS) main.o -o $@ $(LDLIBS)
 
 .PHONY: clean

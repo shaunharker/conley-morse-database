@@ -31,6 +31,8 @@ BOOST_CLASS_EXPORT_IMPLEMENT(AbstractParameterSpace);
 
 #include <boost/algorithm/string.hpp>
 
+#include "Colormap.h"
+
 //arguments :
 
 //path/database.mdb path2 mynetwork.txt
@@ -114,11 +116,10 @@ int main ( int argc, char * argv [] ) {
   std::ofstream myfile;
   myfile . open ( "fullParameterGraph.gv" );
   myfile << "graph {\n";
-  // std::pair< uint64_t,std::vector<uint64_t> >::iterator it;
   for ( std::pair< uint64_t,std::vector<uint64_t> > n : mgccNodes ) {
-  //  std::cout << "i= " << i << " : " << nodes[i] << "\n";
     for ( uint64_t value : n.second ) {
-      myfile << value << "[shape=circle, style=filled,colorscheme=paired12, fillcolor="<< n.first+1 <<" ]\n";
+      // myfile << value << "[shape=circle, style=filled,colorscheme=paired12, fillcolor="<< n.first+1 <<" ]\n";
+      myfile << value << "[shape=circle, style=filled, fillcolor=\""<< colorHex(n.first) <<"\" ]\n";
     }
   }
 
@@ -126,8 +127,8 @@ int main ( int argc, char * argv [] ) {
     myfile << e.first << " -- " << e.second <<"\n";
  }
 
-// Add the legend : consider 12 colors maximum
-std::string colormap[] = {"#a6cee3","#1f78b4","#b2df8a","#33a02c","#fb9a99","#e31a1c","#fdbf6f","#ff7f00","#cab2d6"};
+// Add the legend : consider 12 colors maximum based on paired12
+// std::string colormap[] = {"#a6cee3","#1f78b4","#b2df8a","#33a02c","#fb9a99","#e31a1c","#fdbf6f","#ff7f00","#cab2d6"};
 
 myfile << "{ rank = sink;\n";
 myfile << "Legend [shape=none, margin=0, label=<\n";
@@ -135,7 +136,7 @@ myfile << "<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\" CELLPADDING=\"
 myfile << "<TR>\n";
 myfile << "<td> MGCC: </td>\n";
 for ( uint64_t mgcc=0; mgcc<mgcc_records.size(); ++mgcc ) {
-  myfile << "<td bgcolor=\"" << colormap[mgcc] << "\">" << mgcc << "</td>\n";
+  myfile << "<td bgcolor=\"" << colorHex(mgcc) << "\">" << mgcc << "</td>\n";
 }
 myfile << "</TR>\n";
 myfile << "</TABLE>\n";
