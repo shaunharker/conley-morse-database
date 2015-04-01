@@ -37,6 +37,35 @@ BOOST_CLASS_EXPORT_IMPLEMENT(AbstractParameterSpace);
 
 //path/database.mdb path2 mynetwork.txt
 
+
+// We will name the classes A,B,C,D,....
+std::string Alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+// To prevent issues with the nodes index in the parameter graphs
+// we label the nodes in the class graph with different,unique label
+
+std::vector< std::string > generateRandomStrings ( const uint64_t & N ) {
+
+  int len = 4; // length of the random strings
+  static const char alphanumeric[] = "abcdefghijklmnopqrstuvwxyz0123456789";
+
+  unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+  std::default_random_engine rng(seed);
+  std::uniform_int_distribution<> dist (0, sizeof(alphanumeric) - 1);
+
+  std::vector< std::string > result;
+
+  for ( unsigned int i=0; i<N; ++i ) {
+    std::string mystring;
+    for (unsigned int j = 0; j < len; ++j) mystring += alphanumeric[dist(rng)];
+    result . push_back ( mystring );
+  }
+
+  return result;
+
+}
+
+
 std::string equivalencyString ( const std::string & mystr ) {
 
   std::unordered_map < std::string, std::string > annotationsEquivalency ( {
@@ -46,9 +75,8 @@ std::string equivalencyString ( const std::string & mystr ) {
               {"FC ", "FC "}
   } );
 
-  std::cout << "mystr: " << mystr << "\n";
   std::string result  = annotationsEquivalency[mystr];
-  std::cout << "result: " << result << "\n";
+
   return result;
 
 }
@@ -215,6 +243,8 @@ std::string StringGraphDAG ( const DAG & mydag ) {
 
   std::stringstream ss;
 
+  std::vector < std::string > randomLabels = generateRandomStrings ( mydag.num_vertices_ );
+
 // Vertices
   for ( int i = 0; i < mydag . num_vertices_; ++ i ) {
 
@@ -228,14 +258,18 @@ std::string StringGraphDAG ( const DAG & mydag ) {
     } else {
       std::cout << "No annotation for vertex : " << i << "\n";
     }
-    ss << i << " [label=\""<< mystring << "\"]\n";
+
+
+    ss << randomLabels[i] << " [label=\""<< mystring << "\"]\n"; // The class name are based on the Alphabet
 
   }
+
+
 
 // Edges
   typedef std::pair<int, int> Edge;
   for ( const Edge & e : mydag . edges_ ) {
-    ss << e . first << " -- " << e . second << "; ";
+    ss << randomLabels[e . first] << " -- " << randomLabels[e . second] << "; ";
   }
 
   return ss . str();
@@ -396,13 +430,15 @@ myfile << "label = \"Parameter Graph\"\n";
 // Add the legend : consider 12 colors maximum from paired12 colormap in graphviz
 std::string colormap[] = {"#a6cee3","#1f78b4","#b2df8a","#33a02c","#fb9a99","#e31a1c","#fdbf6f","#ff7f00","#cab2d6"};
 
+
+
 myfile << "{ rank = sink;\n";
 myfile << "Legend [shape=none, margin=0, label=<\n";
 myfile << "<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\" CELLPADDING=\"4\">\n";
 myfile << "<TR>\n";
 myfile << "<td> Class: </td>\n";
 for ( uint64_t i=0; i<DAGclasses.size(); ++i ) {
-  myfile << "<td bgcolor=\"" << colormap[i] << "\">" << i << "</td>\n";
+  myfile << "<td bgcolor=\"" << colormap[i] << "\">" << Alphabet[i] << "</td>\n";
 }
 myfile << "</TR>\n";
 myfile << "</TABLE>\n";
@@ -413,28 +449,34 @@ myfile << "}\n";
 
 // Add the Morse graph classes
 
+// Need to reorder the classes for the legend
+std::vector < DAG > DAGSortedClasses;
+DAGSortedClasses . resize (DAGclasses.size());
+
 for ( itdag=DAGclasses.begin(); itdag!=DAGclasses.end(); ++itdag ) {
-  std::stringstream ss, ss1;
-  ss << itdag->second;
-  ss1 << itdag->second+1;
+  DAGSortedClasses [ itdag->second ] = itdag -> first;
+}
+
+for ( unsigned int i=0; i<DAGSortedClasses.size(); ++i ) {
+
+  std::stringstream ss1;
+  ss1 << i+1;
   myfile << "subgraph cluster"+ss1.str()+" {\n";
-  myfile << "label = \"Class" << ss.str() << "\"";
-  // myfile << "<td bgcolor=\"" << colormap[i] << "\">" << i << "</td>\n";
+  myfile << "label = \"Class " << Alphabet[i] << "\"\n";
 
   // construct the graph
 
-  myfile << StringGraphDAG ( itdag -> first );
+  myfile << StringGraphDAG ( DAGSortedClasses[i] );
 
   myfile << "}\n";
 }
+
 
  myfile << "}";
  myfile.close();
 
 
-
-
-
+// to save into a graphviz file the different MGCC classes 
   for ( itdag=DAGclasses.begin(); itdag!=DAGclasses.end(); ++itdag ) {
     DAG mydag = itdag->first;
 
