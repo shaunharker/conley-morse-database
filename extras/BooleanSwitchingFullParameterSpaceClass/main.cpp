@@ -46,8 +46,9 @@ std::string equivalencyString ( const std::string & mystr ) {
               {"FC ", "FC "}
   } );
 
+  std::cout << "mystr: " << mystr << "\n";
   std::string result  = annotationsEquivalency[mystr];
-
+  std::cout << "result: " << result << "\n";
   return result;
 
 }
@@ -163,11 +164,10 @@ DAG makeDAG ( const Database & database, uint64_t mgcc ) {
       newstring . push_back ( database . stringData () [ string_index ] );
     }
 
-    for ( std::string mys : newstring ) {
-      std::vector<std::string> ss;
-      ss . push_back  ( mys );
-      mys = makeLabel(ss); // Write the proper annotations for the vertex
-    }
+    std::vector < std::string > nss;
+    nss . push_back ( makeLabel(newstring) );
+
+    newstring = nss;
 
     mystring . push_back ( newstring );
   }
@@ -211,7 +211,40 @@ DAG makeDAG ( const Database & database, uint64_t mgcc ) {
 
 
 
+void GraphvizDAG ( const DAG & mydag, const std::string & filename ) {
 
+  std::ofstream ofile;
+  ofile . open ( filename );
+  std::stringstream ss;
+  ss << "digraph  { \n";
+// Vertices
+  for ( int i = 0; i < mydag . num_vertices_; ++ i ) {
+
+    // string for the vertex
+    std::vector<std::string> annotation_vertex = mydag . annotation_vertex[i];
+
+    std::string mystring = "";
+    if ( !annotation_vertex.empty() ) {
+      // mystring = makeLabel ( annotation_vertex );
+      mystring = annotation_vertex[0];
+    } else {
+      std::cout << "No annotation for vertex : " << i << "\n";
+    }
+    ss << i << " [label=\""<< mystring << "\"]\n";
+
+  }
+
+// Edges
+  typedef std::pair<int, int> Edge;
+  for ( const Edge & e : mydag . edges_ ) {
+    ss << e . first << " -> " << e . second << "; ";
+  }
+  ss << "}\n";
+
+  ofile << ss . str();
+
+  ofile . close ();
+}
 
 
 int main ( int argc, char * argv [] ) {
@@ -246,25 +279,26 @@ int main ( int argc, char * argv [] ) {
   std::unordered_set<uint64_t> subgraph;
 
   // Will store the different DAG class
-  std::set<DAG> DAGclasses;
-  std::set<DAG>::iterator itDAG;
+  std::unordered_map<DAG,uint64_t,boost::hash<DAG> > DAGclasses;
+  std::unordered_map<DAG,uint64_t,boost::hash<DAG> >::iterator itdag;
 
   for ( uint64_t mgcc=0; mgcc<mgcc_records.size(); ++mgcc ) {
 
     std::vector<uint64_t> mynodes;
-    int position;
+    // int position;
     DAG myDAG = makeDAG ( database, mgcc );
 
-    // check if the DAG is already in the list of classes
-    itDAG = DAGclasses . find ( myDAG );
-    //
-    // if not, add it to the list of DAG classes
-    // the position will be used as an index for the colormap
-    if ( itDAG == DAGclasses . end() ) {
-      DAGclasses . insert ( myDAG );
+    if ( DAGclasses . count ( myDAG ) == 0 )  {
+      DAGclasses [ myDAG ] = DAGclasses . size ();
     }
+    uint64_t position = DAGclasses [ myDAG ];
 
-    position = std::distance(DAGclasses.begin(), itDAG);
+    std::string filename;
+    std::stringstream ss;
+    filename = "originalDAG";
+    ss << position;
+    GraphvizDAG ( myDAG, filename+ss.str()+".gv" );
+
 
     // Loop through the MGCCPs
     for ( unsigned int mgccpi=0; mgccpi<mgcc_records[mgcc].mgccp_indices.size(); ++mgccpi ) {
@@ -295,7 +329,8 @@ int main ( int argc, char * argv [] ) {
     // we use the position for a colormap index
     mgccNodes . push_back ( std::pair<uint64_t,std::vector<uint64_t> >(position,mynodes) );
 
-  }
+
+  } // end loop over mgcc
 
 
   std::cout << "Number of DAG classes found : " << DAGclasses.size() << "\n";
@@ -341,6 +376,23 @@ myfile << "}\n";
 
  myfile << "}";
  myfile.close();
+
+
+
+
+
+  for ( itdag=DAGclasses.begin(); itdag!=DAGclasses.end(); ++itdag ) {
+    DAG mydag = itdag->first;
+
+    std::string filename;
+    filename = "class";
+    std::stringstream ss2;
+    ss2 << itdag -> second;
+
+    std::ofstream ofile;
+    GraphvizDAG ( mydag, filename + ss2.str() + ".gv" );
+
+  }
 
   return 0;
 }

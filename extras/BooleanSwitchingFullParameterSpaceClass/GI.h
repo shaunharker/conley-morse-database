@@ -196,7 +196,7 @@ public:
  	boost::hash_combine ( seed, dag . num_vertices_ );
  	boost::hash_combine ( seed, dag . edges_ . size () );
  	for ( int i = 0; i < info . size (); ++ i ) {
-  	boost::hash_combine(seed, info [ i ] );
+  	boost::hash_combine(seed, info [ i ].first );
 	}
   return seed;
  }
