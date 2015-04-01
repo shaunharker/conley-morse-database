@@ -211,6 +211,37 @@ DAG makeDAG ( const Database & database, uint64_t mgcc ) {
 
 
 
+std::string StringGraphDAG ( const DAG & mydag ) {
+
+  std::stringstream ss;
+
+// Vertices
+  for ( int i = 0; i < mydag . num_vertices_; ++ i ) {
+
+    // string for the vertex
+    std::vector<std::string> annotation_vertex = mydag . annotation_vertex[i];
+
+    std::string mystring = "";
+    if ( !annotation_vertex.empty() ) {
+      // mystring = makeLabel ( annotation_vertex );
+      mystring = annotation_vertex[0];
+    } else {
+      std::cout << "No annotation for vertex : " << i << "\n";
+    }
+    ss << i << " [label=\""<< mystring << "\"]\n";
+
+  }
+
+// Edges
+  typedef std::pair<int, int> Edge;
+  for ( const Edge & e : mydag . edges_ ) {
+    ss << e . first << " -- " << e . second << "; ";
+  }
+
+  return ss . str();
+
+}
+
 void GraphvizDAG ( const DAG & mydag, const std::string & filename ) {
 
   std::ofstream ofile;
@@ -348,6 +379,10 @@ int main ( int argc, char * argv [] ) {
   std::ofstream myfile;
   myfile . open ( "fullParameterGraph.gv" );
   myfile << "graph {\n";
+
+myfile << "subgraph cluster0 {\n";
+myfile << "label = \"Parameter Graph\"\n";
+
   for ( std::pair< uint64_t,std::vector<uint64_t> > n : mgccNodes ) {
     for ( uint64_t value : n.second ) { // value is the index/label of the node
       myfile << value << "[shape=circle, style=filled,colorscheme=paired12, fillcolor="<< n.first+1 <<" ]\n";
@@ -365,7 +400,7 @@ myfile << "{ rank = sink;\n";
 myfile << "Legend [shape=none, margin=0, label=<\n";
 myfile << "<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\" CELLPADDING=\"4\">\n";
 myfile << "<TR>\n";
-myfile << "<td> MGCC: </td>\n";
+myfile << "<td> Class: </td>\n";
 for ( uint64_t i=0; i<DAGclasses.size(); ++i ) {
   myfile << "<td bgcolor=\"" << colormap[i] << "\">" << i << "</td>\n";
 }
@@ -373,6 +408,25 @@ myfile << "</TR>\n";
 myfile << "</TABLE>\n";
 myfile << ">];\n";
 myfile << "}\n";
+
+myfile << "}\n";
+
+// Add the Morse graph classes
+
+for ( itdag=DAGclasses.begin(); itdag!=DAGclasses.end(); ++itdag ) {
+  std::stringstream ss, ss1;
+  ss << itdag->second;
+  ss1 << itdag->second+1;
+  myfile << "subgraph cluster"+ss1.str()+" {\n";
+  myfile << "label = \"Class" << ss.str() << "\"";
+  // myfile << "<td bgcolor=\"" << colormap[i] << "\">" << i << "</td>\n";
+
+  // construct the graph
+
+  myfile << StringGraphDAG ( itdag -> first );
+
+  myfile << "}\n";
+}
 
  myfile << "}";
  myfile.close();
@@ -391,7 +445,6 @@ myfile << "}\n";
 
     std::ofstream ofile;
     GraphvizDAG ( mydag, filename + ss2.str() + ".gv" );
-
   }
 
   return 0;
