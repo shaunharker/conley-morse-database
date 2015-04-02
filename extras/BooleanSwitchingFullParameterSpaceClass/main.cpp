@@ -269,7 +269,7 @@ std::string StringGraphDAG ( const DAG & mydag ) {
 // Edges
   typedef std::pair<int, int> Edge;
   for ( const Edge & e : mydag . edges_ ) {
-    ss << randomLabels[e . first] << " -- " << randomLabels[e . second] << "; ";
+    ss << randomLabels[e . first] << " -- " << randomLabels[e . second] << "\n";
   }
 
   return ss . str();
@@ -476,7 +476,7 @@ for ( unsigned int i=0; i<DAGSortedClasses.size(); ++i ) {
  myfile.close();
 
 
-// to save into a graphviz file the different MGCC classes 
+// to save into a graphviz file the different MGCC classes
   for ( itdag=DAGclasses.begin(); itdag!=DAGclasses.end(); ++itdag ) {
     DAG mydag = itdag->first;
 
