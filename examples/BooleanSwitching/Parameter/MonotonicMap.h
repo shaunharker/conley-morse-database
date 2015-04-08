@@ -237,7 +237,14 @@ public:
 
   // return adjacent monotonic maps
   std::vector<boost::shared_ptr<MonotonicMap> > neighbors ( void ) const {
-    //std::cout << "Calling neighbors.\n";
+    // DEBUG
+    //std::cout << "Calling neighbors of: \n";
+    //for ( int64_t j = 0; j < (1 << n); ++ j ) {
+    //  std::cout << data_[j] << " ";
+    //}
+    //std::cout << "\n";
+    // END DEBUG
+
     std::vector<boost::shared_ptr<MonotonicMap> > results;
 
     // Obtain neighbors via changing the monotone function
@@ -247,15 +254,27 @@ public:
       if ( copy[i] > 0 ) {
         -- copy[i];
         boost::shared_ptr<MonotonicMap> new_map ( new MonotonicMap ( n, m, logic_, constraints_, copy ) );
-        if ( new_map -> monotonic () && new_map -> realizable () ) 
+        if ( new_map -> monotonic () && new_map -> realizable () ) {
           results . push_back ( new_map );
+          //std::cout << "Found neighbor: ";
+          //for ( int64_t j = 0; j < N; ++ j ) {
+          //  std::cout << copy[j] << " ";
+          //}
+          //std::cout << "\n";
+        }
         ++ copy[i];
       }
       if ( copy[i] < m ) {
         ++ copy[i];
         boost::shared_ptr<MonotonicMap> new_map ( new MonotonicMap ( n, m, logic_, constraints_, copy ) );
-        if ( new_map -> monotonic () && new_map -> realizable () ) 
+        if ( new_map -> monotonic () && new_map -> realizable () ) {
           results . push_back ( new_map );
+          //std::cout << "Found neighbor: ";
+          //for ( int64_t j = 0; j < N; ++ j ) {
+          //  std::cout << copy[j] << " ";
+          //}
+          //std::cout << "\n";          
+        }
         -- copy[i];
       }
     }
@@ -336,12 +355,12 @@ public:
     stream << "{(In,Out)=(" << print_me . n << ", " << print_me . m << "), Logic=(";
     for ( int64_t i = 0; i < print_me . logic_ . size (); ++ i ) { 
       if ( i != 0 ) stream << ",";
-      std::cout << print_me . logic_[i];
+      stream << print_me . logic_[i];
     }
     stream << "), Data=(";
     for ( int64_t i = 0; i < print_me . data_ . size (); ++ i ) { 
       if ( i != 0 ) stream << ",";
-      std::cout << print_me . data_[i];
+      stream << print_me . data_[i];
     }
     stream << ")}";
     return stream;

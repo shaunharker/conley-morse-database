@@ -56,6 +56,9 @@ public:
     compute_adjacencies ();
     
     //std::cout << "FactorGraph. Number of vertices = " << vertices . size () << "\n";
+    //for ( uint64_t i = 0; i < vertices . size (); ++ i ) {
+    //  std::cout << i << " " << vertices[i] << "\n";
+    //}
     //std::cout << " Starting vertex was " << start << "\n";
   }
 
