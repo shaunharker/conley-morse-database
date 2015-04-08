@@ -148,39 +148,39 @@ public:
       return true;
     } else if ( logic_ . size () == 2 ) {
       if ( logic_[0] == 2 && logic_[1] == 1 ) {
-        // Case (2, 1)
-        // In this notation the (correct) rules I gave for sum-product amount to
-        // " 010 < 001 implies 110 <= 101 "  (Rule A)
-        // " 100 < 001 implies 110 <= 011 "  (Rule B)
-        // and then we have two versions of Rule C, which does allow a reverse:
-        // " 010 > 100 implies 011 >= 101 "  (Rule C)
-        // " 010 < 100 implies 011 <= 101 "  (Rule C, reversed)
-        int64_t D010 = data_[2];
+        // Case (2, 1)  (a+b)c
+        // The a,b,c is encoded bitwise as cba (i.e. "a" is least sig. bit)
+        // In this notation the rules for sum-product are
+        // " 010 < 100 implies 011 <= 101 "  (Rule A)
+        // " 001 < 100 implies 011 <= 110 "  (Rule B)
+        // " 010 > 001 implies 110 >= 101 "  (Rule C)
+        // " 010 < 001 implies 110 <= 101 "  (Rule C, reversed)
         int64_t D001 = data_[1];
-        int64_t D110 = data_[6]; 
-        int64_t D101 = data_[5];
-        int64_t D100 = data_[4];
+        int64_t D010 = data_[2];
         int64_t D011 = data_[3];
+        int64_t D100 = data_[4];
+        int64_t D101 = data_[5];
+        int64_t D110 = data_[6]; 
 
-        if ( (D010 < D001) && not (D110 <= D101) ) return false;
-        if ( (D100 < D001) && not (D110 <= D011) ) return false;
-        if ( (D010 > D100) && not (D011 >= D101) ) return false;
         if ( (D010 < D100) && not (D011 <= D101) ) return false;
+        if ( (D001 < D100) && not (D011 <= D110) ) return false;
+        if ( (D010 > D001) && not (D110 >= D101) ) return false;
+        if ( (D010 < D001) && not (D110 <= D101) ) return false;
         return true;
       }
       if ( logic_[0] == 1 && logic_[1] == 2 ) {
         // Case (1,2). Symmetric to case (2,1). (We just rotate the bits)
-        int64_t D010 = data_[2];
         int64_t D001 = data_[1];
-        int64_t D110 = data_[6]; 
-        int64_t D101 = data_[5];
-        int64_t D100 = data_[4];
+        int64_t D010 = data_[2];
         int64_t D011 = data_[3];
+        int64_t D100 = data_[4];
+        int64_t D101 = data_[5];
+        int64_t D110 = data_[6]; 
 
-        if ( (D001 < D100) && not (D011 <= D110) ) return false;
-        if ( (D010 < D100) && not (D011 <= D101) ) return false;
-        if ( (D001 > D010) && not (D101 >= D110) ) return false;
-        if ( (D001 < D010) && not (D101 <= D110) ) return false;
+        if ( (D100 < D001) && not (D110 <= D011) ) return false;
+        if ( (D010 < D001) && not (D110 <= D101) ) return false;
+        if ( (D100 > D010) && not (D101 >= D011) ) return false;
+        if ( (D100 < D010) && not (D101 <= D011) ) return false;
         return true;     
       }
       if ( logic_[0] == 2 && logic_[1] == 2 ) {
