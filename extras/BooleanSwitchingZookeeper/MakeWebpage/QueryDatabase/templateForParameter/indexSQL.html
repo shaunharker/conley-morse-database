@@ -1,0 +1,142 @@
+<html> 
+ <head> 
+  <title> Zoo </title> 
+  <script type='text/javascript' src='http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js'></script>
+  <style>
+  .divsql{ 
+ position: relative; 
+ left: 20px; 
+ width: 550px; 
+ height: 250px; 
+ display:inline-block; 
+ }
+  .divpostprocessing{ 
+ position: relative; 
+ left: 30px; 
+ top: -100px; 
+ display:inline-block; 
+ }
+  </style>
+  </head> 
+  <body> 
+  <script> 
+
+//given a mgcc extract the morse sets information into a tgz file and trigger a download for it
+function downloadMorseSetInformation(mgcc,incc) {
+  var filename='';
+  request = $.ajax({
+    url:  "extractMorseSetMGCC.php",
+    type: "POST",
+    data: {MGCCnumber: mgcc, INCCnumber: incc},
+    success : function (d) {
+	filename = d;
+	window.location = d;
+    }
+  });
+}
+
+//given a mgcc, open a new window with the parameter graph
+function seeParameterGraph(mgcc) {
+  request = $.ajax({
+    url:  "seeParameterGraphMGCC.php",
+    type: "POST",
+    data: {MGCCnumber: mgcc},
+    success : function (d) {
+	// pass the random directory name
+	var tmp = d.split("/");
+	var ran = tmp[tmp.length-1];
+	window.open("indexParameterGraph.html"+"?"+String(ran));
+    }
+  });
+}
+
+//given a mgcc, create files on parameter graph to be downloaded
+function downloadParameterGraph(mgcc) {
+var filename = '';
+  request = $.ajax({
+    url:  "extractParameterGraphMGCC.php",
+    type: "POST",
+    data: {MGCCnumber: mgcc},
+    success : function (d) {
+	filename = d;
+	window.location = d;
+    }
+  });
+}
+
+function selectPostprocessing(selectedObj) {
+  // get the MGCC number from the input text
+  var mgcc = document.getElementById('MGCCnumber').value;
+  switch(selectedObj.selectedIndex) {
+    case 1: // download morse sets information
+      var incc = document.getElementById('INCCnumber').value';
+      downloadMorseSetInformation(mgcc,incc);
+      break;
+    case 2: // See parameter graph
+      seeParameterGraph(mgcc);
+      break;
+    case 3: // Download parameter graph files
+      downloadParameterGraph(mgcc);
+      break;
+  }
+}
+
+</script>
+<div class="divsql">
+ <form action="checkradio-form.php" method="post" target="MGframe">
+<p>Find the Morse graph that contains at least one Morse set with the following properties :</p>
+<table border="1">
+<tr> 
+ <th> Yes </th> 
+ <th> No </th> 
+ <th> Either </th> 
+</tr> 
+<tr> 
+<td> <input type="radio" name="radio[1]" value="Y:FP " /> </td> 
+<td> <input type="radio" name="radio[1]" value="N:FP " /> </td> 
+<td> <input type="radio" name="radio[1]" value="E" checked /> </td> 
+<td> FP : Morse Set is a fixed point (FP OFF and FP ON not included) </td>
+</tr><tr> 
+<td> <input type="radio" name="radio[2]" value="Y:FP OFF " /> </td> 
+<td> <input type="radio" name="radio[2]" value="N:FP OFF " /> </td> 
+<td> <input type="radio" name="radio[2]" value="E" checked /> </td> 
+<td> FP OFF : Morse Set is a fixed point with all states off </td>
+</tr><tr> 
+<td> <input type="radio" name="radio[3]" value="Y:FP ON " /> </td> 
+<td> <input type="radio" name="radio[3]" value="N:FP ON " /> </td> 
+<td> <input type="radio" name="radio[3]" value="E" checked /> </td> 
+<td> FP ON : Morse Set is a fixed point with all states on </td>
+</tr><tr> 
+<td> <input type="radio" name="radio[4]" value="Y:FC " /> </td> 
+<td> <input type="radio" name="radio[4]" value="N:FC " /> </td> 
+<td> <input type="radio" name="radio[4]" value="E" checked /> </td> 
+<td> FC : Morse Set in which every variable makes a transition </td>
+</tr><tr> 
+<td> <input type="radio" name="radio[5]" value="Y:XC " /> </td> 
+<td> <input type="radio" name="radio[5]" value="N:XC " /> </td> 
+<td> <input type="radio" name="radio[5]" value="E" checked /> </td> 
+<td> XC : Morse Set with transition given by { } </td>
+</tr></table>
+<br><input type="submit" name="formSubmit" value="Submit" />
+</form>
+</div><div class="divpostprocessing">
+  <table>
+    <tr> Postprocessing : (INCC ignored for parameter graph) </tr>
+    <tr>
+        <td> MGCC:</td>
+        <td> <input type="text" id="MGCCnumber"></td>
+        <td> INCC:</td>
+        <td> <input type="text" id="INCCnumber"></td>
+        <td> <select onchange="selectPostprocessing(this);" id="Postprocessing">
+           <option value="0"> -- Select -- </option>
+           <option value="1"> Download the Morse sets information </option>
+           <option value="2"> See the Parameter Graph </option>
+           <option value="3"> Download the Parameter Graph </option>
+        </select></td>
+    </tr>
+  </table>
+</div>
+
+<iframe name="MGframe" width="1200" height="900"> </iframe>
+</body> 
+ </html>

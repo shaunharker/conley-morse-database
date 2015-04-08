@@ -1,0 +1,17 @@
+/* Merge tables from databases db1 into db2
+
+WARNING : No error handling beside avoiding repetition for permutationid
+*/
+
+ATTACH "file1" as db1;
+ATTACH "file2" as db2;
+
+INSERT INTO db2.permutations select * FROM db1.permutations t2 WHERE NOT EXISTS(SELECT permutationid from db2.permutations t1 WHERE t1.permutationid=t2.permutationid);
+
+INSERT INTO db2.morsegraphs select * FROM db1.morsegraphs t2 WHERE NOT EXISTS(SELECT permutationid from db2.morsegraphs t1 WHERE t1.permutationid=t2.permutationid);
+
+INSERT INTO db2.morsesets select * FROM db1.morsesets t2 WHERE NOT EXISTS(SELECT permutationid from db2.morsesets t1 WHERE t1.permutationid=t2.permutationid);
+
+
+
+
