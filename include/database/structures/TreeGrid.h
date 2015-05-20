@@ -176,6 +176,8 @@ public:
                    int depth ) const;
 #endif
   
+  // debug
+  void sane ( void ) const;
 protected:
   RectGeo bounds_;
   int dimension_;
@@ -265,9 +267,63 @@ TreeGrid::subgrid ( const std::deque < Grid::GridElement > & grid_elements ) con
   return result;
 }
 
+// debugging routine
+inline void
+TreeGrid::sane ( void ) const {
+  std::stack<Tree::iterator> work_stack;
+  work_stack . push ( tree () . begin () );
+  while ( not work_stack . empty () ) {
+    auto it = work_stack . top ();
+    if ( it == treeEnd () ) {
+      std::cout << "Empty tree.\n";
+      break;
+    }
+    work_stack . pop ();
+    auto left_it = left ( it );
+    auto right_it = right ( it );
+    //if ( left_it != treeEnd () ) std::cout << *it << " -> " << *left_it << "\n";
+    //if ( right_it != treeEnd () ) std::cout << *it << " -> " << *right_it << "\n";
+
+    if ( tree () . isLeaf ( it ) ) {
+      if ( left_it != treeEnd () ) {
+        std::cout << "Leaf " << *it << " has left child.\n";
+        abort ();
+      }
+      if ( right_it != treeEnd () ) {
+        std::cout << "Leaf " << *it << " has right child.\n";
+        abort ();
+      }
+    } else {
+      if ( left_it == treeEnd () && right_it == treeEnd () ) {
+        std::cout << "Interior node " << *it << " has no children.\n";
+        abort ();
+      }
+    }
+    if ( left_it != treeEnd () ) { 
+      work_stack . push ( left_it );
+      if ( not tree () . isLeft ( left_it ) ) {
+        std::cout << "Left leaf not reported as left leaf.\n";
+        abort ();
+      }
+    }
+    if ( right_it != treeEnd () ) { 
+      work_stack . push ( right_it );
+      if ( not tree () . isRight ( right_it ) ) {
+        std::cout << "Right leaf not reported as right leaf.\n";
+        abort ();
+      }
+    }
+  }
+}
+
 inline std::vector<Grid::GridElement> 
 TreeGrid::subset ( const Grid & other_in ) const {
   const TreeGrid & other = dynamic_cast<const TreeGrid &> (other_in);
+  //std::cout << "TreeGrid::subset\n";
+  //std::cout << "Checking sanity of self.\n";
+  //sane ();
+  //std::cout << "Checking sanity of other.\n";
+  //other . sane ();
   // Walk through other . tree () and tree () simultaneously, recording grid elements
   // If "other" goes deeper than "this", we do not mind.
   // If "this" goes deeper than "other", we collect all decendant leaves.
@@ -275,14 +331,15 @@ TreeGrid::subset ( const Grid & other_in ) const {
   if ( size() == 0 || other . size () == 0 ) return result;
   
   std::stack < std::pair < Tree::iterator, Tree::iterator > > work_stack;
-  std::cout << "Grid::subset 1\n";
+  //std::cout << "Grid::subset 1\n";
   work_stack . push ( std::make_pair ( tree () . begin (), other . tree () . begin () ) );
-  std::cout << "Grid::subset 2\n";
+  //std::cout << "Grid::subset 2\n";
 
   while ( not work_stack . empty () ) {
     //std::cout << "Grid::subset. Top of loop.\n";
     Tree::iterator this_it = work_stack . top () . first;
     Tree::iterator other_it = work_stack . top () . second;
+    //std::cout << "this_it = " << *this_it << " and other_it = " << *other_it << "\n";
     work_stack . pop ();
     if ( tree () . isLeaf ( this_it ) ) { 
       //std::cout << "Grid::subset. Detected leaf on this.\n";
@@ -322,7 +379,7 @@ TreeGrid::subset ( const Grid & other_in ) const {
       } 
     }
   }
-  std::cout << "Grid::subset 3\n";
+  //std::cout << "Grid::subset 3\n";
   return result;
 }
 

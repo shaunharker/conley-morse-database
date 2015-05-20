@@ -126,7 +126,8 @@ void computeConleyMorseGraph ( MorseGraph & morsegraph,
 #endif
   typedef std::vector < Grid::GridElement > Subset;
   for ( size_t v = 0; v < morsegraph . NumVertices (); ++ v) {
-    std::cout << "Calling subset.\n";
+    //std::cout << "Calling subset on phase space with size " << phase_space -> size () << ".\n";
+    //std::cout << "Argument grid has " << morsegraph . grid ( v ) -> size () << " grid elements.\n";
     Subset subset = phase_space -> subset ( * morsegraph . grid ( v ) );
 #ifdef CMG_VERBOSE
     std::cout << "Calling Conley_Index on Morse Set " << v << "\n";
