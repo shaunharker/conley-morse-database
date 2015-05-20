@@ -63,8 +63,8 @@ Lyapunov:
 # Cleanup
 .PHONY: clean
 clean:
-	find ./build -name "*.o" -delete
-	find ./build -name "*.so" -delete
+	find . -name "*.o" -delete
+	find . -name "*.so" -delete
 	$(MAKE) -C ./extras/SingleCMG clean
 	$(MAKE) -C ./extras/Lyapunov clean
 	rm -rf build
