@@ -7,7 +7,7 @@
 #include "database/structures/EuclideanParameterSpace.h"
 #include "database/structures/RectGeo.h"
 #include "database/numerics/simple_interval.h"
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <vector>
 
 class ModelMap : public Map {
@@ -41,16 +41,16 @@ public:
 
 // Program interface (methods used by program)
 
-  ModelMap ( boost::shared_ptr<Parameter> parameter ) {
+  ModelMap ( std::shared_ptr<Parameter> parameter ) {
     const RectGeo & rectangle = 
-      * boost::dynamic_pointer_cast<EuclideanParameter> ( parameter ) -> geo;
+      * std::dynamic_pointer_cast<EuclideanParameter> ( parameter ) -> geo;
     assign ( rectangle );
   }
 
-  boost::shared_ptr<Geo> 
-  operator () ( boost::shared_ptr<Geo> geo ) const {   
-    return boost::shared_ptr<Geo> ( new RectGeo ( 
-        operator () ( * boost::dynamic_pointer_cast<RectGeo> ( geo ) ) ) );
+  std::shared_ptr<Geo> 
+  operator () ( std::shared_ptr<Geo> geo ) const {   
+    return std::shared_ptr<Geo> ( new RectGeo ( 
+        operator () ( * std::dynamic_pointer_cast<RectGeo> ( geo ) ) ) );
   }
 private:
   interval getRectangleComponent ( const RectGeo & rectangle, int d ) const {

@@ -5,8 +5,8 @@
 
 class UnionGeo : public Geo {
 public:
-  std::vector< boost::shared_ptr<Geo> > elements;
-  void insert ( boost::shared_ptr < Geo > geo ) {
+  std::vector< std::shared_ptr<Geo> > elements;
+  void insert ( std::shared_ptr < Geo > geo ) {
     elements . push_back ( geo );
   }
 private:

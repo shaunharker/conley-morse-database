@@ -8,7 +8,7 @@
 #include "database/structures/EuclideanParameterSpace.h"
 #include "database/structures/RectGeo.h"
 #include "database/numerics/boost_interval.h"
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <utility>
 #include <vector>
 
@@ -49,7 +49,7 @@ public:
 
     // Check if "badbox"
     if ( x0 . upper () == 10.0 && x1 . upper () == 10.0 ) {
-      result . insert ( boost::shared_ptr<Geo> ( new RectGeo ( badbox () ) ) ) ;
+      result . insert ( std::shared_ptr<Geo> ( new RectGeo ( badbox () ) ) ) ;
       return result;      
     }
     
@@ -70,10 +70,10 @@ public:
     //              1 means no intersectly surely
     //              2 means possible intersection
     if ( return_code == 1 ) {
-      result . insert ( boost::shared_ptr<Geo> ( new RectGeo ( badbox () ) ) );
+      result . insert ( std::shared_ptr<Geo> ( new RectGeo ( badbox () ) ) );
       return result;
     } else if (return_code == 2) {
-      result . insert ( boost::shared_ptr<Geo> ( new RectGeo ( badbox () ) ) );
+      result . insert ( std::shared_ptr<Geo> ( new RectGeo ( badbox () ) ) );
     }
     interval PSA4x0 = x0*exp(p0*stopping_time.first);
     interval PSA4x1 = x0*(p1/(p0-p2))*exp(p0*stopping_time.first)+(x1-x0*(p1/(p0-p2)))*exp(p2*stopping_time.first);
@@ -83,16 +83,16 @@ public:
     interval coeffCprime = PSA4x2;
     stopping_time = expMinRoot(p6,p8,p9,coeffAprime,coeffBprime,coeffCprime,-10.0,0.0);
     if ( return_code == 1 ) {
-      result . insert ( boost::shared_ptr<Geo> ( new RectGeo ( badbox () ) ) );
+      result . insert ( std::shared_ptr<Geo> ( new RectGeo ( badbox () ) ) );
       return result;
     } else if (return_code == 2) {
-      result . insert ( boost::shared_ptr<Geo> ( new RectGeo ( badbox () ) ) );
+      result . insert ( std::shared_ptr<Geo> ( new RectGeo ( badbox () ) ) );
     }
     interval y1 = PSA4x1*exp(p8*stopping_time.first);
     interval y0 = 10.0 - y1 - PSA4x2*exp(p9*stopping_time.first);
     
     // Return result
-    boost::shared_ptr<Geo> rect_result ( new RectGeo ( makeRectangle ( y0, y1 ) ) );
+    std::shared_ptr<Geo> rect_result ( new RectGeo ( makeRectangle ( y0, y1 ) ) );
     result . insert ( rect_result );
     return result;
 
@@ -100,16 +100,16 @@ public:
 
 // Program interface (methods used by program)
 
-  ModelMap ( boost::shared_ptr<Parameter> parameter ) {
+  ModelMap ( std::shared_ptr<Parameter> parameter ) {
     const RectGeo & rectangle = 
-      * boost::dynamic_pointer_cast<EuclideanParameter> ( parameter ) -> geo;
+      * std::dynamic_pointer_cast<EuclideanParameter> ( parameter ) -> geo;
     assign ( rectangle );
   }
 
-  boost::shared_ptr<Geo> 
-  operator () ( boost::shared_ptr<Geo> geo ) const {   
-    return boost::shared_ptr<Geo> ( new UnionGeo ( 
-        operator () ( * boost::dynamic_pointer_cast<RectGeo> ( geo ) ) ) );
+  std::shared_ptr<Geo> 
+  operator () ( std::shared_ptr<Geo> geo ) const {   
+    return std::shared_ptr<Geo> ( new UnionGeo ( 
+        operator () ( * std::dynamic_pointer_cast<RectGeo> ( geo ) ) ) );
   }
 
 private:

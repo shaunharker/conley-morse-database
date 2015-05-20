@@ -13,7 +13,7 @@
 #include <boost/foreach.hpp>
 #include <boost/iterator/counting_iterator.hpp>
 #include <boost/unordered_map.hpp>
-#include "boost/shared_ptr.hpp"
+#include <memory>
 
 #include "boost/serialization/serialization.hpp"
 #include "boost/serialization/vector.hpp"
@@ -111,7 +111,7 @@ public:
   virtual void subdivide ( void );
   virtual Grid * subgrid ( const std::deque < GridElement > & grid_elements ) const;
   virtual std::vector<GridElement> subset ( const Grid & other ) const;
-  virtual boost::shared_ptr<Geo> geometry ( GridElement ge ) const;  
+  virtual std::shared_ptr<Geo> geometry ( GridElement ge ) const;  
   virtual std::vector<Grid::GridElement> cover ( const Geo & geo ) const;
   using Grid::geometry;
   using Grid::cover;
@@ -182,7 +182,7 @@ inline void EdgeGrid::initialize ( const RectGeo & bounds,
   // DEBUG
   std::cout << "EdgeGrid::initialize. bounds set to " << bounds_ << "\n";
   for ( uint64_t i = 0; i < size (); ++ i ) {
-    RectGeo geo = * boost::dynamic_pointer_cast<RectGeo> ( geometry ( GridElement (i) ) );
+    RectGeo geo = * std::dynamic_pointer_cast<RectGeo> ( geometry ( GridElement (i) ) );
     std::cout << "GridElement " << i << " has geometry " << geo << "\n";
     std::pair<uint64_t, int> address_pair = gridElementToAddress ( GridElement (i) );
     std::cout << "gridElementToAddress(" << i << ") = (" << address_pair . first 
@@ -221,9 +221,9 @@ EdgeGrid::subset ( const Grid & other ) const {
   return result;
 }
 
-inline boost::shared_ptr<Geo> 
+inline std::shared_ptr<Geo> 
 EdgeGrid::geometry ( Grid::GridElement ge ) const {
-  boost::shared_ptr<RectGeo> result ( new RectGeo ( dimension () ) );
+  std::shared_ptr<RectGeo> result ( new RectGeo ( dimension () ) );
   std::pair<uint64_t, int> address_pair = gridElementToAddress ( ge );
   uint64_t & address = address_pair . first;
   int & collapse_dimension = address_pair . second;
@@ -245,7 +245,7 @@ EdgeGrid::geometry ( Grid::GridElement ge ) const {
         *(bounds_.upper_bounds[d]-bounds_.lower_bounds[d]);
     }
   }
-  return boost::dynamic_pointer_cast<Geo> ( result );
+  return std::dynamic_pointer_cast<Geo> ( result );
 } /* EdgeGrid::geometry */
 
 inline std::vector<Grid::GridElement>

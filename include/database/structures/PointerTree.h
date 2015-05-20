@@ -11,7 +11,7 @@
 #include <stack>
 #include <utility>
 #include <boost/foreach.hpp>
-#include "boost/shared_ptr.hpp"
+#include <memory>
 #include "database/structures/Tree.h"
 #include "database/structures/CompressedTree.h"
 #include "boost/serialization/serialization.hpp"
@@ -32,7 +32,7 @@ public:
   virtual bool isLeft ( iterator it ) const;
   virtual bool isRight ( iterator it ) const;
   virtual bool isLeaf ( iterator it ) const;
-  virtual void assign ( boost::shared_ptr<const CompressedTree> compressed );
+  virtual void assign ( std::shared_ptr<const CompressedTree> compressed );
   virtual uint64_t memory ( void ) const;
 private:
   std::vector < PointerTreeNode > nodes_;
@@ -120,7 +120,7 @@ PointerTree::isLeaf ( iterator it ) const {
 }
 
 inline void 
-PointerTree::assign ( boost::shared_ptr<const CompressedTree> compressed ) {
+PointerTree::assign ( std::shared_ptr<const CompressedTree> compressed ) {
   const bool LEAF = false;
   const bool NOT_A_LEAF = true;
   const std::vector<bool> & leaf_sequence = 

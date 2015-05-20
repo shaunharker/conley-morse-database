@@ -154,7 +154,7 @@ int ConleyProcess::prepare ( Message & job ) {
 
   size_t job_number = num_jobs_sent_;
 
-  boost::shared_ptr<Parameter> parameter = 
+  std::shared_ptr<Parameter> parameter = 
     parameter_space_ -> parameter ( pi );
   job << job_number;
   job << incc;

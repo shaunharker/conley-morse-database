@@ -26,26 +26,26 @@ class Model {
 
   /// parameterSpace
   ///   return a shared ptr to the parameter space
-  boost::shared_ptr < ParameterSpace > parameterSpace ( void ) const;
+  std::shared_ptr < ParameterSpace > parameterSpace ( void ) const;
   
   /// phaseSpace
   ///   return a shared ptr to the phase space
-  boost::shared_ptr < Grid > phaseSpace ( void ) const;
+  std::shared_ptr < Grid > phaseSpace ( void ) const;
 
   /// map
   ///   return a shared ptr to a map function object corresponding to 
   ///   parameter p
   ///   void version: returns map corresponding to command_line parameter
-  boost::shared_ptr < const Map > map ( boost::shared_ptr<Parameter> p ) const;
-  boost::shared_ptr < const Map > map ( void ) const;
+  std::shared_ptr < const Map > map ( std::shared_ptr<Parameter> p ) const;
+  std::shared_ptr < const Map > map ( void ) const;
 
   /// annotate
   ///   Given a MorseGraph, provide annotations.
   void annotate ( MorseGraph * mg_in ) const;
 private:
   Configuration config_;
-  boost::shared_ptr<EuclideanParameterSpace> parameter_space_;
-  boost::shared_ptr<EuclideanParameter> command_line_parameter_;
+  std::shared_ptr<EuclideanParameterSpace> parameter_space_;
+  std::shared_ptr<EuclideanParameter> command_line_parameter_;
 public:
   friend class boost::serialization::access;
   template<class Archive>
@@ -57,7 +57,7 @@ public:
 inline void 
 Model::initialize ( int argc, char * argv [] ) { 
   config_ . loadFromFile ( argv[1] );
-  boost::shared_ptr<Grid> parameter_grid ( new PARAMETER_GRID );
+  std::shared_ptr<Grid> parameter_grid ( new PARAMETER_GRID );
   parameter_space_ . reset ( new EuclideanParameterSpace );
   parameter_space_ -> initialize ( config_, parameter_grid );
   // Load command line parameter:
@@ -81,29 +81,29 @@ Model::initialize ( int argc, char * argv [] ) {
 }
 
 
-inline boost::shared_ptr < ParameterSpace > 
+inline std::shared_ptr < ParameterSpace > 
 Model::parameterSpace ( void ) const {
-  return boost::dynamic_pointer_cast<ParameterSpace> ( parameter_space_ );
+  return std::dynamic_pointer_cast<ParameterSpace> ( parameter_space_ );
 }
 
-inline boost::shared_ptr < Grid > 
+inline std::shared_ptr < Grid > 
 Model::phaseSpace ( void ) const {
-  boost::shared_ptr < TreeGrid > space ( new PHASE_GRID );
+  std::shared_ptr < TreeGrid > space ( new PHASE_GRID );
   space -> initialize ( config_.PHASE_BOUNDS, config_.PHASE_PERIODIC );
-  return boost::dynamic_pointer_cast<Grid> ( space );
+  return std::dynamic_pointer_cast<Grid> ( space );
 }
 
-inline boost::shared_ptr < const Map > 
-Model::map ( boost::shared_ptr<Parameter> p ) const { 
+inline std::shared_ptr < const Map > 
+Model::map ( std::shared_ptr<Parameter> p ) const { 
   if ( not p ) p = command_line_parameter_;
   if ( not p ) {
     throw std::logic_error ( "No parameter for map specified. " 
                              "Check Model.h and command line parameters.\n");
   }
-  return boost::shared_ptr < Map > ( new ModelMap ( p ) );
+  return std::shared_ptr < Map > ( new ModelMap ( p ) );
 }
 
-inline boost::shared_ptr < const Map > 
+inline std::shared_ptr < const Map > 
 Model::map ( void ) const { 
   return map ( command_line_parameter_ );
 }

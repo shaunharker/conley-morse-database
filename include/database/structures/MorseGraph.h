@@ -8,7 +8,7 @@
 
 #include <boost/iterator/counting_iterator.hpp>
 #include <boost/version.hpp>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include "boost/foreach.hpp"
 #include <boost/serialization/serialization.hpp>
 #include "boost/functional/hash.hpp"
@@ -85,12 +85,12 @@ class MorseGraph {
   //// PROPERTY ACCESS
   
   /** Get the grid associated with the vertex. */
-  boost::shared_ptr<Grid> & phaseSpace ( void );
-  boost::shared_ptr<const Grid> phaseSpace ( void ) const;
-  boost::shared_ptr<Grid> & grid (Vertex vertex);
-  boost::shared_ptr<const Grid> grid (Vertex vertex) const;
-  boost::shared_ptr<chomp::ConleyIndex_t> & conleyIndex (Vertex vertex);
-  boost::shared_ptr<const chomp::ConleyIndex_t> conleyIndex (Vertex vertex) const;
+  std::shared_ptr<Grid> & phaseSpace ( void );
+  std::shared_ptr<const Grid> phaseSpace ( void ) const;
+  std::shared_ptr<Grid> & grid (Vertex vertex);
+  std::shared_ptr<const Grid> grid (Vertex vertex) const;
+  std::shared_ptr<chomp::ConleyIndex_t> & conleyIndex (Vertex vertex);
+  std::shared_ptr<const chomp::ConleyIndex_t> conleyIndex (Vertex vertex) const;
   
   std::set< std::string > & annotation ( void );
   std::set< std::string > & annotation ( Vertex vertex );
@@ -124,9 +124,9 @@ private:
   // DATA
   int num_vertices_;
   std::unordered_set < Edge, boost::hash<Edge> > edges_;
-  boost::shared_ptr < Grid > phasespace_;
-  std::vector < boost::shared_ptr <Grid > > grids_;
-  std::vector < boost::shared_ptr < chomp::ConleyIndex_t > > conleyindexes_;
+  std::shared_ptr < Grid > phasespace_;
+  std::vector < std::shared_ptr <Grid > > grids_;
+  std::vector < std::shared_ptr < chomp::ConleyIndex_t > > conleyindexes_;
   std::set < std::string > annotation_;
   std::vector < std::set < std::string > > annotation_by_vertex_;
   //// SERIALIZATION
@@ -168,8 +168,8 @@ MorseGraph::MorseGraph ( const char * filename ) {
  */
 inline MorseGraph::Vertex MorseGraph::AddVertex ( void ) {
   int v = num_vertices_ ++;
-  grids_ . push_back ( boost::shared_ptr <Grid > ());
-  conleyindexes_ . push_back ( boost::shared_ptr <chomp::ConleyIndex_t > ());
+  grids_ . push_back ( std::shared_ptr <Grid > ());
+  conleyindexes_ . push_back ( std::shared_ptr <chomp::ConleyIndex_t > ());
   annotation_by_vertex_ . resize ( num_vertices_ );
   return v;
 }
@@ -205,34 +205,34 @@ MorseGraph::Edges ( void ) const {
 
 /** accessor method for phase space grid */
 inline
-boost::shared_ptr<Grid> & MorseGraph::phaseSpace ( void ) {
+std::shared_ptr<Grid> & MorseGraph::phaseSpace ( void ) {
   return phasespace_;
 }
 /** accessor method for phase space grid, const version */
 inline
-boost::shared_ptr<const Grid> MorseGraph::phaseSpace ( void ) const {
+std::shared_ptr<const Grid> MorseGraph::phaseSpace ( void ) const {
   return phasespace_;
 }
 
 /** accessor method for grid assigned to vertex */
-inline boost::shared_ptr<Grid> & MorseGraph::grid(Vertex vertex) {
+inline std::shared_ptr<Grid> & MorseGraph::grid(Vertex vertex) {
   return grids_[vertex];
 }
 
 /** accessor method for grid assigned to vertex, const version */
 inline
-boost::shared_ptr<const Grid> MorseGraph::grid(Vertex vertex) const {
+std::shared_ptr<const Grid> MorseGraph::grid(Vertex vertex) const {
   return grids_[vertex];
 }
 
 /** accessor method for conley index assigned to vertex */
 inline
-boost::shared_ptr<chomp::ConleyIndex_t> & MorseGraph::conleyIndex(Vertex vertex) {
+std::shared_ptr<chomp::ConleyIndex_t> & MorseGraph::conleyIndex(Vertex vertex) {
   return conleyindexes_ [ vertex ];
 }
 
 /** accessor method for conley index assigned to vertex, const version */
-inline boost::shared_ptr<const chomp::ConleyIndex_t>
+inline std::shared_ptr<const chomp::ConleyIndex_t>
 MorseGraph::conleyIndex (Vertex vertex) const {
   return conleyindexes_ [ vertex ];
 }

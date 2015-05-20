@@ -39,7 +39,7 @@ public:
   typedef boost::counting_iterator < GridElement > iterator;
   typedef iterator const_iterator;
   typedef uint64_t size_type;
-  typedef boost::shared_ptr<TreeGrid> Chart;
+  typedef std::shared_ptr<TreeGrid> Chart;
 
   // Contructor/ Desctructor
   Atlas ( void ) { }
@@ -50,7 +50,7 @@ public:
   virtual void subdivide ( void );
   virtual Grid * subgrid ( const std::deque < GridElement > & grid_elements ) const;
   virtual std::vector<GridElement> subset ( const Grid & other ) const;
-  virtual boost::shared_ptr<Geo> geometry ( GridElement ge ) const;  
+  virtual std::shared_ptr<Geo> geometry ( GridElement ge ) const;  
   virtual std::vector<Grid::GridElement> cover ( const Geo & geo ) const;
   using Grid::geometry;
   using Grid::cover;
@@ -139,7 +139,7 @@ inline Atlas *
 Atlas::clone ( void ) const {
   Atlas * newAtlas = new Atlas;
   for ( IdChartPair const& pair : charts () ) {
-    boost::shared_ptr<TreeGrid> chart_ptr ( (TreeGrid *) (pair . second -> clone ()) );
+    std::shared_ptr<TreeGrid> chart_ptr ( (TreeGrid *) (pair . second -> clone ()) );
     newAtlas -> chart ( pair . first ) = chart_ptr;    
   }
   newAtlas -> finalize ();
@@ -166,7 +166,7 @@ Atlas::subgrid ( const std::deque < GridElement > & grid_elements ) const {
   for ( IdChartPair const& pair : charts () ) {
     Grid * subchart = pair . second -> subgrid ( chart_grid_elements [ pair . first ] );
     newAtlas -> charts_ [ pair . first ] = 
-      boost::shared_ptr<TreeGrid> ( (TreeGrid *) subchart );
+      std::shared_ptr<TreeGrid> ( (TreeGrid *) subchart );
   }  
   newAtlas -> finalize ();
   return (Grid *) newAtlas;
@@ -186,13 +186,13 @@ Atlas::subset ( const Grid & other ) const {
   return result;
 }
 
-inline boost::shared_ptr<Geo> 
+inline std::shared_ptr<Geo> 
 Atlas::geometry ( Grid::GridElement ge ) const {
   std::pair < size_type, GridElement > chartge;
   chartge = Atlas_to_Chart_GridElement_ ( ge );
-  RectGeo rect = * boost::dynamic_pointer_cast < RectGeo > 
+  RectGeo rect = * std::dynamic_pointer_cast < RectGeo > 
     ( charts_ . find ( chartge . first ) -> second -> geometry ( chartge . second ) );
-  return boost::shared_ptr<Geo> ( new AtlasGeo ( chartge.first, rect ) );
+  return std::shared_ptr<Geo> ( new AtlasGeo ( chartge.first, rect ) );
 }
 
 inline std::vector<Grid::GridElement>
@@ -212,13 +212,13 @@ Atlas::cover ( const Geo & geo ) const {
 
 inline void 
 Atlas::add_chart ( size_type id, const RectGeo & rect ) {
-  charts_ [ id ] = boost::shared_ptr<TreeGrid> ( new PointerGrid );
+  charts_ [ id ] = std::shared_ptr<TreeGrid> ( new PointerGrid );
   charts_ [ id ] -> initialize ( rect );
 }
 
 inline void 
 Atlas::add_chart ( size_type id, int dimension, const RectGeo & rect ) {
-  charts_ [ id ] = boost::shared_ptr<TreeGrid> ( new PointerGrid );
+  charts_ [ id ] = std::shared_ptr<TreeGrid> ( new PointerGrid );
   charts_ [ id ] -> initialize ( rect );
   charts_ [ id ] -> dimension  ( ) = dimension;
 }

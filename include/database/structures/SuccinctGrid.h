@@ -13,7 +13,7 @@
 #include <deque>
 #include "boost/unordered_set.hpp"
 #include "boost/unordered_map.hpp"
-#include "boost/shared_ptr.hpp"
+#include <memory>
 #include "boost/serialization/serialization.hpp"
 #include "boost/serialization/vector.hpp"
 #include "boost/serialization/export.hpp"
@@ -47,7 +47,7 @@ public:
   virtual const SuccinctTree & tree ( void ) const;
   virtual SuccinctTree & tree ( void );
   virtual SuccinctGrid * spawn ( void ) const;
-  virtual void rebuild ( boost::shared_ptr<const CompressedTreeGrid> compressed );
+  virtual void rebuild ( std::shared_ptr<const CompressedTreeGrid> compressed );
   
 private:
   // Data
@@ -126,7 +126,7 @@ SuccinctGrid::spawn ( void ) const {
 }
 
 inline void 
-SuccinctGrid::rebuild ( boost::shared_ptr<const CompressedTreeGrid> compressed ) {
+SuccinctGrid::rebuild ( std::shared_ptr<const CompressedTreeGrid> compressed ) {
   valid_sequence_ . assign ( compressed -> tree () -> valid_sequence );
 }
 

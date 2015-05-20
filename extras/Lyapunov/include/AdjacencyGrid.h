@@ -1,7 +1,7 @@
 #ifndef LYAPUNOV_ADJACENCYGRID_H
 #define LYAPUNOV_ADJACENCYGRID_H
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <boost/unordered_set.hpp>
 #include "boost/foreach.hpp"
 #include <vector>
@@ -29,9 +29,9 @@ public:
 
 class AdjacencyGrid {
 private:
-	boost::shared_ptr<const TreeGrid> treegrid_;
+	std::shared_ptr<const TreeGrid> treegrid_;
 public:
-	AdjacencyGrid ( boost::shared_ptr<const TreeGrid> ptr );
+	AdjacencyGrid ( std::shared_ptr<const TreeGrid> ptr );
 	std::vector<DoubleGridPair> adjacenciesWithDistance ( uint64_t v ) const;
 	std::vector<uint64_t> adjacencies ( uint64_t v ) const;
 	uint64_t num_vertices ( void ) const;
@@ -44,7 +44,7 @@ public:
 };
 
 inline
-AdjacencyGrid::AdjacencyGrid ( boost::shared_ptr<const TreeGrid> ptr ) : treegrid_(ptr) {}
+AdjacencyGrid::AdjacencyGrid ( std::shared_ptr<const TreeGrid> ptr ) : treegrid_(ptr) {}
 
 inline
 std::vector<DoubleGridPair> AdjacencyGrid::adjacenciesWithDistance ( uint64_t v ) const {
@@ -59,8 +59,8 @@ std::vector<DoubleGridPair> AdjacencyGrid::adjacenciesWithDistance ( uint64_t v 
 	int start_split_dim = tree . depth ( start ) % D;
 
 	// Get geometry of tree node
-	boost::shared_ptr<Geo> geo = treegrid_ -> geometryOfTreeNode ( start );
-	RectGeo rect = * boost::dynamic_pointer_cast<RectGeo> ( geo );	
+	std::shared_ptr<Geo> geo = treegrid_ -> geometryOfTreeNode ( start );
+	RectGeo rect = * std::dynamic_pointer_cast<RectGeo> ( geo );	
 	
 	// Fetch parent
 	it = tree . parent ( start );
@@ -148,7 +148,7 @@ std::vector<uint64_t> AdjacencyGrid::adjacencies ( uint64_t v ) const {
 	const Tree & tree = treegrid_ -> tree ();
 	
 	Tree::iterator it ( v );
-	boost::shared_ptr<Geo> geo = treegrid_ -> geometryOfTreeNode ( it );
+	std::shared_ptr<Geo> geo = treegrid_ -> geometryOfTreeNode ( it );
 	std::vector<Grid::GridElement> leaves = treegrid_ -> cover ( * geo );
 	set_result . insert ( * tree . begin () );
 	BOOST_FOREACH ( Grid::GridElement ge, leaves ) {
@@ -176,13 +176,13 @@ uint64_t AdjacencyGrid::num_vertices ( void ) const {
 inline
 double AdjacencyGrid::distance ( uint64_t u, uint64_t v ) const {
 	Tree::iterator it1 ( u );
-	boost::shared_ptr<Geo> geo1 = treegrid_ -> geometryOfTreeNode ( it1 );
+	std::shared_ptr<Geo> geo1 = treegrid_ -> geometryOfTreeNode ( it1 );
 
 	Tree::iterator it2 ( v );
-	boost::shared_ptr<Geo> geo2 = treegrid_ -> geometryOfTreeNode ( it2 );
+	std::shared_ptr<Geo> geo2 = treegrid_ -> geometryOfTreeNode ( it2 );
 
-	RectGeo rect1 = * boost::dynamic_pointer_cast<RectGeo> ( geo1 );
-	RectGeo rect2 = * boost::dynamic_pointer_cast<RectGeo> ( geo2 );
+	RectGeo rect1 = * std::dynamic_pointer_cast<RectGeo> ( geo1 );
+	RectGeo rect2 = * std::dynamic_pointer_cast<RectGeo> ( geo2 );
 
 	double result = 0.0;
 

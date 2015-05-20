@@ -8,7 +8,7 @@
 #include <iostream>
 #include <vector>
 #include "boost/foreach.hpp"
-#include "boost/shared_ptr.hpp"
+#include <memory>
 
 /// class MonotonicMap
 /// a "smart vertex" class representing the dynamics of a node of
@@ -236,7 +236,7 @@ public:
   }
 
   // return adjacent monotonic maps
-  std::vector<boost::shared_ptr<MonotonicMap> > neighbors ( void ) const {
+  std::vector<std::shared_ptr<MonotonicMap> > neighbors ( void ) const {
     // DEBUG
     //std::cout << "Calling neighbors of: \n";
     //for ( int64_t j = 0; j < (1 << n); ++ j ) {
@@ -245,7 +245,7 @@ public:
     //std::cout << "\n";
     // END DEBUG
 
-    std::vector<boost::shared_ptr<MonotonicMap> > results;
+    std::vector<std::shared_ptr<MonotonicMap> > results;
 
     // Obtain neighbors via changing the monotone function
     std::vector<int64_t> copy = data_;
@@ -253,7 +253,7 @@ public:
     for ( int64_t i = 0; i < N; ++ i ) {
       if ( copy[i] > 0 ) {
         -- copy[i];
-        boost::shared_ptr<MonotonicMap> new_map ( new MonotonicMap ( n, m, logic_, constraints_, copy ) );
+        std::shared_ptr<MonotonicMap> new_map ( new MonotonicMap ( n, m, logic_, constraints_, copy ) );
         if ( new_map -> monotonic () && new_map -> realizable () ) {
           results . push_back ( new_map );
           //std::cout << "Found neighbor: ";
@@ -266,7 +266,7 @@ public:
       }
       if ( copy[i] < m ) {
         ++ copy[i];
-        boost::shared_ptr<MonotonicMap> new_map ( new MonotonicMap ( n, m, logic_, constraints_, copy ) );
+        std::shared_ptr<MonotonicMap> new_map ( new MonotonicMap ( n, m, logic_, constraints_, copy ) );
         if ( new_map -> monotonic () && new_map -> realizable () ) {
           results . push_back ( new_map );
           //std::cout << "Found neighbor: ";

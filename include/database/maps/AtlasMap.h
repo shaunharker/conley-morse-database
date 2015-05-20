@@ -4,7 +4,7 @@
 #include <vector>
 #include <utility>
 #include "boost/unordered_map.hpp"
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <boost/foreach.hpp>
 #include "database/structures/Atlas.h"
 #include "database/structures/Geo.h"
@@ -27,10 +27,10 @@ public:
            const ChartMap & map );
 
   /// operator ()
-  boost::shared_ptr<Geo> 
+  std::shared_ptr<Geo> 
   operator () ( const AtlasGeo & geo ) const;
-  boost::shared_ptr<Geo> 
-  operator () ( boost::shared_ptr < Geo > geo_ptr ) const;
+  std::shared_ptr<Geo> 
+  operator () ( std::shared_ptr < Geo > geo_ptr ) const;
 
 private:
   MapsType maps_;  
@@ -57,9 +57,9 @@ AtlasMap<ChartMap>::addMap ( const size_type & chartid1,
 }
 
 template < class ChartMap > 
-boost::shared_ptr<Geo> 
+std::shared_ptr<Geo> 
 AtlasMap<ChartMap>::operator () ( const AtlasGeo & geo ) const {
-  boost::shared_ptr<UnionGeo> result ( new UnionGeo );
+  std::shared_ptr<UnionGeo> result ( new UnionGeo );
   size_t domain_id = geo . id ();
   const RectGeo & rect = geo . rect ();
   // Apply the different maps 
@@ -67,7 +67,7 @@ AtlasMap<ChartMap>::operator () ( const AtlasGeo & geo ) const {
     const IntChartMapPairVec & mymaps = 
       maps_ . find ( domain_id ) -> second;
     BOOST_FOREACH ( const IntChartMapPair & pair, mymaps ) {
-      boost::shared_ptr<Geo> image_geo 
+      std::shared_ptr<Geo> image_geo 
         ( new AtlasGeo ( pair . first, pair . second ( rect ) ) );
       result -> insert ( image_geo );
     }
@@ -76,9 +76,9 @@ AtlasMap<ChartMap>::operator () ( const AtlasGeo & geo ) const {
 }
 
 template < class ChartMap > 
-boost::shared_ptr<Geo> 
-AtlasMap<ChartMap>::operator () ( boost::shared_ptr < Geo > geo_ptr ) const {
-  const AtlasGeo & geo = * boost::dynamic_pointer_cast < AtlasGeo > ( geo_ptr );
+std::shared_ptr<Geo> 
+AtlasMap<ChartMap>::operator () ( std::shared_ptr < Geo > geo_ptr ) const {
+  const AtlasGeo & geo = * std::dynamic_pointer_cast < AtlasGeo > ( geo_ptr );
   return operator ( ) ( geo );
 }
 

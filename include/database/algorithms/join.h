@@ -1,13 +1,13 @@
 #ifndef CMDB_JOIN_H
 #define CMDB_JOIN_H
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <exception>
 #include "database/structures/TreeGrid.h"
 #include "database/structures/Atlas.h"
 
 template < class GridType, class InputIterator>
-void join ( boost::shared_ptr<GridType> output, 
+void join ( std::shared_ptr<GridType> output, 
 	          InputIterator start, 
 	          InputIterator stop );
 
@@ -17,16 +17,16 @@ void join ( boost::shared_ptr<GridType> output,
 
 template < class GridType, class InputIterator>
 struct joinImpl { 
-	static void act( boost::shared_ptr<GridType> output, 
+	static void act( std::shared_ptr<GridType> output, 
 	    						 InputIterator start, 
 	    						 InputIterator stop ) { 
 		// Dynamic Dispatch
-		if ( boost::shared_ptr<TreeGrid> ptr = 
-			   boost::dynamic_pointer_cast<TreeGrid> ( output ) ) {
+		if ( std::shared_ptr<TreeGrid> ptr = 
+			   std::dynamic_pointer_cast<TreeGrid> ( output ) ) {
 			return joinImpl<TreeGrid,InputIterator>::act ( ptr, start, stop );
 		}
-		if ( boost::shared_ptr<Atlas> ptr = 
-			   boost::dynamic_pointer_cast<Atlas> ( output ) ) {
+		if ( std::shared_ptr<Atlas> ptr = 
+			   std::dynamic_pointer_cast<Atlas> ( output ) ) {
 			return joinImpl<Atlas,InputIterator>::act ( ptr, start, stop );
 		}
 		throw std::logic_error ( "Error: joinImpl specialization not "
@@ -35,7 +35,7 @@ struct joinImpl {
 };
 
 template < class GridType, class InputIterator>
-void join ( boost::shared_ptr<GridType> output, 
+void join ( std::shared_ptr<GridType> output, 
 	          InputIterator start, 
 	          InputIterator stop ) {
 	return joinImpl<GridType,InputIterator>::act ( output, start, stop );
@@ -45,10 +45,10 @@ void join ( boost::shared_ptr<GridType> output,
 
 template < class InputIterator >
 struct joinImpl < TreeGrid, InputIterator > { 
-	static void act ( boost::shared_ptr<TreeGrid> output, 
+	static void act ( std::shared_ptr<TreeGrid> output, 
 	    				  		InputIterator start, 
 	    					  	InputIterator stop ) { 
-		boost::shared_ptr<CompressedTreeGrid> joinup 
+		std::shared_ptr<CompressedTreeGrid> joinup 
 			( TreeGrid::join ( start, stop ) );
   	output -> assign ( joinup );
 	} 
@@ -56,14 +56,14 @@ struct joinImpl < TreeGrid, InputIterator > {
 
 template < class InputIterator >
 struct joinImpl < Atlas, InputIterator > { 
-	static void act ( boost::shared_ptr<Atlas> output, 
+	static void act ( std::shared_ptr<Atlas> output, 
 	    						  InputIterator start, 
 	    						  InputIterator stop ) { 
 
 		//std::cout << "Atlas join.\n";
 		output -> clear ();
 		if ( start == stop ) return;
-		boost::shared_ptr<Atlas> start_ptr = boost::dynamic_pointer_cast<Atlas> ( *start );
+		std::shared_ptr<Atlas> start_ptr = std::dynamic_pointer_cast<Atlas> ( *start );
 		// assert ( start_ptr );
 		// Note: It appears we must be joining Atlases with same chart structure
 		std::vector < Atlas::size_type > chart_ids;
@@ -74,18 +74,18 @@ struct joinImpl < Atlas, InputIterator > {
 		for ( Atlas::size_type chart_id : chart_ids ) {
 			//std::cout << "Atlas join, top of loop, chart_id=" << chart_id << ".\n";
 
-			std::vector<boost::shared_ptr<TreeGrid> > charts;
+			std::vector<std::shared_ptr<TreeGrid> > charts;
 			//int atlas_debug_count = 0;
 			for ( InputIterator it = start; it != stop; ++ it ) {
 				//std::cout << "Looping through Atlas " << atlas_debug_count++ << ".\n";
-				boost::shared_ptr<Atlas> it_ptr = 
-					boost::dynamic_pointer_cast<Atlas> ( *it );
+				std::shared_ptr<Atlas> it_ptr = 
+					std::dynamic_pointer_cast<Atlas> ( *it );
 				if ( not it_ptr ) {
 					throw std::logic_error ( "Atlas::join error: not looping through a container "
-			                       			 " of boost::shared_ptr<Atlas>.\n" );
+			                       			 " of std::shared_ptr<Atlas>.\n" );
 				}
 				charts . push_back ( it_ptr -> chart ( chart_id ) );
-				if ( not boost::dynamic_pointer_cast<TreeGrid> ( it_ptr -> chart ( chart_id ) ) ) {
+				if ( not std::dynamic_pointer_cast<TreeGrid> ( it_ptr -> chart ( chart_id ) ) ) {
 					throw std::logic_error ( "Atlas::join error: just pushed back"
 			                       			 " a nonconformant chart.\n" );
 				}

@@ -10,7 +10,7 @@
 
 #include "boost/unordered_map.hpp"
 #include "boost/foreach.hpp"
-#include "boost/shared_ptr.hpp"
+#include <memory>
 
 #include "Parameter/MonotonicMap.h"
 
@@ -43,9 +43,9 @@ public:
       //std::cout << ++ count << "   and stack size is " << dfs_stack . size () << "\n";
       T vertex = dfs_stack . top ();
       dfs_stack . pop ();
-      std::vector<boost::shared_ptr<T> > neighbors = vertex . neighbors ();
+      std::vector<std::shared_ptr<T> > neighbors = vertex . neighbors ();
       //std::cout << "Found " << neighbors . size () << " neighbors.\n";
-      BOOST_FOREACH ( boost::shared_ptr<T> ptr, neighbors ) {
+      BOOST_FOREACH ( std::shared_ptr<T> ptr, neighbors ) {
         if ( preorder . count ( *ptr ) ) continue;
         preorder [ * ptr ] = vertices . size ();
         vertices . push_back ( * ptr );
@@ -66,8 +66,8 @@ public:
     adjacencies_ . resize ( vertices . size () );
     for ( int64_t v = 0; v < vertices . size (); ++ v ) {
       T vertex = vertices [ v ];
-      std::vector<boost::shared_ptr<T> > neighbors = vertex . neighbors ();
-      BOOST_FOREACH ( boost::shared_ptr<T> ptr, neighbors ) {
+      std::vector<std::shared_ptr<T> > neighbors = vertex . neighbors ();
+      BOOST_FOREACH ( std::shared_ptr<T> ptr, neighbors ) {
         adjacencies_ [ v ] . push_back ( preorder [ *ptr ] );
       }
     }
@@ -82,8 +82,8 @@ public:
     outfile << "graph factorgraph {\n";
     for ( int64_t v = 0; v < vertices . size (); ++ v ) {
       const T & vertex = vertices [ v ];
-      std::vector<boost::shared_ptr<T> > neighbors = vertex . neighbors ();
-      BOOST_FOREACH ( boost::shared_ptr<T> ptr, neighbors ) {
+      std::vector<std::shared_ptr<T> > neighbors = vertex . neighbors ();
+      BOOST_FOREACH ( std::shared_ptr<T> ptr, neighbors ) {
         int64_t u = preorder . find ( * ptr) -> second;
         if ( v < u ) {
           outfile << v << " -- " << u << "\n";

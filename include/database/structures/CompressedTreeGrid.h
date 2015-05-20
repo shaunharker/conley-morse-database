@@ -4,7 +4,7 @@
 #include <vector>
 #include "database/structures/RectGeo.h"
 #include "database/structures/CompressedTree.h"
-#include "boost/shared_ptr.hpp"
+#include <memory>
 
 class CompressedTreeGrid {
 public:
@@ -18,8 +18,8 @@ public:
   size_t size ( void ) const;
 
   /// tree
-  boost::shared_ptr<CompressedTree> & tree ( void );
-  const boost::shared_ptr<CompressedTree> & tree ( void ) const;
+  std::shared_ptr<CompressedTree> & tree ( void );
+  const std::shared_ptr<CompressedTree> & tree ( void ) const;
 
   /// bounds
   RectGeo & bounds ( void );
@@ -35,7 +35,7 @@ public:
 private:
   RectGeo bounds_;
   std::vector < bool > periodicity_;
-  boost::shared_ptr<CompressedTree> tree_;
+  std::shared_ptr<CompressedTree> tree_;
 };
 
 inline 
@@ -54,12 +54,12 @@ CompressedTreeGrid::size ( void ) const {
   return tree () -> leafCount ();
 }
 
-inline boost::shared_ptr<CompressedTree> &
+inline std::shared_ptr<CompressedTree> &
 CompressedTreeGrid::tree ( void ) {
   return tree_;
 }
 
-inline const boost::shared_ptr<CompressedTree> &
+inline const std::shared_ptr<CompressedTree> &
 CompressedTreeGrid::tree ( void ) const {
   return tree_;
 }

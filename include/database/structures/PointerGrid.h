@@ -13,7 +13,7 @@
 #include "database/structures/TreeGrid.h"
 #include "database/structures/Tree.h"
 #include "database/structures/PointerTree.h"
-#include "boost/shared_ptr.hpp"
+#include <memory>
 #include "boost/serialization/serialization.hpp"
 #include "boost/serialization/vector.hpp"
 #include "boost/serialization/export.hpp"
@@ -31,10 +31,10 @@ public:
   virtual const PointerTree & tree ( void ) const;
   virtual PointerTree & tree ( void );
   virtual PointerGrid * spawn ( void ) const;
-  virtual void rebuild ( boost::shared_ptr<const CompressedTreeGrid> compressed );
+  virtual void rebuild ( std::shared_ptr<const CompressedTreeGrid> compressed );
   void rebuildFromTree ( void );
 private:
-  boost::shared_ptr<PointerTree> tree_;
+  std::shared_ptr<PointerTree> tree_;
   std::vector < Grid::iterator > grid_iterators_;
   std::vector < Tree::iterator > tree_iterators_;
 public:
@@ -111,7 +111,7 @@ PointerGrid::spawn ( void ) const {
 }
 
 inline void 
-PointerGrid::rebuild ( boost::shared_ptr<const CompressedTreeGrid> compressed ) {
+PointerGrid::rebuild ( std::shared_ptr<const CompressedTreeGrid> compressed ) {
   rebuildFromTree ();
 }
 

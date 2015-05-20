@@ -23,7 +23,7 @@ BOOST_CLASS_EXPORT_IMPLEMENT(AbstractParameterSpace);
 #include "database/structures/MorseGraph.h"
 #include "database/program/jobs/Compute_Morse_Graph.h"
 #include "boost/foreach.hpp"
-#include "boost/shared_ptr.hpp"
+#include <memory>
 #include "Parameter/BooleanSwitchingParameterSpace.h"
 #include "Parameter/FactorGraph.h"
 #include "database/structures/ParameterSpace.h"
@@ -61,7 +61,7 @@ int main ( int argc, char * argv [] ) {
   model . initialize ( argc-1, argv+1 );
   //
   BooleanSwitchingParameterSpace & boolean_space = *
-  boost::dynamic_pointer_cast<BooleanSwitchingParameterSpace> (
+  std::dynamic_pointer_cast<BooleanSwitchingParameterSpace> (
   model . parameterSpace () );
 
 
@@ -152,8 +152,8 @@ int main ( int argc, char * argv [] ) {
  //
 /*
   // pick one paramater index to construct p
-  boost::shared_ptr<BooleanSwitchingParameter> p =
-  boost::dynamic_pointer_cast<BooleanSwitchingParameter> (
+  std::shared_ptr<BooleanSwitchingParameter> p =
+  std::dynamic_pointer_cast<BooleanSwitchingParameter> (
                                                           boolean_space . parameter ( pindex[0] ) );
   //  std::cout << "Parameters inequalities : \n";
   std::ofstream parameterfile;
@@ -162,12 +162,12 @@ int main ( int argc, char * argv [] ) {
   parameterfile . close();
 
   //
-  boost::shared_ptr<const Map> map = model . map ( p );
+  std::shared_ptr<const Map> map = model . map ( p );
   if ( not map ) {
     std::cout << "No map associated with parameter " <<
     *p << "!.\n";
   }
-  boost::shared_ptr<Grid> phase_space = model . phaseSpace ();
+  std::shared_ptr<Grid> phase_space = model . phaseSpace ();
   if ( not phase_space ) {
     throw std::logic_error ( "Clutching_Graph_Job. model.phaseSpace() failed"
                             " to return a valid pointer.\n");
@@ -199,7 +199,7 @@ int main ( int argc, char * argv [] ) {
   VI it, stop;
   for (boost::tie ( it, stop ) = mg . Vertices (); it != stop;  ++ it ) {
 
-    boost::shared_ptr<const Grid> my_subgrid ( mg . grid ( *it ) );
+    std::shared_ptr<const Grid> my_subgrid ( mg . grid ( *it ) );
 
     if ( not my_subgrid ) {
       std::cout << "Abort! This vertex does not have an associated grid!\n";
@@ -208,10 +208,10 @@ int main ( int argc, char * argv [] ) {
     CellContainer my_subset = phase_space -> subset ( * my_subgrid );
 
     BOOST_FOREACH ( Grid::GridElement ge, my_subset ) {
-      if ( not boost::dynamic_pointer_cast < AtlasGeo > ( phase_space -> geometry ( ge ) ) ) {
+      if ( not std::dynamic_pointer_cast < AtlasGeo > ( phase_space -> geometry ( ge ) ) ) {
         std::cout << "Unexpected null response from geometry\n";
       }
-      AtlasGeo geo = * boost::dynamic_pointer_cast < AtlasGeo > ( phase_space -> geometry ( ge ) );
+      AtlasGeo geo = * std::dynamic_pointer_cast < AtlasGeo > ( phase_space -> geometry ( ge ) );
       RectGeo box =  geo . rect ();
       int id = geo . id ();
       // std::cout << "(Chart, Rect) = (" << id << ", " << box << ")\n";

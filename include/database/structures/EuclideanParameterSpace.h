@@ -9,7 +9,7 @@
 #include "database/structures/ParameterSpace.h"
 #include "database/structures/RectGeo.h"
 
-#include "boost/shared_ptr.hpp"
+#include <memory>
 #include "boost/serialization/serialization.hpp"
 #include "boost/serialization/vector.hpp"
 #include "boost/serialization/unordered_map.hpp"
@@ -20,9 +20,9 @@
 
 class EuclideanParameter : public Parameter {
 public:
-	boost::shared_ptr<RectGeo> geo;
+	std::shared_ptr<RectGeo> geo;
   EuclideanParameter ( void ) {}
-	EuclideanParameter ( boost::shared_ptr<RectGeo> geo ) : geo(geo) {}
+	EuclideanParameter ( std::shared_ptr<RectGeo> geo ) : geo(geo) {}
   EuclideanParameter ( RectGeo * geo_ptr ) {
     geo . reset ( geo_ptr );
   }
@@ -56,7 +56,7 @@ public:
   virtual void initialize ( const Configuration & config );
 
 	void initialize ( const Configuration & config,
-                    boost::shared_ptr<Grid> parameter_grid  );
+                    std::shared_ptr<Grid> parameter_grid  );
 
 	/// adjacencies
 	///    Return a vector of adjacent vertices.
@@ -68,12 +68,12 @@ public:
 
 	/// parameter
 	///    Return the parameter object associated with a vertex
-	virtual boost::shared_ptr<Parameter> parameter ( uint64_t v ) const;
+	virtual std::shared_ptr<Parameter> parameter ( uint64_t v ) const;
 	
   /// search
   ///    Given a parameter, find the vertex associated with it
   ///    (This can be used to find a parameter which might contain the other)
-  virtual uint64_t search ( boost::shared_ptr<Parameter> parameter ) const;
+  virtual uint64_t search ( std::shared_ptr<Parameter> parameter ) const;
   
 	/// patch
 	///    Return a "ParameterPatch" object
@@ -85,7 +85,7 @@ public:
 	///    sequence will restart.
 	///    The default implementation returns patches that consist of two vertices
 	///    and the edge between them.
-	virtual boost::shared_ptr<ParameterPatch> patch ( void ) const;
+	virtual std::shared_ptr<ParameterPatch> patch ( void ) const;
 
   /// dimension
   ///    Return dimension of parameter space
@@ -93,11 +93,11 @@ public:
 
   /// grid
   ///    Return underlying grid object
-  boost::shared_ptr<const Grid> 
+  std::shared_ptr<const Grid> 
   grid ( void ) const;
 
 private:
-	boost::shared_ptr<Grid> parameter_grid_;
+	std::shared_ptr<Grid> parameter_grid_;
   RectGeo bounds_;
   std::vector<bool> periodic_;
   int dimension_;
@@ -128,19 +128,19 @@ BOOST_CLASS_EXPORT_KEY(EuclideanParameterSpace);
 
 inline void
 EuclideanParameterSpace::initialize ( const Configuration & config ) {
-  boost::shared_ptr<Grid> parameter_grid ( new UniformGrid );
+  std::shared_ptr<Grid> parameter_grid ( new UniformGrid );
   initialize ( config, parameter_grid );
 }
 
 inline void
 EuclideanParameterSpace::initialize ( const Configuration & config, 
-                                      boost::shared_ptr<Grid> parameter_grid ) {
+                                      std::shared_ptr<Grid> parameter_grid ) {
   parameter_grid_ = parameter_grid;
 
   // Initialization for TreeGrid
-  if ( boost::dynamic_pointer_cast < TreeGrid > ( parameter_grid_ ) ) {
-    boost::shared_ptr<TreeGrid> grid = 
-      boost::dynamic_pointer_cast < TreeGrid > ( parameter_grid_ );
+  if ( std::dynamic_pointer_cast < TreeGrid > ( parameter_grid_ ) ) {
+    std::shared_ptr<TreeGrid> grid = 
+      std::dynamic_pointer_cast < TreeGrid > ( parameter_grid_ );
     grid -> initialize ( config.PARAM_BOUNDS, 
                          config.PARAM_PERIODIC );  
     for (int i = 0; i < config.PARAM_SUBDIV_DEPTH[0]; ++i) {
@@ -152,9 +152,9 @@ EuclideanParameterSpace::initialize ( const Configuration & config,
   }
 
   // Initialization for UniformGrid
-  if ( boost::dynamic_pointer_cast < UniformGrid > ( parameter_grid_ ) ) {
-    boost::shared_ptr<UniformGrid> grid = 
-      boost::dynamic_pointer_cast < UniformGrid > ( parameter_grid_ );
+  if ( std::dynamic_pointer_cast < UniformGrid > ( parameter_grid_ ) ) {
+    std::shared_ptr<UniformGrid> grid = 
+      std::dynamic_pointer_cast < UniformGrid > ( parameter_grid_ );
     grid -> initialize ( config.PARAM_BOUNDS, 
                          config.PARAM_SUBDIV_SIZES,
                          config.PARAM_PERIODIC );
@@ -162,9 +162,9 @@ EuclideanParameterSpace::initialize ( const Configuration & config,
   }
   
   // Initialization for EdgeGrid
-  if ( boost::dynamic_pointer_cast < EdgeGrid > ( parameter_grid_ ) ) {
-    boost::shared_ptr<EdgeGrid> grid = 
-      boost::dynamic_pointer_cast < EdgeGrid > ( parameter_grid_ );
+  if ( std::dynamic_pointer_cast < EdgeGrid > ( parameter_grid_ ) ) {
+    std::shared_ptr<EdgeGrid> grid = 
+      std::dynamic_pointer_cast < EdgeGrid > ( parameter_grid_ );
     grid -> initialize ( config.PARAM_BOUNDS, 
                          config.PARAM_SUBDIV_SIZES,
                          config.PARAM_PERIODIC );
@@ -199,7 +199,7 @@ EuclideanParameterSpace::initialize ( const Configuration & config,
 inline std::vector<uint64_t> 
 EuclideanParameterSpace::adjacencies ( uint64_t v ) const {
 	std::vector<uint64_t> neighbors;
-	RectGeo geo = * boost::dynamic_pointer_cast<EuclideanParameter> ( parameter ( v ) ) -> geo;
+	RectGeo geo = * std::dynamic_pointer_cast<EuclideanParameter> ( parameter ( v ) ) -> geo;
   for ( int d = 0; d < dimension_; ++ d ) {
   	double tol = (bounds_.upper_bounds[d]-bounds_.lower_bounds[d])
   	  /(double)(1000000000.0);
@@ -215,34 +215,34 @@ EuclideanParameterSpace::size ( void ) const {
 	return parameter_grid_ -> size ();
 }
 
-inline boost::shared_ptr<Parameter> 
+inline std::shared_ptr<Parameter> 
 EuclideanParameterSpace::parameter ( uint64_t v ) const {
-	boost::shared_ptr<RectGeo> geo = boost::dynamic_pointer_cast<RectGeo> 
+	std::shared_ptr<RectGeo> geo = std::dynamic_pointer_cast<RectGeo> 
       ( parameter_grid_ -> geometry ( v ) );
-  return boost::shared_ptr<Parameter> ( new EuclideanParameter ( geo ) );
+  return std::shared_ptr<Parameter> ( new EuclideanParameter ( geo ) );
 }
 
 inline uint64_t 
-EuclideanParameterSpace::search ( boost::shared_ptr<Parameter> parameter ) const {
-  RectGeo geo = * boost::dynamic_pointer_cast<EuclideanParameter> ( parameter ) -> geo;
+EuclideanParameterSpace::search ( std::shared_ptr<Parameter> parameter ) const {
+  RectGeo geo = * std::dynamic_pointer_cast<EuclideanParameter> ( parameter ) -> geo;
   std::vector<uint64_t> vertices = parameter_grid_ -> cover ( geo );
   if ( vertices . size () != 1 ) return * end ();
   return vertices [ 0 ];
 }
 
-inline boost::shared_ptr<ParameterPatch> 
+inline std::shared_ptr<ParameterPatch> 
 EuclideanParameterSpace::patch ( void ) const {
 
 #ifdef EDGEPATCHMETHOD
-  boost::shared_ptr<ParameterPatch> result;
+  std::shared_ptr<ParameterPatch> result;
   while ( 1 ) {
     result = ParameterSpace::patch ();
     if ( result -> vertices . empty () ) break;
     uint64_t u = result -> vertices [ 0 ];
     uint64_t v = result -> vertices [ 1 ];
-    RectGeo u_geo = * boost::dynamic_pointer_cast<EuclideanParameter> 
+    RectGeo u_geo = * std::dynamic_pointer_cast<EuclideanParameter> 
       ( result -> parameter [ u ] ) -> geo;
-    RectGeo v_geo = * boost::dynamic_pointer_cast<EuclideanParameter> 
+    RectGeo v_geo = * std::dynamic_pointer_cast<EuclideanParameter> 
       ( result -> parameter [ v ] ) -> geo;
     int codimension = 0;
     for ( int d = 0; d < dimension_; ++ d ) {
@@ -257,7 +257,7 @@ EuclideanParameterSpace::patch ( void ) const {
 #else
   //std::cout << "EuclideanParameterSpace::patch dimension_ = " << dimension_ << "\n";
 
-  boost::shared_ptr<ParameterPatch> result ( new ParameterPatch );
+  std::shared_ptr<ParameterPatch> result ( new ParameterPatch );
   if ( finished_ ) {
   	finished_ = false;
   	return result;
@@ -335,7 +335,7 @@ EuclideanParameterSpace::dimension ( void ) const {
   return dimension_;
 }
 
-inline boost::shared_ptr<const Grid> 
+inline std::shared_ptr<const Grid> 
 EuclideanParameterSpace::grid ( void ) const {
   return parameter_grid_;
 }

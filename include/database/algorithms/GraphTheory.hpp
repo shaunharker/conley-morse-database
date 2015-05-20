@@ -23,10 +23,10 @@ uint64_t max_graph_memory = 0;
 #endif
 
 inline void 
-computeMorseSetsAndReachability (std::vector< boost::shared_ptr<Grid> > * output,
+computeMorseSetsAndReachability (std::vector< std::shared_ptr<Grid> > * output,
                                  std::vector<std::vector<unsigned int> > * reach,
-                                 boost::shared_ptr<const Grid> G,
-                                 boost::shared_ptr<const Map> f ) {
+                                 std::shared_ptr<const Grid> G,
+                                 std::shared_ptr<const Map> f ) {
   MapGraph mapgraph ( G, f );
   // Produce Strong Components and Reachability
   std::vector < std::deque < Grid::GridElement > > components;
@@ -44,7 +44,7 @@ computeMorseSetsAndReachability (std::vector< boost::shared_ptr<Grid> > * output
   // Create output grids
   output -> clear ();
   BOOST_FOREACH ( const std::deque<Grid::GridElement> & component, components ) {
-    boost::shared_ptr < Grid > component_grid ( G -> subgrid ( component ) );
+    std::shared_ptr < Grid > component_grid ( G -> subgrid ( component ) );
     output -> push_back ( component_grid );
   }
 }

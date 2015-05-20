@@ -12,7 +12,7 @@
 #include "boost/foreach.hpp"
 #include "boost/iterator/counting_iterator.hpp"
 #include "boost/unordered_set.hpp"
-#include "boost/shared_ptr.hpp"
+#include <memory>
 #include "boost/serialization/serialization.hpp"
 #include "boost/serialization/vector.hpp"
 #include "database/structures/Geo.h"
@@ -33,7 +33,7 @@ public:
   virtual void subdivide ( void ) = 0;
   virtual Grid * subgrid ( const std::deque < GridElement > & grid_elements ) const = 0;
   virtual std::vector<Grid::GridElement> subset ( const Grid & other ) const = 0;
-  virtual boost::shared_ptr<Geo> geometry ( GridElement ge ) const = 0;  
+  virtual std::shared_ptr<Geo> geometry ( GridElement ge ) const = 0;  
   virtual std::vector<Grid::GridElement> cover ( const Geo & geo ) const = 0;
 
   // Container methods
@@ -43,12 +43,12 @@ public:
   size_type size ( void ) const;
   
   /// geometry
-  boost::shared_ptr<Geo> 
+  std::shared_ptr<Geo> 
   geometry ( const const_iterator & it ) const { return geometry ( *it ); }
   
   /// Cover (for dispatch)
   std::vector<Grid::GridElement> 
-  cover ( boost::shared_ptr<Geo> geo ) const;
+  cover ( std::shared_ptr<Geo> geo ) const;
 
   /// unionCover
   template < class T >
@@ -95,14 +95,14 @@ inline Grid::size_type Grid::size ( void ) const {
 }
 
 inline std::vector<Grid::GridElement> 
-Grid::cover ( boost::shared_ptr<Geo> geo ) const {
+Grid::cover ( std::shared_ptr<Geo> geo ) const {
 
-  boost::shared_ptr<UnionGeo> union_geo 
-    = boost::dynamic_pointer_cast<UnionGeo> ( geo );
+  std::shared_ptr<UnionGeo> union_geo 
+    = std::dynamic_pointer_cast<UnionGeo> ( geo );
   if ( union_geo ) return unionCover ( union_geo -> elements );
 
-  boost::shared_ptr<IntersectionGeo> intersect_geo 
-    = boost::dynamic_pointer_cast<IntersectionGeo> ( geo );
+  std::shared_ptr<IntersectionGeo> intersect_geo 
+    = std::dynamic_pointer_cast<IntersectionGeo> ( geo );
   if ( intersect_geo ) return intersectionCover ( intersect_geo -> elements );
 
   return cover ( * geo );

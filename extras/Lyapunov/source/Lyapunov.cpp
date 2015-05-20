@@ -25,7 +25,7 @@
 #endif
 #include "database/structures/PointerGrid.h"
 
-#include "boost/shared_ptr.hpp"
+#include <memory>
 #include <boost/serialization/export.hpp>
 #ifndef MISSING_SDSL
 BOOST_CLASS_EXPORT_IMPLEMENT(SuccinctGrid);
@@ -34,11 +34,11 @@ BOOST_CLASS_EXPORT_IMPLEMENT(PointerGrid);
 
 
 /// Load phase space from .mg or .cmg file
-boost::shared_ptr<TreeGrid> 
+std::shared_ptr<TreeGrid> 
 phaseSpace ( int argc, char * argv [] );
 
 /// Load ModelMap with appropriate parameters from config.xml file
-boost::shared_ptr<const Map> 
+std::shared_ptr<const Map> 
 modelMap ( int argc, char * argv [] );
 
 /// Save result of Lyapunov function calculation to a file (in argv[2])
@@ -66,10 +66,10 @@ int main ( int argc, char * argv [] ) {
   }
 
   // Obtain phase space  
-  boost::shared_ptr<TreeGrid> grid = phaseSpace ( argc, argv );
+  std::shared_ptr<TreeGrid> grid = phaseSpace ( argc, argv );
 
   // Obtain model map
-  boost::shared_ptr<const Map> map = modelMap ( argc - 2, argv + 2 );
+  std::shared_ptr<const Map> map = modelMap ( argc - 2, argv + 2 );
 
   // Compute Lyapunov function
   std::vector<double> global_lyapunov = ComputeLyapunov ( grid, map );
@@ -82,11 +82,11 @@ int main ( int argc, char * argv [] ) {
 }
 
 /// Load phase space from .mg or .cmg file
-boost::shared_ptr<TreeGrid> phaseSpace ( int argc, char * argv [] ) {
+std::shared_ptr<TreeGrid> phaseSpace ( int argc, char * argv [] ) {
   MorseGraph mg;
   mg . load ( argv[1] );
-  boost::shared_ptr<TreeGrid> result = 
-    boost::dynamic_pointer_cast<TreeGrid> (mg . phaseSpace ());
+  std::shared_ptr<TreeGrid> result = 
+    std::dynamic_pointer_cast<TreeGrid> (mg . phaseSpace ());
   if ( not result ) {
     throw std::logic_error ( "Error. data.mg file does not store " 
                              "a phase space of type TreeGrid\n");
@@ -95,7 +95,7 @@ boost::shared_ptr<TreeGrid> phaseSpace ( int argc, char * argv [] ) {
 }
 
 /// Load ModelMap with appropriate parameters from config.xml file
-boost::shared_ptr<const Map> modelMap ( int argc, char * argv [] ) {
+std::shared_ptr<const Map> modelMap ( int argc, char * argv [] ) {
   Model model;
   model . initialize ( argc, argv );
   return model . map (); // passing null parameter triggers default response

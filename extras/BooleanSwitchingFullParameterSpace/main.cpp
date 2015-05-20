@@ -23,7 +23,7 @@ BOOST_CLASS_EXPORT_IMPLEMENT(AbstractParameterSpace);
 #include "database/structures/MorseGraph.h"
 #include "database/program/jobs/Compute_Morse_Graph.h"
 #include "boost/foreach.hpp"
-#include "boost/shared_ptr.hpp"
+#include <memory>
 #include "Parameter/BooleanSwitchingParameterSpace.h"
 #include "Parameter/FactorGraph.h"
 #include "database/structures/ParameterSpace.h"
@@ -56,7 +56,7 @@ int main ( int argc, char * argv [] ) {
   model . initialize ( argc-1, argv+1 );
   //
   BooleanSwitchingParameterSpace & boolean_space = *
-  boost::dynamic_pointer_cast<BooleanSwitchingParameterSpace> (
+  std::dynamic_pointer_cast<BooleanSwitchingParameterSpace> (
   model . parameterSpace () );
 
   typedef std::pair<uint64_t, uint64_t> Edge;

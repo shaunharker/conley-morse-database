@@ -46,7 +46,7 @@ public:
   // Builder Methods
   //virtual void subdivide ( void ) = 0;
   virtual CompressedTree * subtree ( const std::deque < Tree::iterator > & leaves ) const;
-  virtual void assign ( boost::shared_ptr<const CompressedTree> compressed ) = 0;
+  virtual void assign ( std::shared_ptr<const CompressedTree> compressed ) = 0;
 
 
 /** Tree::join
@@ -179,7 +179,7 @@ Tree::subtree ( const std::deque < iterator > & leaves ) const {
 template < class InputIterator >
 CompressedTree * Tree::join ( InputIterator start, InputIterator stop ) {
   typedef Tree * TreePtr;
-  typedef boost::shared_ptr<CompressedTree> CompressedTreePtr;
+  typedef std::shared_ptr<CompressedTree> CompressedTreePtr;
 
   CompressedTree * result = new CompressedTree;
   std::vector<bool> & leaf_sequence = result -> leaf_sequence;

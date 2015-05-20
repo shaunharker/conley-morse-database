@@ -14,7 +14,7 @@ using namespace cimg_library;
 #include <vector>
 #include <exception>
 #include "boost/foreach.hpp"
-#include "boost/shared_ptr.hpp"
+#include <memory>
 
 #include "database/algorithms/GraphTheory.h"
 #include "database/algorithms/join.h"
@@ -94,7 +94,7 @@ public:
   size_t depth ( void ) const { return depth_; }
 
   /// MorseDecomposition::decomposition
-  const std::vector< boost::shared_ptr<Grid> > & decomposition ( void ) const {
+  const std::vector< std::shared_ptr<Grid> > & decomposition ( void ) const {
     return decomposition_;
   }
 
@@ -113,7 +113,7 @@ public:
   
   /// MorseDecomposition::grid
   /// accessor method to obtain grid_ shared_ptr data member
-  boost::shared_ptr < Grid > grid ( void ) {
+  std::shared_ptr < Grid > grid ( void ) {
     return grid_;
   }
   
@@ -128,7 +128,7 @@ public:
   /// Fill children_ with an equal sized vector of pointers to new MorseDecomposition objects seeded with those sets.
   /// Put reachability information obtained in "reachability_"
   void 
-  decompose ( boost::shared_ptr<const Map> f ) {
+  decompose ( std::shared_ptr<const Map> f ) {
     //std::cout << "decompose at depth " << depth () << "\n";
     computeMorseSetsAndReachability
       ( &decomposition_, 
@@ -152,8 +152,8 @@ public:
 
 private:
   // Member Data
-  boost::shared_ptr<Grid> grid_;
-  std::vector< boost::shared_ptr<Grid> > decomposition_;
+  std::shared_ptr<Grid> grid_;
+  std::vector< std::shared_ptr<Grid> > decomposition_;
   std::vector < MorseDecomposition * > children_;
   std::vector < std::vector < unsigned int > > reachability_;
   bool spurious_;
@@ -178,7 +178,7 @@ public:
 // ConstructMorseDecomposition
 inline void
 ConstructMorseDecomposition (MorseDecomposition * root,
-                             boost::shared_ptr<const Map> f,
+                             std::shared_ptr<const Map> f,
                              const unsigned int Min,
                              const unsigned int Max,
                              const unsigned int Limit ) {
@@ -230,11 +230,11 @@ ConstructMorseDecomposition (MorseDecomposition * root,
 
 // ConstructMorseDecomposition
 inline void 
-ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
+ConstructMorseGraph (std::shared_ptr<Grid> master_grid,
                      MorseGraph * MG,
                      MorseDecomposition * root,
                      const unsigned int Min ) {
-  std::vector < boost::shared_ptr < Grid > > grids;
+  std::vector < std::shared_ptr < Grid > > grids;
   // Produce Morse Graph
   typedef MorseGraph::Vertex Vertex;
   // "temp" will store which MorseGraph vertices are hierarchically under a given decomposition node
@@ -270,7 +270,7 @@ ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
       // If spurious, then change grid to join of all descendants and previous self
       if ( MD -> spurious () && NC > 0) {
         // We alter MD -> grid () so that it is the join of all descendant grids
-        std::vector<boost::shared_ptr<Grid> > grid_family;
+        std::vector<std::shared_ptr<Grid> > grid_family;
         grid_family . push_back ( MD -> grid () );
         for ( size_t i = 0 ; i < NC; ++ i ) {
           grid_family . push_back ( MD -> children () [ i ] -> grid () );
@@ -353,8 +353,8 @@ ConstructMorseGraph (boost::shared_ptr<Grid> master_grid,
 
 inline void 
 Compute_Morse_Graph (MorseGraph * MG,
-                     boost::shared_ptr<Grid> phase_space,
-                     boost::shared_ptr<const Map> f,
+                     std::shared_ptr<Grid> phase_space,
+                     std::shared_ptr<const Map> f,
                      const unsigned int Init,
                      const unsigned int Min, 
                      const unsigned int Max, 
@@ -365,8 +365,8 @@ Compute_Morse_Graph (MorseGraph * MG,
 
 inline void 
 Compute_Morse_Graph (MorseGraph * MG,
-                     boost::shared_ptr<Grid> phase_space,
-                     boost::shared_ptr<const Map> f,
+                     std::shared_ptr<Grid> phase_space,
+                     std::shared_ptr<const Map> f,
                      const unsigned int Min, 
                      const unsigned int Max, 
                      const unsigned int Limit) {
@@ -374,7 +374,7 @@ Compute_Morse_Graph (MorseGraph * MG,
   std::cout << "Compute_Morse_Graph. Initializing root MorseDecomposition\n";
   std::cout << "Compute_Morse_Graph. A phase_space -> size () == " << phase_space -> size () << "\n";
 
-  boost::shared_ptr<Grid> root_space ( (Grid *) (phase_space -> clone ()) );
+  std::shared_ptr<Grid> root_space ( (Grid *) (phase_space -> clone ()) );
   
   //std::cout << "Compute_Morse_Graph. root_space -> size () == " << root_space -> size () << "\n";
   
