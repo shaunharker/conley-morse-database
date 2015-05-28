@@ -280,11 +280,11 @@ BooleanSwitchingParameterSpace::closestFace
   }
 
   /// DEBUG
-  std::cout << "domain:\n";
-  for ( auto x : domain ) std::cout << x << " ";
-  std::cout << "\nclosestFace result:\n";
-  for ( auto x : result ) std::cout << x << " ";
-  std::cout << "\n\n";
+  //std::cout << "domain:\n";
+  //for ( auto x : domain ) std::cout << x << " ";
+  //std::cout << "\nclosestFace result:\n";
+  //for ( auto x : result ) std::cout << x << " ";
+  //std::cout << "\n\n";
   /// END DEBUG
   return result;
 }
