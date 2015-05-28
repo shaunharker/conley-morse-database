@@ -8,13 +8,13 @@
 #include "database/maps/Map.h"
 #include <vector>
 #include <queue>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 /// computeMorseSetsAndReachability
-void computeMorseSetsAndReachability (std::vector< boost::shared_ptr<Grid> > * output,
+void computeMorseSetsAndReachability (std::vector< std::shared_ptr<Grid> > * output,
                                       std::vector<std::vector<unsigned int> > * reach,
-                                      boost::shared_ptr<const Grid> G,
-                                      boost::shared_ptr<const Map> f );
+                                      std::shared_ptr<const Grid> G,
+                                      std::shared_ptr<const Map> f );
 
 /// computeStrongComponents
 ///    Modified version of Tarjan's algorithm devised by Shaun Harker

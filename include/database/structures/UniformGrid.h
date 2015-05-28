@@ -11,7 +11,7 @@
 #include <boost/foreach.hpp>
 #include <boost/iterator/counting_iterator.hpp>
 #include <boost/unordered_map.hpp>
-#include "boost/shared_ptr.hpp"
+#include <memory>
 #include "boost/serialization/serialization.hpp"
 #include "boost/serialization/vector.hpp"
 #include "boost/serialization/export.hpp"
@@ -46,7 +46,7 @@ public:
   virtual void subdivide ( void );
   virtual Grid * subgrid ( const std::deque < GridElement > & grid_elements ) const;
   virtual std::vector<GridElement> subset ( const Grid & other ) const;
-  virtual boost::shared_ptr<Geo> geometry ( GridElement ge ) const;  
+  virtual std::shared_ptr<Geo> geometry ( GridElement ge ) const;  
   virtual std::vector<Grid::GridElement> cover ( const Geo & geo ) const;
   using Grid::geometry;
   using Grid::cover;
@@ -124,9 +124,9 @@ UniformGrid::subset ( const Grid & other ) const {
   return result;
 }
 
-inline boost::shared_ptr<Geo> 
+inline std::shared_ptr<Geo> 
 UniformGrid::geometry ( Grid::GridElement ge ) const {
-  boost::shared_ptr<RectGeo> result ( new RectGeo ( dimension () ) );
+  std::shared_ptr<RectGeo> result ( new RectGeo ( dimension () ) );
   uint64_t address = (uint64_t) ge;
   std::vector<uint64_t> coordinates ( dimension () );
   for ( int d = 0; d < dimension (); ++ d ) {
@@ -142,7 +142,7 @@ UniformGrid::geometry ( Grid::GridElement ge ) const {
       bounds_.lower_bounds[d]+((double)coordinates[d] + 1.0)/(double)sizes_[d]
       *(bounds_.upper_bounds[d]-bounds_.lower_bounds[d]);
   }
-  return boost::dynamic_pointer_cast<Geo> ( result );
+  return std::dynamic_pointer_cast<Geo> ( result );
 } /* UniformGrid::geometry */
 
 inline std::vector<Grid::GridElement>

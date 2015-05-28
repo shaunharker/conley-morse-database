@@ -8,7 +8,7 @@
 #include <unordered_set>
 #include <unordered_map>
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <boost/foreach.hpp>
 #include <boost/functional/hash.hpp>
 
@@ -379,7 +379,7 @@ private:
   // raw data
   std::vector < ParameterRecord > parameter_records_;
   std::vector < ClutchingRecord > clutch_records_;
-  boost::shared_ptr < ParameterSpace > parameter_space_;
+  std::shared_ptr < ParameterSpace > parameter_space_;
   // data_/index_ pairs
   std::vector < std::string > string_data_;
   std::vector < Annotation_Record > annotation_data_;
@@ -419,7 +419,7 @@ public:
 
   /// insert 
   ///    insert parameter space
-  void insert ( boost::shared_ptr<ParameterSpace> parameter_space );
+  void insert ( std::shared_ptr<ParameterSpace> parameter_space );
 
   /// insert
   ///    insert directed acyclic graph data
@@ -480,7 +480,7 @@ public:
  
   /// parameterSpace
   ///   Return shared pointer to parameter space
-  boost::shared_ptr<ParameterSpace> 
+  std::shared_ptr<ParameterSpace> 
   parameterSpace ( void ) const { return parameter_space_;}
 
   const std::vector < ParameterRecord > & parameter_records ( void ) const;
@@ -659,14 +659,14 @@ inline void Database::merge ( const Database & other ) {
 }
 
 // record insertion
-inline void Database::insert ( boost::shared_ptr<ParameterSpace> parameter_space ) {
+inline void Database::insert ( std::shared_ptr<ParameterSpace> parameter_space ) {
   // Note: the first part here is to try to make sure that what is serialized
   // in the case of derived classes of AbstractParameterSpaces is just
   // an AbstractParameterSpace rather than the derived class, which will
   // probably be unregistered in the Database-Explorer. It may be worth checking
   // whether the "reset to a new copy" approach taken here is necessary
-  boost::shared_ptr<AbstractParameterSpace> abstract 
-    = boost::dynamic_pointer_cast<AbstractParameterSpace> ( parameter_space );
+  std::shared_ptr<AbstractParameterSpace> abstract 
+    = std::dynamic_pointer_cast<AbstractParameterSpace> ( parameter_space );
   if ( abstract ) {
     abstract -> computeAdjacencyLists ();
     parameter_space . reset ( new AbstractParameterSpace ( *abstract ) );

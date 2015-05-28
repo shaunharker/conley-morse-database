@@ -13,7 +13,7 @@
 #include "database/maps/Map.h"
 
 #include "boost/foreach.hpp"
-#include "boost/shared_ptr.hpp"
+#include <memory>
 
 #include "Draw.h"
 
@@ -64,8 +64,8 @@ void backward ( std::vector<bool> * output,
 }
 
 inline std::vector<double>
-ComputeLyapunov ( boost::shared_ptr<TreeGrid> grid,
-									boost::shared_ptr<const Map> map ) {
+ComputeLyapunov ( std::shared_ptr<TreeGrid> grid,
+									std::shared_ptr<const Map> map ) {
 
   std::cout << "Computing Lyapunov function.\n";
   clock_t start_time = clock ();

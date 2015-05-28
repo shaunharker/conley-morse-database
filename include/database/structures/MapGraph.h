@@ -30,8 +30,8 @@ public:
   typedef Grid::GridElement Vertex;
     
   // Constructor. Requires Grid and Map.
-  MapGraph ( boost::shared_ptr<const Grid> grid, 
-             boost::shared_ptr<const Map> f );
+  MapGraph ( std::shared_ptr<const Grid> grid, 
+             std::shared_ptr<const Map> f );
   
   /// adjacencies
   ///   Return vector of Vertices which are out-edge adjacencies of input v
@@ -45,16 +45,16 @@ private:
   // Private methods
   std::vector<size_type> compute_adjacencies ( const size_type & v ) const;
   // Private data
-  boost::shared_ptr<const Grid> grid_;
-  boost::shared_ptr<const Map> f_;
+  std::shared_ptr<const Grid> grid_;
+  std::shared_ptr<const Map> f_;
   // Variables used if graph is stored in memory. (See CMDB_STORE_GRAPH define)
   bool stored_graph;
   std::vector<std::vector<Vertex> > adjacency_lists_;
 };
 
 inline 
-MapGraph::MapGraph ( boost::shared_ptr<const Grid> grid,
-           boost::shared_ptr<const Map> f ) : 
+MapGraph::MapGraph ( std::shared_ptr<const Grid> grid,
+           std::shared_ptr<const Map> f ) : 
 grid_ ( grid ),
 f_ ( f ),
 stored_graph ( false ) {

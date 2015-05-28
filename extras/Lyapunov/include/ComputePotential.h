@@ -5,7 +5,7 @@
 
 #include <vector>
 #include <queue>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <vector>
 #include <limits>
 #include <exception>
@@ -76,8 +76,8 @@ void DijkstraDistance ( std::vector<double> * distance_to_set,
 		std::vector<DoubleGridPair> adjacencies = ag . adjacenciesWithDistance ( v );
 #if 0
 		// DEBUG
-		boost::shared_ptr<Geo> center_geo = treegrid_ -> geometryOfTreeNode ( Tree::iterator ( v ) );
-		RectGeo center_rect = * boost::dynamic_pointer_cast<RectGeo> ( center_geo );
+		std::shared_ptr<Geo> center_geo = treegrid_ -> geometryOfTreeNode ( Tree::iterator ( v ) );
+		RectGeo center_rect = * std::dynamic_pointer_cast<RectGeo> ( center_geo );
 
 		std::cout << "Geometry of center grid element = " << center_rect << "\n";
 		BOOST_FOREACH ( DoubleGridPair new_pair, adjacencies ) {
@@ -121,7 +121,7 @@ void ComputePotential ( double * minimum_distance,
 												std::vector<double> * potential,
 												const std::vector<bool> & attractor,
   											const std::vector<bool> & repeller,
-  											boost::shared_ptr<const TreeGrid> grid) {
+  											std::shared_ptr<const TreeGrid> grid) {
 
 	AdjacencyGrid ag ( grid );
 

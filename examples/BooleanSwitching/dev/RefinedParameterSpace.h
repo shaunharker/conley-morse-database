@@ -7,11 +7,11 @@ class Parameter {
 private:
   std::vector<int> monotonic_function_; // given by preorder
   std::vector<int> axis_; // given by semi-axis -- negative means negative direction
-  boost::shared_ptr<Network> network_;
+  std::shared_ptr<Network> network_;
 public:
   
   /// constructor
-  Parameter ( const boost::shared_ptr<Network> & network ) : network_(network) {
+  Parameter ( const std::shared_ptr<Network> & network ) : network_(network) {
     int N = network_ -> numVariables;
     monotonic_function_ . resize ( N, 0 );
     int M = 1;
@@ -70,8 +70,8 @@ public:
 
   /// clone
   /// Make a copy of this object and return a shared_ptr to it
-  boost::shared_ptr<Parameter> clone ( void ) const {
-    boost::shared_ptr<Parameter> result ( new Parameter ( network_ ) );
+  std::shared_ptr<Parameter> clone ( void ) const {
+    std::shared_ptr<Parameter> result ( new Parameter ( network_ ) );
     result -> monotonic_function_ = monotonic_function_;
     result -> axis_ = axis_;
     result -> network_ = network_;
@@ -147,12 +147,12 @@ public:
 
   /// neighbors
   /// Give a list of neighbors
-  std::vector<boost::shared_ptr<Parameter> > neighbors ( void ) const {
+  std::vector<std::shared_ptr<Parameter> > neighbors ( void ) const {
 
     if ( not realizable () ) {
       std::cout << "This isn't even realizable to begin with!\n";
     }
-    std::vector<boost::shared_ptr<Parameter> > result;
+    std::vector<std::shared_ptr<Parameter> > result;
     int N = monotonic_function_ . size ();
     int M = axis_ . size ();
     if ( N != network_ -> numVariables ) {
@@ -166,7 +166,7 @@ public:
         network_ -> factors_ [ i ] . adjacencies ( monotonic_function_ [ i ] );
 
       BOOST_FOREACH ( int neighbor, neighbors ) {
-        boost::shared_ptr<Parameter> p = clone ();
+        std::shared_ptr<Parameter> p = clone ();
         p -> monotonic_function_ [ i ] = neighbor;
         p -> canonicalize ();
         //std::cout << "Checking a candidate neighbor...\n";
@@ -183,7 +183,7 @@ public:
       if ( axis_ [ i ] == 0 ) continue;
       for ( int j = -N; j <= N; ++ j ) {
         if ( j == 0 ) continue;
-        boost::shared_ptr<Parameter> p = clone ();
+        std::shared_ptr<Parameter> p = clone ();
         p -> axis_ [ i ] = j;
         p -> canonicalize ();
         if ( (p -> realizable ()) && ( not (*p == *this ) ) ) {

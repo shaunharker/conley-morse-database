@@ -11,7 +11,7 @@
 #include <sstream>
 #include <unordered_map>
 
-#include "boost/shared_ptr.hpp"
+#include <memory>
 #include "boost/functional/hash.hpp"
 #include "database/structures/ParameterSpace.h"
 #include "database/structures/AbstractParameterSpace.h"
@@ -46,19 +46,19 @@ public:
 
   /// parameter
   ///    Return the parameter object associated with a vertex
-  virtual boost::shared_ptr<Parameter> parameter ( ParameterIndex v ) const;
+  virtual std::shared_ptr<Parameter> parameter ( ParameterIndex v ) const;
   
   /// search
   ///    Given a parameter, find the vertex associated with it
   ///    (This can be used to find a parameter which might contain the other)
-  virtual uint64_t search ( boost::shared_ptr<Parameter> parameter ) const;
+  virtual uint64_t search ( std::shared_ptr<Parameter> parameter ) const;
   
   /// closestFace
   ///   given a domain, return the closest face 
   ///   closest face is output in the following form:
   ///   There are d entries in an std::vector<int64_t>
   ///     0 means lower bound, 1 means between, 2 means upper bound
-  std::vector<int64_t> closestFace ( boost::shared_ptr<Parameter> parameter, 
+  std::vector<int64_t> closestFace ( std::shared_ptr<Parameter> parameter, 
                                  std::vector<size_t> const& domain ) const;
   /// domainLimits
   ///    Return a vector containing the number of thresholds plus one in each dimension
@@ -79,7 +79,7 @@ public:
   /// prettyPrint64_t
   ///    Print64_t out parameter in human readable format
   std::string
-  prettyPrint ( boost::shared_ptr<Parameter> parameter ) const;
+  prettyPrint ( std::shared_ptr<Parameter> parameter ) const;
 
 private:
 
@@ -150,8 +150,8 @@ BooleanSwitchingParameterSpace::initialize ( int argc, char * argv [] ) {
 inline std::vector<BooleanSwitchingParameterSpace::ParameterIndex> 
 BooleanSwitchingParameterSpace::adjacencies ( ParameterIndex v ) const {
   std::vector<ParameterIndex> result;
-  boost::shared_ptr<BooleanSwitchingParameter> p = 
-      boost::dynamic_pointer_cast<BooleanSwitchingParameter> ( parameter ( v ) );
+  std::shared_ptr<BooleanSwitchingParameter> p = 
+      std::dynamic_pointer_cast<BooleanSwitchingParameter> ( parameter ( v ) );
   if ( not p ) {
     std::stringstream ss;
     ss << "BooleanSwitchingParameterSpace::adjacencies. ";
@@ -181,9 +181,9 @@ BooleanSwitchingParameterSpace::size ( void ) const {
   return result;
 }
 
-inline boost::shared_ptr<Parameter> 
+inline std::shared_ptr<Parameter> 
 BooleanSwitchingParameterSpace::parameter ( ParameterIndex v ) const {
-  boost::shared_ptr<BooleanSwitchingParameter> 
+  std::shared_ptr<BooleanSwitchingParameter> 
     p ( new BooleanSwitchingParameter(dimension_) );
   for ( int64_t d = 0; d < dimension_; ++ d ) {
     if ( pinned_[d] != -1 ) {
@@ -194,13 +194,13 @@ BooleanSwitchingParameterSpace::parameter ( ParameterIndex v ) const {
     p -> monotonic_function_ [ d ] = v % factor_size;
     v /= factor_size;
   }
-  return boost::dynamic_pointer_cast<Parameter> ( p );
+  return std::dynamic_pointer_cast<Parameter> ( p );
 }
     
 inline uint64_t 
-BooleanSwitchingParameterSpace::search ( boost::shared_ptr<Parameter> parameter ) const {
+BooleanSwitchingParameterSpace::search ( std::shared_ptr<Parameter> parameter ) const {
   const BooleanSwitchingParameter & p = 
-    * boost::dynamic_pointer_cast<BooleanSwitchingParameter> ( parameter );
+    * std::dynamic_pointer_cast<BooleanSwitchingParameter> ( parameter );
   uint64_t result = 0;
   uint64_t multiplier = 1;
   for ( int64_t d = 0; d < dimension_; ++ d ) {
@@ -213,10 +213,10 @@ BooleanSwitchingParameterSpace::search ( boost::shared_ptr<Parameter> parameter 
 
 inline std::vector<int64_t> 
 BooleanSwitchingParameterSpace::closestFace 
-                ( boost::shared_ptr<Parameter> p, 
+                ( std::shared_ptr<Parameter> p, 
                   std::vector<size_t> const& domain ) const {
-  boost::shared_ptr<BooleanSwitchingParameter> parameter =
-  boost::dynamic_pointer_cast<BooleanSwitchingParameter> ( p ); 
+  std::shared_ptr<BooleanSwitchingParameter> parameter =
+  std::dynamic_pointer_cast<BooleanSwitchingParameter> ( p ); 
   std::vector<int64_t> result ( dimension_ );
   if ( dimension_ != domain . size () ) { 
     std::cout << "error. BooleanSwitchingParameter::closestFace. "
@@ -258,13 +258,14 @@ BooleanSwitchingParameterSpace::closestFace
   // End
   for ( BooleanSwitching::Node const& node : network_ ) {
     uint64_t code = 0;
+    uint64_t sweep_bit = 1;
     for ( std::vector<int64_t> const& factor : node . logic ) {
       for ( int64_t in_node : factor ) {
-        code <<= 1;
         bool bit = state [ std::make_pair ( std::abs(in_node), 
                            node . index ) ];
-        if ( in_node < 0 ) bit = not bit; // Take int64_to account down-regulation
-        if ( bit ) ++ code;
+        if ( in_node < 0 ) bit = not bit; // Take into account down-regulation
+        if ( bit ) code |= sweep_bit;
+        sweep_bit <<= 1LL;
       }
     }
     // Note. Input code for node (node . index) has been established
@@ -277,6 +278,14 @@ BooleanSwitchingParameterSpace::closestFace
     else if ( bin == domain [ d ] ) result [ d ] = 1;
     else if ( bin > domain [ d ] ) result [ d ] = 2;    
   }
+
+  /// DEBUG
+  //std::cout << "domain:\n";
+  //for ( auto x : domain ) std::cout << x << " ";
+  //std::cout << "\nclosestFace result:\n";
+  //for ( auto x : result ) std::cout << x << " ";
+  //std::cout << "\n\n";
+  /// END DEBUG
   return result;
 }
 
@@ -300,10 +309,10 @@ BooleanSwitchingParameterSpace::factorGraph ( int64_t i ) const {
 }
 
 inline std::string BooleanSwitchingParameterSpace::
-prettyPrint ( boost::shared_ptr<Parameter> parameter ) const {
+prettyPrint ( std::shared_ptr<Parameter> parameter ) const {
   std::stringstream result;
   const BooleanSwitchingParameter & p = 
-      * boost::dynamic_pointer_cast<BooleanSwitchingParameter> ( parameter );
+      * std::dynamic_pointer_cast<BooleanSwitchingParameter> ( parameter );
   for ( int64_t d = 0; d < dimension_; ++ d ) {
     BooleanSwitching::Node node = network_ . node ( d + 1 );
     std::string symbol = network_ . name ( node . index );

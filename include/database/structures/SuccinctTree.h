@@ -7,7 +7,7 @@
 /// provides an implementation of a full binary tree using SDSL.
 #include <exception>
 #include "boost/foreach.hpp"
-#include "boost/shared_ptr.hpp"
+#include <memory>
 #include "boost/iterator/counting_iterator.hpp"
 #include "boost/archive/text_oarchive.hpp"
 #include "boost/archive/text_iarchive.hpp"
@@ -36,7 +36,7 @@ public:
 
   /// assign
   ///   Reset structure as if it had been constructed with leaf_sequence
-  virtual void assign ( boost::shared_ptr<const CompressedTree> compressed );
+  virtual void assign ( std::shared_ptr<const CompressedTree> compressed );
 
   /// assignFromLeafSequence 
   void assignFromLeafSequence ( const std::vector<bool> & leaf_sequence );
@@ -115,7 +115,7 @@ SuccinctTree::SuccinctTree ( void ) {
 }
 
 inline void 
-SuccinctTree::assign ( boost::shared_ptr<const CompressedTree> compressed ) {
+SuccinctTree::assign ( std::shared_ptr<const CompressedTree> compressed ) {
   const std::vector < bool > & leaf_sequence = compressed -> leaf_sequence;
   assignFromLeafSequence ( leaf_sequence );
 }

@@ -9,7 +9,7 @@
 #include <exception>
 #include <vector>
 
-#include "boost/shared_ptr.hpp"
+#include <memory>
 #include "boost/thread.hpp"
 #include "boost/chrono/chrono_io.hpp"
 
@@ -56,7 +56,7 @@ void MorseProcess::initialize ( void ) {
   std::cout << "MorseProcess::initialize. Iterating through patches.\n";
   size_t num_calc = 0;
   while ( 1 ) {
-    boost::shared_ptr<ParameterPatch> p = parameter_space_ -> patch ();
+    std::shared_ptr<ParameterPatch> p = parameter_space_ -> patch ();
     if ( not p ) {
       throw std::logic_error("Error. MorseProcess::initialize. Unable to obtain patch from parameter space.\n");
     }
@@ -95,7 +95,7 @@ int MorseProcess::prepare ( Message & job ) {
   std::cout << "MorseProcess::prepare: Preparing job " << job_number << "\n";
   
   // Obtain patch 
-  boost::shared_ptr<ParameterPatch> patch = parameter_space_ -> patch ();
+  std::shared_ptr<ParameterPatch> patch = parameter_space_ -> patch ();
   
   // prepare the message with the job to be sent
   job << job_number;

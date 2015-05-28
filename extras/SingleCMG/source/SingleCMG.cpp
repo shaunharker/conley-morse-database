@@ -52,14 +52,14 @@ BOOST_CLASS_EXPORT_IMPLEMENT(PointerGrid);
 /* FORWARD DECLARATIONS  */
 /*************************/
 void computeMorseGraph (MorseGraph & morsegraph,
-                        boost::shared_ptr<const Map> map,
+                        std::shared_ptr<const Map> map,
                         const int SINGLECMG_INIT_PHASE_SUBDIVISIONS,
                         const int SINGLECMG_MIN_PHASE_SUBDIVISIONS,
                         const int SINGLECMG_MAX_PHASE_SUBDIVISIONS,
                         const int SINGLECMG_COMPLEXITY_LIMIT,
                         const char * outputfile = NULL );
 void computeConleyMorseGraph (MorseGraph & morsegraph,
-                              boost::shared_ptr<const Map> map,
+                              std::shared_ptr<const Map> map,
                               const char * outputfile = NULL,
                               const char * inputfile = NULL );
 
@@ -68,7 +68,7 @@ void computeConleyMorseGraph (MorseGraph & morsegraph,
 /* Computation of Morse Graph  */
 /*******************************/
 void computeMorseGraph ( MorseGraph & morsegraph,
-                        boost::shared_ptr<const Map> map,
+                        std::shared_ptr<const Map> map,
                         const int SINGLECMG_INIT_PHASE_SUBDIVISIONS,
                         const int SINGLECMG_MIN_PHASE_SUBDIVISIONS,
                         const int SINGLECMG_MAX_PHASE_SUBDIVISIONS,
@@ -77,7 +77,7 @@ void computeMorseGraph ( MorseGraph & morsegraph,
 #ifdef CMG_VERBOSE
   std::cout << "SingleCMG: computeMorseGraph.\n";
 #endif
-  boost::shared_ptr < Grid > phase_space = morsegraph . phaseSpace ();
+  std::shared_ptr < Grid > phase_space = morsegraph . phaseSpace ();
   clock_t start_time = clock ();
   Compute_Morse_Graph ( & morsegraph,
                        phase_space,
@@ -107,15 +107,15 @@ void computeMorseGraph ( MorseGraph & morsegraph,
 /* Computation of Conley Morse Graph  */
 /**************************************/
 void computeConleyMorseGraph ( MorseGraph & morsegraph,
-                              boost::shared_ptr<const Map> map,
+                              std::shared_ptr<const Map> map,
                               const char * outputfile,
                               const char * inputfile ) {
   std::cout << "SingleCMG: computeConleyMorseGraph.\n";
   if ( inputfile != NULL ) {
     morsegraph . load ( inputfile );
   }
-  boost::shared_ptr < TreeGrid > phase_space = 
-    boost::dynamic_pointer_cast<TreeGrid> ( morsegraph . phaseSpace () );
+  std::shared_ptr < TreeGrid > phase_space = 
+    std::dynamic_pointer_cast<TreeGrid> ( morsegraph . phaseSpace () );
   if ( not phase_space ) {
     std::cout << "Cannot interface with chomp for this grid type.\n";
     std::cout << " (not producing .cmg file.)\n";
@@ -126,17 +126,20 @@ void computeConleyMorseGraph ( MorseGraph & morsegraph,
 #endif
   typedef std::vector < Grid::GridElement > Subset;
   for ( size_t v = 0; v < morsegraph . NumVertices (); ++ v) {
+    //std::cout << "Calling subset on phase space with size " << phase_space -> size () << ".\n";
+    //std::cout << "Argument grid has " << morsegraph . grid ( v ) -> size () << " grid elements.\n";
     Subset subset = phase_space -> subset ( * morsegraph . grid ( v ) );
 #ifdef CMG_VERBOSE
     std::cout << "Calling Conley_Index on Morse Set " << v << "\n";
 #endif
-    boost::shared_ptr<chomp::ConleyIndex_t> conley ( new chomp::ConleyIndex_t );
+    std::shared_ptr<chomp::ConleyIndex_t> conley ( new chomp::ConleyIndex_t );
     morsegraph . conleyIndex ( v ) = conley;
     ChompMap chomp_map ( map );
     chomp::ConleyIndex ( conley . get (),
                         *phase_space,
                         subset,
                         chomp_map );
+    std::cout << "return\n";
     
   }
   if ( outputfile != NULL ) {
@@ -159,7 +162,7 @@ int main ( int argc, char * argv [] ) {
   /* INITIALIZE THE MODEL */
   Model model;
   model . initialize ( argc, argv );
-  boost::shared_ptr<const Map> map = model . map ();
+  std::shared_ptr<const Map> map = model . map ();
 
 #ifdef COMPUTE_MORSE_SETS
 
@@ -193,8 +196,8 @@ int main ( int argc, char * argv [] ) {
 
 #ifdef DRAW_IMAGES
   /* DRAW IMAGES ***********************************************************/
-  boost::shared_ptr<TreeGrid> cmg_treegrid =
-     boost::dynamic_pointer_cast<TreeGrid> ( morsegraph . phaseSpace () );
+  std::shared_ptr<TreeGrid> cmg_treegrid =
+     std::dynamic_pointer_cast<TreeGrid> ( morsegraph . phaseSpace () );
 
   if ( cmg_treegrid && cmg_treegrid -> dimension () == 2 ) {
     TIC;                                                                     

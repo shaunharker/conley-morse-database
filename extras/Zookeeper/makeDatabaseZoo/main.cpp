@@ -28,7 +28,7 @@ BOOST_CLASS_EXPORT_IMPLEMENT(AbstractParameterSpace);
 #include <utility>
 #include <algorithm>
 #include "boost/foreach.hpp"
-#include "boost/shared_ptr.hpp"
+#include <memory>
 #include "boost/unordered_set.hpp"
 #include "boost/unordered_map.hpp"
 #include "../examples/BooleanSwitching/BooleanSwitchingParameterSpace.h"

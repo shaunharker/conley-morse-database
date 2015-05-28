@@ -7,6 +7,7 @@
 #include <iostream>
 #include <vector>
 #include "boost/functional/hash.hpp"
+#include "boost/serialization/split_member.hpp"
 
 /// class BooleanSwitchingParameter
 ///    A smart vertex class representing parameters of interest
@@ -46,9 +47,19 @@ public:
   }
   friend class boost::serialization::access;
   template<class Archive>
+  void load(Archive & ar, const unsigned int version ) {
+    monotonic_function_ . clear ();
+    ar >> boost::serialization::base_object<Parameter>(*this);
+    ar >> monotonic_function_;
+  }
+  template<class Archive>
+  void save(Archive & ar, const unsigned int version ) const {
+    ar << boost::serialization::base_object<Parameter>(*this);
+    ar << monotonic_function_;
+  }
+  template<class Archive>
   void serialize(Archive & ar, const unsigned int version ) {
-    ar & boost::serialization::base_object<Parameter>(*this);
-    ar & monotonic_function_;
+    boost::serialization::split_member(ar, *this, version);
   }
 private:
   virtual void print ( std::ostream & stream ) const {

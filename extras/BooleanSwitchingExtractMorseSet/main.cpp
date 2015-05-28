@@ -23,7 +23,7 @@ BOOST_CLASS_EXPORT_IMPLEMENT(AbstractParameterSpace);
 #include "database/structures/MorseGraph.h"
 #include "database/program/jobs/Compute_Morse_Graph.h"
 #include "boost/foreach.hpp"
-#include "boost/shared_ptr.hpp"
+#include <memory>
 #include "Parameter/BooleanSwitchingParameterSpace.h"
 #include "Parameter/FactorGraph.h"
 #include "database/structures/ParameterSpace.h"
@@ -93,14 +93,14 @@ int main ( int argc, char * argv [] ) {
   // Initialize the model
   Model model;
   model . initialize ( argc-1, argv+1 );
-  boost::shared_ptr<Grid> phase_space = model . phaseSpace ();
+  std::shared_ptr<Grid> phase_space = model . phaseSpace ();
   if ( not phase_space ) {
     throw std::logic_error ( "Clutching_Graph_Job. model.phaseSpace() failed"
                              " to return a valid pointer.\n");
   }
   //
   BooleanSwitchingParameterSpace & boolean_space = *
-  boost::dynamic_pointer_cast<BooleanSwitchingParameterSpace> ( model . parameterSpace () );
+  std::dynamic_pointer_cast<BooleanSwitchingParameterSpace> ( model . parameterSpace () );
 
   walls = model.getWalls(); 
 
@@ -143,8 +143,8 @@ int main ( int argc, char * argv [] ) {
       // store the parameter index
       parameterIndex . push_back ( pindex[ip] );
       //
-      boost::shared_ptr<BooleanSwitchingParameter> p =
-      boost::dynamic_pointer_cast<BooleanSwitchingParameter> ( boolean_space . parameter ( pindex[ip] ) );
+      std::shared_ptr<BooleanSwitchingParameter> p =
+      std::dynamic_pointer_cast<BooleanSwitchingParameter> ( boolean_space . parameter ( pindex[ip] ) );
       //
       // store the parameter inequalities
       parameterInequalities . push_back ( boolean_space . prettyPrint(p) );
@@ -179,7 +179,7 @@ oofile . close();
 //      parameterfile << boolean_space . prettyPrint ( p );
 //      parameterfile << "\n\n";
       //
-      boost::shared_ptr<const Map> map = model . map ( p );
+      std::shared_ptr<const Map> map = model . map ( p );
       if ( not map ) {
         std::cout << "No map with mgccp index " << imgccp << "and with parameter " <<
         *p << "!.\n";
@@ -225,7 +225,7 @@ oofile . close();
         //
         // Check against the given incc 
         if (  my_incc_index == incc ) {
-          boost::shared_ptr<const Grid> my_subgrid ( mg . grid ( *it ) );
+          std::shared_ptr<const Grid> my_subgrid ( mg . grid ( *it ) );
           //
           if ( not my_subgrid ) {
             std::cout << "Abort! This vertex does not have an associated grid!\n";
@@ -235,10 +235,10 @@ oofile . close();
           //
           std::set <uint64_t> wallsMSid;
           BOOST_FOREACH ( Grid::GridElement ge, my_subset ) {
-            if ( not boost::dynamic_pointer_cast < AtlasGeo > ( phase_space -> geometry ( ge ) ) ) {
+            if ( not std::dynamic_pointer_cast < AtlasGeo > ( phase_space -> geometry ( ge ) ) ) {
               std::cout << "Unexpected null response from geometry\n";
             }
-            AtlasGeo geo = * boost::dynamic_pointer_cast < AtlasGeo > ( phase_space -> geometry ( ge ) );
+            AtlasGeo geo = * std::dynamic_pointer_cast < AtlasGeo > ( phase_space -> geometry ( ge ) );
             RectGeo box =  geo . rect ();
             int id = geo . id ();
 

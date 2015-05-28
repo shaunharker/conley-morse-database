@@ -7,7 +7,7 @@
 #include <random>
 #include "database/structures/ParameterSpace.h"
 
-#include "boost/shared_ptr.hpp"
+#include <memory>
 #include "boost/serialization/serialization.hpp"
 #include <boost/serialization/vector.hpp>
 #include "boost/serialization/export.hpp"
@@ -31,14 +31,14 @@ public:
 
 	/// parameter
 	///    Return the parameter object associated with a vertex
-	virtual boost::shared_ptr<Parameter> 
+	virtual std::shared_ptr<Parameter> 
 	parameter ( ParameterIndex v ) const;
 	
 	/// search
 	///    Given a parameter, find the vertex associated with it
 	///    (This can be used to find a parameter which might contain the other)
 	virtual uint64_t 
-	search ( boost::shared_ptr<Parameter> parameter ) const;
+	search ( std::shared_ptr<Parameter> parameter ) const;
 	
 	/// computeAdjacencyLists
 	///    This routine will call adjacency and populate the adjacency lists
@@ -74,14 +74,14 @@ AbstractParameterSpace::size ( void ) const {
 	return size_;
 }
 
-inline boost::shared_ptr<Parameter> 
+inline std::shared_ptr<Parameter> 
 AbstractParameterSpace::parameter ( ParameterIndex v ) const {
 	std::cerr << "AbstractParameterSpace::parameter is not meant to be called (missing downcast?)\n";
 	throw std::logic_error("AbstractParameterSpace::parameter is not meant to be called (missing downcast?)\n");
 }
 	
 inline uint64_t 
-AbstractParameterSpace::search ( boost::shared_ptr<Parameter> parameter ) const {
+AbstractParameterSpace::search ( std::shared_ptr<Parameter> parameter ) const {
 	std::cerr << "AbstractParameterSpace::search is not meant to be called (missing downcast?)\n";
 	throw std::logic_error("AbstractParameterSpace::search is not meant to be called (missing downcast?)\n");
 }

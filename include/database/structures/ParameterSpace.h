@@ -4,7 +4,7 @@
 #include <vector>
 #include <utility>
 #include "unordered_map"
-#include "boost/shared_ptr.hpp"
+#include <memory>
 #include "boost/serialization/serialization.hpp"
 #include "boost/serialization/vector.hpp"
 #include "boost/serialization/unordered_map.hpp"
@@ -47,7 +47,7 @@ public:
 	typedef uint64_t ParameterIndex;
 	std::vector<ParameterIndex> vertices;
 	std::vector<std::pair<ParameterIndex, ParameterIndex> > edges;
-	std::unordered_map<ParameterIndex, boost::shared_ptr<Parameter> > parameter;
+	std::unordered_map<ParameterIndex, std::shared_ptr<Parameter> > parameter;
 	/// empty
 	/// determine if the ParameterPatch is empty
 	/// this is useful because the ParameterSpace::patch routine
@@ -93,12 +93,12 @@ public:
 
 	/// parameter
 	///    Return the parameter object associated with a vertex
-	virtual boost::shared_ptr<Parameter> parameter ( ParameterIndex v ) const = 0;
+	virtual std::shared_ptr<Parameter> parameter ( ParameterIndex v ) const = 0;
 	
 	/// search
 	///    Given a parameter, find the vertex associated with it
 	///    (This can be used to find a parameter which might contain the other)
-	virtual uint64_t search ( boost::shared_ptr<Parameter> parameter ) const = 0;
+	virtual uint64_t search ( std::shared_ptr<Parameter> parameter ) const = 0;
 	
 	/// patch
 	///    Return a "ParameterPatch" object
@@ -110,7 +110,7 @@ public:
 	///    sequence will restart.
 	///    The default implementation returns patches that consist of two vertices
 	///    and the edge between them.
-	virtual boost::shared_ptr<ParameterPatch> patch ( void ) const;
+	virtual std::shared_ptr<ParameterPatch> patch ( void ) const;
 
 	/// begin
 	///    Return "begin" iterator
@@ -141,10 +141,10 @@ private:
 // Definitions //
 /////////////////
 
-inline boost::shared_ptr<ParameterPatch> 
+inline std::shared_ptr<ParameterPatch> 
 ParameterSpace::patch ( void ) const {
   //std::cout << "ParameterSpace::patch.\n"; // DEBUG
-	boost::shared_ptr<ParameterPatch> result ( new ParameterPatch );
+	std::shared_ptr<ParameterPatch> result ( new ParameterPatch );
 	while ( 1 ) {
 		if ( default_patch_method_edge_ == 0 ) {
 			if ( default_patch_method_vertex_ == size () ) { 

@@ -9,7 +9,7 @@
 
 #include <stdexcept>
 #include <memory>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 class OdeMap {
 public:
@@ -21,9 +21,9 @@ public:
   mutable int order;
   mutable double integrationTime;
   
-  mutable boost::shared_ptr<capd::IMap> f;
-  mutable boost::shared_ptr< capd::ITaylor > solver;
-  mutable boost::shared_ptr< capd::ITimeMap> timeMap;
+  mutable std::shared_ptr<capd::IMap> f;
+  mutable std::shared_ptr< capd::ITaylor > solver;
+  mutable std::shared_ptr< capd::ITimeMap> timeMap;
   
   mutable bool exception_thrown;
   
@@ -57,8 +57,8 @@ public:
     return result;
   }
 
-  RectGeo operator () ( const boost::shared_ptr<Geo> & geo ) const {   
-    return operator () ( * boost::dynamic_pointer_cast<RectGeo> ( geo ) );
+  RectGeo operator () ( const std::shared_ptr<Geo> & geo ) const {   
+    return operator () ( * std::dynamic_pointer_cast<RectGeo> ( geo ) );
   }
 
   Rect operator () ( const Rect & rectangle ) const {

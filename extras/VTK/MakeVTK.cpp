@@ -49,7 +49,7 @@ int main ( int argc, char * argv [] ) {
       std::cout << "\r" << progresspercent << "%    ";
       std::cout . flush ();
     }
-    RectGeo rect = * boost::dynamic_pointer_cast<RectGeo> 
+    RectGeo rect = * std::dynamic_pointer_cast<RectGeo> 
       ( cmg . phaseSpace () -> geometry ( i ) ); 
     for ( int k = 0; k < 8; ++ k ) {
       double x = (k&1)?rect.upper_bounds[0]:rect.lower_bounds[0];
@@ -97,7 +97,7 @@ int main ( int argc, char * argv [] ) {
       std::cout << "\r" << progresspercent << "%    ";
       std::cout . flush ();
     }
-    RectGeo rect = * boost::dynamic_pointer_cast<RectGeo> 
+    RectGeo rect = * std::dynamic_pointer_cast<RectGeo> 
      ( cmg . phaseSpace () -> geometry ( i ) ); 
     vtk_file << "8";
     for ( int k = 0; k < 8; ++ k ) {
@@ -132,7 +132,7 @@ int main ( int argc, char * argv [] ) {
       std::cout << "\r" << progresspercent << "%    ";
       std::cout . flush ();
     }
-     RectGeo rect = * boost::dynamic_pointer_cast<RectGeo> 
+     RectGeo rect = * std::dynamic_pointer_cast<RectGeo> 
       ( cmg . phaseSpace () -> geometry ( i ) );
     double intensity;
     lyapunov_file >> intensity;

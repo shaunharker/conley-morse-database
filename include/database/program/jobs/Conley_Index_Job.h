@@ -38,15 +38,15 @@ void Conley_Index_Job ( Message * result,
 class ConleyIndexThread {
 private:
   chomp::ConleyIndex_t * ci_matrix;
-  boost::shared_ptr<TreeGrid> phase_space;
+  std::shared_ptr<TreeGrid> phase_space;
   std::vector < Grid::GridElement > * subset;
-  boost::shared_ptr<const Map> map;
+  std::shared_ptr<const Map> map;
   bool * computed;
 public:
   ConleyIndexThread(  chomp::ConleyIndex_t * ci_matrix,
-                      boost::shared_ptr<TreeGrid> phase_space,
+                      std::shared_ptr<TreeGrid> phase_space,
                       std::vector < Grid::GridElement > * subset,
-                      boost::shared_ptr<const Map> map,
+                      std::shared_ptr<const Map> map,
                       bool * computed ) 
   : ci_matrix(ci_matrix), phase_space(phase_space), subset(subset), map(map), computed(computed) {}
   void operator () ( void ) {
@@ -69,7 +69,7 @@ Conley_Index_Job ( Message * result,
   // Read job
   size_t job_number;
   uint64_t incc;
-  boost::shared_ptr<Parameter> parameter;
+  std::shared_ptr<Parameter> parameter;
   uint64_t ms;
   int PHASE_SUBDIV_INIT;
   int PHASE_SUBDIV_MIN;
@@ -92,8 +92,8 @@ Conley_Index_Job ( Message * result,
   // Compute Morse Graph
   MorseGraph mg;
   
-  boost::shared_ptr<TreeGrid> phase_space = 
-    boost::dynamic_pointer_cast<TreeGrid> ( model . phaseSpace () );
+  std::shared_ptr<TreeGrid> phase_space = 
+    std::dynamic_pointer_cast<TreeGrid> ( model . phaseSpace () );
   if ( not phase_space ) {
     // e.g. Phase Space is of Atlas type
     int error_code = 3; // Homology algorithms not implemented
@@ -105,7 +105,7 @@ Conley_Index_Job ( Message * result,
     * result << ci_data;
     return;
   }
-  boost::shared_ptr<const Map> map = model . map ( parameter );
+  std::shared_ptr<const Map> map = model . map ( parameter );
 
   std::cout << "CIJ: calling Compute_Morse_Graph\n";
   

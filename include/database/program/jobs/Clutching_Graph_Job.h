@@ -48,7 +48,7 @@ Clutching_Graph_Job ( Message * result,
                       const Model & model ) {
   
   // Read Job Message
-  boost::shared_ptr<ParameterPatch> patch;
+  std::shared_ptr<ParameterPatch> patch;
   int PHASE_SUBDIV_INIT;
   int PHASE_SUBDIV_MIN;
   int PHASE_SUBDIV_MAX;
@@ -75,21 +75,21 @@ Clutching_Graph_Job ( Message * result,
   size_t count = 0;
   BOOST_FOREACH ( uint64_t vertex, patch -> vertices ) {
     // Obtain parameter associated with vertex
-    boost::shared_ptr<Parameter> parameter = patch -> parameter [ vertex ];
+    std::shared_ptr<Parameter> parameter = patch -> parameter [ vertex ];
     
     // Debug output
     std::cout << "Clutching_Graph_Job. Processing parameter " << *parameter 
               << ", which is " << ++count << "/" << num_parameters << ".\n "; 
 
     // Prepare dynamical map
-    boost::shared_ptr<const Map> map = model . map ( parameter );
+    std::shared_ptr<const Map> map = model . map ( parameter );
     if ( not map ) {
       std::cout << "Clutching_Graph_Job. No map associated with parameter " <<
         *parameter << "; continuing.\n";
       continue;
     }
     // Prepare phase space
-    boost::shared_ptr<Grid> phase_space = model . phaseSpace ();    
+    std::shared_ptr<Grid> phase_space = model . phaseSpace ();    
     if ( not phase_space ) {
       throw std::logic_error ( "Clutching_Graph_Job. model.phaseSpace() failed" 
                                " to return a valid pointer.\n");

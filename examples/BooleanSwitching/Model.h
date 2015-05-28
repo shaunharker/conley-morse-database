@@ -9,7 +9,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "boost/shared_ptr.hpp"
+#include <memory>
 
 #include "database/structures/Atlas.h"
 
@@ -41,16 +41,16 @@ public:
 
   /// parameterSpace
   ///   return a shared ptr to the parameter space
-  boost::shared_ptr < ParameterSpace > parameterSpace ( void ) const;
+  std::shared_ptr < ParameterSpace > parameterSpace ( void ) const;
   
   /// phaseSpace
   ///   return a shared ptr to the phase space
-  boost::shared_ptr < Grid > phaseSpace ( void ) const;
+  std::shared_ptr < Grid > phaseSpace ( void ) const;
 
   /// map
   ///   return a shared ptr to a map function object corresponding to 
   ///   parameter p
-  boost::shared_ptr < const Map > map ( boost::shared_ptr<Parameter> p ) const;
+  std::shared_ptr < const Map > map ( std::shared_ptr<Parameter> p ) const;
 
   /// annotate
   ///   Given a MorseGraph, provide annotations.
@@ -63,11 +63,11 @@ public:
   std::unordered_map <size_t, Wall >  getWalls ( void ) const;
 
   /// get the maps between walls
-  std::vector< std::pair<int64_t,int64_t> > getWallMaps ( boost::shared_ptr<Parameter> p ) const;
+  std::vector< std::pair<int64_t,int64_t> > getWallMaps ( std::shared_ptr<Parameter> p ) const;
 
 private:
   Configuration config_;
-  boost::shared_ptr < BooleanSwitchingParameterSpace > parameter_space_;
+  std::shared_ptr < BooleanSwitchingParameterSpace > parameter_space_;
   int64_t phase_space_dimension_;
   MultiDimensionalIndices domains_;
   std::unordered_map<Wall, size_t> walls_;
@@ -75,7 +75,7 @@ private:
   bool validateMorseGraph ( MorseGraph * mg_in ) const;
  
   std::vector < std::string > constructAnnotationsMorseSet (
-                                  const boost::shared_ptr<Grid> & phasespace,
+                                  const std::shared_ptr<Grid> & phasespace,
                                   const CellContainer & subset ) const;
 
   bool hasAllStatesOn ( const Wall & wall ) const;
@@ -122,14 +122,14 @@ Model::initialize ( int argc, char * argv [] ) {
   std::cout << "Model::initialize. Initialization complete.\n";
 }
 
-inline boost::shared_ptr < ParameterSpace > 
+inline std::shared_ptr < ParameterSpace > 
 Model::parameterSpace ( void ) const {
-  return boost::dynamic_pointer_cast<ParameterSpace> ( parameter_space_ );
+  return std::dynamic_pointer_cast<ParameterSpace> ( parameter_space_ );
 }
 
-inline boost::shared_ptr < Grid > 
+inline std::shared_ptr < Grid > 
 Model::phaseSpace ( void ) const {
-  boost::shared_ptr < Atlas > space ( new Atlas );
+  std::shared_ptr < Atlas > space ( new Atlas );
   typedef std::pair<Wall, size_t> WallIndexPair;
   for ( WallIndexPair const& wall_index_pair : walls_ ) {
     const Wall & wall = wall_index_pair . first;
@@ -138,12 +138,12 @@ Model::phaseSpace ( void ) const {
     space -> add_chart ( wall_id, rect );
   }
   space -> finalize ();
-  return boost::dynamic_pointer_cast<Grid> ( space );
+  return std::dynamic_pointer_cast<Grid> ( space );
 }
 
-inline boost::shared_ptr < const Map > 
-Model::map ( boost::shared_ptr<Parameter> p) const { 
-  boost::shared_ptr < ModelMap > atlasmap ( new ModelMap );
+inline std::shared_ptr < const Map > 
+Model::map ( std::shared_ptr<Parameter> p) const { 
+  std::shared_ptr < ModelMap > atlasmap ( new ModelMap );
   // Loop through domains and add wall maps
   for ( std::vector<size_t> const& domain : domains_ ) {
     typedef std::pair<int64_t, int64_t> intPair;
@@ -221,7 +221,7 @@ std::unordered_map <size_t,Wall>  Model::getWalls ( void ) const {
 } 
 
 inline
-std::vector< std::pair<int64_t,int64_t> > Model::getWallMaps ( boost::shared_ptr<Parameter> p ) const {
+std::vector< std::pair<int64_t,int64_t> > Model::getWallMaps ( std::shared_ptr<Parameter> p ) const {
   //  similar method to map
   std::vector< std::pair<int64_t,int64_t> > output;
   //
@@ -244,7 +244,7 @@ std::vector< std::pair<int64_t,int64_t> > Model::getWallMaps ( boost::shared_ptr
 
 inline bool Model::validateMorseGraph ( MorseGraph * mg_in ) const {
   MorseGraph & mg = *mg_in;
-  boost::shared_ptr < Grid > atlas = phaseSpace ( );
+  std::shared_ptr < Grid > atlas = phaseSpace ( );
   // To validate a Morse Graph we need :
   // condition1 && !condition2 && condition3
   bool c1, c2, c3;
@@ -252,7 +252,7 @@ inline bool Model::validateMorseGraph ( MorseGraph * mg_in ) const {
   c2 = false;
   c3 = false;
   for ( int v = 0; v < mg.NumVertices(); ++ v ) {
-    boost::shared_ptr<const Grid> my_subgrid ( mg . grid ( v ) );
+    std::shared_ptr<const Grid> my_subgrid ( mg . grid ( v ) );
     if ( not my_subgrid ) {
       std::cout << "Abort! This vertex does not have an associated grid!\n";
       abort ();
@@ -282,7 +282,7 @@ inline bool Model::validateMorseGraph ( MorseGraph * mg_in ) const {
 
 inline
 std::vector < std::string > Model::constructAnnotationsMorseSet (
-                                    const boost::shared_ptr<Grid> & phasespace,
+                                    const std::shared_ptr<Grid> & phasespace,
                                     const CellContainer & subset ) const {
   std::vector < std::string > annotation;
   bool condition0, condition1, condition2, condition3, condition4;
@@ -295,10 +295,10 @@ std::vector < std::string > Model::constructAnnotationsMorseSet (
   std::set < int > wallVariables;
   // Loop through the grid elements of the morse set
   BOOST_FOREACH ( Grid::GridElement ge, subset ) {
-    if ( not boost::dynamic_pointer_cast < AtlasGeo > ( phasespace -> geometry ( ge ) ) ) {
+    if ( not std::dynamic_pointer_cast < AtlasGeo > ( phasespace -> geometry ( ge ) ) ) {
       std::cout << "Unexpected null response from geometry\n";
     }
-    AtlasGeo geo = * boost::dynamic_pointer_cast < AtlasGeo > ( phasespace -> geometry ( ge ) );
+    AtlasGeo geo = * std::dynamic_pointer_cast < AtlasGeo > ( phasespace -> geometry ( ge ) );
     size_t id = geo . id ( );      
     Wall wall = chartIdToWall_ . find ( id ) -> second;
     if ( wall . isFixedPoint() ) {

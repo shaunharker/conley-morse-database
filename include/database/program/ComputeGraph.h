@@ -7,15 +7,14 @@
 #include <boost/archive/text_iarchive.hpp>
 
 #include <boost/serialization/vector.hpp>
-
 #include "boost/serialization/unordered_map.hpp"
+#include "boost/serialization/split_member.hpp"
 
 #include "chomp/Rect.h"
 #include "chomp/Toplex.h"
 
 class MapEvals {
  private:
-  friend class boost::serialization::access;
   chomp::Rect parameter_;
   typedef chomp::Toplex::value_type GridElement;
   std::vector < GridElement > arguments_;
@@ -50,12 +49,23 @@ class MapEvals {
     return arguments_ . size ();
   }
   
-template<class Archive>
-  void serialize(Archive & ar, const unsigned int version)
-  {
-    ar & parameter_;
-    ar & arguments_;
-    ar & values_;
+  friend class boost::serialization::access;
+  template<class Archive>
+  void load(Archive & ar, const unsigned int version ) {
+    arguments_ . clear ();
+    ar >> parameter_;
+    ar >> arguments_;
+    ar >> values_;
+  }
+  template<class Archive>
+  void save(Archive & ar, const unsigned int version ) const {
+    ar << parameter_;
+    ar << arguments_;
+    ar << values_;
+  }
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int version ) {
+    boost::serialization::split_member(ar, *this, version);
   }
 
  void load ( const char * filename ) {

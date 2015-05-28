@@ -29,7 +29,7 @@ BOOST_CLASS_EXPORT_IMPLEMENT(AbstractParameterSpace);
 #include <utility>
 #include <algorithm>
 #include "boost/foreach.hpp"
-#include "boost/shared_ptr.hpp"
+#include <memory>
 #include "boost/unordered_set.hpp"
 #include "boost/unordered_map.hpp"
 #include "../examples/BooleanSwitching/Parameter/BooleanSwitchingParameterSpace.h"
@@ -373,8 +373,8 @@ updateMorseSetSQLcolumns (msdt, annotation_vertex );
 void MGCC_Zoo ( Database const& database,
                 sqlite3 * sqldb,
                int & permutationid,
-                boost::shared_ptr<BooleanSwitchingParameterSpace> parameter_space = 
-                  boost::shared_ptr<BooleanSwitchingParameterSpace> () ) {
+                std::shared_ptr<BooleanSwitchingParameterSpace> parameter_space = 
+                  std::shared_ptr<BooleanSwitchingParameterSpace> () ) {
 
 	// Sort mgcc by frequency
 	// data
@@ -607,7 +607,7 @@ int main ( int argc, char * argv [] ) {
 #endif
     database . performTransitiveReductions ();
     
-    boost::shared_ptr<BooleanSwitchingParameterSpace> parameter_space;
+    std::shared_ptr<BooleanSwitchingParameterSpace> parameter_space;
     
 //    if ( argc > 3 ) {
       // Load Network and Create Parameter Space

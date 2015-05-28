@@ -31,7 +31,7 @@ private:
   Configuration config;
   Database database;
   Model model;
-  boost::shared_ptr<ParameterSpace> parameter_space_;
+  std::shared_ptr<ParameterSpace> parameter_space_;
   size_t num_jobs_sent_;
   size_t num_incc_;
   int64_t current_incc_;

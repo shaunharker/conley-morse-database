@@ -11,12 +11,13 @@
 #include <stack>
 #include <utility>
 #include <boost/foreach.hpp>
-#include "boost/shared_ptr.hpp"
+#include <memory>
 #include "database/structures/Tree.h"
 #include "database/structures/CompressedTree.h"
 #include "boost/serialization/serialization.hpp"
 #include "boost/serialization/vector.hpp"
 #include "boost/serialization/export.hpp"
+#include "boost/serialization/split_member.hpp"
 
 /// PointerTreeNode
 struct PointerTreeNode;
@@ -32,7 +33,7 @@ public:
   virtual bool isLeft ( iterator it ) const;
   virtual bool isRight ( iterator it ) const;
   virtual bool isLeaf ( iterator it ) const;
-  virtual void assign ( boost::shared_ptr<const CompressedTree> compressed );
+  virtual void assign ( std::shared_ptr<const CompressedTree> compressed );
   virtual uint64_t memory ( void ) const;
 private:
   std::vector < PointerTreeNode > nodes_;
@@ -41,6 +42,11 @@ private:
   friend class boost::serialization::access;
   template<typename Archive>
   void serialize(Archive & ar, const unsigned int file_version);
+  template<typename Archive>
+  void load(Archive & ar, const unsigned int file_version);
+  template<typename Archive>
+  void save(Archive & ar, const unsigned int file_version) const;
+
 };
 
 BOOST_CLASS_EXPORT_KEY(PointerTree);
@@ -120,7 +126,7 @@ PointerTree::isLeaf ( iterator it ) const {
 }
 
 inline void 
-PointerTree::assign ( boost::shared_ptr<const CompressedTree> compressed ) {
+PointerTree::assign ( std::shared_ptr<const CompressedTree> compressed ) {
   const bool LEAF = false;
   const bool NOT_A_LEAF = true;
   const std::vector<bool> & leaf_sequence = 
@@ -176,6 +182,40 @@ PointerTree::memory ( void ) const {
          2 * nodes_ . size ();
 }
 
+template<class Archive>
+void PointerTree::save(Archive & ar, const unsigned int version) const
+{
+  ar << boost::serialization::base_object<Tree>(*this);
+  ar << nodes_;
+  ar << parity_;
+  ar << isleaf_;
+}
+
+template<class Archive>
+void PointerTree::load(Archive & ar, const unsigned int version)
+{
+  nodes_.clear();
+  parity_.clear();
+  isleaf_.clear();
+  ar >> boost::serialization::base_object<Tree>(*this);
+  ar >> nodes_;
+  ar >> parity_;
+  ar >> isleaf_;
+}
+
+template<class Archive>
+void PointerTree::serialize(
+    Archive & ar,
+    const unsigned int file_version 
+){
+    boost::serialization::split_member(ar, *this, file_version);
+}
+
+/*
+// Remark. Boost 1.58 seems to have introduced a behavior change in 
+//         vector serialization where loading appends instead
+//         of overwrites.
+
 template<typename Archive> void 
 PointerTree::serialize ( Archive & ar, 
                          const unsigned int file_version ) {
@@ -184,6 +224,7 @@ PointerTree::serialize ( Archive & ar,
   ar & parity_;
   ar & isleaf_;
 }
+*/
 
 // PointerTreeNode Definitions
 

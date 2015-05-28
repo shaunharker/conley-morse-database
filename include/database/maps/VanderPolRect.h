@@ -13,7 +13,7 @@
 #include <stdexcept>
 #include <fstream>
 
-#include "boost/shared_ptr.hpp"
+#include <memory>
 
 class VanderPolRect {
 public:
@@ -23,8 +23,8 @@ public:
   int D;
   mutable int order;
   mutable capd::interval step;
-  mutable boost::shared_ptr<capd::IMap> f;
-  mutable boost::shared_ptr < capd::ITaylor > solver;
+  mutable std::shared_ptr<capd::IMap> f;
+  mutable std::shared_ptr < capd::ITaylor > solver;
   mutable bool exception_thrown;
   
   VanderPolRect ( void ) {
