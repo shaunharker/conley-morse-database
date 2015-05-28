@@ -258,13 +258,14 @@ BooleanSwitchingParameterSpace::closestFace
   // End
   for ( BooleanSwitching::Node const& node : network_ ) {
     uint64_t code = 0;
+    uint64_t sweep_bit = 1;
     for ( std::vector<int64_t> const& factor : node . logic ) {
       for ( int64_t in_node : factor ) {
-        code <<= 1;
         bool bit = state [ std::make_pair ( std::abs(in_node), 
                            node . index ) ];
         if ( in_node < 0 ) bit = not bit; // Take into account down-regulation
-        if ( bit ) ++ code;
+        if ( bit ) code |= sweep_bit;
+        sweep_bit <<= 1LL;
       }
     }
     // Note. Input code for node (node . index) has been established
@@ -277,6 +278,14 @@ BooleanSwitchingParameterSpace::closestFace
     else if ( bin == domain [ d ] ) result [ d ] = 1;
     else if ( bin > domain [ d ] ) result [ d ] = 2;    
   }
+
+  /// DEBUG
+  std::cout << "domain:\n";
+  for ( auto x : domain ) std::cout << x << " ";
+  std::cout << "\nclosestFace result:\n";
+  for ( auto x : result ) std::cout << x << " ";
+  std::cout << "\n\n";
+  /// END DEBUG
   return result;
 }
 
