@@ -140,7 +140,7 @@ ialization/unordered_set.hpp ]; then
     git pull origin master || exit 1
   fi
   echo Running installer script
-  ./install.sh ${PREFIX} || exit 1
+  ./install.sh --prefix=${PREFIX} || exit 1
   cd ..
   echo cluster-delegator installed.
 else
