@@ -2,8 +2,7 @@
 #define CMDB_MORSEPROCESS_H
 
 #include <ctime>
-#include "boost/unordered_set.hpp"
-#include "delegator/delegator.h"
+#include "cluster-delegator.hpp"
 #include "database/structures/Database.h"
 #include "database/program/Configuration.h"
 #include "database/structures/PointerGrid.h"

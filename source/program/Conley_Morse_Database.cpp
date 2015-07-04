@@ -14,7 +14,7 @@
 #include <ctime>
 #include <fstream>
 #define CMG_VERBOSE
-#include "delegator/delegator.h"  /* For Coordinator_Worker_Scheme<>() */
+#include "cluster-delegator.hpp"  /* For Coordinator_Worker_Scheme<>() */
 #ifdef COMPUTE_MORSE_SETS
 #include "database/program/MorseProcess.h"
 #endif

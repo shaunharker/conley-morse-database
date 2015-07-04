@@ -5,7 +5,7 @@
 #ifndef _CMDP_CLUTCHING_GRAPH_JOB_
 #define _CMDP_CLUTCHING_GRAPH_JOB_
 
-#include "delegator/Message.h"
+#include "cluster-delegator.hpp"
 #include "Model.h"
 
 void Clutching_Graph_Job ( Message * result, 

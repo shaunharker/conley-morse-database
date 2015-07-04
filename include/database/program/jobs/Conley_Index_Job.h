@@ -5,7 +5,7 @@
 #ifndef _CMDP_CONLEY_INDEX_JOB_
 #define _CMDP_CONLEY_INDEX_JOB_
 
-#include "delegator/Message.h"
+#include "cluster-delegator.hpp"
 #include "Model.h"
 
 

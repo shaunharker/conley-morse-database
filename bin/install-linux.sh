@@ -10,9 +10,9 @@ echo
 echo ==\> Boost
 if [ ! -d ${PREFIX}/include/boost ]; then
   echo Installing Boost.
-  wget http://downloads.sourceforge.net/project/boost/boost/1.56.0/boost_1_56_0.tar.gz || exit 1
-  tar xvfz boost_1_56_0.tar.gz || exit 1
-  cd boost_1_56_0
+  wget http://downloads.sourceforge.net/project/boost/boost/1.58.0/boost_1_58_0.tar.gz || exit 1
+  tar xvfz boost_1_58_0.tar.gz || exit 1
+  cd boost_1_58_0
   ./bootstrap.sh --prefix=${PREFIX} || exit 1
   ./b2 install || exit 1
   cd ..
@@ -26,7 +26,7 @@ echo ==\> OpenMPI
 echo Checking for OpenMPI.
 if [ "`which mpicxx`" == "" ]; then
   echo Installing OpenMPI.
-  wget http://www.open-mpi.org/software/ompi/v1.8/downloads/openmpi-1.8.1.tar.gz || exit 1
+  wget http://www.open-mpi.org/software/ompi/v1.8/downloads/openmpi-1.8.6.tar.gz || exit 1
   tar xvfz openmpi-1.8.1 || exit 1
   cd openmpi-1.8.1 
   ./configure --prefix=${PREFIX} || exit 1
@@ -92,9 +92,9 @@ echo ==\> CImg
 echo Checking for CImg.
 if [ ! -f ${PREFIX}/include/CImg.h ]; then
   echo Not found. Installing CImg.
-  wget http://downloads.sourceforge.net/project/cimg/CImg_1.6.1.zip || exit 1
-  unzip CImg_1.6.1.zip || exit 1
-  mv CImg-1.6.1/CImg.h ${PREFIX}/include/CImg.h || exit 1
+  wget http://cimg.eu/files/CImg_1.6.4.zip || exit 1
+  unzip CImg_1.6.4.zip || exit 1
+  mv CImg-1.6.4/CImg.h ${PREFIX}/include/CImg.h || exit 1
   echo CImg now installed.
 else
   echo CImg already installed.
@@ -108,7 +108,7 @@ if [ ! -d ${PREFIX}/include/chomp ]; then
   echo CHomP not found.
   if [ ! -d CHomP ]; then
     echo Cloning CHomP repository
-    git clone https://github.com/sharker81/CHomP.git || exit 1
+    git clone https://github.com/shaunharker/CHomP.git || exit 1
     cd CHomP
   else
     echo Found CHomP repository
@@ -116,7 +116,7 @@ if [ ! -d ${PREFIX}/include/chomp ]; then
     git pull origin master || exit 1
   fi
   echo Installing CHomP
-  ./install.sh ${PREFIX} || exit 1
+  ./install.sh --prefix=${PREFIX} || exit 1
   cd .. || exit 1
   echo CHomP installed.
 else
@@ -127,12 +127,11 @@ fi
 echo
 echo ==\> cluster-delegator
 echo Checking for cluster-delegator.
-if [ ! -d ${PREFIX}/include/delegator ] || [ ! -f ${PREFIX}/include/boost/ser\
-ialization/unordered_set.hpp ]; then
+if [ ! -f ${PREFIX}/include/cluster-delegator.hpp ]; then
   echo Not found.
   if [ ! -d cluster-delegator ]; then
     echo Cloning cluster-delegator repository
-    git clone https://github.com/sharker81/cluster-delegator.git || exit 1
+    git clone https://github.com/shaunharker/cluster-delegator.git || exit 1
     cd cluster-delegator
   else
     echo Found cluster-delegator repository

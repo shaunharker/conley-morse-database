@@ -7,8 +7,10 @@ PREFIX=$1
 cd ..
 
 # Relax permissions of /usr/local
-chown -R $USER:admin /usr/local 2> error.log || (echo "The installer would like to change the permissions of /usr/local for Homebrew." && echo "This requires a password." && echo "Note: if you do not want to use Homebrew then quit this installer and install the prerequisites by hand." && sudo -k chown -R $USER:admin /usr/local)
-rm error.log
+if [ ! -w /usr/local ]; then
+  echo Cannot write to /usr/local -- try installing homebrew first. http://brew.sh
+  exit 1
+fi
 
 # Homebrew
 echo
@@ -53,7 +55,7 @@ if [ ! -d /usr/local/include/boost ]; then
   echo Boost needs to be installed.
   if [ ! -d /usr/local/Cellar/boost ]; then
     echo Brewing Boost with Homebrew.
-    brew install boost --c++11 || exit 1
+    brew install boost || exit 1
   else
     echo Linking Boost from Homebrew Cellar.
     (brew unlink boost && brew link boost) || exit 1
@@ -61,14 +63,6 @@ if [ ! -d /usr/local/include/boost ]; then
   echo Boost now installed.
 else
   echo Boost already installed.
-fi
-
-# For some reason Boost is not creating a couple needed links
-if [ ! -f /usr/local/lib/libboost_thread.a ]; then
-  ln -s /usr/local/lib/libboost_thread-mt.a \
-        /usr/local/lib/libboost_thread.a
-  ln -s	/usr/local/lib/libboost_thread-mt.dylib \
-        /usr/local/lib/libboost_thread.dylib
 fi
 
 # Open-MPI
@@ -122,11 +116,11 @@ fi
 echo
 echo ==\> cluster-delegator
 echo Checking for cluster-delegator.
-if [ ! -d /usr/local/include/delegator ] || [ ! -f /usr/local/include/boost/serialization/unordered_set.hpp ]; then
+if [ ! -f /usr/local/include/cluster-delegator.hpp ]; then
   echo Not found.
   if [ ! -d cluster-delegator ]; then
     echo Cloning cluster-delegator repository 
-    git clone https://github.com/sharker81/cluster-delegator.git || exit 1
+    git clone https://github.com/shaunharker/cluster-delegator.git || exit 1
     cd cluster-delegator
   else
     echo Found cluster-delegator repository
@@ -164,7 +158,7 @@ if [ ! -d /usr/local/include/chomp ]; then
   echo CHomP not found.
   if [ ! -d CHomP ]; then
     echo Cloning CHomP repository
-    git clone https://github.com/sharker81/CHomP.git || exit 1
+    git clone https://github.com/shaunharker/CHomP.git || exit 1
     cd CHomP
   else
     echo Found CHomP repository
@@ -194,4 +188,4 @@ fi
 
 cd conley-morse-database
 echo "PREREQ=/opt/X11 /usr/local" > makefile.dep
-echo "USER_CXX_FLAGS=-stdlib=libc++" >> makefile.dep
+#echo "USER_CXX_FLAGS=-stdlib=libc++" >> makefile.dep

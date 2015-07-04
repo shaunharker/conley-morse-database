@@ -1,7 +1,7 @@
 #ifndef CMDB_CONLEYPROCESS_H
 #define CMDB_CONLEYPROCESS_H
 
-#include "delegator/delegator.h"
+#include "cluster-delegator.h"
 #include "database/structures/Database.h"
 #include "database/program/Configuration.h"
 #include "boost/date_time/posix_time/posix_time.hpp"

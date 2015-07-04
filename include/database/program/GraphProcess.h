@@ -4,7 +4,7 @@
 #include "database/program/ComputeGraph.h"
 #include "ModelMap.h"
 
-#include "delegator/delegator.h"
+#include "cluster-delegator.h"
 /* * * * * * * * * * * * * * */
 /* GraphProcess declaration */
 /* * * * * * * * * * * * * * */
