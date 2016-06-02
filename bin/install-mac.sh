@@ -4,7 +4,9 @@ echo You have Mac OS X Version ${OSVERSION}
 echo Note: If your version is below 10.9 you may experience problems.
 
 PREFIX=$1
-cd ..
+
+mkdir -p dependencies
+cd dependencies
 
 # Relax permissions of /usr/local
 if [ ! -w /usr/local ]; then
@@ -38,7 +40,6 @@ else
 fi
 
 # Boost
-
 echo
 echo ==\> Boost
 echo Checking for Boost.
@@ -117,7 +118,6 @@ echo
 echo ==\> cluster-delegator
 echo Checking for cluster-delegator.
 if [ ! -f /usr/local/include/cluster-delegator.hpp ]; then
-  echo Not found.
   if [ ! -d cluster-delegator ]; then
     echo Cloning cluster-delegator repository 
     git clone https://github.com/shaunharker/cluster-delegator.git || exit 1
@@ -128,7 +128,7 @@ if [ ! -f /usr/local/include/cluster-delegator.hpp ]; then
     git pull origin master || exit 1
   fi
   echo Running installer script
-  ./install.sh || exit 1
+  ./install.sh &> cluster-delegator-install.log || exit 1
   cd ..
   echo cluster-delegator installed.
 else
@@ -141,11 +141,12 @@ echo ==\> X11
 echo Checking for X11 \(XQuartz\).
 if [ ! -d /opt/X11 ]; then
   echo Installing XQuartz from
-  echo http://xquartz.macosforge.org/landing/
-  curl http://xquartz-dl.macosforge.org/SL/XQuartz-2.7.6.dmg -o ~/Downloads/XQuartz-2.7.6.dmg || (echo "Download failed. Please install XQuartz manually" && exit 1)
-  hdiutil attach ~/Downloads/XQuartz-2.7.6.dmg
-  sudo installer -pkg /Volumes/XQuartz-2.7.6/XQuartz.pkg -target /
-  hdiutil detach /Volumes/XQuartz-2.7.6
+  echo https://dl.bintray.com/xquartz/downloads/XQuartz-2.7.9.dmg
+  curl -L -k https://dl.bintray.com/xquartz/downloads/XQuartz-2.7.9.dmg -o ~/Downloads/XQuartz-2.7.9.dmg || (echo "Download failed. Please install XQuartz manually" && exit 1)
+  hdiutil attach ~/Downloads/XQuartz-2.7.9.dmg
+  echo The installer would like to install XQuartz-2.7.9 and may prompt for a password.
+  sudo installer -pkg /Volumes/XQuartz-2.7.9/XQuartz.pkg -target /
+  hdiutil detach /Volumes/XQuartz-2.7.9
 else
   echo X11 already installed.
 fi
@@ -180,12 +181,11 @@ echo Checking for GraphViz.
 if [ "`which dot`" == "" ]; then
   echo Not found.
   echo Installing GraphViz from www.graphviz.org
-  curl http://www.graphviz.org/pub/graphviz/stable/macos/mountainlion/graphviz-2.36.0.pkg -o graphviz-2.36.0.pkg || (echo "Download failed. Please install GraphViz manually" && exit 1)
-  sudo installer -pkg graphviz-2.36.0.pkg -target /
+  brew install graphviz --with-app --with-bindings || exit 1
 else
   echo Graphviz already installed.
 fi
 
-cd conley-morse-database
+cd ..
 echo "PREREQ=/opt/X11 /usr/local" > makefile.dep
 #echo "USER_CXX_FLAGS=-stdlib=libc++" >> makefile.dep
